@@ -1,0 +1,37 @@
+{
+    "categories": [
+        {
+            "name": "data_management",
+            "groups": [
+                {
+                    "name": "masterdata",
+                    "icon": "cloud",
+                    "modules": [
+                        {
+                            "name": "studyprogram_data",
+                            "path": "/studyprogram"
+                        }
+                    ]
+                },
+                {
+                    "name": "curriculum",
+                    "icon": "layers",
+                    "modules": [
+                        {
+                            "name": "manage_curriculum",
+                            "path": "/curriculum"
+                        },
+                        {
+                            "name": "manage_subjects",
+                            "path": "/subjects"
+                        },
+                        {
+                            "name": "learning_method_type",
+                            "path": "/learning-methods"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

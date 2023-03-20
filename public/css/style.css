@@ -1,0 +1,448 @@
+html, body {
+    background-color: #FAFCFE !important;
+}
+.dataTables_length {
+    margin-left: 5px
+}
+.dt-buttons {
+    margin-top: 1em;
+    margin-left: 5px;
+}
+
+.dt-buttons > .btn-outline-secondary {
+    border-color: #d8d6de !important;
+}
+
+.text-eazy {
+    color: rgb(234, 84, 85);
+}
+.text-eazy-secondary {
+    color:#163485;
+}
+
+.form-group {
+    margin-bottom: .6em !important;
+}
+
+.datepicker {
+    z-index: 1600 !important;
+    transform: none !important;
+}
+
+.btn-blue {
+    background-color: #2196f3 !important;
+    color: #FFF !important;
+}
+
+.btn-outline-blue {
+    border: 1px solid #2196f3 !important;
+    background-color: transparent;
+    color: #2196f3;
+}
+
+.btn-outline-blue:hover, .btn-outline-blue:focus {
+    border: 1px solid #2196f3 !important;
+    background-color: #2196f3;
+    color: #fff;
+}
+
+.btn-merah-solid {
+    background-color: #FF4949 !important;
+    color: #FFF !important;
+}
+
+.btn-outline-merah-solid {
+    border: 1px solid #FF4949 !important;
+    background-color: transparent;
+    color: #FF4949;
+}
+
+.btn-outline-merah-solid:hover {
+    border: 1px solid #FF4949 !important;
+    background-color: #FF4949;
+    color: #FFF;
+}
+
+#overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 9999; /* Specify a stack order in case you're using a different order for other elements */
+}
+
+.wheel-and-hamster {
+    --dur: 1s;
+    position: relative;
+    width: 12em;
+    height: 12em;
+}
+.wheel,
+.hamster,
+.hamster div,
+.spoke {
+    position: absolute;
+}
+.wheel,
+.spoke {
+    border-radius: 50%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.wheel {
+    background: radial-gradient(100% 100% at center,hsla(0,0%,60%,0) 47.8%,hsl(0,0%,60%) 48%);
+    z-index: 2;
+}
+.hamster {
+    animation: hamster var(--dur) ease-in-out infinite;
+    top: 50%;
+    left: calc(50% - 3.5em);
+    width: 7em;
+    height: 3.75em;
+    transform: rotate(4deg) translate(-0.8em,1.85em);
+    transform-origin: 50% 0;
+    z-index: 1;
+}
+.hamster__head {
+    animation: hamsterHead var(--dur) ease-in-out infinite;
+    background: hsl(30,90%,55%);
+    border-radius: 70% 30% 0 100% / 40% 25% 25% 60%;
+    box-shadow:
+        0 -0.25em 0 hsl(30,90%,80%) inset,
+        0.75em -1.55em 0 hsl(30,90%,90%) inset;
+    top: 0;
+    left: -2em;
+    width: 2.75em;
+    height: 2.5em;
+    transform-origin: 100% 50%;
+}
+.hamster__ear {
+    animation: hamsterEar var(--dur) ease-in-out infinite;
+    background: hsl(0,90%,85%);
+    border-radius: 50%;
+    box-shadow: -0.25em 0 hsl(30,90%,55%) inset;
+    top: -0.25em;
+    right: -0.25em;
+    width: 0.75em;
+    height: 0.75em;
+    transform-origin: 50% 75%;
+}
+.hamster__eye {
+    animation: hamsterEye var(--dur) linear infinite;
+    background-color: hsl(0,0%,0%);
+    border-radius: 50%;
+    top: 0.375em;
+    left: 1.25em;
+    width: 0.5em;
+    height: 0.5em;
+}
+.hamster__nose {
+    background: hsl(0,90%,75%);
+    border-radius: 35% 65% 85% 15% / 70% 50% 50% 30%;
+    top: 0.75em;
+    left: 0;
+    width: 0.2em;
+    height: 0.25em;
+}
+.hamster__body {
+    animation: hamsterBody var(--dur) ease-in-out infinite;
+    background: hsl(30,90%,90%);
+    border-radius: 50% 30% 50% 30% / 15% 60% 40% 40%;
+    box-shadow:
+        0.1em 0.75em 0 hsl(30,90%,55%) inset,
+        0.15em -0.5em 0 hsl(30,90%,80%) inset;
+    top: 0.25em;
+    left: 2em;
+    width: 4.5em;
+    height: 3em;
+    transform-origin: 17% 50%;
+    transform-style: preserve-3d;
+}
+.hamster__limb--fr,
+.hamster__limb--fl {
+    clip-path: polygon(0 0,100% 0,70% 80%,60% 100%,0% 100%,40% 80%);
+    top: 2em;
+    left: 0.5em;
+    width: 1em;
+    height: 1.5em;
+    transform-origin: 50% 0;
+}
+.hamster__limb--fr {
+    animation: hamsterFRLimb var(--dur) linear infinite;
+    background: linear-gradient(hsl(30,90%,80%) 80%,hsl(0,90%,75%) 80%);
+    transform: rotate(15deg) translateZ(-1px);
+}
+.hamster__limb--fl {
+    animation: hamsterFLLimb var(--dur) linear infinite;
+    background: linear-gradient(hsl(30,90%,90%) 80%,hsl(0,90%,85%) 80%);
+    transform: rotate(15deg);
+}
+.hamster__limb--br,
+.hamster__limb--bl {
+    border-radius: 0.75em 0.75em 0 0;
+    clip-path: polygon(0 0,100% 0,100% 30%,70% 90%,70% 100%,30% 100%,40% 90%,0% 30%);
+    top: 1em;
+    left: 2.8em;
+    width: 1.5em;
+    height: 2.5em;
+    transform-origin: 50% 30%;
+}
+.hamster__limb--br {
+    animation: hamsterBRLimb var(--dur) linear infinite;
+    background: linear-gradient(hsl(30,90%,80%) 90%,hsl(0,90%,75%) 90%);
+    transform: rotate(-25deg) translateZ(-1px);
+}
+.hamster__limb--bl {
+    animation: hamsterBLLimb var(--dur) linear infinite;
+    background: linear-gradient(hsl(30,90%,90%) 90%,hsl(0,90%,85%) 90%);
+    transform: rotate(-25deg);
+}
+.hamster__tail {
+    animation: hamsterTail var(--dur) linear infinite;
+    background: hsl(0,90%,85%);
+    border-radius: 0.25em 50% 50% 0.25em;
+    box-shadow: 0 -0.2em 0 hsl(0,90%,75%) inset;
+    top: 1.5em;
+    right: -0.5em;
+    width: 1em;
+    height: 0.5em;
+    transform: rotate(30deg) translateZ(-1px);
+    transform-origin: 0.25em 0.25em;
+}
+.spoke {
+    animation: spoke var(--dur) linear infinite;
+    background:
+        radial-gradient(100% 100% at center,hsl(0,0%,60%) 4.8%,hsla(0,0%,60%,0) 5%),
+        linear-gradient(hsla(0,0%,55%,0) 46.9%,hsl(0,0%,65%) 47% 52.9%,hsla(0,0%,65%,0) 53%) 50% 50% / 99% 99% no-repeat;
+}
+
+/* Animations */
+@keyframes hamster {
+    from, to { transform: rotate(4deg) translate(-0.8em,1.85em); }
+    50% { transform: rotate(0) translate(-0.8em,1.85em); }
+}
+@keyframes hamsterHead {
+    from, 25%, 50%, 75%, to { transform: rotate(0); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(8deg); }
+}
+@keyframes hamsterEye {
+    from, 90%, to { transform: scaleY(1); }
+    95% { transform: scaleY(0); }
+}
+@keyframes hamsterEar {
+    from, 25%, 50%, 75%, to { transform: rotate(0); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(12deg); }
+}
+@keyframes hamsterBody {
+    from, 25%, 50%, 75%, to { transform: rotate(0); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-2deg); }
+}
+@keyframes hamsterFRLimb {
+    from, 25%, 50%, 75%, to { transform: rotate(50deg) translateZ(-1px); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-30deg) translateZ(-1px); }
+}
+@keyframes hamsterFLLimb {
+    from, 25%, 50%, 75%, to { transform: rotate(-30deg); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(50deg); }
+}
+@keyframes hamsterBRLimb {
+    from, 25%, 50%, 75%, to { transform: rotate(-60deg) translateZ(-1px); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(20deg) translateZ(-1px); }
+}
+@keyframes hamsterBLLimb {
+    from, 25%, 50%, 75%, to { transform: rotate(20deg); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-60deg); }
+}
+@keyframes hamsterTail {
+    from, 25%, 50%, 75%, to { transform: rotate(30deg) translateZ(-1px); }
+    12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(10deg) translateZ(-1px); }
+}
+@keyframes spoke {
+    from { transform: rotate(0); }
+    to { transform: rotate(-1turn); }
+}
+
+.card-filter {
+    margin-bottom: 10px;
+}
+.card.card-filter {
+    box-shadow: 0 4px 10px 0 rgb(34 41 47 / 10%);
+}
+.card-filter .col-form-label {
+    color: #7367f0;
+    font-weight: bold;
+}
+
+.ficon-dropdown {
+    font-size:23px;
+    line-height:20px;
+    padding-top:2px;
+}
+
+table.dataTable td,
+table.dataTable th {
+    padding: 10px 12px;
+    vertical-align: middle;
+    font-size:13px;
+}
+
+/*---- MENU ----*/
+.navigation {
+    font-size: 1rem;
+}
+.vertical-layout.vertical-menu-modern .main-menu .navigation>li>a svg,
+.vertical-layout.vertical-menu-modern .main-menu .navigation>li>a i {
+    height: 18px;
+    width: 18px;
+    font-size: 1.25rem;
+}
+.vertical-layout.vertical-menu-modern.menu-expanded .main-menu .navigation li.has-sub>a:after {
+    top: auto;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+/*---- MENU ----*/
+.bg-label-secondary {
+    background-color: #f2f2f3 !important;
+    color: #a8aaae !important;
+}
+.bg-label-warning {
+    background-color: #fff1e3 !important;
+    color: #ff9f43 !important;
+}
+.bg-label-light {
+    background-color: #fafafb !important;
+    color: #dfdfe3 !important;
+}
+.bg-label-dark {
+    background-color: #e4e4e4 !important;
+    color: #4b4b4b !important;
+}
+.bg-label-gray {
+    background-color: rgba(254, 254, 254, 0.8575) !important;
+    color: rgba(75, 70, 92, 0.05) !important;
+}
+.filepond--credits {
+    display: none;
+}
+.page-title {
+    color: #4F4F4F !important;
+}
+.table th, .table td {
+    color: #333333 !important;
+}
+.btn:hover:not(.disabled):not(:disabled) {
+    box-shadow: unset !important;
+}
+/* Primary Color */
+.btn-primary, .btn-primary:hover, .bg-primary {
+    background-color: #642CDA !important;
+    border-color:  #642CDA !important;
+}
+.text-primary {
+    color: #642CDA !important;
+}
+.bg-label-primary {
+    background-color: #FEF3FF !important;
+    color: #642CDA !important;
+}
+/* Danger Color */
+.btn-danger, .btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active, .bg-danger {
+    background-color: #FF4949 !important;
+    border-color:  #FF4949 !important;
+}
+.text-danger {
+    color: #FF4949 !important;
+}
+.bg-label-danger {
+    background-color: #FFF5F5 !important;
+    color: #FF4949 !important;
+}
+/* Info Color */
+.btn-info, .btn-info:hover, .btn-info:focus, .btn-info:active, .btn-info.active, .bg-info {
+    background-color: #356CFF !important;
+    border-color:  #356CFF !important;
+}
+.btn-outline-info, .btn-outline-info:hover, .btn-outline-info:focus, .btn-outline-info:active, .btn-outline-info.active {
+    border: 1px solid #356CFF !important;
+    color: #356CFF;
+}
+.btn-outline-info:not(:disabled):not(.disabled):hover, .btn-outline-info:not(:disabled):not(.disabled):active, .btn-outline-info:not(:disabled):not(.disabled).active, .btn-outline-info:not(:disabled):not(.disabled):focus {
+    color: #356CFF !important;
+    background-color: rgb(241, 242, 255) !important;
+}
+.text-info {
+    color: #356CFF !important;
+}
+.bg-label-info {
+    background-color: #F0F4FF !important;
+    color: #356CFF !important;
+}
+/* Success Color */
+.btn-success, .btn-success:hover, .bg-success {
+    background-color: #0BA44C !important;
+    border-color:  #0BA44C !important;
+}
+.text-success {
+    color: #0BA44C !important;
+}
+.bg-label-success {
+    background-color: #E1FFE0 !important;
+    color: #0BA44C !important;
+}
+/*  */
+.dt-action-group .btn.btn-icon {
+    padding: 0.55rem 0.5rem;
+}
+.form-alert {
+    font-size: 11px;
+    font-weight: bold;
+}
+
+div.table-responsive div.dataTables_wrapper div.row {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.navigation .menu-content li {
+    white-space: initial !important;
+}
+.navigation .menu-content .menu-item-icon {
+    min-width: 11px;
+}
+.school-year-info .small-info {
+    display: none;
+}
+.school-year-info .large-info {
+    display: inline-block;
+}
+@media (max-width: 648px) {
+    .breadcrumbs-top .content-header-title {
+        display: none !important;
+    }
+    .content-header .breadcrumb {
+        display: block !important;
+    }
+    .school-year-info .small-info {
+        display: inline-block;
+    }
+    .school-year-info .large-info {
+        display: none;
+    }
+}
+.rl-tp-1 {
+    position: relative;
+    top: 1.1px;
+}
+/* override dt-buttons width on small screen */
+@media screen and (max-width: 767px) {
+    div.dt-buttons {
+        width: auto !important;
+    }
+}
