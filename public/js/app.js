@@ -192,6 +192,16 @@ const _setIconConfig = () => {
     } catch(e) {}
 }
 
+String.prototype.escape = function() {
+    var tagsToReplace = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
+    };
+    return this.replace(/[&<>]/g, function(tag) {
+        return tagsToReplace[tag] || tag;
+    });
+};
 
 $(function(){
     _setDatatableConfig()
@@ -226,7 +236,8 @@ const _debounceSync = (time) => {
 const _datatable = {
     instance: null,
     reload: function(){
-        this.instance.draw()
+        // this.instance.draw()
+        this.instance.ajax.reload(null, false)
     },
     getRowData: function(e){
         return this.instance.row($(e).parents('tr')).data()
@@ -445,3 +456,208 @@ const _responseHandler = {
         _toastr.error('Terjadi kesalahan pada server', 'Alert')
     }
 }
+
+/**
+ * MODAL HELPER
+ */
+const mainModalElm = new bootstrap.Modal(document.getElementById('mainModal'));
+        
+$('#mainModal').on('hidden.bs.modal', function (event) {
+    Modal.close();
+});
+
+class Modal {
+    /**
+     * Displaying modal to user
+     * 
+     * @params {string} type - type of modal content, 'detail' modal or 'form' modal.
+     * @params {string} modalTitle - label for modal title.
+     * @params {object} config - modal content configurations.
+     * @params {string} config.formId - id attribute of created form.
+     * @params {string} config.formActionUrl - url when submitting form.
+     * @params {object} config.fields - form fields configurations.
+     * @params {boolean} config.fields.[db_field_name].isHidden - set visibility of fields.
+     * @params {strinmodal-mdg} config.fields.[db_field_name].content.template - string of prepared html element.
+     * @params {string} config.fields.[db_field_name].content.[parameter] - parameter for html element.
+     * @params {string} config.formSubmitLabel - form submit button label.
+     * @params {function} config.callback - action after form submit success.
+     */
+    static show({type, modalTitle, modalSize = null, config}) {
+        $(`#mainModal #mainModalLabel`).text(modalTitle);
+
+        if(modalSize) {
+            $('#mainModal .modal-dialog').addClass('modal-'+modalSize);
+        } else {
+            $('#mainModal .modal-dialog').addClass('modal-md');
+        }
+
+        var html = undefined;
+        if(type === 'detail') {
+            html = this.generateModalDetailBody(config);
+            $(`#mainModal .modal-body`).html(html);
+            config.callback();
+
+        } else if(type === 'form') {
+            html = this.generateModalFormBody(config);
+            $(`#mainModal .modal-body`).html(html);
+            config.modalShow && config.modalShow();
+            $('#'+config.formId).on(
+                'submit', 
+                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback),
+            );
+        } else if(type == 'confirmation') {
+            html = this.generateModalConfirmationBody(config);
+            $(`#mainModal .modal-body`).html(html);
+            config.callback();
+        }
+        
+        feather.replace();
+        $('.flatpickr-basic').flatpickr();
+        mainModalElm.show();
+    }
+
+    static generateModalDetailBody(config) {
+        var fieldConfig = config.fields;
+        var html = '<div class="d-flex flex-column" style="gap: 1.5rem">';
+
+        for (var key in fieldConfig) {
+            var title = fieldConfig[key].title;
+            var contentConfig = fieldConfig[key].content;
+            var contentHtml = contentConfig.template;
+            delete contentConfig.template
+
+            for(var x in contentConfig) {
+                contentHtml = contentHtml.replace(':'+x, contentConfig[x].escape());
+            }
+
+            if(fieldConfig[key].isHidden) {
+                html += '';
+            } else {
+                html += `
+                    <div>
+                        <div class="fw-bold" style="margin-bottom: .5rem">${title}</div>
+                        <div>${contentHtml}</div>
+                    </div>
+                `;
+            }                    
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    static generateModalFormBody(config) {
+        var fieldConfig = config.fields;
+        var html = `<form id="${config.formId}">`;
+
+        for (var key in fieldConfig) {
+            var title = fieldConfig[key].title;
+            var contentConfig = fieldConfig[key].content;
+            var contentHtml = contentConfig.template;
+            delete contentConfig.template
+
+            for(var x in contentConfig) {
+                contentHtml = contentHtml.replace(':'+x, contentConfig[x].escape());
+            }
+
+            if(fieldConfig[key].isHidden) {
+                html += contentHtml;
+            } else {
+                html += `
+                    <div class="mb-2">
+                        <label class="form-label-md">${title}</label>
+                        ${contentHtml}
+                    </div>
+                `;
+            }
+
+        }
+
+        html += `
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary me-1">${config.formSubmitLabel}</button>
+                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                </div>
+            </form>
+        `;
+        return html;
+    }
+
+    static generateModalConfirmationBody(config) {
+        var html = '<div>';
+        html += `
+            <p>Anda yakin ingin menghapus komponen berikut?</p>
+            <p class="fw-bolder">Biaya Perkuliahan</p>
+        `;
+        html += `
+            <div class="d-flex justify-content-end mt-2">
+                <button class="btn btn-danger me-1">Hapus</button>
+                <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+            </div>
+        `;
+        html += '</div>';
+
+        return html;
+    }
+
+    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback) {
+        return async (e) => {
+            e.preventDefault();
+
+            try {
+                if(beforeSubmit) await beforeSubmit();
+
+                var formData = new FormData($('#'+formId)[0]);
+                
+                $.ajax({
+                    url: formActionUrl,
+                    type:'post',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType:'json',
+                    success : (data, textStatus, jqXHR) => {
+                        if(data.status === 'ok') {
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.text,
+                            }).then(() => {
+                                this.close();
+                                callback();
+                            });
+                        } else if(data.status === 'error') {
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.text,
+                            });
+                        } else {
+                            handleAjaxError(jqXHR);
+                        }
+                    },
+                });
+                
+            } catch (error) {
+                // do nothing
+            }
+
+        }
+    }
+
+    static close() {
+        var formId = $('#mainModal').find('form').attr('id');
+        formId && $('#'+formId).unbind('submit');
+        
+        $('#mainModal .modal-dialog').attr('class', 'modal-dialog modal-dialog-centered');
+        $(`#mainModal #mainModalLabel`).text('...');
+        $(`#mainModal .modal-body`).html('...');
+        mainModalElm.hide();
+    }
+}
+
+/**
+ * Localization
+ */
+let Rupiah = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+});
