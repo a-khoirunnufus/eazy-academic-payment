@@ -1,3 +1,7 @@
+:root {
+    --primary: #356CFF;
+}
+
 html, body {
     background-color: #FAFCFE !important;
 }
@@ -343,15 +347,15 @@ table.dataTable th {
 }
 /* Primary Color */
 .btn-primary, .btn-primary:hover, .bg-primary {
-    background-color: #642CDA !important;
-    border-color:  #642CDA !important;
+    background-color: var(--primary) !important;
+    border-color:  var(--primary) !important;
 }
 .text-primary {
-    color: #642CDA !important;
+    color: var(--primary) !important;
 }
 .bg-label-primary {
     background-color: #FEF3FF !important;
-    color: #642CDA !important;
+    color: var(--primary) !important;
 }
 /* Danger Color */
 .btn-danger, .btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active, .bg-danger {

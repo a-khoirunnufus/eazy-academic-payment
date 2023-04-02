@@ -1,0 +1,166 @@
+/* ABSTRACTS */
+
+$eazy-red: #F31A1A;
+$eazy-blue: #356CFF;
+$eazy-text: #565360;
+$biru-eazy-1: #163485;
+$biru-eazy-3: #356CFF;
+$kuning-eazy: #FFD600;
+$putih: #FFF;
+
+/* COMPONENTS */
+.main-menu {
+    .navbar-header {
+        height: fit-content;
+        padding: 0.35rem 1rem 0.3rem 1.5rem;
+
+        .navbar-brand {
+            margin-top: 0;
+    
+            .brand-logo {
+                display: inline-block;
+                width: 40px;
+                height: 67px;
+                max-width: unset;
+                background-image: url("/images/logo-eazy-icon-small.png");
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+            }
+        }
+    }
+
+    &.expanded .navbar-header .navbar-brand .brand-logo {
+        width: 120px;
+        background-image: url("/images/logo-eazy-small.png");
+    }
+
+    &.menu-light .navigation {
+        .navigation-header {
+            color: $kuning-eazy !important;
+        }
+
+        // items has not sub
+        > li > a {
+            border-radius: 6px !important;
+        }
+
+        > li.active > a {
+            box-shadow: unset !important;
+            background: $eazy-red !important;
+            color: $putih !important;
+        }
+
+        // items has sub
+        > li.has-sub > a {
+        }
+
+        > li.has-sub.open > a {
+            box-shadow: unset !important;
+        }
+
+        > li.has-sub.sidebar-group-active > a {
+            box-shadow: unset !important;
+        }
+
+        // sub-items
+        > li > ul > li a {
+        }
+
+        > li > ul > li.active {
+            box-shadow: unset !important;
+
+            a {
+                color: $biru-eazy-1 !important;
+            }
+        }
+
+        
+    }
+}
+
+.eazy-shortcut {
+    display: flex;
+    gap: 3rem;
+    
+    .eazy-shortcut-item {
+        display: flex;
+        cursor: pointer;
+        
+        .eazy-shortcut-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            padding: 0.5em 0;
+            font-weight: 500;
+            color: $eazy-text;
+            background-color: rgba(186, 191, 199, 0.12);
+            border-radius: 0.35rem;
+
+            svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        .eazy-shortcut-label {
+            display: flex;
+            align-items: center;
+            margin-left: 1rem;
+            color: $eazy-text;
+            font-weight: 500;
+        }
+
+        &.active {
+            .eazy-shortcut-icon {
+                background-color: $eazy-blue;
+                svg {
+                    color: white;
+                }
+            }    
+            .eazy-shortcut-label {
+                color: $eazy-blue;
+            }
+        }
+    }
+
+    
+}
+
+
+/* BOOTSTRAP OVERRIDE */
+.main-menu.menu-light .navigation > li ul .active {
+    background: $eazy-red !important;
+    border-radius: 6px !important;
+}
+.main-menu.menu-light .navigation > li > ul > li.active a {
+    color: $putih !important;
+}
+.page-item.active .page-link {
+    background-color: $eazy-blue !important;
+}
+.form-check-input:checked {
+    background-color: $eazy-blue !important;
+    border-color: $eazy-blue !important;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    color: $eazy-blue;
+    background-color: rgba(53, 108, 255, 0.12);
+}
+.form-label-md {
+    margin-bottom: 0.2857rem !important;
+    font-size: 1rem;
+    color: $eazy-text !important;
+}
+.form-check-input:checked[type="checkbox"] {
+    background-size: 10px !important;
+}
+.form-check-input:checked[type="radio"] {
+    background-image: url("data:image/svg+xml;charset=utf8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9.5 7.5'%3e%3cpolyline points='0.75 4.35 4.18 6.75 8.75 0.75' style='fill:none;stroke:%23fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5px'/%3e%3c/svg%3e") !important;
+    background-size: 10px;   
+}
+
+
+

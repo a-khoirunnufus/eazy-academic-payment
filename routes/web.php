@@ -23,3 +23,20 @@ Route::group(['middleware' => ['auth', 'access']], function(){
     // });
 
 });
+
+Route::get('/setting/invoice-component', fn() => view('pages.setting.invoice-component'));
+Route::get('/setting/instalment-template', fn() => view('pages.setting.instalment-template'));
+Route::get('/setting/rates', fn() => view('pages.setting.rates'));
+Route::get('/setting/rates-per-course', fn() => view('pages.setting.rates-per-course'));
+Route::get('/setting/registration-form', fn() => view('pages.setting.registration-form'));
+Route::get('/setting/academic-rules', fn() => view('pages.setting.academic-rules'));
+
+Route::get('/generate/registrant-invoice', fn() => view('pages.generate.registrant-invoice'));
+Route::get('/generate/old-student-invoice', fn() => view('pages.generate.old-student-invoice'));
+Route::get('/generate/new-student-invoice', fn() => view('pages.generate.new-student-invoice'));
+Route::get('/generate/student-invoice-detail', fn() => view('pages.generate.student-invoice-detail'));
+Route::get('/generate/other-invoice', fn() => view('pages.generate.other-invoice'));
+Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-invoice-detail'));
+
+Route::get('/student/student-payment', fn() => view('external.student.student-payment'));
+Route::get('/student/proceed-payment', fn() => view('external.student.proceed-payment'));
