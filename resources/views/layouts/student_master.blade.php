@@ -40,8 +40,8 @@
     
     <link rel="stylesheet" type="text/css" href="{{ url('css/style.css') }}?version={{ config('version.css_style') }}">
     
-    {{-- @vite(['resources/sass/custom.scss']) --}}
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/custom.css') }}?version={{ config('version.css_style') }}">
+    @vite(['resources/sass/custom.scss'])
+    <!-- <link rel="stylesheet" type="text/css" href="{{ url('css/custom.css') }}?version={{ config('version.css_style') }}"> -->
 
     @yield('css_section')
 </head>

@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Setting')
+@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -9,6 +9,7 @@
     <style>
         .academic-rules-filter {
             display: flex;
+            gap: 1rem;
         }
     </style>
 @endsection
@@ -19,16 +20,14 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-row" style="gap: 2rem">
-            <div class="academic-rules-filter">
-                <div>
-                    <label class="form-label">Status</label>
-                    <select class="form-select">
-                        <option disabled>Pilih status</option>
-                        <option value="1" selected>Aktif</option>
-                        <option value="2">Tidak Aktif</option>
-                    </select>
-                </div>
+        <div class="academic-rules-filter">
+            <div style="width: 250px">
+                <label class="form-label">Status</label>
+                <select class="form-select">
+                    <option selected disabled>Pilih status</option>
+                    <option value="1">Aktif</option>
+                    <option value="2">Tidak Aktif</option>
+                </select>
             </div>
             <div class="d-flex align-items-end">
                 <button class="btn btn-primary">
@@ -44,11 +43,12 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
+                <th>Periode Masuk</th>
                 <th>Aturan Akademik</th>
                 <th>Komponen Tagihan</th>
                 <th>Cicilan</th>
-                <th class="text-center">Minimal Lunas(%)</th>
-                <th class="text-center">Aktif?</th>
+                <th class="text-center">Minimal Lunas</th>
+                <th class="text-center">Status Aturan</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -80,25 +80,57 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'rule', data: 'rule'},
-                    {name: 'invoice_component', data: 'invoice_component'},
-                    {name: 'instalment', data: 'instalment'},
                     {
-                        name: 'minimum_paid', 
-                        data: 'minimum_paid',
+                        name: 'period', 
+                        data: 'period',
                         render: (data) => {
-                            return '<div class="text-center">'+data+'</div>'
+                            return `<span class="fw-bold">${data}</span>`;
+                        }
+                    },
+                    {
+                        name: 'rule', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="fw-bold">${row.invoice_component}</span><br>
+                                    <small class="text-secondary">${row.rule_name}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'invoice_component', 
+                        data: 'invoice_component',
+                        render: (data) => {
+                            return `<span class="fw-bold">${data}</span>`;
+                        }
+                    },
+                    {
+                        name: 'instalment', 
+                        data: 'instalment',
+                        render: (data) => {
+                            return `<span class="fw-bold">${data}</span>`;
+                        }
+                    },
+                    {
+                        name: 'minimum_paid_percent', 
+                        data: 'minimum_paid_percent',
+                        render: (data) => {
+                            return '<div class="text-center text-danger fw-bold">'+data+'%</div>'
                         }
                     },
                     {
                         name: 'is_active', 
                         data: 'is_active',
                         render: (data) => {
-                            return `
-                                <div class="d-flex justify-content-center">
-                                    <input type="checkbox" class="form-check-input" ${data ? 'checked' : ''} disabled />
-                                </div>
-                            `
+                            var html = '<div class="d-flex justify-content-center">'
+                            if(data) {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
+                            }
+                            html += '</div>'
+                            return html
                         }
                     },
                 ],
@@ -152,64 +184,73 @@
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Aturan Akademik',
+                modalSize: 'lg',
                 config: {
                     formId: 'form-add-academic-rules',
                     formActionUrl: '#',
+                    formType: 'add',
+                    isTwoColumn: true,
                     fields: {
+                        entry_period: {
+                            title: 'Periode Masuk',
+                            content: {
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Periode Masuk</option>
+                                        @foreach($static_school_years as $school_year)
+                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
+                            },
+                        },
                         rule: {
                             title: 'Aturan Akademik',
                             content: {
-                                template: `<input type="text" name="rule" class="form-control" />`,
+                                template: `<input type="text" name="rule" class="form-control" placeholder="Masukkan nama aturan akademik" />`,
                             },
                         },
                         invoice_component: {
                             title: 'Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="invoice_component">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Komponen Tagihan</option>
+                                        @foreach($static_invoice_components as $invoice_component)
+                                            <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
                             },
                         },
                         instalment: {
                             title: 'Cicilan',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="instalment">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Skema Cicilan</option>
+                                        @foreach($static_installments as $installment)
+                                            <option value="{{ $installment }}">{{ $installment }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
                             },
                         },
                         minimum_paid: {
                             title: 'Minimal Lunas(%)',
                             content: {
-                                template: `<input type="number" name="minimum_paid" class="form-control" />`,
+                                template: `<input type="number" name="minimum_paid" class="form-control" placeholder="Masukan persentase minimal lunas" />`,
                             },
                         },
                         is_active: {
-                            title: 'Status',
+                            title: 'Status Aturan',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="is_active" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Aktif
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="is_active" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Tidak Aktif
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <select class="form-select" name="is_active">
+                                        <option disabled selected>Pilih Status Aturan</option>
+                                        <option value="1">Aktif</option>
+                                        <option value="2">Tidak Aktif</option>
+                                    </select>
                                 `
                             },
                         },
@@ -228,68 +269,99 @@
             });
         },
         edit: function() {
+            const {
+                entry_period, 
+                rule_name,
+                invoice_component,
+                installment,
+                minimum_paid,
+                is_active
+            } = {
+                entry_period: '2023/2024',
+                rule_name: 'Mengambil Cuti',
+                invoice_component: 'Cuti',
+                installment: 'Full 100% Pembayaran',
+                minimum_paid: '10',
+                is_active: 'active',
+            };
+
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Aturan',
+                modalTitle: 'Edit Aturan Akademik',
+                modalSize: 'lg',
                 config: {
                     formId: 'form-edit-academic-rules',
                     formActionUrl: '#',
+                    formType: 'edit',
+                    isTwoColumn: true,
                     fields: {
-                        rule: {
+                        entry_period: {
+                            title: 'Periode Masuk',
+                            content: {
+                                template: `
+                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                        <option disabled>Pilih Periode Masuk</option>
+                                        @foreach($static_school_years as $school_year)
+                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
+                                selected: entry_period,
+                            },
+                        },
+                        rule_name: {
                             title: 'Aturan Akademik',
                             content: {
-                                template: `<input type="text" name="rule" class="form-control" value="CUTI - Mengambil Cuti" />`,
+                                template: `<input type="text" name="rule_name" value=":value" class="form-control" placeholder="Masukkan nama aturan akademik" />`,
+                                value: rule_name,
                             },
                         },
                         invoice_component: {
                             title: 'Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="invoice_component">
-                                        <option disabled>Open this select menu</option>
-                                        <option value="1" selected>CUTI</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                        <option disabled>Pilih Komponen Tagihan</option>
+                                        @foreach($static_invoice_components as $invoice_component)
+                                            <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
+                                selected: invoice_component,
                             },
                         },
-                        instalment: {
+                        installment: {
                             title: 'Cicilan',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="instalment">
-                                        <option disabled>Open this select menu</option>
-                                        <option value="1" selected>FULL</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                        <option disabled>Pilih Skema Cicilan</option>
+                                        @foreach($static_installments as $installment)
+                                            <option value="{{ $installment }}">{{ $installment }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
+                                selected: installment,
                             },
                         },
                         minimum_paid: {
                             title: 'Minimal Lunas(%)',
                             content: {
-                                template: `<input type="number" name="minimum_paid" class="form-control" value="10" />`,
+                                template: `<input type="number" name="minimum_paid" value=":value" class="form-control" placeholder="Masukan persentase minimal lunas" />`,
+                                value: minimum_paid,
                             },
                         },
                         is_active: {
-                            title: 'Status',
+                            title: 'Status Aturan',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="is_active" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Aktif
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="is_active" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Tidak Aktif
-                                            </label>
-                                        </div>
-                                    </div>
-                                `
+                                    <select class="form-select" name="is_active">
+                                        <option disabled>Pilih Status Aturan</option>
+                                        <option value="active">Aktif</option>
+                                        <option value="inactive">Tidak Aktif</option>
+                                    </select>
+                                `,
+                                selected: is_active,
                             },
                         },
                     },

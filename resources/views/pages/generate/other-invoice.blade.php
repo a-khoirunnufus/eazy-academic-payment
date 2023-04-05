@@ -1,15 +1,16 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Generate')
+@section('page_title', 'Generate Tagihan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
 @section('css_section')
     <style>
         .other-invoice-filter {
-            display: flex;
-            gap: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 1rem;
         }
     </style>
 @endsection
@@ -20,35 +21,53 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-row" style="gap: 2rem">
-            <div class="other-invoice-filter" style="flex-grow: 1">
-                <div class="flex-grow-1">
-                    <label class="form-label">Periode Tagihan</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>2022 Gasal</option>
-                    </select>
-                </div>
-                <div class="flex-grow-1">
-                    <label class="form-label">Komponen Tagihan</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>Biaya Wisuda</option>
-                    </select>
-                </div>
-                <div class="flex-grow-1">
-                    <label class="form-label">Fakultas</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                        <option value="1">Fakultas Informatika</option>
-                    </select>
-                </div>
-                <div class="flex-grow-1">
-                    <label class="form-label">Sistem Kuliah</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                    </select>
-                </div>
+        <div class="other-invoice-filter">
+            <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Periode Tagihan</option>
+                    @foreach($static_school_years as $school_year)
+                        @foreach($static_semesters as $semester)
+                            <option value="{{ $school_year.'_'.$semester }}">{{ $school_year.' '.$semester }}</option>
+                        @endforeach
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Komponen Tagihan</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Komponen Tagihan</option>
+                    @foreach($static_invoice_components as $invoice_component)
+                        <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Fakultas</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Fakultas</option>
+                    @foreach($static_faculties as $faculty)
+                        <option value="{{ $faculty }}">{{ $faculty }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Program Studi</option>
+                    @foreach($static_study_programs as $study_program)
+                        <option value="{{ $study_program }}">{{ $study_program }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Gelombang</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Gelombang</option>
+                    @foreach($static_registration_periods as $registration_period)
+                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="d-flex align-items-end">
                 <button class="btn btn-primary d-inline-block">
@@ -64,9 +83,9 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Fakultas/Program Studi</th>
+                <th>Program Studi / Fakultas</th>
                 <th>Komponen Tagihan</th>
-                <th>Total Tagihan</th>
+                <th>Jumlah Total</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -98,13 +117,31 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'unit_name', data: 'unit_name'},
-                    {name: 'invoice_component', data: 'invoice_component'},
+                    {
+                        name: 'unit',
+                        orderable: false,
+                        render: (data, _, row) => {
+                            return `
+                                <div class="${ row.is_child ? 'ps-2' : '' }">
+                                    <a type="button" href="${_baseURL+'/generate/other-invoice-detail'}" class="btn btn-link">${row.unit_name}</a>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'invoice_component', 
+                        data: 'invoice_component',
+                        orderable: false,
+                        render: (data) => {
+                            return `<span class="fw-bold">${data}</span>`;
+                        }
+                    },
                     {
                         name: 'invoice_total', 
                         data: 'invoice_total',
+                        orderable: false,
                         render: (data) => {
-                            return Rupiah.format(data)
+                            return `<span class="fw-bold">${Rupiah.format(data)}</span>`;
                         }
                     },
                 ],
@@ -112,8 +149,8 @@
                     feather.replace();
                 },
                 dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"other-invoice-actions d-flex align-items-end">>' +
+                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"other-invoice-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -121,6 +158,9 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
+                    $('.other-invoice-actions').html(`
+                        <h5 class="mb-0">Daftar Tagihan Lainnya</h5>
+                    `)
                     feather.replace()
                 }
             })

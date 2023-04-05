@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Setting')
+@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -58,9 +58,9 @@
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
                             if(data) {
-                                html += '<input class="form-check-input" type="checkbox" disabled checked>';
+                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
-                                html += '<input class="form-check-input" type="checkbox" disabled>';
+                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
                             }
                             html += '</div>'
                             return html
@@ -72,9 +72,9 @@
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
                             if(data) {
-                                html += '<input class="form-check-input" type="checkbox" disabled checked>';
+                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
-                                html += '<input class="form-check-input" type="checkbox" disabled>';
+                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
                             }
                             html += '</div>'
                             return html
@@ -86,9 +86,9 @@
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
                             if(data) {
-                                html += '<input class="form-check-input" type="checkbox" disabled checked>';
+                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
-                                html += '<input class="form-check-input" type="checkbox" disabled>';
+                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
                             }
                             html += '</div>'
                             return html
@@ -145,9 +145,11 @@
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Komponen Tagihan',
+                modalSize: 'md',
                 config: {
                     formId: 'form-add-invoice-component',
                     formActionUrl: '#',
+                    formType: 'add',
                     fields: {
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
@@ -171,66 +173,23 @@
                                     >`,
                             },
                         },
-                        old_student: {
-                            title: 'Terapkan Kepada Mahasiswa Lama',
+                        subjects: {
+                            title: null,
+                            type: 'checkbox',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="old_student" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="old_student" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
-                                `
-                            },
-                        },
-                        new_student: {
-                            title: 'Terapkan Kepada Mahasiswa Baru',
-                            content: {
-                                template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="new_student" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="new_student" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
-                                `
-                            },
-                        },
-                        registrant: {
-                            title: 'Terapkan Kepada Pendaftar',
-                            content: {
-                                template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="registrant" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="registrant" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <table class="table table-bordered">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Mahasiswa Lama</th>
+                                            <th class="text-center">Mahasiswa Baru</th>
+                                            <th class="text-center">Pendaftar</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center"><input type="checkbox" name="old_student" class="form-check-input" /></td>
+                                            <td class="text-center"><input type="checkbox" name="new_student" class="form-check-input" /></td>
+                                            <td class="text-center"><input type="checkbox" name="registrant" class="form-check-input" /></td>
+                                        </tr>
+                                    </table>
                                 `
                             },
                         },
@@ -252,9 +211,11 @@
             Modal.show({
                 type: 'form',
                 modalTitle: 'Edit Komponen Tagihan',
+                modalSize: 'md',
                 config: {
                     formId: 'form-edit-transaction-group',
                     formActionUrl: '#',
+                    formType: 'edit',
                     fields: {
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
@@ -280,66 +241,23 @@
                                     >`,
                             },
                         },
-                        old_student: {
-                            title: 'Terapkan Kepada Mahasiswa Lama',
+                        subjects: {
+                            title: null,
+                            type: 'checkbox',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="old_student" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="old_student" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
-                                `
-                            },
-                        },
-                        new_student: {
-                            title: 'Terapkan Kepada Mahasiswa Baru',
-                            content: {
-                                template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="new_student" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="new_student" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
-                                `
-                            },
-                        },
-                        registrant: {
-                            title: 'Terapkan Kepada Pendaftar',
-                            content: {
-                                template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="registrant" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Terapkan
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="registrant" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Jangan Terapkan
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <table class="table table-bordered">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Mahasiswa Lama</th>
+                                            <th class="text-center">Mahasiswa Baru</th>
+                                            <th class="text-center">Pendaftar</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center"><input type="checkbox" name="old_student" class="form-check-input" checked /></td>
+                                            <td class="text-center"><input type="checkbox" name="new_student" class="form-check-input" checked /></td>
+                                            <td class="text-center"><input type="checkbox" name="registrant" class="form-check-input" /></td>
+                                        </tr>
+                                    </table>
                                 `
                             },
                         },

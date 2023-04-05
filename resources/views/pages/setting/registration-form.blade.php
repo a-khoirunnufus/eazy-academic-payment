@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Setting')
+@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -9,6 +9,7 @@
     <style>
         .registration-form-filter {
             display: flex;
+            gap: 1rem;
         }
     </style>
 @endsection
@@ -19,17 +20,33 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-row" style="gap: 2rem">
-            <div class="registration-form-filter">
-                <div>
-                    <label class="form-label">Periode Masuk</label>
-                    <select class="form-select">
-                        <option disabled>Pilih periode masuk</option>
-                        <option value="1" selected>2017/2018 Periode Genap</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
-                    </select>
-                </div>
+        <div class="registration-form-filter">
+            <div class="flex-grow-1">
+                <label class="form-label">Periode Masuk</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Periode Masuk</option>
+                    @foreach($static_school_years as $school_year)
+                        <option value="{{ $school_year }}">{{ $school_year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex-grow-1">
+                <label class="form-label">Jalur Pendaftaran</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Jalur Pendaftaran</option>
+                    @foreach($static_registration_paths as $registration_path)
+                        <option value="{{ $registration_path }}">{{ $registration_path }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex-grow-1">
+                <label class="form-label">Gelombang</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Gelombang</option>
+                    @foreach($static_registration_periods as $registration_period)
+                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="d-flex align-items-end">
                 <button class="btn btn-primary">
@@ -45,8 +62,8 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Jenis Tagihan</th>
-                <th>Jalur</th>
+                <th>Periode Masuk</th>
+                <th>Jalur / Gelombang Pendaftaran</th>
                 <th>Nominal Tarif</th>
             </tr>
         </thead>
@@ -79,9 +96,31 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'invoice_type', data: 'invoice_type'},
-                    {name: 'track', data: 'track'},
-                    {name: 'rate', data: 'rate'},
+                    {
+                        name: 'period', 
+                        data: 'period',
+                        render: (data) => {
+                            return `<span class="fw-bold">${data}</span>`;
+                        }
+                    },
+                    {
+                        name: 'track_n_wave', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="fw-bold">${row.track}</span><br>
+                                    <small class="text-secondary">${row.wave}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'rate', 
+                        data: 'rate',
+                        render: (data) => {
+                            return Rupiah.format(data);
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -136,35 +175,51 @@
                 config: {
                     formId: 'form-add-registraton-form',
                     formActionUrl: '#',
+                    formType: 'add',
                     fields: {
-                        invoice_type: {
-                            title: 'Jenis Tagihan',
+                        entry_period: {
+                            title: 'Periode Masuk',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="invoice_type">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Periode Masuk</option>
+                                        @foreach($static_school_years as $school_year)
+                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
                             },
                         },
-                        track: {
-                            title: 'Jalur',
+                        registration_path: {
+                            title: 'Jalur Pendaftaran',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="track">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Jalur Pendaftaran</option>
+                                        @foreach($static_registration_paths as $registration_path)
+                                            <option value="{{ $registration_path }}">{{ $registration_path }}</option>
+                                        @endforeach
+                                    </select>  
+                                `,
+                            },
+                        },
+                        wave: {
+                            title: 'Gelombang',
+                            content: {
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Gelombang</option>
+                                        @foreach($static_registration_periods as $registration_period)
+                                            <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                                        @endforeach
+                                    </select>    
+                                `,
                             },
                         },
                         rate: {
                             title: 'Nominal Tarif',
                             content: {
-                                template: `<input type="number" name="rate" class="form-control" />`,
+                                template: `<input type="number" name="rate" class="form-control" placeholder="Masukkan nominal tarif" />`,
                             },
                         },
                     },
@@ -188,29 +243,30 @@
                 config: {
                     formId: 'form-edit-rates',
                     formActionUrl: '#',
+                    formType: 'edit',
                     fields: {
-                        invoice_type: {
-                            title: 'Jenis Tagihan',
+                        entry_period: {
+                            title: 'Periode Masuk',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="invoice_type">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <input type="text" name="entry_period" class="form-control" value="2023/2024" disabled />
+                                `,
                             },
                         },
-                        track: {
-                            title: 'Jalur',
+                        registration_path: {
+                            title: 'Jalur Pendaftaran',
                             content: {
-                                template: 
-                                    `<select class="form-select" name="track">
-                                        <option selected>Open this select menu</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>`,
+                                template: `
+                                    <input type="text" name="registration_path" class="form-control" value="Jalur Mandiri" disabled />
+                                `,
+                            },
+                        },
+                        wave: {
+                            title: 'Gelombang Pendaftaran',
+                            content: {
+                                template: `
+                                    <input type="text" name="wave" class="form-control" value="Periode Juni" disabled />
+                                `,
                             },
                         },
                         rate: {

@@ -1,24 +1,12 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Detail Tagihan Per Mahasiswa')
+@section('page_title', 'Detail Tagihan Mahasiswa Lama/Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', url('generate/old-student-invoice'))
 
 @section('css_section')
     <style>
-        .student-invoice-detail-filter {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-gap: 1rem;
-        }
-        .table-on-cell tr td {
-            padding: 10px 0px !important;
-
-        }
-        .table-on-cell tr td:not(:last-child) {
-            padding-right: 10px !important;
-        }
         .eazy-table-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -32,48 +20,30 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-column" style="gap: 2rem">
-            <div class="student-invoice-detail-filter" style="flex-grow: 1">
-                <div>
-                    <label class="form-label">Periode Tagihan</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>2022 Ganjil</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Fakultas</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>Fakultas Informatika</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Program Studi</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>S1 Informatika</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Sistem Kuliah</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>Reguler</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Angkatan</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>2018</option>
-                    </select>
-                </div>
+        <div class="d-flex" style="gap: 2rem">
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Masuk</span>
+                <h5 class="fw-bolder">2020/2021</h5>
             </div>
-            <div>
-                <button class="btn btn-primary">
-                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                </button>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Tagihan</span>
+                <h5 class="fw-bolder">2022/2023 - Ganjil</h5>
+            </div>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Fakultas</span>
+                <h5 class="fw-bolder">Fakultas Informatika</h5>
+            </div>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Program Studi</span>
+                <h5 class="fw-bolder">S1 Rekayasa Perangkat Lunak</h5>
+            </div>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Sistem Kuliah</span>
+                <h5 class="fw-bolder">Reguler</h5>
+            </div>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Angkatan</span>
+                <h5 class="fw-bolder">Angkatan 2021</h5>
             </div>
         </div>
     </div>
@@ -84,17 +54,11 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>No</th>
-                <th>NIM</th>
-                <th>Nama Mahasiswa</th>
-                <th>Rincian Tagihan</th>
-                <th>Total Tagihan</th>
-                <th>Rincian Denda</th>
-                <th>Total Denda</th>
-                <th>Rincian Beasiswa</th>
-                <th>Total Beasiswa</th>
-                <th>Rincian Potongan</th>
-                <th>Total Potongan</th>
+                <th>Nama / NIM</th>
+                <th>Total / Rincian Tagihan</th>
+                <th>Total / Rincian Denda</th>
+                <th>Total / Rincian Beasiswa</th>
+                <th>Total / Rincian Potongan</th>
                 <th>Status Mahasiswa</th>
             </tr>
         </thead>
@@ -127,102 +91,55 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'no', data: 'id'},
-                    {name: 'student_id', data: 'student_id'},
-                    {name: 'student_name', data: 'student_name'},
                     {
-                        name: 'invoice_detail', 
-                        data: 'invoice_detail',
-                        render: (data) => {
-                            // let html = '<table class="table-on-cell">'
-                            // for (const invoiceName in data) {
-                            //     html += `<tr>
-                            //         <td class="fw-bold">${invoiceName}</td>
-                            //         <td>${Rupiah.format(data[invoiceName])}</td>
-                            //     </tr>`
-                            // }
-                            // html += '</table>';
-                            let html = '<div class="d-flex flex-column" style="gap: .5rem">';
-                            for (const itemName in data) {
-                                html += `<span class="d-inline-block" style="white-space: nowrap">
-                                    <span class="fw-bold">${itemName}</span><br>${Rupiah.format(data[itemName])}
-                                </span>`
-                            }
-                            html += '</div>';
-                            return html
-                        }    
-                    },
-                    {
-                        name: 'invoice_total', 
-                        data: 'invoice_total',
-                        render: (data) => {
-                            return Rupiah.format(data)
+                        name: 'student', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.student_name}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.student_id}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'penalty_detail', 
-                        data: 'penalty_detail',
-                        render: (data) => {
-                            let html = '<div class="d-flex flex-column" style="gap: .5rem">';
-                            for (const itemName in data) {
-                                html += `<span class="d-inline-block" style="white-space: nowrap">
-                                    <span class="fw-bold">${itemName}</span><br>${Rupiah.format(data[itemName])}
-                                </span>`
-                            }
-                            html += '</div>';
-                            return html
+                        name: 'invoice', 
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
                         }    
                     },
                     {
-                        name: 'penalty_total', 
-                        data: 'penalty_total',
-                        render: (data) => {
-                            return Rupiah.format(data)
-                        }
-                    },
-                    {
-                        name: 'scholarship_detail', 
-                        data: 'scholarship_detail',
-                        render: (data) => {
-                            let html = '<div class="d-flex flex-column" style="gap: .5rem">';
-                            for (const itemName in data) {
-                                html += `<span class="d-inline-block" style="white-space: nowrap">
-                                    <span class="fw-bold">${itemName}</span><br>${Rupiah.format(data[itemName])}
-                                </span>`
-                            }
-                            html += '</div>';
-                            return html
+                        name: 'penalty', 
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.penalty_detail, row.penalty_total);
                         }    
                     },
                     {
-                        name: 'scholarship_total', 
-                        data: 'scholarship_total',
-                        render: (data) => {
-                            return Rupiah.format(data)
-                        }
-                    },
-                    {
-                        name: 'discount_detail', 
-                        data: 'discount_detail',
-                        render: (data) => {
-                            let html = '<div class="d-flex flex-column" style="gap: .5rem">';
-                            for (const itemName in data) {
-                                html += `<span class="d-inline-block" style="white-space: nowrap">
-                                    <span class="fw-bold">${itemName}</span><br>${Rupiah.format(data[itemName])}
-                                </span>`
-                            }
-                            html += '</div>';
-                            return html
+                        name: 'scholarship', 
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.scholarship_detail, row.scholarship_total);
                         }    
                     },
                     {
-                        name: 'discount_total', 
-                        data: 'discount_total',
+                        name: 'discount', 
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.discount_detail, row.discount_total);
+                        }    
+                    },
+                    {
+                        name: 'student_status', 
+                        data: 'student_status',
                         render: (data) => {
-                            return Rupiah.format(data)
+                            var html = '<div class="d-flex justify-content-center">'
+                            if(data == 'active') {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
+                            }
+                            html += '</div>'
+                            return html
                         }
                     },
-                    {name: 'student_status', data: 'student_status'}
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -238,6 +155,11 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
+                    $('.student-invoice-detail-actions').html(`
+                        <div style="margin-bottom: 7px">
+                            <h5>Detail Daftar Tagihan Mahasiswa Lama/Baru</h5>
+                        </div>
+                    `)
                     feather.replace()
                 }
             })
@@ -255,6 +177,34 @@
                         </div>
                     </div>
                 `
+            },
+            invoiceDetailCell: function(invoiceItems, invoiceTotal) {
+                let html = '<div class="d-flex flex-column" style="gap: .5rem">'
+                html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
+                html += '<div class="d-flex flex-row" style="gap: 1rem">';
+                
+                const minItemPerColumn = 2;
+                const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
+                let firstCol = invoiceItems.slice(0, half);
+                firstCol = firstCol.map(item => {
+                    return `
+                        <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+                    `;
+                }).join('');
+                html += `<div class="d-flex flex-column" style="gap: .5rem">${firstCol}</div>`;
+
+                if (half < invoiceItems.length) {
+                    let secondCol = invoiceItems.slice(half);
+                    secondCol = secondCol.map(item => {
+                        return `
+                            <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+                        `;
+                    }).join('');
+                    html += `<div class="d-flex flex-column" style="gap: .5rem">${secondCol}</div>`;
+                }
+
+                html += '</div></div>';
+                return html;
             }
         }
     }

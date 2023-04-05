@@ -84,25 +84,27 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'entry_period' => '2022',
-                'wave' => 'Gelombang 1',
-                'registration_path' => 'Mandiri',
-                'study_system' => 'SKS',
+                'entry_period' => '2023/2024',
+                'faculty' => 'Informatika',
                 'study_program' => 'S1 Informatika',
+                'wave' => 'Periode Juni',
+                'registration_path' => 'Mandiri',
+                'study_system' => 'Onsite',
                 'invoice_component' => 'Biaya Perkuliahan',
                 'rate' => 7500000,
-                'instalment' => 'Full 100%',
+                'instalment' => 'Full 100% Pembayaran',
             ],
             [
                 'id' => 2,
-                'entry_period' => '2022',
-                'wave' => 'Gelombang 1',
-                'registration_path' => 'Mandiri',
-                'study_system' => 'SKS',
+                'entry_period' => '2023/2024',
+                'faculty' => 'Informatika',
                 'study_program' => 'S1 Sistem Informasi',
+                'wave' => 'Periode Juni',
+                'registration_path' => 'Mandiri',
+                'study_system' => 'Onsite',
                 'invoice_component' => 'Biaya Perkuliahan',
                 'rate' => 7500000,
-                'instalment' => 'Full 100%',
+                'instalment' => '3 Kali Pembayaran',
             ],
         ];
 
@@ -116,24 +118,79 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'course_code' => 'BA081',
-                'course_name' => 'Matakuliah 1',
+                'course_code' => 'CSH1A2',
+                'course_name' => 'Pembentukan Karakter',
                 'course_type' => 'Kuliah',
                 'sks' => 2,
                 'semester' => 1,
                 'mandatory' => 'W',
-                'is_package' => false,
+                'is_package' => true,
                 'rate' => 1000000,
             ],
             [
                 'id' => 2,
-                'course_code' => 'BA082',
-                'course_name' => 'Matakuliah 2',
+                'course_code' => 'LUH1A2',
+                'course_name' => 'Bahasa Indonesia',
                 'course_type' => 'Kuliah',
                 'sks' => 2,
                 'semester' => 1,
-                'mandatory' => 'P',
-                'is_package' => false,
+                'mandatory' => 'W',
+                'is_package' => true,
+                'rate' => 1000000,
+            ],
+            [
+                'id' => 3,
+                'course_code' => 'MUH1B3',
+                'course_name' => 'Kalkulus IB',
+                'course_type' => 'Kuliah',
+                'sks' => 3,
+                'semester' => 1,
+                'mandatory' => 'W',
+                'is_package' => true,
+                'rate' => 1000000,
+            ],
+            [
+                'id' => 4,
+                'course_code' => 'DUH1A2',
+                'course_name' => 'Literasi TIK',
+                'course_type' => 'Kuliah',
+                'sks' => 2,
+                'semester' => 1,
+                'mandatory' => 'W',
+                'is_package' => true,
+                'rate' => 1000000,
+            ],
+            [
+                'id' => 5,
+                'course_code' => 'CSH1F2',
+                'course_name' => 'Pengantar Teknik Informatika',
+                'course_type' => 'Kuliah',
+                'sks' => 2,
+                'semester' => 1,
+                'mandatory' => 'W',
+                'is_package' => true,
+                'rate' => 1000000,
+            ],
+            [
+                'id' => 6,
+                'course_code' => 'CCH1A4',
+                'course_name' => 'Dasar Algoritma dan Pemrograman',
+                'course_type' => 'Kuliah',
+                'sks' => 4,
+                'semester' => 1,
+                'mandatory' => 'W',
+                'is_package' => true,
+                'rate' => 1000000,
+            ],
+            [
+                'id' => 7,
+                'course_code' => 'MSH1B3',
+                'course_name' => 'Logika Matematika A',
+                'course_type' => 'Kuliah',
+                'sks' => 3,
+                'semester' => 1,
+                'mandatory' => 'W',
+                'is_package' => true,
                 'rate' => 1000000,
             ],
             
@@ -149,11 +206,20 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
+                'period' => '2023/2024',
                 'invoice_type' => 'Formulir',
-                'track' => 'Prestasi',
+                'track' => 'Jalur Mandiri',
+                'wave' => 'Periode Juni',
                 'rate' => 150000,
             ],
-            
+            [
+                'id' => 2,
+                'period' => '2023/2024',
+                'invoice_type' => 'Formulir',
+                'track' => 'Jalur Mandiri',
+                'wave' => 'Periode Februari',
+                'rate' => 150000,
+            ],
         ];
 
         $datatable = datatables($data);
@@ -166,11 +232,21 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'rule' => 'CUTI - Mengambil Cuti',
-                'invoice_component' => 'CUTI',
-                'instalment' => 'FULL',
-                'minimum_paid' => 10,
+                'period' => '2023/2024',
+                'rule_name' => 'Mengambil Cuti',
+                'invoice_component' => 'Cuti',
+                'instalment' => 'Full 100% Pembayaran',
+                'minimum_paid_percent' => 10,
                 'is_active' => true,
+            ],
+            [
+                'id' => 1,
+                'period' => '2023/2024',
+                'rule_name' => 'Mengambil Cuti',
+                'invoice_component' => 'Cuti',
+                'instalment' => '3 Kali Pembayaran',
+                'minimum_paid_percent' => 10,
+                'is_active' => false,
             ],
             
         ];
@@ -184,58 +260,33 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'study_program' => 'Sastra Jepang',
-                'invoice_types_number' => 3,
-                'invoice_type_1_name' => 'Jenis Tagihan 1',
-                'invoice_type_1_nominal' => 15000000,
-                'invoice_type_2_name' => 'Jenis Tagihan 2',
-                'invoice_type_2_nominal' => 20000000,
-                'invoice_type_3_name' => 'Jenis Tagihan 3',
-                'invoice_type_3_nominal' => 25000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Informatika',
+                'invoice_nominal' => 10000000,
+                'penalty_nominal' => 21000,
+                'discount_nominal' => 11000,
             ],
             [
                 'id' => 2,
-                'study_program' => 'Sastra Arab',
-                'invoice_types_number' => 3,
-                'invoice_type_1_name' => 'Jenis Tagihan 1',
-                'invoice_type_1_nominal' => 20000000,
-                'invoice_type_2_name' => 'Jenis Tagihan 2',
-                'invoice_type_2_nominal' => 20000000,
-                'invoice_type_3_name' => 'Jenis Tagihan 3',
-                'invoice_type_3_nominal' => 20000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Rekayasa Perangkat Lunak',
+                'invoice_nominal' => 10000000,
+                'penalty_nominal' => 21000,
+                'discount_nominal' => 11000,
             ],
             [
                 'id' => 3,
-                'study_program' => 'Sastra China',
-                'invoice_types_number' => 3,
-                'invoice_type_1_name' => 'Jenis Tagihan 1',
-                'invoice_type_1_nominal' => 17000000,
-                'invoice_type_2_name' => 'Jenis Tagihan 2',
-                'invoice_type_2_nominal' => 17000000,
-                'invoice_type_3_name' => 'Jenis Tagihan 3',
-                'invoice_type_3_nominal' => 17000000,
-            ],
-            [
-                'id' => 4,
-                'study_program' => 'Teknik Elektro',
-                'invoice_types_number' => 3,
-                'invoice_type_1_name' => 'Jenis Tagihan 1',
-                'invoice_type_1_nominal' => 12000000,
-                'invoice_type_2_name' => 'Jenis Tagihan 2',
-                'invoice_type_2_nominal' => 12000000,
-                'invoice_type_3_name' => 'Jenis Tagihan 3',
-                'invoice_type_3_nominal' => 12000000,
-            ],
-            [
-                'id' => 5,
-                'study_program' => 'Teknik Informatika',
-                'invoice_types_number' => 3,
-                'invoice_type_1_name' => 'Jenis Tagihan 1',
-                'invoice_type_1_nominal' => 14000000,
-                'invoice_type_2_name' => 'Jenis Tagihan 2',
-                'invoice_type_2_nominal' => 14000000,
-                'invoice_type_3_name' => 'Jenis Tagihan 3',
-                'invoice_type_3_nominal' => 14000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Data Sains',
+                'invoice_nominal' => 10000000,
+                'penalty_nominal' => 21000,
+                'discount_nominal' => 11000,
             ],
             
         ];
@@ -248,25 +299,64 @@ class TempResourceController extends Controller
     public function oldStudentInvoice() {
         $data = [
             [
-                'unit_name' => 'Universitas Jaya Kusuma',
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'Fakultas Informatika',
+                'is_child' => false,
                 'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
                 'total' => 3300000
             ],
             [
-                'unit_name' => 'Fakultas Informatika',
-                'invoice' => 2000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Informatika',
+                'is_child' => true,
+                'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
-                'total' => 2300000
+                'total' => 3300000
             ],
             [
-                'unit_name' => 'Teknik Informatika',
-                'invoice' => 1000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Rekayasa Perangkat Lunak',
+                'is_child' => true,
+                'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
-                'total' => 1300000
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Data Science',
+                'is_child' => true,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'Fakultas Ekonomi Bisnis',
+                'is_child' => false,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Manajemen Bisis dan Teknologi',
+                'is_child' => true,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
             ],
             
         ];
@@ -279,25 +369,64 @@ class TempResourceController extends Controller
     public function newStudentInvoice() {
         $data = [
             [
-                'unit_name' => 'Universitas Jaya Kusuma',
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'Fakultas Informatika',
+                'is_child' => false,
                 'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
                 'total' => 3300000
             ],
             [
-                'unit_name' => 'Fakultas Informatika',
-                'invoice' => 2000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Informatika',
+                'is_child' => true,
+                'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
-                'total' => 2300000
+                'total' => 3300000
             ],
             [
-                'unit_name' => 'Teknik Informatika',
-                'invoice' => 1000000,
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Rekayasa Perangkat Lunak',
+                'is_child' => true,
+                'invoice' => 3000000,
                 'penalty' => 500000,
                 'discount' => 200000,
-                'total' => 1300000
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Data Science',
+                'is_child' => true,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'Fakultas Ekonomi Bisnis',
+                'is_child' => false,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
+            ],
+            [
+                'period' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'unit_name' => 'S1 Manajemen Bisis dan Teknologi',
+                'is_child' => true,
+                'invoice' => 3000000,
+                'penalty' => 500000,
+                'discount' => 200000,
+                'total' => 3300000
             ],
             
         ];
@@ -311,80 +440,94 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'student_id' => 123123123,
-                'student_name' => 'Rian',
+                'student_id' => '1234124112',
+                'student_name' => 'Ahmad Lubis Joko Tingkir',
                 'invoice_detail' => [
-                    'BPP' => 500000,
-                    'Praktikum' => 200000,
-                    'SKS' => 200000,
-                    'Seragam' => 100000,
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
                 ],
-                'invoice_total' => 1000000,
+                'invoice_total' => 8000000,
                 'penalty_detail' => [
-                    'Denda 1' => 100000,
+                    ['name' => 'Denda 1', 'nominal' => 100000],
+                    ['name' => 'Denda 2', 'nominal' => 100000],
+                    ['name' => 'Denda 3', 'nominal' => 100000],
+                    ['name' => 'Denda 4', 'nominal' => 100000],
                 ],
-                'penalty_total' => 100000,
+                'penalty_total' => 400000,
                 'scholarship_detail' => [
-                    'Beasiswa Djarum' => 200000
+                    ['name' => 'Djarum', 'nominal' => 3000000],
+                    ['name' => 'Alumni', 'nominal' => 2500000],
                 ],
-                'scholarship_total' => 200000,
+                'scholarship_total' => 5500000,
                 'discount_detail' => [
-                    'Potongan 1' => 100000,
+                    ['name' => 'Potongan 1', 'nominal' => 100000],
+                    ['name' => 'Potongan 2', 'nominal' => 100000],
                 ],
-                'discount_total' => 100000,
-                'student_status' => 'Aktif'
+                'discount_total' => 200000,
+                'student_status' => 'active'
             ],
             [
                 'id' => 2,
-                'student_id' => 123123124,
-                'student_name' => 'Budi',
+                'student_id' => '1234124113',
+                'student_name' => 'Cucut Mahyadi Jamaluddin',
                 'invoice_detail' => [
-                    'BPP' => 500000,
-                    'Praktikum' => 200000,
-                    'SKS' => 200000,
-                    'Seragam' => 100000,
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
                 ],
-                'invoice_total' => 1000000,
+                'invoice_total' => 8000000,
                 'penalty_detail' => [
-                    'Denda 1' => 100000,
+                    ['name' => 'Denda 1', 'nominal' => 100000],
+                    ['name' => 'Denda 2', 'nominal' => 100000],
+                    ['name' => 'Denda 3', 'nominal' => 100000],
+                    ['name' => 'Denda 4', 'nominal' => 100000],
                 ],
-                'penalty_total' => 100000,
+                'penalty_total' => 400000,
                 'scholarship_detail' => [
-                    'Beasiswa Djarum' => 200000
+                    ['name' => 'Djarum', 'nominal' => 3000000],
+                    ['name' => 'Alumni', 'nominal' => 2500000],
                 ],
-                'scholarship_total' => 200000,
+                'scholarship_total' => 5500000,
                 'discount_detail' => [
-                    'Potongan 1' => 100000,
+                    ['name' => 'Potongan 1', 'nominal' => 100000],
+                    ['name' => 'Potongan 2', 'nominal' => 100000],
                 ],
-                'discount_total' => 100000,
-                'student_status' => 'Aktif'
+                'discount_total' => 200000,
+                'student_status' => 'active'
             ],
             [
                 'id' => 3,
-                'student_id' => 123123125,
-                'student_name' => 'Cici',
+                'student_id' => '1234124113',
+                'student_name' => 'Mauskana Koamsika Laskus',
                 'invoice_detail' => [
-                    'BPP' => 500000,
-                    'Praktikum' => 200000,
-                    'SKS' => 200000,
-                    'Seragam' => 100000,
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
                 ],
-                'invoice_total' => 1000000,
+                'invoice_total' => 8000000,
                 'penalty_detail' => [
-                    'Denda 1' => 100000,
+                    ['name' => 'Denda 1', 'nominal' => 100000],
+                    ['name' => 'Denda 2', 'nominal' => 100000],
+                    ['name' => 'Denda 3', 'nominal' => 100000],
+                    ['name' => 'Denda 4', 'nominal' => 100000],
                 ],
-                'penalty_total' => 100000,
+                'penalty_total' => 400000,
                 'scholarship_detail' => [
-                    'Beasiswa Djarum' => 200000
+                    ['name' => 'Djarum', 'nominal' => 3000000],
+                    ['name' => 'Alumni', 'nominal' => 2500000],
                 ],
-                'scholarship_total' => 200000,
+                'scholarship_total' => 5500000,
                 'discount_detail' => [
-                    'Potongan 1' => 100000,
+                    ['name' => 'Potongan 1', 'nominal' => 100000],
+                    ['name' => 'Potongan 2', 'nominal' => 100000],
                 ],
-                'discount_total' => 100000,
-                'student_status' => 'Aktif'
+                'discount_total' => 200000,
+                'student_status' => 'active'
             ],
-            
         ];
 
         $datatable = datatables($data);
@@ -395,21 +538,47 @@ class TempResourceController extends Controller
     public function otherInvoice() {
         $data = [
             [
-                'unit_name' => 'Universitas Jaya Kusuma',
-                'invoice_component' => 'Biaya Wisuda',
-                'invoice_total' => 200000000
-            ],
-            [
+                'id' => 1,
                 'unit_name' => 'Fakultas Informatika',
-                'invoice_component' => 'Biaya Wisuda',
-                'invoice_total' => 200000000
+                'is_child' => false,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
             ],
             [
-                'unit_name' => 'Teknik Informatika',
-                'invoice_component' => 'Biaya Wisuda',
-                'invoice_total' => 200000000
+                'id' => 2,
+                'unit_name' => 'S1 Informatika',
+                'is_child' => true,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
             ],
-            
+            [
+                'id' => 3,
+                'unit_name' => 'S1 Rekayasa Perangkat Lunak',
+                'is_child' => true,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
+            ],
+            [
+                'id' => 4,
+                'unit_name' => 'S1 Data Sains',
+                'is_child' => true,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
+            ],
+            [
+                'id' => 5,
+                'unit_name' => 'Fakultas Ekonomi Bisnis',
+                'is_child' => false,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
+            ],
+            [
+                'id' => 6,
+                'unit_name' => 'S1 Manajemen Bisnis dan Teknologi',
+                'is_child' => true,
+                'invoice_component' => 'Cuti',
+                'invoice_total' => 1000000
+            ],
         ];
 
         $datatable = datatables($data);
@@ -421,35 +590,40 @@ class TempResourceController extends Controller
         $data = [
             [
                 'id' => 1,
-                'student_id' => 123123123,
-                'student_name' => 'Rian',
+                'student_id' => '1234124112',
+                'student_name' => 'Ahmad Lubis Joko Tingkir',
                 'invoice_detail' => [
-                    'Biaya Wisuda' => 100000,
+                    ['name' => 'Tagihan 1', 'nominal' => 1000000],
+                    ['name' => 'Tagihan 2', 'nominal' => 200000],
+                    ['name' => 'Tagihan 3', 'nominal' => 200000],
                 ],
-                'invoice_total' => 1000000,
-                'student_status' => 'Aktif'
+                'invoice_total' => 1400000,
+                'student_status' => 'active'
             ],
             [
                 'id' => 2,
-                'student_id' => 123123124,
-                'student_name' => 'Budi',
+                'student_id' => '1234124113',
+                'student_name' => 'Cucut Mahyadi Jamaluddin',
                 'invoice_detail' => [
-                    'Biaya Wisuda' => 100000,
+                    ['name' => 'Tagihan 1', 'nominal' => 1000000],
+                    ['name' => 'Tagihan 2', 'nominal' => 200000],
+                    ['name' => 'Tagihan 3', 'nominal' => 200000],
                 ],
-                'invoice_total' => 1000000,
-                'student_status' => 'Aktif'
+                'invoice_total' => 1400000,
+                'student_status' => 'active'
             ],
             [
                 'id' => 3,
-                'student_id' => 123123125,
-                'student_name' => 'Cici',
+                'student_id' => '1234124113',
+                'student_name' => 'Mauskana Koamsika Laskus',
                 'invoice_detail' => [
-                    'Biaya Wisuda' => 100000,
+                    ['name' => 'Tagihan 1', 'nominal' => 1000000],
+                    ['name' => 'Tagihan 2', 'nominal' => 200000],
+                    ['name' => 'Tagihan 3', 'nominal' => 200000],
                 ],
-                'invoice_total' => 1000000,
-                'student_status' => 'Aktif'
+                'invoice_total' => 1400000,
+                'student_status' => 'active'
             ],
-            
         ];
 
         $datatable = datatables($data);
