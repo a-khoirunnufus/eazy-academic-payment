@@ -22,49 +22,59 @@
 
 @section('content')
 
-<div id="student-info" class="card d-inline-block">
-    <div class="card-body">
-        <div class="d-flex flex-row">
-            <table class="table-info me-3">
-                <tr>
-                    <td>NIM</td>
-                    <td>123123123</td>
-                </tr>
-                <tr>
-                    <td>Nama Mahasiswa</td>
-                    <td>Fadhil Af Gani</td>
-                </tr>
-                <tr>
-                    <td>Status Mahasiswa</td>
-                    <td>Lulus</td>
-                </tr>
-                <tr>
-                    <td>Fakultas</td>
-                    <td>Ilmu Kesehatan</td>
-                </tr>
-                <tr>
-                    <td>Program Studi</td>
-                    <td>S1 Ilmu Keperawatan</td>
-                </tr>
-            </table>
-            <table class="table-info">
-                <tr>
-                    <td>Angkatan</td>
-                    <td>2014</td>
-                </tr>
-                <tr>
-                    <td>Pembimbing</td>
-                    <td>Budi Budidi</td>
-                </tr>
-                <tr>
-                    <td>Tahun Kurikulum</td>
-                    <td>2013</td>
-                </tr>
-                <tr>
-                    <td>Semester / IPK</td>
-                    <td>4 / 3.48</td>
-                </tr>
-            </table>
+<div id="student-info" class="card">
+    <div class="card-body" style="width: 100%; overflow-x: auto">
+        <div class="d-flex flex-row" style="gap: 4rem; width: max-content; overflow-x: auto">
+            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
+                    <i style="width: 35px; height: 35px" data-feather="user"></i>
+                </div>
+                <div class="d-flex flex-column" style="gap: 5px">
+                    <small class="d-block">Nama</small>
+                    <span class="fw-bolder" style="font-size: 16px">Armansyah Adhikara</span>
+                    <span class="text-secondary d-block">NIM : 1231023929 | TAK : 70</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
+                    <i style="width: 35px; height: 35px" data-feather="book-open"></i>
+                </div>
+                <div class="d-flex flex-column" style="gap: 5px">
+                    <small class="d-block">Informasi Studi</small>
+                    <span class="fw-bolder" style="font-size: 16px">Fakultas Informatika</span>
+                    <span class="text-secondary d-block">Tahun Kurikulum 2013</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
+                    <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
+                </div>
+                <div class="d-flex flex-column" style="gap: 5px">
+                    <small class="d-block">Informasi Studi</small>
+                    <span class="fw-bolder" style="font-size: 16px">S1 Informatika</span>
+                    <span class="text-secondary d-block">Angkatan 2023</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
+                    <i style="width: 35px; height: 35px" data-feather="award"></i>
+                </div>
+                <div class="d-flex flex-column" style="gap: 5px">
+                    <small class="d-block">Informasi Studi</small>
+                    <span class="fw-bolder" style="font-size: 16px">IPK : 3.44</span>
+                    <span class="text-secondary d-block">SKS Total : 138</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
+                    <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
+                </div>
+                <div class="d-flex flex-column" style="gap: 5px">
+                    <small class="d-block">Pembimbing</small>
+                    <span class="fw-bolder" style="font-size: 16px">Dr. Achmad Maulana M.Kom</span>
+                    <span class="text-secondary d-block">NIP : 131241214</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Setting')
+@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -16,7 +16,7 @@
                 <th class="text-center">Aksi</th>
                 <th>Nama Skema</th>
                 <th>X Kali Pembayaran</th>
-                <th>Status Validitas</th>
+                <th class="text-center">Status Validitas</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -55,7 +55,20 @@
                         render: (data) => {
                             return `${data} Pembayaran`                        }
                     },
-                    {name: 'validity', data: 'validity'},
+                    {
+                        name: 'validity', 
+                        data: 'validity',
+                        render: (data) => {
+                            var html = '<div class="d-flex justify-content-center">'
+                            if (data.toLowerCase() == 'valid') {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Valid</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Valid</div>'
+                            }
+                            html += '</div>'
+                            return html
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -137,20 +150,11 @@
                             title: 'Status Validitas',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="validity" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Valid
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="validity" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Invalid
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <select class="form-select" name="validity">
+                                        <option disabled selected>Pilih status validitas</option>
+                                        <option value="valid">Valid</option>
+                                        <option value="invalid">Tidak Valid</option>
+                                    </select>
                                 `
                             },
                         },
@@ -204,20 +208,11 @@
                             title: 'Status Validitas',
                             content: {
                                 template: `
-                                    <div class="d-flex flex-row" style="gap: 1rem">
-                                        <div class="form-check">
-                                            <input name="validity" class="form-check-input" type="radio" value="" checked />
-                                            <label class="form-check-label">
-                                                Valid
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input name="validity" class="form-check-input" type="radio" value="" />
-                                            <label class="form-check-label">
-                                                Invalid
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <select class="form-select" name="validity">
+                                        <option disabled>Pilih status validitas</option>
+                                        <option value="valid" selected>Valid</option>
+                                        <option value="invalid">Tidak Valid</option>
+                                    </select>
                                 `
                             },
                         },

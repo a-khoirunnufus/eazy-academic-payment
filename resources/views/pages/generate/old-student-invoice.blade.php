@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Generate')
+@section('page_title', 'Generate Tagihan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -21,52 +21,64 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-column" style="gap: 2rem">
-            <div class="old-student-invoice-filter" style="flex-grow: 1">
-                <div>
-                    <label class="form-label">Periode Masuk</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                        <option value="1">Semester Genap 2016/2017</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Periode Tagihan</label>
-                    <select class="form-select">
-                        <option value="0">Semua</option>
-                        <option value="1" selected>2022 Gasal</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Jalur Pendaftaran</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                        <option value="1">Umum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Gelombang</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                        <option value="1">Gelombang 1</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Fakultas</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                        <option value="1">Fakultas Informatika</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="form-label">Sistem Kuliah</label>
-                    <select class="form-select">
-                        <option value="0" selected>Semua</option>
-                    </select>
-                </div>
+        <div class="old-student-invoice-filter">
+            <div>
+                <label class="form-label">Periode Masuk</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Periode Masuk</option>
+                    @foreach($static_school_years as $school_year)
+                        <option value="{{ $school_year }}">{{ $school_year }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Periode Tagihan</option>
+                    @foreach($static_school_years as $school_year)
+                        @foreach($static_semesters as $semester)
+                            <option value="{{ $semester.'_'.$school_year }}">{{ $semester.' '.$school_year }}</option>
+                        @endforeach
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Jalur Pendaftaran</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Jalur Pendaftaran</option>
+                    @foreach($static_registration_paths as $registration_path)
+                        <option value="{{ $registration_path }}">{{ $registration_path }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Gelombang</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Gelombang</option>
+                    @foreach($static_registration_periods as $registration_period)
+                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Fakultas</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Fakultas</option>
+                    @foreach($static_faculties as $faculty)
+                        <option value="{{ $faculty }}">{{ $faculty }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Sistem Kuliah</label>
+                <select class="form-select" eazy-select2-active>
+                    <option value="all" selected>Semua Sistem Kuliah</option>
+                    @foreach($static_study_systems as $study_system)
+                        <option value="{{ $study_system }}">{{ $study_system }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
                 <button class="btn btn-primary">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
@@ -80,8 +92,9 @@
         <thead>
             <tr>
                 <th class="text-center" rowspan="2">Aksi</th>
-                <th rowspan="2">Fakultas/Program Studi</th>
-                <th rowspan="1" colspan="3" class="text-center">Total</th>
+                <th rowspan="2">Periode Masuk</th>
+                <th rowspan="2">Program Studi / Fakultas</th>
+                <th rowspan="1" colspan="3" class="text-center">Jenis Tagihan</th>
                 <th rowspan="2">Jumlah Total</th>
             </tr>
             <tr>
@@ -119,7 +132,27 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'unit_name', data: 'unit_name'},
+                    {
+                        name: 'period_n_semester', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="fw-bold">${row.period}</span><br>
+                                    <small class="text-secondary">${row.semester}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'unit',
+                        render: (data, _, row) => {
+                            return `
+                                <div class="${ row.is_child ? 'ps-2' : '' }">
+                                    <a type="button" href="${_baseURL+'/generate/student-invoice-detail'}" class="btn btn-link">${row.unit_name}</a>
+                                </div>
+                            `;
+                        }
+                    },
                     {
                         name: 'invoice', 
                         data: 'invoice',
@@ -162,6 +195,11 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
+                    $('.old-student-invoice-actions').html(`
+                        <div style="margin-bottom: 7px">
+                            <h5>Daftar Tagihan</h5>
+                        </div>
+                    `)
                     feather.replace()
                 }
             })

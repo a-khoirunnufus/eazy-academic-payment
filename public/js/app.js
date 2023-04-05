@@ -477,7 +477,7 @@ class Modal {
      * @params {string} config.formActionUrl - url when submitting form.
      * @params {object} config.fields - form fields configurations.
      * @params {boolean} config.fields.[db_field_name].isHidden - set visibility of fields.
-     * @params {strinmodal-mdg} config.fields.[db_field_name].content.template - string of prepared html element.
+     * @params {string} config.fields.[db_field_name].content.template - string of prepared html element.
      * @params {string} config.fields.[db_field_name].content.[parameter] - parameter for html element.
      * @params {string} config.formSubmitLabel - form submit button label.
      * @params {function} config.callback - action after form submit success.
@@ -513,6 +513,7 @@ class Modal {
         
         feather.replace();
         $('.flatpickr-basic').flatpickr();
+        select2Replace();
         mainModalElm.show();
     }
 
@@ -548,10 +549,18 @@ class Modal {
 
     static generateModalFormBody(config) {
         var fieldConfig = config.fields;
-        var html = `<form id="${config.formId}">`;
+        var formType = config.formType ?? 'add';
+        var isTwoColumn = config.isTwoColumn ?? false;
+        var formTemplate = (formContent) => {
+            return `<form id="${config.formId}">
+                ${formContent}
+            </form>`;
+        }
+        var formContentHtml = '';
 
         for (var key in fieldConfig) {
-            var title = fieldConfig[key].title;
+            var title = fieldConfig[key].title ?? '';
+            var fieldType = fieldConfig[key].type ?? 'default';
             var contentConfig = fieldConfig[key].content;
             var contentHtml = contentConfig.template;
             delete contentConfig.template
@@ -561,26 +570,47 @@ class Modal {
             }
 
             if(fieldConfig[key].isHidden) {
-                html += contentHtml;
+                formContentHtml += contentHtml;
             } else {
-                html += `
-                    <div class="mb-2">
-                        <label class="form-label-md">${title}</label>
-                        ${contentHtml}
-                    </div>
-                `;
-            }
-
+                if(fieldType == 'default') {
+                    formContentHtml += `
+                        <div>
+                            <label class="form-label-md">${title}</label>
+                            ${contentHtml}
+                        </div>
+                    `;
+                } else if (fieldType == 'checkbox') {
+                    formContentHtml += `
+                        <div>
+                            ${contentHtml}
+                        </div>
+                    `;
+                }
+            }    
         }
 
-        html += `
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary me-1">${config.formSubmitLabel}</button>
-                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+        if (isTwoColumn) {
+            formContentHtml = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+                    ${formContentHtml}
                 </div>
-            </form>
+            `;
+        } else {
+            formContentHtml = `
+                <div style="display: flex; flex-direction: column; gap: 1.5rem">
+                    ${formContentHtml}
+                </div>
+            `;
+        }
+
+        var formActionHtml = `
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
+                <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+            </div>
         `;
-        return html;
+
+        return formTemplate(formContentHtml + formActionHtml);
     }
 
     static generateModalConfirmationBody(config) {
@@ -652,6 +682,17 @@ class Modal {
         $(`#mainModal .modal-body`).html('...');
         mainModalElm.hide();
     }
+}
+
+/**
+ * SELECT2
+ */
+function select2Replace() {
+    $('select[eazy-select2-active]').each(function() {
+        $(this).select2({
+            minimumResultsForSearch: -1,
+        });
+    });
 }
 
 /**
