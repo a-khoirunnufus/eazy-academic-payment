@@ -53,7 +53,7 @@
 
             <li class="nav-item dropdown dropdown-notification me-1">
                 <button class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="fw-bolder"><i data-feather="users" class="ficon me-1"></i>Admin</span>
+                    <span class="fw-bolder"><i data-feather="users" class="ficon me-1"></i>Mahasiswa</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-end">
                     <li class="dropdown-menu-header">
@@ -116,7 +116,7 @@
                         <span class="avatar-status-online"></span>
                     </span>
                     <div class="user-nav d-sm-flex d-none m-0">
-                        <span class="user-name fw-bolder m-0">Joo Malacia Ahmad</span>
+                        <span class="user-name fw-bolder m-0">Armansyah Adhikara</span>
                         <!-- <span class="user-status">Admin Keuangan</span> -->
                     </div>
                 </a>

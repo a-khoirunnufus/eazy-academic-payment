@@ -73,9 +73,9 @@
         </div>
     </div>
 
-    @include('layouts.student_header')
+    @include('_student._header')
 
-    @include('layouts.student_menu')
+    @include('_student._menu')
 
     <div class="app-content content">
         <div class="content-overlay"></div>

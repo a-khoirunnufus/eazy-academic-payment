@@ -630,43 +630,4 @@ class TempResourceController extends Controller
 
         return $datatable->toJSON();
     }
-
-    public function studentStudentInvoice() {
-        $data = [
-            [
-                'id' => 1,
-                'invoice_code' => 'INV/20192/2010210',
-                'period' => '2022/2023 - Genap',
-                'month' => 1,
-                'n_installment' => 1,
-                'invoice_nominal' => 750000,
-                'payment_nominal' => 750000,
-                'status' => 'LUNAS',
-                'payment_method' => [
-                    'Metode' => 'VA BNI',
-                    'Kode VA' => '002949125',
-                    'Tanggal' => '25/03/2023 11:03:03',
-                ]
-            ],
-            [
-                'id' => 2,
-                'invoice_code' => 'INV/20192/2010211',
-                'period' => '2022/2023 - Ganjil',
-                'month' => 1,
-                'n_installment' => 1,
-                'invoice_nominal' => 750000,
-                'payment_nominal' => 750000,
-                'status' => 'LUNAS',
-                'payment_method' => [
-                    'method_name' => 'VA BNI',
-                    'va_code' => '002949125',
-                    'date' => '25/03/2023 11:03:03',
-                ]
-            ],
-        ];
-
-        $datatable = datatables($data);
-
-        return $datatable->toJSON();
-    }
 }

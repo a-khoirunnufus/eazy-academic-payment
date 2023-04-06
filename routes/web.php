@@ -37,6 +37,3 @@ Route::get('/generate/new-student-invoice', fn() => view('pages.generate.new-stu
 Route::get('/generate/student-invoice-detail', fn() => view('pages.generate.student-invoice-detail'));
 Route::get('/generate/other-invoice', fn() => view('pages.generate.other-invoice'));
 Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-invoice-detail'));
-
-Route::get('/student/student-payment', fn() => view('external.student.student-payment'));
-Route::get('/student/proceed-payment', fn() => view('external.student.proceed-payment'));

@@ -253,7 +253,115 @@ const _datatable = {
                 await _debounceSync(_time)
                 self.instance.search(this.value).draw()
             })
-    }
+    },
+}
+
+const _datatableTemplates = {
+    defaultCell: function(data, {prefix = '', postfix = '', nowrap = true, bold = false, additionalClass = ''} = {}) {
+        return `
+            <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
+                ${prefix}${data}${postfix}
+            </span>
+        `;
+    },
+    currencyCell: function(data, {nowrap = true, bold = false, additionalClass = ''} = {}) {
+        return `
+            <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
+                ${Rupiah.format(data)}
+            </span>
+        `;
+    },
+    buttonLinkCell: function(label, {onclickFunc = null, link = null}, {nowrap = true, additionalClass = ''} = {}) {
+        return `
+            <div class="${additionalClass}">
+                <a type="button" href="${link ? link : '#'}" ${onclickFunc ? 'onclick="'+onclickFunc+'"' : ''} class="btn btn-link px-0 ${nowrap ? 'text-nowrap' : ''}">
+                    ${label}
+                </a>
+            </div>
+        `;
+    },
+    badgeCell: function(label, bsColor, {centered = true, nowrap = true, additionalClass = ''} = {}) {
+        return `
+            <div class="d-flex ${centered ? 'justify-content-center' : ''}">
+                <div class="badge bg-${bsColor} ${nowrap ? 'text-nowrap' : ''} ${additionalClass}" style="font-size: inherit">${label}</div>
+            </div>
+        `;
+    },
+    optionCheckCell: function(isChecked, {centered = true} = {}) {
+        return `
+            <div class="d-flex ${centered ? 'justify-content-center' : ''}">
+                ${
+                    isChecked ? `<div class="eazy-badge blue"><i data-feather="check"></i></div>`
+                        : `<div class="eazy-badge red"><i data-feather="x"></i></div>`
+                }
+            </div>
+        `;
+    },
+    titleWithSubtitleCell: function(title, subtitle, {nowrap = true} = {}) {
+        return `
+            <div>
+                <span class="fw-bold ${nowrap ? 'text-nowrap' : ''}">${title}</span><br>
+                <small class="text-secondary  ${nowrap ? 'text-nowrap' : ''}">${subtitle}</small>
+            </div>
+        `;
+    },
+    // TODO: migrate all implementation to listDetailCell()
+    invoiceDetailCell: function(invoiceItems, invoiceTotal) {
+        let html = '<div class="d-flex flex-column" style="gap: .5rem">'
+        html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
+        html += '<div class="d-flex flex-row" style="gap: 1rem">';
+        
+        const minItemPerColumn = 2;
+        const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
+        let firstCol = invoiceItems.slice(0, half);
+        firstCol = firstCol.map(item => {
+            return `
+                <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+            `;
+        }).join('');
+        html += `<div class="d-flex flex-column" style="gap: .5rem">${firstCol}</div>`;
+
+        if (half < invoiceItems.length) {
+            let secondCol = invoiceItems.slice(half);
+            secondCol = secondCol.map(item => {
+                return `
+                    <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+                `;
+            }).join('');
+            html += `<div class="d-flex flex-column" style="gap: .5rem">${secondCol}</div>`;
+        }
+
+        html += '</div></div>';
+        return html;
+    },
+    listDetailCell: function(listItems, listHeader = null, itemValueFormatter = null) {
+        let html = '<div class="d-flex flex-column" style="gap: .5rem">';
+        if (listHeader) html += `<div class="fw-bold text-nowrap">${listHeader}</div>`;
+        html += '<div class="d-flex flex-row" style="gap: 1rem">';
+        
+        const minItemPerColumn = 2;
+        const half = listItems.length > minItemPerColumn ? Math.ceil(listItems.length/2) : listItems.length;
+        let firstCol = listItems.slice(0, half);
+        firstCol = firstCol.map(item => {
+            return `
+                <div class="text-secondary text-nowrap">${item.label} : ${itemValueFormatter ? itemValueFormatter(item.value) : item.value}</div>
+            `;
+        }).join('');
+        html += `<div class="d-flex flex-column" style="gap: .5rem">${firstCol}</div>`;
+
+        if (half < listItems.length) {
+            let secondCol = listItems.slice(half);
+            secondCol = secondCol.map(item => {
+                return `
+                    <div class="text-secondary text-nowrap">${item.label} : ${itemValueFormatter ? itemValueFormatter(item.value) : item.value}</div>
+                `;
+            }).join('');
+            html += `<div class="d-flex flex-column" style="gap: .5rem">${secondCol}</div>`;
+        }
+
+        html += '</div></div>';
+        return html;
+    },
 }
 
 /** 
