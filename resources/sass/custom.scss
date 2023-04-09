@@ -22,7 +22,8 @@ $putih: #FFF;
                 width: 40px;
                 height: 67px;
                 max-width: unset;
-                background-image: url("../images/logo-eazy-icon-small.png");
+                // background-image: url("../images/logo-eazy-icon-small.png");
+                background-image: url("/images/logo-eazy-icon-small.png");
                 background-repeat: no-repeat;
                 background-position: center;
                 background-size: contain;
@@ -32,7 +33,9 @@ $putih: #FFF;
 
     &.expanded .navbar-header .navbar-brand .brand-logo {
         width: 120px;
-        background-image: url("../images/logo-eazy-small.png");
+        // background-image: url("../images/logo-eazy-small.png");
+        background-image: url("/images/logo-eazy-small.png");
+        
     }
 
     &.menu-light .navigation {
@@ -157,6 +160,32 @@ $putih: #FFF;
         svg { color: #FF4949 }
     }
 }
+
+.datatable-filter {
+    &.one-row {
+        display: flex;
+        gap: 1rem;
+        
+        > div:not(:last-child) {
+            flex-grow: 1;
+            max-width: 309.84px;
+        }
+    }
+
+    &.multiple-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-gap: 1rem;
+    }
+}
+
+.eazy-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.w-10 { width: 10% !important }
+.w-40 { width: 40% !important }
 
 /* BOOTSTRAP OVERRIDE */
 .main-menu.menu-light .navigation > li ul .active {

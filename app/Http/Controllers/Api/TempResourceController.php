@@ -4,9 +4,75 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TempResourceController extends Controller
 {
+    public function schoolYear()
+    {
+        $data = DB::table('masterdata.ms_school_year')
+            ->select(
+                'msy_id as id', 
+                'msy_year as year', 
+                'msy_semester as semester', 
+                'msy_code as code',
+                'msy_status as status'
+            )
+            ->orderBy('year', 'asc')
+            ->orderBy('semester', 'asc')
+            ->get();
+        
+        return response()->json($data, 200);
+    }
+
+    public function classYear()
+    {
+        $data = [
+            ['id' => 1, 'name' => 'Angkatan 2018', 'code' => '2018'],
+            ['id' => 2, 'name' => 'Angkatan 2019', 'code' => '2019'],
+            ['id' => 3, 'name' => 'Angkatan 2020', 'code' => '2020'],
+            ['id' => 4, 'name' => 'Angkatan 2021', 'code' => '2021'],
+            ['id' => 5, 'name' => 'Angkatan 2022', 'code' => '2022'],
+            ['id' => 6, 'name' => 'Angkatan 2023', 'code' => '2023'],
+        ];
+        
+        return response()->json($data, 200);
+    }
+
+    public function faculty()
+    {
+        $data = DB::table('masterdata.ms_faculties')
+            ->select(
+                'faculty_id as id', 
+                'faculty_name as name',
+            )
+            ->where('institution_id', 7)
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        return response()->json($data, 200);
+    }
+
+    public function studyProgram()
+    {
+        $data = DB::table('masterdata.ms_studyprogram')
+            ->select(
+                'studyprogram_id as id', 
+                'studyprogram_name as name',
+                'studyprogram_type as type'
+            )
+            ->where('institution_id', 7)
+            ->orderBy('type', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        return response()->json($data, 200);
+    }
+
+    /**
+     * DATATABLE SOURCE
+     */
+
     public function invoiceComponent()
     {
         $data = [
@@ -624,6 +690,219 @@ class TempResourceController extends Controller
                 'invoice_total' => 1400000,
                 'student_status' => 'active'
             ],
+        ];
+
+        $datatable = datatables($data);
+
+        return $datatable->toJSON();
+    }
+
+    public function reportOldStudentInvoicePerStudyProgram() {
+        $data = [
+            [
+                'school_year' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'study_program_name' => 'S1 Rekayasa Perangakat Lunak',
+                'paid_off_count' => 100,
+                'not_paid_off_count' => 100,
+                'student_count' => 200,
+                'invoice_a' => 1000000,
+                'invoice_b' => 21000000,
+                'invoice_c' => 11000000,
+                'invoice_d' => 11000000,
+                'invoice_total' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+            ],
+            [
+                'school_year' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'study_program_name' => 'S1 Data Sains',
+                'paid_off_count' => 100,
+                'not_paid_off_count' => 100,
+                'student_count' => 200,
+                'invoice_a' => 1000000,
+                'invoice_b' => 21000000,
+                'invoice_c' => 11000000,
+                'invoice_d' => 11000000,
+                'invoice_total' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+            ],
+            [
+                'school_year' => '2022/2023',
+                'semester' => 'Semester Genap',
+                'study_program_name' => 'S1 Teknologi Informasi',
+                'paid_off_count' => 100,
+                'not_paid_off_count' => 100,
+                'student_count' => 200,
+                'invoice_a' => 1000000,
+                'invoice_b' => 21000000,
+                'invoice_c' => 11000000,
+                'invoice_d' => 11000000,
+                'invoice_total' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+            ],
+        ];
+
+        $datatable = datatables($data);
+
+        return $datatable->toJSON();
+    }
+
+    public function reportOldStudentInvoicePerStudent() {
+        $data = [
+            [
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Rekayasa Perangkat Lunak',
+                'student_name' => 'Ahmad Lubis Joko Tingkir',
+                'student_id' => '12324124112',
+                'invoice_detail' => [
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
+                ],
+                'invoice_total' => 8000000,
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'invoice_c_detail' => [
+                    ['name' => 'Djarum', 'nominal' => 2000000],
+                    ['name' => 'Alumni', 'nominal' => 2000000],
+                ],
+                'invoice_c_total' => 4000000,
+                'invoice_d_detail' => [
+                    ['name' => 'Rincian 1', 'nominal' => 2000000],
+                    ['name' => 'Rincian 2', 'nominal' => 2000000],
+                ],
+                'invoice_d_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Kredit',
+            ],
+            [
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Informatika',
+                'student_name' => 'Cucut Mahyadi Jamaluddin',
+                'student_id' => '12324124113',
+                'invoice_detail' => [
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
+                ],
+                'invoice_total' => 8000000,
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'invoice_c_detail' => [
+                    ['name' => 'Djarum', 'nominal' => 2000000],
+                    ['name' => 'Alumni', 'nominal' => 2000000],
+                ],
+                'invoice_c_total' => 4000000,
+                'invoice_d_detail' => [
+                    ['name' => 'Rincian 1', 'nominal' => 2000000],
+                    ['name' => 'Rincian 2', 'nominal' => 2000000],
+                ],
+                'invoice_d_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Kredit',
+            ],
+            [
+                'faculty' => 'Fakultas Informatika',
+                'study_program' => 'S1 Data Sains',
+                'student_name' => 'Mauskana Koamsika Laskus',
+                'student_id' => '12324124114',
+                'invoice_detail' => [
+                    ['name' => 'BPP', 'nominal' => 7500000],
+                    ['name' => 'Praktikum', 'nominal' => 200000],
+                    ['name' => 'SKS', 'nominal' => 200000],
+                    ['name' => 'Seragam', 'nominal' => 100000],
+                ],
+                'invoice_total' => 8000000,
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'invoice_c_detail' => [
+                    ['name' => 'Djarum', 'nominal' => 2000000],
+                    ['name' => 'Alumni', 'nominal' => 2000000],
+                ],
+                'invoice_c_total' => 4000000,
+                'invoice_d_detail' => [
+                    ['name' => 'Rincian 1', 'nominal' => 2000000],
+                    ['name' => 'Rincian 2', 'nominal' => 2000000],
+                ],
+                'invoice_d_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'paid_off_total' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Kredit',
+            ],
+        ];
+
+        $datatable = datatables($data);
+
+        return $datatable->toJSON();
+    }
+
+    public function reportOldStudentPaymentHistory() {
+        $data = [
+            [
+                'payment_date' => '2022-03-20',
+                'invoice_component' => 'BPP',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ],
+            [
+                'payment_date' => '2022-03-21',
+                'invoice_component' => 'BPP',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ],
+            [
+                'payment_date' => '2022-03-22',
+                'invoice_component' => 'BPP',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ]
         ];
 
         $datatable = datatables($data);

@@ -150,26 +150,20 @@
                 </a>
             </li> -->
 
-            <!-- <li class="nav-item mb-50">
-                <a class="d-flex align-items-center fw-bold" href="/laporan">
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
                     <i data-feather="file-text"></i>
                     <span class="menu-title text-truncate">Laporan</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="menu__item nav-item">
-                        <a class="d-flex align-items-center fw-bold" href="/asdf">
+                    <li class="menu__item nav-item {{ 'report/old-student-invoice' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/old-student-invoice') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Laporan Tagihan<br>Pembayaran</span>
-                        </a>
-                    </li>
-                    <li class="menu__item nav-item">
-                        <a class="d-flex align-items-center fw-bold" href="/asdf">
-                            <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Laporan Piutang<br>Pembayaran</span>
+                            <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Lama</span>
                         </a>
                     </li>
                 </ul>
-            </li> -->
+            </li>
 	    </ul>
     </div>
 </div>

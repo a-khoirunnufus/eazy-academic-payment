@@ -264,10 +264,17 @@ const _datatableTemplates = {
             </span>
         `;
     },
-    currencyCell: function(data, {nowrap = true, bold = false, additionalClass = ''} = {}) {
+    currencyCell: function(data, {nowrap = true, bold = false, minus = false, additionalClass = ''} = {}) {
         return `
             <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
-                ${Rupiah.format(data)}
+                ${minus ? '- ' : ''}${Rupiah.format(data)}
+            </span>
+        `;
+    },
+    dateCell: function(data, {nowrap = true, bold = false, additionalClass = ''} = {}) {
+        return `
+            <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
+                ${moment(data).format('DD/MM/YYYY')}
             </span>
         `;
     },
@@ -337,6 +344,47 @@ const _datatableTemplates = {
     listDetailCell: function(listItems, listHeader = null, itemValueFormatter = null) {
         let html = '<div class="d-flex flex-column" style="gap: .5rem">';
         if (listHeader) html += `<div class="fw-bold text-nowrap">${listHeader}</div>`;
+        html += '<div class="d-flex flex-row" style="gap: 1rem">';
+        
+        const minItemPerColumn = 2;
+        const half = listItems.length > minItemPerColumn ? Math.ceil(listItems.length/2) : listItems.length;
+        let firstCol = listItems.slice(0, half);
+        firstCol = firstCol.map(item => {
+            return `
+                <div class="text-secondary text-nowrap">${item.label} : ${itemValueFormatter ? itemValueFormatter(item.value) : item.value}</div>
+            `;
+        }).join('');
+        html += `<div class="d-flex flex-column" style="gap: .5rem">${firstCol}</div>`;
+
+        if (half < listItems.length) {
+            let secondCol = listItems.slice(half);
+            secondCol = secondCol.map(item => {
+                return `
+                    <div class="text-secondary text-nowrap">${item.label} : ${itemValueFormatter ? itemValueFormatter(item.value) : item.value}</div>
+                `;
+            }).join('');
+            html += `<div class="d-flex flex-column" style="gap: .5rem">${secondCol}</div>`;
+        }
+
+        html += '</div></div>';
+        return html;
+    },
+    listDetailCellV2: function(listItems, listHeader = null, itemValueFormatter = null) {
+        let html = '<div class="d-flex flex-column" style="gap: .5rem">';
+        
+        if (listHeader) {
+            html += `
+                <div class="d-flex flex-column" style="gap: .5rem">
+                    ${ listHeader.map(item => {
+                            return `
+                                <div class="fw-bold text-nowrap">${item.label} : ${itemValueFormatter ? itemValueFormatter(item.value) : item.value}</div>
+                            `;
+                        }).join('')
+                    }
+                </div>
+            `;
+        }
+
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
         
         const minItemPerColumn = 2;
