@@ -53,5 +53,16 @@ class StaticDataServiceProvider extends ServiceProvider
         View::share('static_semesters', $semesters);
         View::share('static_study_levels', $study_levels);
         View::share('static_invoice_types', $invoice_types);
+
+        // NEW FORMAT
+
+        $academic_years = [
+            ['label' => '2021/2022', 'value' => '2021/2022'],
+            ['label' => '2022/2023', 'value' => '2022/2023'],
+            ['label' => '2023/2024', 'value' => '2023/2024'],
+            ['label' => '2024/2025', 'value' => '2024/2025']
+        ];
+
+        View::share('static_academic_years', $academic_years);
     }
 }

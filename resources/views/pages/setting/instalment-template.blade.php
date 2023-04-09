@@ -22,13 +22,152 @@
         <tbody></tbody>
     </table>
 </div>
+
+<!-- Modal add installment scheme -->
+<div class="modal fade" id="addInstallmentSchemeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
+                <h4 class="modal-title fw-bolder" id="addInstallmentSchemeModalLabel">Tambah Skema Cicilan</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 pt-0">
+                <form>
+                    <div class="mb-2">
+                        <label class="form-label-md">Nama Skema</label>
+                        <input type="text" class="form-control" placeholder="Masukkan nama skema pembayaran" />
+                    </div>
+                    <div class="mb-2">
+                        <div class="mb-2 d-flex justify-content-end">
+                            <button class="btn btn-primary">
+                                <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Komponen
+                            </button>
+                        </div>
+                        <div class="d-flex flex-column" style="gap: 1rem">
+                            <div class="d-flex" style="gap: 1rem">
+                                <div class="w-10 fw-bold">Bayar</div>
+                                <div class="w-40 fw-bold">Persen Pembayaran</div>
+                                <div class="w-40 fw-bold">Tenggat Pembayaran</div>
+                                <div class="w-10 fw-bold text-center">Aksi</div>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 1rem">
+                                <div class="w-10">Ke-1</div>
+                                <div class="w-40">
+                                    <input type="number" class="form-control" />
+                                </div>
+                                <div class="w-40">
+                                    <input type="text" class="form-control flatpickr-basic" />
+                                </div>
+                                <div class="w-10 text-center">
+                                    <a class="btn btn-danger btn-icon"><i data-feather="trash"></i></a>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 1rem">
+                                <div class="w-10">Ke-2</div>
+                                <div class="w-40">
+                                    <input type="number" class="form-control" />
+                                </div>
+                                <div class="w-40">
+                                    <input type="text" class="form-control flatpickr-basic" />
+                                </div>
+                                <div class="w-10 text-center">
+                                    <a class="btn btn-danger btn-icon"><i data-feather="trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-success me-1">Tambah Skema</button>
+                        <a data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal edit installment scheme -->
+<div class="modal fade" id="editInstallmentSchemeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
+                <h4 class="modal-title fw-bolder" id="editInstallmentSchemeModalLabel">Edit Skema Cicilan</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 pt-0">
+                <form>
+                    <div class="mb-2">
+                        <label class="form-label-md">Nama Skema</label>
+                        <input type="text" class="form-control" value="Cicilan 3X" placeholder="Masukkan nama skema pembayaran" />
+                    </div>
+                    <div class="mb-2">
+                        <div class="mb-2 d-flex justify-content-end">
+                            <button class="btn btn-primary">
+                                <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Komponen
+                            </button>
+                        </div>
+                        <div class="d-flex flex-column" style="gap: 1rem">
+                            <div class="d-flex" style="gap: 1rem">
+                                <div class="w-10 fw-bold">Bayar</div>
+                                <div class="w-40 fw-bold">Persen Pembayaran</div>
+                                <div class="w-40 fw-bold">Tenggat Pembayaran</div>
+                                <div class="w-10 fw-bold text-center">Aksi</div>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 1rem">
+                                <div class="w-10">Ke-1</div>
+                                <div class="w-40">
+                                    <input type="number" class="form-control" value="33" />
+                                </div>
+                                <div class="w-40">
+                                    <input type="text" class="form-control flatpickr-basic" value="2023-04-10" />
+                                </div>
+                                <div class="w-10 text-center">
+                                    <a class="btn btn-danger btn-icon"><i data-feather="trash"></i></a>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 1rem">
+                                <div class="w-10">Ke-2</div>
+                                <div class="w-40">
+                                    <input type="number" class="form-control" value="33" />
+                                </div>
+                                <div class="w-40">
+                                    <input type="text" class="form-control flatpickr-basic" value="2023-04-10" />
+                                </div>
+                                <div class="w-10 text-center">
+                                    <a class="btn btn-danger btn-icon"><i data-feather="trash"></i></a>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap: 1rem">
+                                <div class="w-10">Ke-3</div>
+                                <div class="w-40">
+                                    <input type="number" class="form-control" value="33" />
+                                </div>
+                                <div class="w-40">
+                                    <input type="text" class="form-control flatpickr-basic" value="2023-04-10" />
+                                </div>
+                                <div class="w-10 text-center">
+                                    <a class="btn btn-danger btn-icon"><i data-feather="trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-warning me-1">Edit Skema</button>
+                        <a data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 
 @section('js_section')
 <script>
     $(function(){
-        _instalmentTemplateTable.init()
+        _instalmentTemplateTable.init();
+        $('.flatpickr-basic').flatpickr();
     })
 
     const _instalmentTemplateTable = {
@@ -53,7 +192,8 @@
                         name: 'n_payment', 
                         data: 'n_payment',
                         render: (data) => {
-                            return `${data} Pembayaran`                        }
+                            return `${data} Pembayaran`
+                        }
                     },
                     {
                         name: 'validity', 
@@ -85,10 +225,10 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_instalmentTemplateTableActions.add()" class="btn btn-primary">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInstallmentSchemeModal">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Template Cicilan
+                                    Tambah Skema
                                 </span>
                             </button>
                         </div>
@@ -105,7 +245,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_instalmentTemplateTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editInstallmentSchemeModal"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_instalmentTemplateTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
@@ -114,126 +254,21 @@
         }
     }
 
+    const addInstallmentSchemeModal = new bootstrap.Modal(document.getElementById('addInstallmentSchemeModal'));
+    const editInstallmentSchemeModal = new bootstrap.Modal(document.getElementById('addInstallmentSchemeModal'));
+
     const _instalmentTemplateTableActions = {
         tableRef: _instalmentTemplateTable,
         add: function() {
-            Modal.show({
-                type: 'form',
-                modalTitle: 'Tambah Template Cicilan',
-                config: {
-                    formId: 'form-add-instalment-template',
-                    formActionUrl: '#',
-                    fields: {
-                        schema_name: {
-                            title: 'Nama Skema',
-                            content: {
-                                template: 
-                                    `<input 
-                                        type="text"
-                                        name="schema_name" 
-                                        class="form-control"
-                                    >`,
-                            },
-                        },
-                        n_payment: {
-                            title: 'X Kali Pembayaran',
-                            content: {
-                                template: 
-                                    `<input 
-                                        type="number" 
-                                        name="n_payment" 
-                                        class="form-control"
-                                    >`,
-                            },
-                        },
-                        validity: {
-                            title: 'Status Validitas',
-                            content: {
-                                template: `
-                                    <select class="form-select" name="validity">
-                                        <option disabled selected>Pilih status validitas</option>
-                                        <option value="valid">Valid</option>
-                                        <option value="invalid">Tidak Valid</option>
-                                    </select>
-                                `
-                            },
-                        },
-                    },
-                    formSubmitLabel: 'Tambah Template',
-                    callback: function() {
-                        // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil menambahkan template cicilan',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
-                    },
-                },
-            });
+            addInstallmentSchemeModal.show();
         },
         edit: function() {
-            Modal.show({
-                type: 'form',
-                modalTitle: 'Edit Komponen Tagihan',
-                config: {
-                    formId: 'form-edit-transaction-group',
-                    formActionUrl: '#',
-                    fields: {
-                        schema_name: {
-                            title: 'Nama Skema',
-                            content: {
-                                template: 
-                                    `<input 
-                                        type="text"
-                                        name="schema_name" 
-                                        class="form-control"
-                                        value="Full 100%"
-                                    >`,
-                            },
-                        },
-                        n_payment: {
-                            title: 'X Kali Pembayaran',
-                            content: {
-                                template: 
-                                    `<input 
-                                        type="number" 
-                                        name="n_payment" 
-                                        class="form-control"
-                                        value="1"
-                                    >`,
-                            },
-                        },
-                        validity: {
-                            title: 'Status Validitas',
-                            content: {
-                                template: `
-                                    <select class="form-select" name="validity">
-                                        <option disabled>Pilih status validitas</option>
-                                        <option value="valid" selected>Valid</option>
-                                        <option value="invalid">Tidak Valid</option>
-                                    </select>
-                                `
-                            },
-                        },
-                    },
-                    formSubmitLabel: 'Edit Template',
-                    callback: function() {
-                        // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil mengupdate template cicilan',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
-                    },
-                },
-            });
+            editInstallmentSchemeModal.show();
         },
         delete: function() {
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus template cician ini?',
+                text: 'Apakah anda yakin ingin menghapus skema cician ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -245,17 +280,10 @@
                     // ex: do ajax request
                     Swal.fire({
                         icon: 'success',
-                        text: 'Berhasil menghapus template cician',
+                        text: 'Berhasil menghapus skema cician',
                     })
                 }
             })
-            // Modal.show({
-            //     type: 'confirmation',
-            //     modalTitle: 'Konfirmasi Menghapus Template',
-            //     config: {
-            //         callback: function() {},
-            //     }
-            // });
         }
     }
 </script>

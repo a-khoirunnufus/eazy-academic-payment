@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 Auth::routes();
 
@@ -38,5 +39,10 @@ Route::get('/generate/student-invoice-detail', fn() => view('pages.generate.stud
 Route::get('/generate/other-invoice', fn() => view('pages.generate.other-invoice'));
 Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-invoice-detail'));
 
-Route::get('/student/student-payment', fn() => view('external.student.student-payment'));
-Route::get('/student/proceed-payment', fn() => view('external.student.proceed-payment'));
+Route::get('/report/old-student-invoice', function(Request $request) {
+    if ($request->query('type') == 'student') {
+        return view('pages.report.old-student-invoice.per-student');
+    } else {
+        return view('pages.report.old-student-invoice.per-study-program');
+    }
+});
