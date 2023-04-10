@@ -10,7 +10,7 @@
 
 <div class="card">
     <div class="card-body">
-        <x-datatable-filter-wrapper oneRow handler="foo()">
+        <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
             <x-datatable-select-filter 
                 title="Tahun Akademik dan Semester"
                 elementId="filter-school-year"
@@ -30,7 +30,7 @@
                 <th rowspan="2">Tahun Akademik</th>
                 <th rowspan="2">Program Studi / Fakultas</th>
                 <th rowspan="2">Mahasiswa</th>
-                <th colspan="4">Rincian</th>
+                <th colspan="4" class="text-center">Rincian</th>
                 <th rowspan="2">
                     Total Harus Dibayar<br>
                     (A+B)-(C+D)
@@ -64,10 +64,6 @@
 
 @section('js_section')
 <script>
-    function foo() {
-        console.log('bar');
-    }
-    
     $(document).ready(function () {
         select2Replace();
     });

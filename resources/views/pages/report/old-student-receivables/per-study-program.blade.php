@@ -1,12 +1,64 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
+@section('page_title', 'Laporan Piutang Mahasiswa Lama')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
+@section('css_section')
+    <style>
+        .eazy-summary {
+            display: flex;
+            flex-direction: row;
+            gap: 2rem;
+            justify-content: space-between;
+        }
+        .eazy-summary__item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        .eazy-summary__item .item__icon {
+            color: blue;
+            background-color: lightblue;
+            border-radius: 50%;
+            height: 56px;
+            width: 56px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 1rem;
+        }
+        .eazy-summary__item .item__icon.item__icon--blue{
+            color: #356CFF;
+            background-color: #F0F4FF;
+        }
+        .eazy-summary__item .item__icon.item__icon--green{
+            color: #0BA44C;
+            background-color: #E1FFE0;
+        }
+        .eazy-summary__item .item__icon.item__icon--red{
+            color: #FF4949;
+            background-color: #FFF5F5;
+        }
+        .eazy-summary__item .item__icon svg {
+            height: 30px;
+            width: 30px;
+        }
+        .eazy-summary__item .item__text span:first-child {
+            display: block;
+            font-size: 1rem;
+        }
+        .eazy-summary__item .item__text span:last-child {
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+        }
+    </style>
+@endsection
+
 @section('content')
 
-@include('pages.report.old-student-invoice._shortcuts', ['active' => 'per-study-program'])
+@include('pages.report.old-student-receivables._shortcuts', ['active' => 'per-study-program'])
 
 <div class="card">
     <div class="card-body">
@@ -24,7 +76,41 @@
 </div>
 
 <div class="card">
-    <table id="old-student-invoice-table" class="table table-striped">
+    <div class="card-body">
+        <div id="receivables-summary" class="eazy-summary">
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--blue">
+                    <i data-feather="activity"></i>
+                </div>
+                <div class="item__text">
+                    <span>Jumlah Piutang Keseluruhan</span>
+                    <span>Rp 100,000,000,00</span>
+                </div>
+            </div>
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--green">
+                    <i data-feather="credit-card"></i>
+                </div>
+                <div class="item__text">
+                    <span>Jumlah Piutang Terbayar</span>
+                    <span>Rp 50,000,000,00</span>
+                </div>
+            </div>
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--red">
+                    <i data-feather="percent"></i>
+                </div>
+                <div class="item__text">
+                    <span>Total Sisa Tagihan Keseluruhan</span>
+                    <span>Rp 50,000,000,00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <table id="old-student-receivables-table" class="table table-striped">
         <thead>
             <tr>
                 <th rowspan="2">Tahun Akademik</th>
@@ -75,10 +161,10 @@
     const _oldStudentInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-invoice-table').DataTable({
+            this.instance = $('#old-student-receivables-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-invoice-per-study-program',
+                    url: _baseURL+'/api/dt/report-old-student-receivables-per-study-program',
                 },
                 columns: [
                     {
@@ -91,7 +177,7 @@
                         name: 'study_program_name',
                         data: 'study_program_name', 
                         render: (data) => {
-                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/old-student-invoice?type=student'});
+                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/old-student-receivables?type=student'});
                         }
                     },
                     {
@@ -162,7 +248,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-receivables-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -171,8 +257,8 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-invoice-actions').html(`
-                        <h5 class="mb-0">Daftar Tagihan</h5>
+                    $('.old-student-receivables-actions').html(`
+                        <h5 class="mb-0">Daftar Piutang</h5>
                     `)
                     feather.replace();
                 }

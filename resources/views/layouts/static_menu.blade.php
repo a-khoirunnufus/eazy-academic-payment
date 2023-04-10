@@ -174,6 +174,12 @@
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Pendaftar</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'report/old-student-receivables' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/old-student-receivables') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Lama</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 	    </ul>

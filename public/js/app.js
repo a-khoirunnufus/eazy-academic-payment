@@ -313,9 +313,13 @@ const _datatableTemplates = {
         `;
     },
     // TODO: migrate all implementation to listDetailCell()
-    invoiceDetailCell: function(invoiceItems, invoiceTotal) {
+    invoiceDetailCell: function(invoiceItems, invoiceTotal = null) {
         let html = '<div class="d-flex flex-column" style="gap: .5rem">'
-        html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
+
+        if(invoiceTotal) {
+            html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
+        }
+        
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
         
         const minItemPerColumn = 2;

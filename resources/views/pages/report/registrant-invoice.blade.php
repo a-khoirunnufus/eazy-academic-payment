@@ -35,7 +35,7 @@
             <!-- REGISTRANT INVOICE DETAIL -->
             <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
                 <div class="px-1 py-2 border-bottom">
-                    <x-datatable-filter-wrapper oneRow handler="foo()">
+                    <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
                         <x-datatable-select-filter 
                             title="Tahun Akademik dan Semester"
                             elementId="filter-school-year"
@@ -68,7 +68,7 @@
                             <th rowspan="2">Nama</th>
                             <th rowspan="2">Jalur / Periode</th>
                             <th rowspan="2">Metode Pembayaran</th>
-                            <th colspan="2">Jenis Tagihan</th>
+                            <th colspan="2" class="text-center">Jenis Tagihan</th>
                             <th rowspan="2">
                                 Total Harus Dibayar<br>
                                 (A+B)-(C+D)
@@ -106,10 +106,6 @@
 
 @section('js_section')
 <script>
-    function foo() {
-        console.log('bar');
-    }
-
     $(document).ready(function () {
         select2Replace();
     });
