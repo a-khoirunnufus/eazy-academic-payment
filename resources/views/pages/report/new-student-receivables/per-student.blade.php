@@ -1,6 +1,6 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Piutang Mahasiswa Lama')
+@section('page_title', 'Laporan Piutang Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -58,7 +58,7 @@
 
 @section('content')
 
-@include('pages.report.old-student-receivables._shortcuts', ['active' => 'per-student'])
+@include('pages.report.new-student-receivables._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
     <div class="card-body">
@@ -134,7 +134,7 @@
 </div>
 
 <div class="card">
-    <table id="old-student-receivables-table" class="table table-striped">
+    <table id="new-student-receivables-table" class="table table-striped">
         <thead>
             <tr>
                 <th rowspan="2">Program Studi / Fakultas</th>
@@ -168,16 +168,16 @@
     });
 
     $(function(){
-        _oldStudentReceivablesTable.init();
+        _newStudentReceivablesTable.init();
     })
 
-    const _oldStudentReceivablesTable = {
+    const _newStudentReceivablesTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-receivables-table').DataTable({
+            this.instance = $('#new-student-receivables-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-receivables-per-student',
+                    url: _baseURL+'/api/dt/report-new-student-receivables-per-student',
                 },
                 columns: [
                     {
@@ -256,7 +256,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-receivables-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-receivables-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -265,8 +265,8 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-receivables-actions').html(`
-                        <h5 class="mb-0">Daftar Piutang Mahasiswa Lama</h5>
+                    $('.new-student-receivables-actions').html(`
+                        <h5 class="mb-0">Daftar Piutang Mahasiswa Baru</h5>
                     `)
                     feather.replace();
                 }

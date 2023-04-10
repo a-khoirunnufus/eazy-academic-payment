@@ -1,6 +1,6 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Piutang Mahasiswa Lama')
+@section('page_title', 'Laporan Piutang Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -58,7 +58,7 @@
 
 @section('content')
 
-@include('pages.report.old-student-receivables._shortcuts', ['active' => 'per-student'])
+@include('pages.report.new-student-receivables._shortcuts', ['active' => 'per-study-program'])
 
 <div class="card">
     <div class="card-body">
@@ -70,30 +70,6 @@
                 value="code"
                 labelTemplate=":year Semester :semester"
                 :labelTemplateItems="array('year', 'semester')"
-            />
-            <x-datatable-select-filter 
-                title="Angkatan"
-                elementId="filter-class-year"
-                resourceName="class-year"
-                value="code"
-                labelTemplate=":name"
-                :labelTemplateItems="array('name')"
-            />
-            <x-datatable-select-filter 
-                title="Fakultas"
-                elementId="filter-faculty"
-                resourceName="faculty"
-                value="id"
-                labelTemplate=":name"
-                :labelTemplateItems="array('name')"
-            />
-            <x-datatable-select-filter 
-                title="Program Studi"
-                elementId="filter-study-program"
-                resourceName="study-program"
-                value="id"
-                labelTemplate=":type :name"
-                :labelTemplateItems="array('type', 'name')"
             />
         </x-datatable-filter-wrapper>
     </div>
@@ -134,29 +110,40 @@
 </div>
 
 <div class="card">
-    <table id="old-student-receivables-table" class="table table-striped">
+    <table id="new-student-receivables-table" class="table table-striped">
         <thead>
             <tr>
+                <th rowspan="2">Tahun Akademik</th>
                 <th rowspan="2">Program Studi / Fakultas</th>
-                <th rowspan="2">Nama / NIM</th>
-                <th rowspan="2">Rincian Tagihan</th>
-                <th colspan="4" class="text-center">Jenis Tagihan</th>
+                <th rowspan="2">Mahasiswa</th>
+                <th colspan="4" class="text-center">Rincian</th>
                 <th rowspan="2">
                     Total Harus Dibayar<br>
                     (A+B)-(C+D)
                 </th>
-                <th rowspan="2">Total Terbayar</th>
-                <th rowspan="2">Sisa Tagihan</th>
-                <th rowspan="2">Status</th>
+                <th rowspan="2">Terbayar</th>
+                <th rowspan="2">Piutang</th>
             </tr>
             <tr>
                 <th>Tagihan A</th>
-                <th>Denda B</th>
-                <th>Beasiswa C</th>
-                <th>Potongan D</th>
+                <th>Tagihan B</th>
+                <th>Tagihan C</th>
+                <th>Tagihan D</th>
             </tr>
         </thead>
         <tbody></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Keseluruhan</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+                <th>Rp 100,000,000,00</th>
+            </tr>
+        </tfoot>
     </table>
 </div>
 @endsection
@@ -168,95 +155,100 @@
     });
 
     $(function(){
-        _oldStudentReceivablesTable.init();
+        _newStudentInvoiceTable.init()
     })
 
-    const _oldStudentReceivablesTable = {
+    const _newStudentInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-receivables-table').DataTable({
+            this.instance = $('#new-student-receivables-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-receivables-per-student',
+                    url: _baseURL+'/api/dt/report-new-student-receivables-per-study-program',
                 },
                 columns: [
                     {
-                        name: 'study_program_n_faculty', 
+                        name: 'academic_year', 
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.study_program, row.faculty);
+                            return this.template.titleWithSubtitleCell(row.school_year, row.semester);
                         }
                     },
                     {
-                        name: 'student_name_n_id', 
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.student_name, row.student_id);
-                        }
-                    },
-                    {
-                        name: 'invoice', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail);
-                        }    
-                    },
-                    {
-                        name: 'invoice_a', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_a_detail, row.invoice_a_total);
-                        }    
-                    },
-                    {
-                        name: 'invoice_b', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_b_detail, row.invoice_b_total);
-                        }    
-                    },
-                    {
-                        name: 'invoice_c', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_c_detail, row.invoice_c_total);
-                        }    
-                    },
-                    {
-                        name: 'invoice_d', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_d_detail, row.invoice_d_total);
-                        }    
-                    },
-                    {
-                        name: 'total_must_be_paid',
-                        data: 'total_must_be_paid',
+                        name: 'study_program_name',
+                        data: 'study_program_name', 
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
+                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/new-student-receivables?type=student'});
+                        }
+                    },
+                    {
+                        name: 'student', 
+                        render: (data, _, row) => {
+                            const listHeader = [
+                                {label: 'Lunas', value: row.paid_off_count},
+                                {label: 'Belum Lunas', value: row.not_paid_off_count}
+                            ];
+                            const listItem = [
+                                {label: 'Jumlah Mahasiswa', value: row.student_count}
+                            ];
+                            return this.template.listDetailCellV2(listItem, listHeader);
+                        }
+                    },
+                    {
+                        name: 'invoice_a',
+                        data: 'invoice_a',
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        name: 'invoice_b',
+                        data: 'invoice_b',
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        name: 'invoice_c',
+                        data: 'invoice_c',
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        name: 'invoice_d',
+                        data: 'invoice_d',
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        name: 'invoice_total',
+                        data: 'invoice_total',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true});
                         }
                     },
                     {
                         name: 'paid_off_total',
                         data: 'paid_off_total',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
+                            return this.template.currencyCell(data, {bold: true});
                         }
                     },
                     {
                         name: 'receivables_total',
                         data: 'receivables_total',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, minus: true, additionalClass: 'text-warning'});
+                            return this.template.currencyCell(data, {bold: true});
                         }
-                    },
-                    {
-                        name: 'status',
-                        data: 'status',
-                        render: (data) => {
-                            return this.template.badgeCell(data, 'primary');
-                        }
-                    },
+                    }
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-receivables-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-receivables-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -265,8 +257,8 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-receivables-actions').html(`
-                        <h5 class="mb-0">Daftar Piutang Mahasiswa Lama</h5>
+                    $('.new-student-receivables-actions').html(`
+                        <h5 class="mb-0">Daftar Piutang</h5>
                     `)
                     feather.replace();
                 }

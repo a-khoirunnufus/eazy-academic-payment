@@ -180,6 +180,12 @@
                             <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Lama</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'report/new-student-receivables' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/new-student-receivables') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Baru</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 	    </ul>
