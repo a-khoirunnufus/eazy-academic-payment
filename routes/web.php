@@ -53,3 +53,4 @@ Route::get('/report/new-student-invoice', function(Request $request) {
         return view('pages.report.new-student-invoice.per-study-program');
     }
 });
+Route::get('/report/registrant-invoice', fn() => view('pages.report.registrant-invoice'));

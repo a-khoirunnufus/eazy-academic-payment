@@ -15,6 +15,8 @@ Route::get('school-year', 'App\Http\Controllers\Api\TempResourceController@schoo
 Route::get('class-year', 'App\Http\Controllers\Api\TempResourceController@classYear');
 Route::get('faculty', 'App\Http\Controllers\Api\TempResourceController@faculty');
 Route::get('study-program', 'App\Http\Controllers\Api\TempResourceController@studyProgram');
+Route::get('registration-path', 'App\Http\Controllers\Api\TempResourceController@registrationPath');
+Route::get('registration-period', 'App\Http\Controllers\Api\TempResourceController@registrationPeriod');
 
 // Datatable Routes
 // Menu Setting
@@ -38,3 +40,5 @@ Route::get('dt/report-old-student-payment-history', 'App\Http\Controllers\Api\Te
 Route::get('dt/report-new-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentInvoicePerStudyProgram');
 Route::get('dt/report-new-student-invoice-per-student', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentInvoicePerStudent');
 Route::get('dt/report-new-student-payment-history', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentPaymentHistory');
+Route::get('dt/report-registrant-invoice-per-student', 'App\Http\Controllers\Api\TempResourceController@reportRegistrantInvoice');
+Route::get('dt/report-registrant-payment-history', 'App\Http\Controllers\Api\TempResourceController@reportRegistrantPaymentHistory');

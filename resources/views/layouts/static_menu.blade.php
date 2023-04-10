@@ -168,6 +168,12 @@
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Baru</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'report/registrant-invoice' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/registrant-invoice') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Pendaftar</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 	    </ul>

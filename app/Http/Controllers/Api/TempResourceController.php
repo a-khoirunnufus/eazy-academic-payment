@@ -69,6 +69,32 @@ class TempResourceController extends Controller
         return response()->json($data, 200);
     }
 
+    public function registrationPath()
+    {
+        $data = DB::table('pmb.ms_path')
+            ->select(
+                'path_id as id', 
+                'path_name as name',
+            )
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        return response()->json($data, 200);
+    }
+
+    public function registrationPeriod()
+    {
+        $data = DB::table('pmb.ms_period')
+            ->select(
+                'period_id as id', 
+                'period_name as name',
+            )
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        return response()->json($data, 200);
+    }
+
     /**
      * DATATABLE SOURCE
      */
@@ -1109,6 +1135,123 @@ class TempResourceController extends Controller
             [
                 'payment_date' => '2022-03-22',
                 'invoice_component' => 'BPP',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ]
+        ];
+
+        $datatable = datatables($data);
+
+        return $datatable->toJSON();
+    }
+
+    public function reportRegistrantInvoice() {
+        $data = [
+            [
+                'student_name' => 'Ahmad Lubis Joko Tingkir',
+                'path' => 'Jalur Raport',
+                'period' => 'Periode Maret',
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Lunas',
+            ],
+            [
+                'student_name' => 'Cucut Mahyadi Jamaluddin',
+                'path' => 'Jalur Raport',
+                'period' => 'Periode Maret',
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Lunas',
+            ],
+            [
+                'student_name' => 'Mauskana Koamsika Laskus',
+                'path' => 'Jalur Raport',
+                'period' => 'Periode Maret',
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+                'invoice_a_detail' => [
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                    ['name' => 'Rincian Lainnya', 'nominal' => 0],
+                ],
+                'invoice_a_total' => 8000000,
+                'invoice_b_detail' => [
+                    ['name' => 'Denda 1', 'nominal' => 2000000],
+                    ['name' => 'Denda 2', 'nominal' => 2000000],
+                ],
+                'invoice_b_total' => 4000000,
+                'total_must_be_paid' => 100000000,
+                'receivables_total' => 2000000,
+                'status' => 'Lunas',
+            ],
+        ];
+
+        $datatable = datatables($data);
+
+        return $datatable->toJSON();
+    }
+
+    public function reportRegistrantPaymentHistory() {
+        $data = [
+            [
+                'payment_date' => '2022-03-20',
+                'invoice_component' => 'Formulir',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ],
+            [
+                'payment_date' => '2022-03-21',
+                'invoice_component' => 'Formulir',
+                'payment_nominal' => 10000000,
+                'payment_method_name' => 'VA BNI',
+                'payment_method_detail' => [
+                    ['label' => 'Kode', 'value' => '002201923123'],
+                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
+                ],
+            ],
+            [
+                'payment_date' => '2022-03-22',
+                'invoice_component' => 'Formulir',
                 'payment_nominal' => 10000000,
                 'payment_method_name' => 'VA BNI',
                 'payment_method_detail' => [
