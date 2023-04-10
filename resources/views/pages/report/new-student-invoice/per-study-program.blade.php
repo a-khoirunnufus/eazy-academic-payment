@@ -1,12 +1,12 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
+@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
 @section('content')
 
-@include('pages.report.old-student-invoice._shortcuts', ['active' => 'per-study-program'])
+@include('pages.report.new-student-invoice._shortcuts', ['active' => 'per-study-program'])
 
 <div class="card">
     <div class="card-body">
@@ -24,7 +24,7 @@
 </div>
 
 <div class="card">
-    <table id="old-student-invoice-table" class="table table-striped">
+    <table id="new-student-invoice-table" class="table table-striped">
         <thead>
             <tr>
                 <th rowspan="2">Tahun Akademik</th>
@@ -75,10 +75,10 @@
     const _oldStudentInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-invoice-table').DataTable({
+            this.instance = $('#new-student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-invoice-per-study-program',
+                    url: _baseURL+'/api/dt/report-new-student-invoice-per-study-program',
                 },
                 columns: [
                     {
@@ -91,7 +91,7 @@
                         name: 'study_program_name',
                         data: 'study_program_name', 
                         render: (data) => {
-                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/old-student-invoice?type=student'});
+                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/new-student-invoice?type=student'});
                         }
                     },
                     {
@@ -162,7 +162,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -171,7 +171,7 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-invoice-actions').html(`
+                    $('.new-student-invoice-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
                     `)
                     feather.replace();

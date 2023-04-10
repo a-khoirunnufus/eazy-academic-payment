@@ -1,6 +1,6 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
+@section('page_title', 'Laporan Pembayaran Tagihan Pendaftar')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -20,14 +20,11 @@
 @endsection
 
 @section('content')
-
-@include('pages.report.old-student-invoice._shortcuts', ['active' => 'per-student'])
-
 <div class="card">
     <div class="nav-tabs-shadow nav-align-top">
         <ul class="nav nav-tabs custom border-bottom" role="tablist">
             <li class="nav-item">
-                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Pendaftar</button>
             </li>
             <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history">Riwayat Pembayaran</button>
@@ -35,7 +32,7 @@
         </ul>
         <div class="tab-content">
 
-            <!-- OLD STUDENT INVOICE DETAIL -->
+            <!-- REGISTRANT INVOICE DETAIL -->
             <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
                 <div class="px-1 py-2 border-bottom">
                     <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
@@ -48,60 +45,49 @@
                             :labelTemplateItems="array('year', 'semester')"
                         />
                         <x-datatable-select-filter 
-                            title="Angkatan"
-                            elementId="filter-class-year"
-                            resourceName="class-year"
-                            value="code"
-                            labelTemplate=":name"
-                            :labelTemplateItems="array('name')"
-                        />
-                        <x-datatable-select-filter 
-                            title="Fakultas"
-                            elementId="filter-faculty"
-                            resourceName="faculty"
+                            title="Jalur Pendaftaran"
+                            elementId="filter-registration-path"
+                            resourceName="registration-path"
                             value="id"
                             labelTemplate=":name"
                             :labelTemplateItems="array('name')"
                         />
                         <x-datatable-select-filter 
-                            title="Program Studi"
-                            elementId="filter-study-program"
-                            resourceName="study-program"
+                            title="Periode Pendaftaran"
+                            elementId="filter-registration-period"
+                            resourceName="registration-period"
                             value="id"
-                            labelTemplate=":type :name"
-                            :labelTemplateItems="array('type', 'name')"
+                            labelTemplate=":name"
+                            :labelTemplateItems="array('name')"
                         />
                     </x-datatable-filter-wrapper>
                 </div>
-                <table id="old-student-invoice-detail-table" class="table table-striped">
+                <table id="registrant-invoice-detail-table" class="table table-striped">
                     <thead>
                         <tr>
-                            <th rowspan="2">Program Studi / Fakultas</th>
-                            <th rowspan="2">Nama / NIM</th>
-                            <th rowspan="2">Total / Rincian Tagihan</th>
-                            <th colspan="4" class="text-center">Jenis Tagihan</th>
+                            <th rowspan="2">Nama</th>
+                            <th rowspan="2">Jalur / Periode</th>
+                            <th rowspan="2">Metode Pembayaran</th>
+                            <th colspan="2" class="text-center">Jenis Tagihan</th>
                             <th rowspan="2">
                                 Total Harus Dibayar<br>
                                 (A+B)-(C+D)
                             </th>
-                            <th rowspan="2">Total Terbayar</th>
                             <th rowspan="2">Sisa Tagihan</th>
                             <th rowspan="2">Status</th>
                         </tr>
                         <tr>
                             <th>Tagihan A</th>
                             <th>Denda B</th>
-                            <th>Beasiswa C</th>
-                            <th>Potongan D</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
 
-            <!-- OLD STUDENT PAYMENT HISTORY -->
+            <!-- REGISTRANT PAYMENT HISTORY -->
             <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
-                <table id="old-student-payment-history-table" class="table table-striped" >
+                <table id="registrant-payment-history-table" class="table table-striped" >
                     <thead>
                         <tr>
                             <th>Tanggal Pembayaran</th>
@@ -132,28 +118,29 @@
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-invoice-detail-table').DataTable({
+            this.instance = $('#registrant-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-invoice-per-student',
+                    url: _baseURL+'/api/dt/report-registrant-invoice-per-student',
                 },
                 columns: [
                     {
-                        name: 'study_program_n_faculty', 
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.study_program, row.faculty);
+                        name: 'student_name',
+                        data: 'student_name', 
+                        render: (data) => {
+                            return this.template.defaultCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'student_name_n_id', 
+                        name: 'path_n_period',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.student_name, row.student_id);
+                            return this.template.titleWithSubtitleCell(row.path, row.period);
                         }
                     },
                     {
-                        name: 'invoice', 
+                        name: 'payment', 
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
+                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
                         }    
                     },
                     {
@@ -169,29 +156,10 @@
                         }    
                     },
                     {
-                        name: 'invoice_c', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_c_detail, row.invoice_c_total);
-                        }    
-                    },
-                    {
-                        name: 'invoice_d', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_d_detail, row.invoice_d_total);
-                        }    
-                    },
-                    {
                         name: 'total_must_be_paid',
                         data: 'total_must_be_paid',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
-                        }
-                    },
-                    {
-                        name: 'paid_off_total',
-                        data: 'paid_off_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
                         }
                     },
                     {
@@ -205,7 +173,7 @@
                         name: 'status',
                         data: 'status',
                         render: (data) => {
-                            return this.template.badgeCell(data, 'primary');
+                            return this.template.badgeCell(data, 'success');
                         }
                     },
                 ],
@@ -214,7 +182,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-detail-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"registrant-invoice-detail-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -223,7 +191,7 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-invoice-detail-actions').html(`
+                    $('.registrant-invoice-detail-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
                     `)
                     feather.replace();
@@ -236,10 +204,10 @@
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-payment-history-table').DataTable({
+            this.instance = $('#registrant-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-payment-history',
+                    url: _baseURL+'/api/dt/report-registrant-payment-history',
                 },
                 columns: [
                     {
@@ -275,7 +243,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-payment-history-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"registrant-payment-history-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -284,7 +252,7 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-payment-history-actions').html(`
+                    $('.registrant-payment-history-actions').html(`
                         <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
                     `)
                     feather.replace();

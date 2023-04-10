@@ -1,6 +1,6 @@
 @extends('layouts.static_master')
 
-@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
+@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -21,7 +21,7 @@
 
 @section('content')
 
-@include('pages.report.old-student-invoice._shortcuts', ['active' => 'per-student'])
+@include('pages.report.new-student-invoice._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
     <div class="nav-tabs-shadow nav-align-top">
@@ -35,7 +35,7 @@
         </ul>
         <div class="tab-content">
 
-            <!-- OLD STUDENT INVOICE DETAIL -->
+            <!-- NEW STUDENT INVOICE DETAIL -->
             <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
                 <div class="px-1 py-2 border-bottom">
                     <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
@@ -73,7 +73,7 @@
                         />
                     </x-datatable-filter-wrapper>
                 </div>
-                <table id="old-student-invoice-detail-table" class="table table-striped">
+                <table id="new-student-invoice-detail-table" class="table table-striped">
                     <thead>
                         <tr>
                             <th rowspan="2">Program Studi / Fakultas</th>
@@ -99,9 +99,9 @@
                 </table>
             </div>
 
-            <!-- OLD STUDENT PAYMENT HISTORY -->
+            <!-- NEW STUDENT PAYMENT HISTORY -->
             <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
-                <table id="old-student-payment-history-table" class="table table-striped" >
+                <table id="new-student-payment-history-table" class="table table-striped" >
                     <thead>
                         <tr>
                             <th>Tanggal Pembayaran</th>
@@ -132,10 +132,10 @@
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-invoice-detail-table').DataTable({
+            this.instance = $('#new-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-invoice-per-student',
+                    url: _baseURL+'/api/dt/report-new-student-invoice-per-student',
                 },
                 columns: [
                     {
@@ -214,7 +214,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-detail-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-detail-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -223,7 +223,7 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-invoice-detail-actions').html(`
+                    $('.new-student-invoice-detail-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
                     `)
                     feather.replace();
@@ -236,10 +236,10 @@
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#old-student-payment-history-table').DataTable({
+            this.instance = $('#new-student-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-payment-history',
+                    url: _baseURL+'/api/dt/report-new-student-payment-history',
                 },
                 columns: [
                     {
@@ -275,7 +275,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-payment-history-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-payment-history-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
@@ -284,7 +284,7 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-payment-history-actions').html(`
+                    $('.new-student-payment-history-actions').html(`
                         <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
                     `)
                     feather.replace();

@@ -162,6 +162,30 @@
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Lama</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'report/new-student-invoice' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/new-student-invoice') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Baru</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'report/registrant-invoice' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/registrant-invoice') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Pendaftar</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'report/old-student-receivables' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/old-student-receivables') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Lama</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'report/new-student-receivables' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/new-student-receivables') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Baru</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 	    </ul>
