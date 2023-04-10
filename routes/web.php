@@ -46,3 +46,10 @@ Route::get('/report/old-student-invoice', function(Request $request) {
         return view('pages.report.old-student-invoice.per-study-program');
     }
 });
+Route::get('/report/new-student-invoice', function(Request $request) {
+    if ($request->query('type') == 'student') {
+        return view('pages.report.new-student-invoice.per-student');
+    } else {
+        return view('pages.report.new-student-invoice.per-study-program');
+    }
+});

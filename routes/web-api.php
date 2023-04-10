@@ -35,3 +35,6 @@ Route::get('dt/other-invoice-detail', 'App\Http\Controllers\Api\TempResourceCont
 Route::get('dt/report-old-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentInvoicePerStudyProgram');
 Route::get('dt/report-old-student-invoice-per-student', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentInvoicePerStudent');
 Route::get('dt/report-old-student-payment-history', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentPaymentHistory');
+Route::get('dt/report-new-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentInvoicePerStudyProgram');
+Route::get('dt/report-new-student-invoice-per-student', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentInvoicePerStudent');
+Route::get('dt/report-new-student-payment-history', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentPaymentHistory');
