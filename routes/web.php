@@ -68,3 +68,13 @@ Route::get('/report/new-student-receivables', function(Request $request) {
         return view('pages.report.new-student-receivables.per-study-program');
     }
 });
+
+// Payment
+Route::group(['prefix' => 'payment'], function(){
+    // Settings
+    Route::group(['prefix' => 'settings'], function(){
+        // Component Invoices
+        Route::get('component', 'App\Http\Controllers\_Payment\SettingsController@component')->name('payment.settings.component');
+       
+    });
+});

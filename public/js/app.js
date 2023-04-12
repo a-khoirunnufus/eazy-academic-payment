@@ -855,6 +855,15 @@ function select2Replace() {
     });
 }
 
+function selectRefresh() {
+    $('.select2').select2({
+        tags: true,
+        placeholder: "Pilih Opsi yang Tersedia",
+        allowClear: true,
+        width: '100%'
+    });
+};
+
 /**
  * Localization
  */

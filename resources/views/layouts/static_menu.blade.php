@@ -64,7 +64,7 @@
                 </a>
                 <ul class="menu-content">
                     <li class="menu__item nav-item {{ 'setting/invoice-component' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/invoice-component') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.component') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Komponen<br>Tagihan</span>
                         </a>

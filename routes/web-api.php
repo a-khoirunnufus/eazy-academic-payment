@@ -46,3 +46,13 @@ Route::get('dt/report-old-student-receivables-per-study-program', 'App\Http\Cont
 Route::get('dt/report-old-student-receivables-per-student', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentReceivablesPerStudent');
 Route::get('dt/report-new-student-receivables-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentReceivablesPerStudyProgram');
 Route::get('dt/report-new-student-receivables-per-student', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentReceivablesPerStudent');
+
+// Payment
+Route::group(['prefix' => 'payment'], function(){
+    // Settings
+    Route::group(['prefix' => 'settings'], function(){
+        // Component Invoices
+        Route::get('component-type', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@getComponentType');
+        Route::post('component/store', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@store');
+    });
+});
