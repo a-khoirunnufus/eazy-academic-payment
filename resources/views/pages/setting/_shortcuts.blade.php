@@ -1,5 +1,5 @@
 <div class="eazy-shortcut mb-2">
-    <a href="{{ url('setting/invoice-component') }}" class="eazy-shortcut-item {{ $active == 'invoice-component' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.component') }}" class="eazy-shortcut-item {{ $active == 'invoice-component' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="list"></i>
         </div>
