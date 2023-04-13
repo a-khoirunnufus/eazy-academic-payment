@@ -663,7 +663,7 @@ class Modal {
             config.modalShow && config.modalShow();
             $('#'+config.formId).on(
                 'submit', 
-                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback),
+                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId),
             );
         } else if(type == 'confirmation') {
             html = this.generateModalConfirmationBody(config);
@@ -775,10 +775,7 @@ class Modal {
 
     static generateModalConfirmationBody(config) {
         var html = '<div>';
-        html += `
-            <p>Anda yakin ingin menghapus komponen berikut?</p>
-            <p class="fw-bolder">Biaya Perkuliahan</p>
-        `;
+        html += config.modalBody;
         html += `
             <div class="d-flex justify-content-end mt-2">
                 <button class="btn btn-danger me-1">Hapus</button>
@@ -790,7 +787,7 @@ class Modal {
         return html;
     }
 
-    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback) {
+    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null) {
         return async (e) => {
             e.preventDefault();
 
@@ -798,7 +795,8 @@ class Modal {
                 if(beforeSubmit) await beforeSubmit();
 
                 var formData = new FormData($('#'+formId)[0]);
-                
+                rowId ? formData.append('msc_id', rowId) : ""
+
                 $.ajax({
                     url: formActionUrl,
                     type:'post',
@@ -860,10 +858,7 @@ function select2Replace() {
 
 function selectRefresh() {
     $('.select2').select2({
-        tags: true,
-        placeholder: "Pilih Opsi yang Tersedia",
-        allowClear: true,
-        width: '100%'
+        placeholder: "Pilih Opsi yang Tersedia"
     });
 };
 

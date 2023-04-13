@@ -39,7 +39,7 @@
             this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/invoice-component',
+                    url: _baseURL+'/api/payment/settings/component/index',
                 },
                 columns: [
                     {
@@ -50,14 +50,14 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'code', data: 'code'},
-                    {name: 'name', data: 'name'},
+                    {name: 'msc_name', data: 'msc_name'},
+                    {name: 'msc_description', data: 'msc_description'},
                     {
-                        name: 'old_student', 
-                        data: 'old_student',
+                        name: 'msc_is_student', 
+                        data: 'msc_is_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data) {
+                            if(data == 1) {
                                 html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
                                 html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
@@ -67,11 +67,11 @@
                         }
                     },
                     {
-                        name: 'new_student', 
-                        data: 'new_student',
+                        name: 'msc_is_new_student', 
+                        data: 'msc_is_new_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data) {
+                            if(data == 1) {
                                 html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
                                 html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
@@ -81,11 +81,11 @@
                         }
                     },
                     {
-                        name: 'registrant', 
-                        data: 'registrant',
+                        name: 'msc_is_participant', 
+                        data: 'msc_is_participant',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data) {
+                            if(data == 1) {
                                 html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
                                 html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
@@ -130,8 +130,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_invoiceComponentTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_invoiceComponentTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_invoiceComponentTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_invoiceComponentTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -140,20 +140,37 @@
     }
 
     const _options = {
-        load: function(){
+        load: function(val = null){
             $.get(_baseURL + '/api/payment/settings/component-type', (data) => {
                 JSON.parse(data).map(item => {
                     $("[name=msct_id]").append(`
                         <option value="${item.msct_id}">${item.msct_name}</option>
                     `)
                 })
+                val ? $("[name=msct_id]").val(val) : ""
                 $("[name=msct_id]").trigger('change')
             })
         }
     }
 
+    const _componentForm = {
+        clearData: function(){
+            FormDataJson.clear('#form-add-invoice-component')
+            $("#form-add-invoice-component .select2").trigger('change')
+            $(".form-alert").remove()
+        },
+        setData: function(data){
+            $("[name=msc_name]").val(data.msc_name)
+            $("[name=msc_description]").val(data.msc_description)
+            _options.load(data.msct_id);
+            selectRefresh();
+            data.msc_is_new_student == 1 ? $('[name=msc_is_new_student]').prop('checked', true) : '';
+            data.msc_is_student == 1 ? $('[name=msc_is_student]').prop('checked', true) : '';
+            data.msc_is_participant == 1 ? $('[name=msc_is_participant]').prop('checked', true) : '';
+        }
+    }
+
     const _invoiceComponentTableActions = {
-        tableRef: _invoiceComponentTable,
         add: function() {
             Modal.show({
                 type: 'form',
@@ -218,22 +235,24 @@
                     },
                     formSubmitLabel: 'Tambah Komponen',
                     callback: function(e) {
-                        // ex: reload table
+                        _invoiceComponentTable.reload()
                     },
                 },
             });
             _options.load();
             selectRefresh();
         },
-        edit: function() {
+        edit: function(e) {
+            let data = _invoiceComponentTable.getRowData(e);
             Modal.show({
                 type: 'form',
                 modalTitle: 'Edit Komponen Tagihan',
                 modalSize: 'md',
                 config: {
                     formId: 'form-edit-transaction-group',
-                    formActionUrl: '#',
+                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
                     formType: 'edit',
+                    rowId: data.msc_id,
                     fields: {
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
@@ -241,9 +260,9 @@
                                 template: 
                                     `<input 
                                         type="text" 
-                                        name="invoice_component_code" 
+                                        name="msc_name" 
                                         class="form-control"
-                                        value="BPP"
+                                        value=""
                                     >`,
                             },
                         },
@@ -253,10 +272,19 @@
                                 template: 
                                     `<input 
                                         type="text" 
-                                        name="invoice_component_name" 
+                                        name="msc_description" 
                                         class="form-control"
-                                        value="Biaya Perkuliahan"
+                                        value=""
                                     >`,
+                            },
+                        },
+                        component_type: {
+                            title: 'Jenis Komponen Tagihan',
+                            content: {
+                                template: 
+                                    `<select name="msct_id" id="msct_id" class="form-control select2">
+                                        <option value="">Pilih Jenis Komponen</option>
+                                    </select>`,
                             },
                         },
                         subjects: {
@@ -271,9 +299,9 @@
                                             <th class="text-center">Pendaftar</th>
                                         </tr>
                                         <tr>
-                                            <td class="text-center"><input type="checkbox" name="old_student" class="form-check-input" checked /></td>
-                                            <td class="text-center"><input type="checkbox" name="new_student" class="form-check-input" checked /></td>
-                                            <td class="text-center"><input type="checkbox" name="registrant" class="form-check-input" /></td>
+                                            <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
+                                            <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
+                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
                                         </tr>
                                     </table>
                                 `
@@ -282,18 +310,16 @@
                     },
                     formSubmitLabel: 'Edit Komponen',
                     callback: function() {
-                        // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil mengupdate komponen tagihan',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
+                        _invoiceComponentTable.reload()
                     },
                 },
             });
+            _componentForm.clearData()
+            _componentForm.setData(data)
+            _invoiceComponentTable.selected = data
         },
-        delete: function() {
+        delete: function(e) {
+            let data = _invoiceComponentTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
@@ -305,20 +331,25 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus komponen tagihan',
+                    $.post(_baseURL + '/api/payment/settings/component/delete/' + data.msc_id, {
+                        _method: 'DELETE'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.text,
+                        }).then(() => {
+                            _invoiceComponentTable.reload()
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error)
                     })
                 }
             })
-            // Modal.show({
-            //     type: 'confirmation',
-            //     modalTitle: 'Konfirmasi Menghapus Komponen',
-            //     config: {
-            //         callback: function() {},
-            //     }
-            // });
         }
     }
 </script>

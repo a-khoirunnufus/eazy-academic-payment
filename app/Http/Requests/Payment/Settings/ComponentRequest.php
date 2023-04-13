@@ -37,6 +37,7 @@ class ComponentRequest extends FormRequest
             'msc_is_student' => 'nullable',
             'msc_is_new_student' => 'nullable',
             'msc_is_participant' => 'nullable',
+            'msc_id' => 'nullable',
         ];
     }
 }
