@@ -20,14 +20,13 @@ class ComponentInvoiceController extends Controller
     public function store(ComponentRequest $request)
     {
         $validate = $request->validated();
-        if(array_key_exists('msc_is_student',$validate)){
-            $validate['msc_is_student'] = 1;
-        }
-        if(array_key_exists('msc_is_new_student',$validate)){
-            $validate['msc_is_new_student'] = 1;
-        }
-        if(array_key_exists('msc_is_participant',$validate)){
-            $validate['msc_is_participant'] = 1;
+        $arr = ['msc_is_student','msc_is_new_student','msc_is_participant'];
+        foreach($arr as $item){
+            if(array_key_exists($item,$validate)){
+                $validate[$item] = 1;
+            }else{
+                $validate[$item] = 0;
+            }
         }
 
         DB::beginTransaction();

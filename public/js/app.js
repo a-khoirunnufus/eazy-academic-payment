@@ -734,14 +734,14 @@ class Modal {
             } else {
                 if(fieldType == 'default') {
                     formContentHtml += `
-                        <div>
+                        <div class="form-group">
                             <label class="form-label-md">${title}</label>
                             ${contentHtml}
                         </div>
                     `;
                 } else if (fieldType == 'checkbox') {
                     formContentHtml += `
-                        <div>
+                        <div class="form-group">
                             ${contentHtml}
                         </div>
                     `;
@@ -823,6 +823,9 @@ class Modal {
                         } else {
                             handleAjaxError(jqXHR);
                         }
+                    },
+                    error: function(data){
+                        _responseHandler.formFailResponse(data);
                     },
                 });
                 
