@@ -46,6 +46,7 @@
                         name: 'action',
                         data: 'id',
                         orderable: false,
+                        searchable: false,
                         render: (data, _, row) => {
                             return this.template.rowAction(data)
                         }
@@ -121,6 +122,7 @@
                     feather.replace()
                 }
             })
+            this.implementSearchDelay()
         },
         template: {
             rowAction: function(id) {
