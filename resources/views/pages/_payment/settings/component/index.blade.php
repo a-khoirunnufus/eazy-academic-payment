@@ -141,20 +141,6 @@
         }
     }
 
-    const _options = {
-        load: function(val = null){
-            $.get(_baseURL + '/api/payment/settings/component-type', (data) => {
-                JSON.parse(data).map(item => {
-                    $("[name=msct_id]").append(`
-                        <option value="${item.msct_id}">${item.msct_name}</option>
-                    `)
-                })
-                val ? $("[name=msct_id]").val(val) : ""
-                $("[name=msct_id]").trigger('change')
-            })
-        }
-    }
-
     const _componentForm = {
         clearData: function(){
             FormDataJson.clear('#form-add-invoice-component')
@@ -164,8 +150,12 @@
         setData: function(data){
             $("[name=msc_name]").val(data.msc_name)
             $("[name=msc_description]").val(data.msc_description)
-            _options.load(data.msct_id);
-            selectRefresh();
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/component-type',
+                idField: 'msct_id',
+                nameField: 'msct_name',
+                val: data.msct_id
+            });
             data.msc_is_new_student == 1 ? $('[name=msc_is_new_student]').prop('checked', true) : '';
             data.msc_is_student == 1 ? $('[name=msc_is_student]').prop('checked', true) : '';
             data.msc_is_participant == 1 ? $('[name=msc_is_participant]').prop('checked', true) : '';
@@ -241,8 +231,11 @@
                     },
                 },
             });
-            _options.load();
-            selectRefresh();
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/component-type',
+                idField: 'msct_id',
+                nameField: 'msct_name'
+            });
         },
         edit: function(e) {
             let data = _invoiceComponentTable.getRowData(e);

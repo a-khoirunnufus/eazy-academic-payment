@@ -502,6 +502,21 @@ const _select2AjaxWithDTOptions = (params) => {
     }
 }
 
+const _options = {
+    load: function({optionUrl, idField, nameField, val = null}){
+        $.get(optionUrl, (data) => {
+            JSON.parse(data).map(item => {
+                $("[name="+idField+"]").append(`
+                    <option value="`+item[idField]+`">`+item[nameField]+`</option>
+                `)
+            })
+            val ? $("[name="+idField+"]").val(val) : ""
+            $("[name="+idField+"]").trigger('change')
+            selectRefresh()
+        })
+    }
+}
+
 /** 
  * TOASTR HELPER
  */
