@@ -237,8 +237,8 @@ const _debounceSync = (time) => {
 const _datatable = {
     instance: null,
     reload: function(){
-        // this.instance.draw()
-        this.instance.ajax.reload(null, false)
+        this.instance.draw()
+        // this.instance.ajax.reload(null, false)
     },
     getRowData: function(e){
         return this.instance.row($(e).parents('tr')).data()
