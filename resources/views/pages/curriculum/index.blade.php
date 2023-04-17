@@ -104,6 +104,7 @@
 
 
 @section('js_section')
+<!-- Only load library when its needed -->
 <!-- datpicker -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
@@ -118,13 +119,21 @@
 <script src="{{ url('/plugins/filepond.js') }}?version={{ config('version.js_config') }}"></script>
 
 <script>
+    /**
+     * @var {Object} FormDataJson https://github.com/brainfoolong/form-data-json
+     */
+
     $(function(){
         _curriculumTable.init()
         _curriculumForm.uploader.init()
         _curriculumForm.initStudyProgramSearch()
         _datepicker.init()
     })
+
     const _datepicker = {
+        /**
+         * Setup element as datepicker element
+         */
         init: () => {
             $('.daterange-single').datepicker({
                 format: "yyyy-mm-dd",
@@ -133,6 +142,7 @@
             })
         }
     }
+
     const _curriculumTable = {
         ... _datatable,
 
@@ -221,7 +231,11 @@
             this.implementSearchDelay()
         }
     }
+
     const _curriculumActions = {
+        /**
+         * Show curriculum modal with no input value on form
+         */
         add: function(){
             $("#curriculum-modal").modal('show')
             $("#curriculum-modal .create-data-section").show()
@@ -231,6 +245,9 @@
             _curriculumForm.setTitle("Tambah Kurikulum")
             _curriculumTable.selected = null
         },
+        /**
+         * Show curriculum modal with input value on form
+         */
         edit: function(e){
             $("#curriculum-modal").modal('show')
             $("#curriculum-modal .create-data-section").hide()
@@ -242,6 +259,9 @@
 
             _curriculumForm.setData(_curriculumTable.selected)
         },
+        /**
+         * Peform ajax request to add new resource or update existing resource
+         */
         save: function(){
             // get submit data from form
             let formRequest = FormDataJson.toJson("#curriculum-form")
@@ -272,12 +292,15 @@
                 } else {
                     _toastr.error('Gagal menyimpan data', 'Failed')
                 }
-            }).fail(function(error){
-                _responseHandler.formFailResponse(error)
+            }).fail(function(jqXHR){
+                _responseHandler.formFailResponse(jqXHR)
             })
 
             return false
         },
+        /**
+         * Show confirmation and then perform ajax request to delete resource
+         */
         delete: async function(e){
             const data = _curriculumTable.getRowData(e)
 
@@ -298,6 +321,7 @@
             })
         }
     }
+
     const _curriculumForm = {
         uploader: {
             book: {
@@ -340,6 +364,9 @@
                 return list
             }
         },
+        /**
+         * Clear form inputs value
+         */
         clearForm: function(){
             FormDataJson.clear('#curriculum-form')
             $("#curriculum-form .select2").val('').trigger('change')
@@ -349,6 +376,9 @@
                 item.instance.clearInput()
             }
         },
+        /**
+         * Set form inputs value
+         */
         setData: function(data){
             console.log({data})
             FormDataJson.fromJson("#curriculum-form", data)
@@ -370,9 +400,15 @@
                 }
             }
         },
+        /**
+         * Set modal title
+         */
         setTitle: function(title){
             $("#curriculum-modal .modal-title").html(title)
         },
+        /**
+         * Setup select2 element for 'Program Studi' field
+         */
         initStudyProgramSearch: function(){
             $("#curriculum-form [name=studyprogram_id]").select2(
                 _select2AjaxWithDTOptions({
