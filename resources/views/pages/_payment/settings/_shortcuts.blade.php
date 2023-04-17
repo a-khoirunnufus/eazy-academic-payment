@@ -26,7 +26,7 @@
             <small class="text-secondary">Atur Tarif Tagihan Pembayaran</small>
         </div>
     </a>
-    <a href="{{ url('setting/rates-per-course') }}" class="eazy-shortcut-item {{ $active == 'rates-per-course' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.subject-rates') }}" class="eazy-shortcut-item {{ $active == 'subject-rates' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="book"></i>
         </div>
