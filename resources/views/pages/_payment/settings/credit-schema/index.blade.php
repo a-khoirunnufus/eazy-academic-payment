@@ -80,11 +80,46 @@
             document.body.appendChild(elm);
         }
 
+        generateDetailHtml(fieldConfig) {
+            let html = '<div class="d-flex flex-column" style="gap: 1.5rem">';
+
+            for (const field of fieldConfig) {
+                switch (field.type) {
+                    case 'custom-field':
+                        html += field.content;
+                        break;
+
+                    default:
+                        const title = field.title;
+                        let {template, ...embedValues} = field.content;
+
+                        for(var x in embedValues) {
+                            template = template.replace(':'+x, embedValues[x].escape());
+                        }
+
+                        if(field.isHidden) {
+                            html += '';
+                        } else {
+                            html += `
+                                <div>
+                                    <div class="fw-bold" style="margin-bottom: .5rem">${title}</div>
+                                    <div>${template}</div>
+                                </div>
+                            `;
+                        }
+                        break;
+                }
+            }
+
+            html += '</div>';
+            return html;
+        }
+
         /**
          *
          * @param {string} content html string of modal body
          */
-        renderBody({html, callbacks}) {
+        renderBody({html, callbacks = []}) {
             this.#modalBodyElm.innerHTML = html;
 
             for (const call of callbacks) {
@@ -301,53 +336,53 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                    buttons: [
-                        {
-                            extend: 'collection',
-                            className: 'btn btn-outline-secondary dropdown-toggle',
-                            text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
-                            buttons: [
-                                {
-                                    extend: 'print',
-                                    text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
-                                    className: 'dropdown-item',
-                                    exportOptions: {
-                                        columns: [1, 2, 3]
-                                    }
-                                },
-                                {
-                                    extend: 'csv',
-                                    text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
-                                    className: 'dropdown-item',
-                                    exportOptions: {
-                                        columns: [1, 2, 3]
-                                    }
-                                },
-                                {
-                                    extend: 'excel',
-                                    text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
-                                    className: 'dropdown-item',
-                                    exportOptions: {
-                                        columns: [1, 2, 3]
-                                    }
-                                },
-                                {
-                                    extend: 'pdf',
-                                    text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
-                                    className: 'dropdown-item',
-                                    exportOptions: {
-                                        columns: [1, 2, 3]
-                                    }
-                                },
-                                {
-                                    extend: 'copy',
-                                    text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
-                                    className: 'dropdown-item',
-                                    exportOptions: {
-                                        columns: [1, 2, 3]
-                                    }
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1, 2, 3]
                                 }
-                            ],
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1, 2, 3]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1, 2, 3]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1, 2, 3]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1, 2, 3]
+                                }
+                            }
+                        ],
                     }
                 ],
                 initComplete: function() {
@@ -374,7 +409,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_creditSchemaTableActions.detail(${id})" class="dropdown-item"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
+                            <a onclick="_creditSchemaTableActions.detail(event)" class="dropdown-item"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
                             <a onclick="_creditSchemaTableActions.edit(${id})" class="dropdown-item"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_creditSchemaTableActions.delete(event)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
@@ -386,8 +421,59 @@
 
     const _creditSchemaTableActions = {
         tableRef: _creditSchemaTable,
-        detail: function() {
-            console.log('credit schema detail');
+        detail: function(event) {
+            const data = this.tableRef.getRowData(event.currentTarget);
+
+            const fieldConfig = [
+                {
+                    title: 'Nama Skema Cicilan',
+                    content: {
+                        template: ":value",
+                        value: data.cs_name,
+                    },
+                },
+                {
+                    type: 'custom-field',
+                    content: `
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <th>Bayar</th>
+                                <th>Persen Pembayaran</th>
+                                <th>Tenggat Pembayaran</th>
+                            </thead>
+                            <tbody>
+                                ${
+                                    data.credit_schema_detail.map(item => {
+                                        return `
+                                            <tr>
+                                                <td>Ke-${item.csd_order}</td>
+                                                <td>${item.csd_percentage} %</td>
+                                                <td>${moment(item.csd_date).format('DD/MM/YYYY')}</td>
+                                            </tr>
+                                        `
+                                    }).join('')
+                                }
+                            </tbody>
+                        </table>
+                    `,
+                },
+                {
+                    title: 'Status Validitas',
+                    content: {
+                        template: `
+                            <div class="badge bg-:bsColor" style="font-size: 1rem">:label</div>
+                        `,
+                        bsColor: data.cs_valid == 'yes' ? 'success' : 'danger',
+                        label: data.cs_valid == 'yes' ? 'Valid' : 'Tidak Valid',
+                    },
+                },
+            ];
+
+            const renderable = {
+                html: CreditSchemaModal.generateDetailHtml(fieldConfig),
+            };
+            CreditSchemaModal.renderBody(renderable);
+            CreditSchemaModal.show();
         },
         add: function() {
             // Form not initialize yet
