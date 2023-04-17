@@ -187,7 +187,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-add-academic-rules',
-                    formActionUrl: '#',
+                    formActionUrl: _baseURL+"/api/dt/academic-rules/add",
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
@@ -197,8 +197,8 @@
                                 template: `
                                     <select class="form-select" eazy-select2-active>
                                         <option disabled selected>Pilih Periode Masuk</option>
-                                        @foreach($static_school_years as $school_year)
-                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @foreach($periode_masuk as $periode)
+                                            <option value="{{ $periode->school_year_code }}">{{ $periode->school_year }}</option>
                                         @endforeach
                                     </select>
                                 `,
@@ -207,7 +207,14 @@
                         rule: {
                             title: 'Aturan Akademik',
                             content: {
-                                template: `<input type="text" name="rule" class="form-control" placeholder="Masukkan nama aturan akademik" />`,
+                                template: `
+                                    <select class="form-select" eazy-select2-active>
+                                        <option disabled selected>Pilih Aturan Akademik</option>
+                                        @foreach($aturan_akademik as $aturan)
+                                            <option value="{{ $aturan->mr_id }}">{{ $aturan->mr_name }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
                             },
                         },
                         invoice_component: {
@@ -216,8 +223,8 @@
                                 template: `
                                     <select class="form-select" eazy-select2-active>
                                         <option disabled selected>Pilih Komponen Tagihan</option>
-                                        @foreach($static_invoice_components as $invoice_component)
-                                            <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
+                                        @foreach($component as $item)
+                                            <option value="{{ $item->msc_id }}">{{ $item->msc_name }}</option>
                                         @endforeach
                                     </select>
                                 `,
@@ -229,8 +236,8 @@
                                 template: `
                                     <select class="form-select" eazy-select2-active>
                                         <option disabled selected>Pilih Skema Cicilan</option>
-                                        @foreach($static_installments as $installment)
-                                            <option value="{{ $installment }}">{{ $installment }}</option>
+                                        @foreach($credit_schema as $credit)
+                                            <option value="{{ $credit->cs_id }}">{{ $credit->cs_name }}</option>
                                         @endforeach
                                     </select>
                                 `,
@@ -258,12 +265,13 @@
                     formSubmitLabel: 'Tambah Aturan',
                     callback: function() {
                         // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil menambahkan aturan',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
+                        // Swal.fire({
+                        //     icon: 'success',
+                        //     text: 'Berhasil menambahkan aturan',
+                        // }).then(() => {
+                        //     this.tableRef.reload()
+                        // })
+                        console.log(this.responseText);
                     },
                 },
             });

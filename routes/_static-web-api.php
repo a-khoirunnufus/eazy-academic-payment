@@ -15,7 +15,10 @@ Route::get('dt/instalment-template', 'App\Http\Controllers\Api\TempResourceContr
 Route::get('dt/rates', 'App\Http\Controllers\Api\TempResourceController@rates');
 Route::get('dt/rates-per-course', 'App\Http\Controllers\Api\TempResourceController@ratesPerCourse');
 Route::get('dt/registration-form', 'App\Http\Controllers\Api\TempResourceController@registrationForm');
-Route::get('dt/academic-rules', 'App\Http\Controllers\Api\TempResourceController@academicRules');
+
+
+Route::get('dt/academic-rules', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@academicRules');
+Route::post('dt/academic-rules/add', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@addData');
 // Menu Generate
 Route::get('dt/registrant-invoice', 'App\Http\Controllers\Api\TempResourceController@registrantInvoice');
 Route::get('dt/old-student-invoice', 'App\Http\Controllers\Api\TempResourceController@oldStudentInvoice');

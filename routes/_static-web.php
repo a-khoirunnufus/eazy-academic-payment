@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\_Payment\AcademicRules;
+
 Route::get('/setting/invoice-component', fn() => view('pages.setting.invoice-component'));
 Route::get('/setting/instalment-template', fn() => view('pages.setting.instalment-template'));
 Route::get('/setting/rates', fn() => view('pages.setting.rates'));
 Route::get('/setting/rates-per-course', fn() => view('pages.setting.rates-per-course'));
 Route::get('/setting/registration-form', fn() => view('pages.setting.registration-form'));
-Route::get('/setting/academic-rules', fn() => view('pages.setting.academic-rules'));
+Route::get('/setting/academic-rules', [AcademicRules::class, "index"]);
 
 Route::get('/generate/registrant-invoice', fn() => view('pages.generate.registrant-invoice'));
 Route::get('/generate/old-student-invoice', fn() => view('pages.generate.old-student-invoice'));
