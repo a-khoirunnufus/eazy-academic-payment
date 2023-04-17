@@ -76,7 +76,7 @@
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'setting/rates' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/rates') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.subject-rates') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Tarif</span>
                         </a>

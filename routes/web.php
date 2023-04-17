@@ -75,6 +75,7 @@ Route::group(['prefix' => 'payment'], function(){
     Route::group(['prefix' => 'settings'], function(){
         // Component Invoices
         Route::get('component', 'App\Http\Controllers\_Payment\SettingsController@component')->name('payment.settings.component');
+        Route::get('subject-rates', 'App\Http\Controllers\_Payment\SettingsController@subjectrates')->name('payment.settings.subject-rates');
        
     });
 });

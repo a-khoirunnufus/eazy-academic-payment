@@ -1,13 +1,20 @@
+<style>
+    ::-webkit-scrollbar {
+        display: none;
+    }
+</style>
 <div class="eazy-shortcut mb-2">
-    <a href="{{ route('payment.settings.component') }}" class="eazy-shortcut-item {{ $active == 'invoice-component' ? 'active' : '' }}">
-        <div class="eazy-shortcut-icon">
-            <i data-feather="list"></i>
-        </div>
-        <div class="eazy-shortcut-label">
-            <span>Komponen Tagihan</span>
-            <small class="text-secondary">Atur Komponen Tagihan</small>
-        </div>
-    </a>
+    <div class="eazy-shortcut-body">
+        <a href="{{ route('payment.settings.component') }}" class="eazy-shortcut-item {{ $active == 'invoice-component' ? 'active' : '' }}">
+            <div class="eazy-shortcut-icon">
+                <i data-feather="list"></i>
+            </div>
+            <div class="eazy-shortcut-label">
+                <span>Komponen Tagihan</span>
+                <small class="text-secondary">Atur Komponen Tagihan</small>
+            </div>
+        </a>
+    </div>
     <a href="{{ url('setting/instalment-template') }}" class="eazy-shortcut-item {{ $active == 'instalment-template' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="archive"></i>
@@ -26,7 +33,7 @@
             <small class="text-secondary">Atur Tarif Tagihan Pembayaran</small>
         </div>
     </a>
-    <a href="{{ url('setting/rates-per-course') }}" class="eazy-shortcut-item {{ $active == 'rates-per-course' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.subject-rates') }}" class="eazy-shortcut-item {{ $active == 'rates-per-course' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="book"></i>
         </div>
