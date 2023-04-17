@@ -12,9 +12,14 @@ class SettingsController extends Controller
     {
         return view('pages._payment.settings.component.index');
     }
-
+    
     public function subjectrates()
     {
         return view('pages._payment.settings.subjectrates.index');
+    }
+    
+    public function creditSchema()
+    {
+        return view('pages._payment.settings.credit-schema.index');
     }
 }

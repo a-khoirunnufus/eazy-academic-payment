@@ -7,7 +7,7 @@
 
 @section('content')
 
-@include('pages.setting._shortcuts', ['active' => 'invoice-component'])
+@include('pages._payment.settings._shortcuts', ['active' => 'component'])
 
 <div class="card">
     <table id="invoice-component-table" class="table table-striped">

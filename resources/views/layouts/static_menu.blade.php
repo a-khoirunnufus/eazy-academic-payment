@@ -63,19 +63,19 @@
                     <span class="menu-title text-truncate">Setting</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="menu__item nav-item {{ 'setting/invoice-component' == request()->path() ? 'active' : '' }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.component' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.component') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Komponen<br>Tagihan</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/instalment-template' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/instalment-template') }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.credit-schema' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.credit-schema') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Template<br>Cicilan</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/rates' == request()->path() ? 'active' : '' }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.subject-rates' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.subject-rates') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Tarif</span>

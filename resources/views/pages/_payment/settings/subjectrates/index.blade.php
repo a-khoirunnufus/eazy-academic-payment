@@ -17,7 +17,7 @@
 
 @section('content')
 
-@include('pages.setting._shortcuts', ['active' => 'rates-per-course'])
+@include('pages._payment.settings._shortcuts', ['active' => 'subject-rates'])
 
 <div class="card">
     <div class="card-body">

@@ -53,19 +53,19 @@
                     <div class="row">
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen Buku Kurikulum</label>
-                            <input type="file" id="book_document" class="my-pond" 
+                            <input type="file" id="book_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen SK</label>
-                            <input type="file" id="sk_document" class="my-pond" 
+                            <input type="file" id="sk_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
@@ -73,19 +73,19 @@
                     <div class="row mt-1">
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen Laporan</label>
-                            <input type="file" id="report_document" class="my-pond" 
+                            <input type="file" id="report_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen BA</label>
-                            <input type="file" id="ba_document" class="my-pond" 
+                            <input type="file" id="ba_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
@@ -104,6 +104,7 @@
 
 
 @section('js_section')
+<!-- Only load library when its needed -->
 <!-- datpicker -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
@@ -118,13 +119,21 @@
 <script src="{{ url('/plugins/filepond.js') }}?version={{ config('version.js_config') }}"></script>
 
 <script>
+    /**
+     * @var {Object} FormDataJson https://github.com/brainfoolong/form-data-json
+     */
+
     $(function(){
         _curriculumTable.init()
         _curriculumForm.uploader.init()
         _curriculumForm.initStudyProgramSearch()
         _datepicker.init()
     })
+
     const _datepicker = {
+        /**
+         * Setup element as datepicker element
+         */
         init: () => {
             $('.daterange-single').datepicker({
                 format: "yyyy-mm-dd",
@@ -133,6 +142,7 @@
             })
         }
     }
+
     const _curriculumTable = {
         ... _datatable,
 
@@ -172,7 +182,7 @@
                         `
                     }, data: 'name', name: 'name' },
                     { render: (data, __, row) => {
-                        return moment(row.applied_date
+                        return moment(row.applied_date);
                     }, data: 'applied_date', name: 'applied_date' },
                     { render: (data, __, row) => {
                         return `
@@ -190,12 +200,12 @@
                                         <a href="${data}" target="_blank" class="text-info">
                                             <i data-feather="paperclip"></i>
                                             <span>Lihat Dokumen</span>
-                                        </a> 
+                                        </a>
                                     ` }
                                 </div>
                             `
                         }
-                        
+
                         return `
                             <div class="row p-0">
                                 ${ docuComp('Dokumen Buku Kurikulum', row.book_document) }
@@ -214,14 +224,18 @@
             })
             $('.dtb').append(`
                 <button class="btn btn-info" onclick="_curriculumActions.add()">
-                    <i data-feather="plus-circle"></i> 
+                    <i data-feather="plus-circle"></i>
                     <span class="d-none d-lg-inline-block ml-2">Tambah Kurikulum</span>
                 </button>
             `);
             this.implementSearchDelay()
         }
     }
+
     const _curriculumActions = {
+        /**
+         * Show curriculum modal with no input value on form
+         */
         add: function(){
             $("#curriculum-modal").modal('show')
             $("#curriculum-modal .create-data-section").show()
@@ -231,6 +245,9 @@
             _curriculumForm.setTitle("Tambah Kurikulum")
             _curriculumTable.selected = null
         },
+        /**
+         * Show curriculum modal with input value on form
+         */
         edit: function(e){
             $("#curriculum-modal").modal('show')
             $("#curriculum-modal .create-data-section").hide()
@@ -242,6 +259,9 @@
 
             _curriculumForm.setData(_curriculumTable.selected)
         },
+        /**
+         * Peform ajax request to add new resource or update existing resource
+         */
         save: function(){
             // get submit data from form
             let formRequest = FormDataJson.toJson("#curriculum-form")
@@ -255,7 +275,7 @@
             }
             // append and validate document data
             let uploader = _curriculumForm.uploader
-            for(const item of uploader.getDocuments()){                
+            for(const item of uploader.getDocuments()){
                 if(!item.instance.allFileUploaded()){
                     _toastr.error('Anda sedang mengupload dokumen', 'Failed')
                     return false
@@ -272,12 +292,15 @@
                 } else {
                     _toastr.error('Gagal menyimpan data', 'Failed')
                 }
-            }).fail(function(error){
-                _responseHandler.formFailResponse(error)
+            }).fail(function(jqXHR){
+                _responseHandler.formFailResponse(jqXHR)
             })
 
             return false
         },
+        /**
+         * Show confirmation and then perform ajax request to delete resource
+         */
         delete: async function(e){
             const data = _curriculumTable.getRowData(e)
 
@@ -287,7 +310,7 @@
             })
             if(!confirmed)
                 return
-            
+
             $.post(_baseURL + '/api/curriculum/' + data.id, {
                 _method: 'DELETE'
             }, function(data){
@@ -298,23 +321,24 @@
             })
         }
     }
+
     const _curriculumForm = {
         uploader: {
             book: {
                 name: 'book_document',
                 title: 'Dokumen Buku Kurikulum',
                 instance: null
-            }, 
+            },
             sk: {
                 name: 'sk_document',
                 title: 'Dokumen SK',
                 instance: null
-            }, 
+            },
             ba: {
                 name: 'ba_document',
                 title: 'Dokumen BA',
                 instance: null
-            }, 
+            },
             report: {
                 name: 'report_document',
                 title: 'Dokumen Laporan',
@@ -340,6 +364,9 @@
                 return list
             }
         },
+        /**
+         * Clear form inputs value
+         */
         clearForm: function(){
             FormDataJson.clear('#curriculum-form')
             $("#curriculum-form .select2").val('').trigger('change')
@@ -349,13 +376,16 @@
                 item.instance.clearInput()
             }
         },
+        /**
+         * Set form inputs value
+         */
         setData: function(data){
             console.log({data})
             FormDataJson.fromJson("#curriculum-form", data)
             // set studyprogram
             $("#curriculum-form [name=studyprogram_id]").append($(`
                 <option selected>${data.studyprogram?.name ?? '-'}</option>
-            `).val(data.studyprogram_id)).trigger('change')          
+            `).val(data.studyprogram_id)).trigger('change')
             // set document link
             let uploader = _curriculumForm.uploader
             for(const item of uploader.getDocuments() ){
@@ -370,9 +400,15 @@
                 }
             }
         },
+        /**
+         * Set modal title
+         */
         setTitle: function(title){
             $("#curriculum-modal .modal-title").html(title)
         },
+        /**
+         * Setup select2 element for 'Program Studi' field
+         */
         initStudyProgramSearch: function(){
             $("#curriculum-form [name=studyprogram_id]").select2(
                 _select2AjaxWithDTOptions({
