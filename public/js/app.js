@@ -830,7 +830,7 @@ class Modal {
                 if(beforeSubmit) await beforeSubmit();
 
                 var formData = new FormData($('#'+formId)[0]);
-                rowId ? formData.append('msc_id', rowId) : ""
+                rowId ? formData.append('msc_id', rowId) : "";
 
                 $.ajax({
                     url: formActionUrl,
@@ -840,21 +840,21 @@ class Modal {
                     processData: false,
                     dataType:'json',
                     success : (data, textStatus, jqXHR) => {
-                        if(data.status === 'ok') {
+                        if (data.success == true) {
                             Swal.fire({
                                 icon: 'success',
-                                text: data.text,
+                                text: data.message,
                             }).then(() => {
                                 this.close();
                                 callback();
                             });
-                        } else if(data.status === 'error') {
+                        } else if (data.success == false) {
                             Swal.fire({
                                 icon: 'error',
-                                text: data.text,
+                                text: data.message,
                             });
                         } else {
-                            handleAjaxError(jqXHR);
+                            _responseHandler.generalFailResponse(jqXHR);
                         }
                     },
                     error: function(data){
@@ -863,7 +863,7 @@ class Modal {
                 });
 
             } catch (error) {
-                // do nothing
+                _responseHandler.generalFailResponse(jqXHR);
             }
 
         }
