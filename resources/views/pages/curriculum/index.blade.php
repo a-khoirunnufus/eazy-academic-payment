@@ -53,19 +53,19 @@
                     <div class="row">
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen Buku Kurikulum</label>
-                            <input type="file" id="book_document" class="my-pond" 
+                            <input type="file" id="book_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen SK</label>
-                            <input type="file" id="sk_document" class="my-pond" 
+                            <input type="file" id="sk_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
@@ -73,19 +73,19 @@
                     <div class="row mt-1">
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen Laporan</label>
-                            <input type="file" id="report_document" class="my-pond" 
+                            <input type="file" id="report_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label">Dokumen BA</label>
-                            <input type="file" id="ba_document" class="my-pond" 
+                            <input type="file" id="ba_document" class="my-pond"
                                     accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
                             <p class="update-data-section" style="margin: 0; margin-top: -10px; font-size: 10px;">
-                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a> 
+                                <a class="document-preview text-decoration-underline fw-bold" href="javascript:void(0)" target="_blank">Berkas</a>
                                 <span>sudah di upload, silahkan upload kembali untuk memperbarui berkas</span>
                             </p>
                         </div>
@@ -172,7 +172,7 @@
                         `
                     }, data: 'name', name: 'name' },
                     { render: (data, __, row) => {
-                        return moment(row.applied_date
+                        return moment(row.applied_date);
                     }, data: 'applied_date', name: 'applied_date' },
                     { render: (data, __, row) => {
                         return `
@@ -190,12 +190,12 @@
                                         <a href="${data}" target="_blank" class="text-info">
                                             <i data-feather="paperclip"></i>
                                             <span>Lihat Dokumen</span>
-                                        </a> 
+                                        </a>
                                     ` }
                                 </div>
                             `
                         }
-                        
+
                         return `
                             <div class="row p-0">
                                 ${ docuComp('Dokumen Buku Kurikulum', row.book_document) }
@@ -214,7 +214,7 @@
             })
             $('.dtb').append(`
                 <button class="btn btn-info" onclick="_curriculumActions.add()">
-                    <i data-feather="plus-circle"></i> 
+                    <i data-feather="plus-circle"></i>
                     <span class="d-none d-lg-inline-block ml-2">Tambah Kurikulum</span>
                 </button>
             `);
@@ -255,7 +255,7 @@
             }
             // append and validate document data
             let uploader = _curriculumForm.uploader
-            for(const item of uploader.getDocuments()){                
+            for(const item of uploader.getDocuments()){
                 if(!item.instance.allFileUploaded()){
                     _toastr.error('Anda sedang mengupload dokumen', 'Failed')
                     return false
@@ -287,7 +287,7 @@
             })
             if(!confirmed)
                 return
-            
+
             $.post(_baseURL + '/api/curriculum/' + data.id, {
                 _method: 'DELETE'
             }, function(data){
@@ -304,17 +304,17 @@
                 name: 'book_document',
                 title: 'Dokumen Buku Kurikulum',
                 instance: null
-            }, 
+            },
             sk: {
                 name: 'sk_document',
                 title: 'Dokumen SK',
                 instance: null
-            }, 
+            },
             ba: {
                 name: 'ba_document',
                 title: 'Dokumen BA',
                 instance: null
-            }, 
+            },
             report: {
                 name: 'report_document',
                 title: 'Dokumen Laporan',
@@ -355,7 +355,7 @@
             // set studyprogram
             $("#curriculum-form [name=studyprogram_id]").append($(`
                 <option selected>${data.studyprogram?.name ?? '-'}</option>
-            `).val(data.studyprogram_id)).trigger('change')          
+            `).val(data.studyprogram_id)).trigger('change')
             // set document link
             let uploader = _curriculumForm.uploader
             for(const item of uploader.getDocuments() ){
