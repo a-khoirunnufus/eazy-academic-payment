@@ -273,7 +273,7 @@
                         }
                     },
                     {
-                        name: 'n_payment',
+                        name: 'payment_count',
                         render: (data, _, row) => {
                             return this.template.defaultCell(row.credit_schema_detail.length, {postfix: ' Pembayaran'});
                         }
@@ -301,6 +301,55 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            className: 'btn btn-outline-secondary dropdown-toggle',
+                            text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                            buttons: [
+                                {
+                                    extend: 'print',
+                                    text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: [1, 2, 3]
+                                    }
+                                },
+                                {
+                                    extend: 'csv',
+                                    text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: [1, 2, 3]
+                                    }
+                                },
+                                {
+                                    extend: 'excel',
+                                    text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: [1, 2, 3]
+                                    }
+                                },
+                                {
+                                    extend: 'pdf',
+                                    text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: [1, 2, 3]
+                                    }
+                                },
+                                {
+                                    extend: 'copy',
+                                    text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: [1, 2, 3]
+                                    }
+                                }
+                            ],
+                    }
+                ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
