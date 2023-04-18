@@ -23,14 +23,14 @@
         <div class="academic-rules-filter">
             <div style="width: 250px">
                 <label class="form-label">Status</label>
-                <select class="form-select">
+                <select class="form-select" id="filter-status">
                     <option selected disabled>Pilih status</option>
                     <option value="1">Aktif</option>
-                    <option value="2">Tidak Aktif</option>
+                    <option value="0">Tidak Aktif</option>
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -59,6 +59,7 @@
 
 @section('js_section')
 <script>
+    var tables;
     $(function(){
         _academicRulesTable.init()
     })
@@ -66,7 +67,7 @@
     const _academicRulesTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#academic-rules-table').DataTable({
+            tables = this.instance = $('#academic-rules-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/dt/academic-rules',
@@ -116,7 +117,7 @@
                         name: 'minimum_paid_percent', 
                         data: 'minimum_paid_percent',
                         render: (data) => {
-                            return '<div class="text-center text-danger fw-bold">'+data+'%</div>'
+                            return '<div class="text-center text-danger"><span class="fw-bold">'+data+'%</span></div>'
                         }
                     },
                     {
@@ -169,8 +170,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_academicRulesTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_academicRulesTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_academicRulesTableActions.edit(${id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_academicRulesTableActions.delete(${id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -195,7 +196,7 @@
                             title: 'Periode Masuk',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="periode">
                                         <option disabled selected>Pilih Periode Masuk</option>
                                         @foreach($periode_masuk as $periode)
                                             <option value="{{ $periode->school_year_code }}">{{ $periode->school_year }}</option>
@@ -208,7 +209,7 @@
                             title: 'Aturan Akademik',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="aturan">
                                         <option disabled selected>Pilih Aturan Akademik</option>
                                         @foreach($aturan_akademik as $aturan)
                                             <option value="{{ $aturan->mr_id }}">{{ $aturan->mr_name }}</option>
@@ -221,7 +222,7 @@
                             title: 'Komponen Tagihan',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="komponen">
                                         <option disabled selected>Pilih Komponen Tagihan</option>
                                         @foreach($component as $item)
                                             <option value="{{ $item->msc_id }}">{{ $item->msc_name }}</option>
@@ -234,7 +235,7 @@
                             title: 'Cicilan',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="cicilan">
                                         <option disabled selected>Pilih Skema Cicilan</option>
                                         @foreach($credit_schema as $credit)
                                             <option value="{{ $credit->cs_id }}">{{ $credit->cs_name }}</option>
@@ -256,7 +257,7 @@
                                     <select class="form-select" name="is_active">
                                         <option disabled selected>Pilih Status Aturan</option>
                                         <option value="1">Aktif</option>
-                                        <option value="2">Tidak Aktif</option>
+                                        <option value="0">Tidak Aktif</option>
                                     </select>
                                 `
                             },
@@ -276,30 +277,17 @@
                 },
             });
         },
-        edit: function() {
-            const {
-                entry_period, 
-                rule_name,
-                invoice_component,
-                installment,
-                minimum_paid,
-                is_active
-            } = {
-                entry_period: '2023/2024',
-                rule_name: 'Mengambil Cuti',
-                invoice_component: 'Cuti',
-                installment: 'Full 100% Pembayaran',
-                minimum_paid: '10',
-                is_active: 'active',
-            };
-
-            Modal.show({
+        edit: function(id) {
+            var data;
+            var test = $.get(_baseURL+'/api/dt/academic-rules/id/'+id, function(result, status){
+                data = result;
+                Modal.show({
                 type: 'form',
                 modalTitle: 'Edit Aturan Akademik',
                 modalSize: 'lg',
                 config: {
                     formId: 'form-edit-academic-rules',
-                    formActionUrl: '#',
+                    formActionUrl: _baseURL+'/api/dt/academic-rules/edit/id/'+id,
                     formType: 'edit',
                     isTwoColumn: true,
                     fields: {
@@ -307,69 +295,70 @@
                             title: 'Periode Masuk',
                             content: {
                                 template: `
-                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="periode" value="${data.mra_school_year_code}">
                                         <option disabled>Pilih Periode Masuk</option>
-                                        @foreach($static_school_years as $school_year)
-                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @foreach($periode_masuk as $periode)
+                                            <option value="{{ $periode->school_year_code }}">{{ $periode->school_year }}</option>
                                         @endforeach
                                     </select>
                                 `,
-                                selected: entry_period,
                             },
                         },
-                        rule_name: {
+                        rule: {
                             title: 'Aturan Akademik',
                             content: {
-                                template: `<input type="text" name="rule_name" value=":value" class="form-control" placeholder="Masukkan nama aturan akademik" />`,
-                                value: rule_name,
+                                template: `
+                                    <select class="form-select" eazy-select2-active name="aturan" value="${data.mra_mr_id}">
+                                        <option disabled>Pilih Aturan Akademik</option>
+                                        @foreach($aturan_akademik as $aturan)
+                                            <option value="{{ $aturan->mr_id }}">{{ $aturan->mr_name }}</option>
+                                        @endforeach
+                                    </select>
+                                `,
                             },
                         },
                         invoice_component: {
                             title: 'Komponen Tagihan',
                             content: {
                                 template: `
-                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="komponen" value="${data.mra_msc_id}">
                                         <option disabled>Pilih Komponen Tagihan</option>
-                                        @foreach($static_invoice_components as $invoice_component)
-                                            <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
+                                        @foreach($component as $item)
+                                            <option value="{{ $item->msc_id }}">{{ $item->msc_name }}</option>
                                         @endforeach
                                     </select>
                                 `,
-                                selected: invoice_component,
                             },
                         },
-                        installment: {
+                        instalment: {
                             title: 'Cicilan',
                             content: {
                                 template: `
-                                    <select class="form-select" value=":selected" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="cicilan" value="${data.mra_cs_id}">
                                         <option disabled>Pilih Skema Cicilan</option>
-                                        @foreach($static_installments as $installment)
-                                            <option value="{{ $installment }}">{{ $installment }}</option>
+                                        @foreach($credit_schema as $credit)
+                                            <option value="{{ $credit->cs_id }}">{{ $credit->cs_name }}</option>
                                         @endforeach
                                     </select>
                                 `,
-                                selected: installment,
                             },
                         },
                         minimum_paid: {
                             title: 'Minimal Lunas(%)',
                             content: {
-                                template: `<input type="number" name="minimum_paid" value=":value" class="form-control" placeholder="Masukan persentase minimal lunas" />`,
-                                value: minimum_paid,
+                                template: `<input type="number" value="${data.mra_minimum}" name="minimum_paid" class="form-control" placeholder="Masukan persentase minimal lunas"  />`,
                             },
                         },
                         is_active: {
                             title: 'Status Aturan',
                             content: {
                                 template: `
-                                    <select class="form-select" name="is_active">
+                                    <select class="form-select" name="is_active" value="${data.mra_active_status}">
                                         <option disabled>Pilih Status Aturan</option>
-                                        <option value="active">Aktif</option>
-                                        <option value="inactive">Tidak Aktif</option>
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Tidak Aktif</option>
                                     </select>
-                                `,
-                                selected: is_active,
+                                `
                             },
                         },
                     },
@@ -385,8 +374,9 @@
                     },
                 },
             });
+            });
         },
-        delete: function() {
+        delete: function(id) {
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus aturan ini?',
@@ -398,14 +388,21 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus aturan',
+                    $.ajax({
+                        url: _baseURL+'/api/dt/academic-rules/delete/id/'+id,
+                        type: 'DELETE',
+                        success: function(result){
+                            console.log(result);
+                        }
                     })
                 }
             })
         },
+    }
+
+    function filter(){
+        alert($('#filter-status').val());
+        tables.columns(6).search($('#filter-status').val()).draw();
     }
 </script>
 @endsection

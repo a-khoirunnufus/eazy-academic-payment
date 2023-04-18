@@ -17,8 +17,13 @@ Route::get('dt/rates-per-course', 'App\Http\Controllers\Api\TempResourceControll
 Route::get('dt/registration-form', 'App\Http\Controllers\Api\TempResourceController@registrationForm');
 
 
-Route::get('dt/academic-rules', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@academicRules');
-Route::post('dt/academic-rules/add', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@addData');
+Route::prefix('dt/academic-rules')->group(function () {
+    Route::get('/', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@academicRules');
+    Route::get('/id/{id}','App\Http\Controllers\_Payment\Api\AcademicRulesApi@getDataById');
+    Route::post('/add', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@addData');
+    Route::post('/edit/id/{id}', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@editData');
+    Route::delete('/delete/id/{id}','App\Http\Controllers\_Payment\Api\AcademicRulesApi@deleteData');
+});
 // Menu Generate
 Route::get('dt/registrant-invoice', 'App\Http\Controllers\Api\TempResourceController@registrantInvoice');
 Route::get('dt/old-student-invoice', 'App\Http\Controllers\Api\TempResourceController@oldStudentInvoice');
