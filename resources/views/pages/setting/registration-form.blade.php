@@ -23,33 +23,33 @@
         <div class="registration-form-filter">
             <div class="flex-grow-1">
                 <label class="form-label">Periode Masuk</label>
-                <select class="form-select" eazy-select2-active>
-                    <option value="all" selected>Semua Periode Masuk</option>
-                    @foreach($static_school_years as $school_year)
-                        <option value="{{ $school_year }}">{{ $school_year }}</option>
+                <select class="form-select" eazy-select2-active id="periode">
+                    <option value="#" selected>Semua Periode Masuk</option>
+                    @foreach($periode as $waktu)
+                        <option value="{{ $waktu->msy_year }}">{{ $waktu->msy_year }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="flex-grow-1">
                 <label class="form-label">Jalur Pendaftaran</label>
-                <select class="form-select" eazy-select2-active>
-                    <option value="all" selected>Semua Jalur Pendaftaran</option>
-                    @foreach($static_registration_paths as $registration_path)
-                        <option value="{{ $registration_path }}">{{ $registration_path }}</option>
+                <select class="form-select" eazy-select2-active id="jalur">
+                    <option value="#" selected>Semua Jalur Pendaftaran</option>
+                    @foreach($jalur_pendaftaran as $jalur)
+                        <option value="{{ $jalur->path_name }}">{{ $jalur->path_name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="flex-grow-1">
                 <label class="form-label">Gelombang</label>
-                <select class="form-select" eazy-select2-active>
-                    <option value="all" selected>Semua Gelombang</option>
-                    @foreach($static_registration_periods as $registration_period)
-                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                <select class="form-select" eazy-select2-active id="gelombang">
+                    <option value="#" selected>Semua Gelombang</option>
+                    @foreach($gelombang as $kloter)
+                        <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -75,6 +75,7 @@
 
 @section('js_section')
 <script>
+    var tables;
     $(function(){
         _registrationFormTable.init()
     })
@@ -82,8 +83,8 @@
     const _registrationFormTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#registration-form-table').DataTable({
-                serverSide: true,
+            tables = this.instance = $('#registration-form-table').DataTable({
+                serverSide: false,
                 ajax: {
                     url: _baseURL+'/api/dt/registration-form',
                 },
@@ -135,16 +136,6 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.registration-form-actions').html(`
-                        <div style="margin-bottom: 7px">
-                            <button onclick="_registrationFormTableActions.add()" class="btn btn-primary me-1">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Skema
-                                </span>
-                            </button>
-                        </div>
-                    `)
                     feather.replace()
                 }
             })
@@ -157,8 +148,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_registrationFormTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_registrationFormTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_registrationFormTableActions.edit(${id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                         </div>
                     </div>
                 `
@@ -174,17 +164,18 @@
                 modalTitle: 'Tambah Skema',
                 config: {
                     formId: 'form-add-registraton-form',
-                    formActionUrl: '#',
+                    formActionUrl: _baseURL+"/api/dt/registration-form/create",
                     formType: 'add',
+                    isTwoColumn: true,
                     fields: {
                         entry_period: {
                             title: 'Periode Masuk',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="periode">
                                         <option disabled selected>Pilih Periode Masuk</option>
-                                        @foreach($static_school_years as $school_year)
-                                            <option value="{{ $school_year }}">{{ $school_year }}</option>
+                                        @foreach($periode as $waktu)
+                                            <option value="{{ $waktu->msy_code }}">{{ $waktu->msy_year }}</option>
                                         @endforeach
                                     </select>
                                 `,
@@ -194,10 +185,10 @@
                             title: 'Jalur Pendaftaran',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="jalur">
                                         <option disabled selected>Pilih Jalur Pendaftaran</option>
-                                        @foreach($static_registration_paths as $registration_path)
-                                            <option value="{{ $registration_path }}">{{ $registration_path }}</option>
+                                        @foreach($jalur_pendaftaran as $jalur)
+                                            <option value="{{ $jalur->path_id }}">{{ $jalur->path_name }}</option>
                                         @endforeach
                                     </select>  
                                 `,
@@ -207,10 +198,10 @@
                             title: 'Gelombang',
                             content: {
                                 template: `
-                                    <select class="form-select" eazy-select2-active>
+                                    <select class="form-select" eazy-select2-active name="gelombang">
                                         <option disabled selected>Pilih Gelombang</option>
-                                        @foreach($static_registration_periods as $registration_period)
-                                            <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                                        @foreach($gelombang as $kloter)
+                                            <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
                                         @endforeach
                                     </select>    
                                 `,
@@ -226,53 +217,50 @@
                     formSubmitLabel: 'Tambah Skema',
                     callback: function() {
                         // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil menambahkan skema',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
+                        // Swal.fire({
+                        //     icon: 'success',
+                        //     text: 'Berhasil menambahkan skema',
+                        // }).then(() => {
+                        //     this.tableRef.reload()
+                        // })
                     },
                 },
             });
         },
-        edit: function() {
-            Modal.show({
+        edit: function(id) {
+            $.get(_baseURL+'/api/dt/registration-form/id/'+id, function(result, status){
+                var data = result;
+                Modal.show({
                 type: 'form',
                 modalTitle: 'Edit Skema',
                 config: {
                     formId: 'form-edit-rates',
-                    formActionUrl: '#',
+                    formActionUrl: _baseURL+'/api/dt/registration-form/edit/id/'+id,
                     formType: 'edit',
+                    isTwoColumn: true,
                     fields: {
                         entry_period: {
                             title: 'Periode Masuk',
                             content: {
-                                template: `
-                                    <input type="text" name="entry_period" class="form-control" value="2023/2024" disabled />
-                                `,
+                                template: `<input type="text" name="rate" value="${data.period}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
                             },
                         },
                         registration_path: {
                             title: 'Jalur Pendaftaran',
                             content: {
-                                template: `
-                                    <input type="text" name="registration_path" class="form-control" value="Jalur Mandiri" disabled />
-                                `,
+                                template: `<input type="text" name="rate" value="${data.track}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
                             },
                         },
                         wave: {
-                            title: 'Gelombang Pendaftaran',
+                            title: 'Gelombang',
                             content: {
-                                template: `
-                                    <input type="text" name="wave" class="form-control" value="Periode Juni" disabled />
-                                `,
+                                template: `<input type="text" name="rate" value="${data.wave}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
                             },
                         },
                         rate: {
                             title: 'Nominal Tarif',
                             content: {
-                                template: `<input type="number" name="rate" class="form-control" value="150000" />`,
+                                template: `<input type="number" name="rate" value="${data.rate}" class="form-control" placeholder="Masukkan nominal tarif" />`,
                             },
                         },
                     },
@@ -288,6 +276,8 @@
                     },
                 },
             });
+            })
+            
         },
         delete: function() {
             Swal.fire({
@@ -310,5 +300,41 @@
             })
         },
     }
+
+    function filter(){
+        var periode = $("#periode").val();
+        var jalur = $("#jalur").val();
+        var gelombang = $("#gelombang").val();
+        tables.columns().search("").draw();
+        if(periode == "#" && jalur == "#" && gelombang == "#"){
+            tables.columns().search("").draw();
+        }
+        if(periode == "#" && jalur == "#" && gelombang != "#"){
+            tables.columns(2).search(gelombang).draw();
+        }
+        if(periode == "#" && jalur != "#" && gelombang == "#"){
+            tables.columns(2).search(jalur).draw();
+        }
+        if(periode == "#" && jalur != "#" && gelombang != "#"){
+            tables.columns(2).search(gelombang).draw();
+            tables.columns(2).search(jalur).draw();
+        }
+        if(periode != "#" && jalur == "#" && gelombang == "#"){
+            tables.columns(1).search(periode).draw();
+        }
+        if(periode != "#" && jalur == "#" && gelombang != "#"){
+            tables.columns(2).search(gelombang).draw();
+            tables.columns(1).search(periode).draw();
+        }
+        if(periode != "#" && jalur != "#" && gelombang == "#"){
+            tables.columns(2).search(jalur).draw();
+            tables.columns(1).search(periode).draw();
+        }
+        if(periode != "#" && jalur != "#" && gelombang != "#"){
+            tables.columns(2).search(gelombang).draw();
+            tables.columns(2).search(jalur).draw();
+            tables.columns(1).search(periode).draw();
+        }
+    }   
 </script>
 @endsection

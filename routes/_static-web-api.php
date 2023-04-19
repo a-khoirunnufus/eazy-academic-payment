@@ -1,6 +1,10 @@
 <?php
 
 // Test
+
+// use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Route;
+
 Route::get('school-year', 'App\Http\Controllers\Api\TempResourceController@schoolYear');
 Route::get('class-year', 'App\Http\Controllers\Api\TempResourceController@classYear');
 Route::get('faculty', 'App\Http\Controllers\Api\TempResourceController@faculty');
@@ -14,7 +18,7 @@ Route::get('dt/invoice-component', 'App\Http\Controllers\Api\TempResourceControl
 Route::get('dt/instalment-template', 'App\Http\Controllers\Api\TempResourceController@instalmentTemplate');
 Route::get('dt/rates', 'App\Http\Controllers\Api\TempResourceController@rates');
 Route::get('dt/rates-per-course', 'App\Http\Controllers\Api\TempResourceController@ratesPerCourse');
-Route::get('dt/registration-form', 'App\Http\Controllers\Api\TempResourceController@registrationForm');
+// Route::get('dt/registration-form', 'App\Http\Controllers\Api\TempResourceController@registrationForm');
 
 
 Route::prefix('dt/academic-rules')->group(function () {
@@ -23,6 +27,13 @@ Route::prefix('dt/academic-rules')->group(function () {
     Route::post('/add', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@addData');
     Route::post('/edit/id/{id}', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@editData');
     Route::delete('/delete/id/{id}','App\Http\Controllers\_Payment\Api\AcademicRulesApi@deleteData');
+});
+
+Route::prefix('dt/registration-form')->group(function() {
+    Route::get("/",'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@registrationForm');
+    Route::post("/create", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@create');
+    Route::get("/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@byId');
+    Route::post("edit/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@setFee');
 });
 // Menu Generate
 Route::get('dt/registrant-invoice', 'App\Http\Controllers\Api\TempResourceController@registrantInvoice');
