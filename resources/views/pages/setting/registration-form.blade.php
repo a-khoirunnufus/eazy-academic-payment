@@ -6,12 +6,12 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .registration-form-filter {
-            display: flex;
-            gap: 1rem;
-        }
-    </style>
+<style>
+    .registration-form-filter {
+        display: flex;
+        gap: 1rem;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -26,7 +26,7 @@
                 <select class="form-select" eazy-select2-active id="periode">
                     <option value="#" selected>Semua Periode Masuk</option>
                     @foreach($periode as $waktu)
-                        <option value="{{ $waktu->msy_year }}">{{ $waktu->msy_year }}</option>
+                    <option value="{{ $waktu->msy_year }}">{{ $waktu->msy_year }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <select class="form-select" eazy-select2-active id="jalur">
                     <option value="#" selected>Semua Jalur Pendaftaran</option>
                     @foreach($jalur_pendaftaran as $jalur)
-                        <option value="{{ $jalur->path_name }}">{{ $jalur->path_name }}</option>
+                    <option value="{{ $jalur->path_name }}">{{ $jalur->path_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -44,7 +44,7 @@
                 <select class="form-select" eazy-select2-active id="gelombang">
                     <option value="#" selected>Semua Gelombang</option>
                     @foreach($gelombang as $kloter)
-                        <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
+                    <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -65,6 +65,9 @@
                 <th>Periode Masuk</th>
                 <th>Jalur / Gelombang Pendaftaran</th>
                 <th>Nominal Tarif</th>
+                <th>Jalur</th>
+                <th>Gelombang Pendaftaran</th>
+                <th>Periode Masuk</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -76,20 +79,20 @@
 @section('js_section')
 <script>
     var tables;
-    $(function(){
+    $(function() {
         _registrationFormTable.init()
+        tables.columns([4,5,6]).visible(false);
     })
 
     const _registrationFormTable = {
         ..._datatable,
         init: function() {
             tables = this.instance = $('#registration-form-table').DataTable({
-                serverSide: false,
+                serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/registration-form',
+                    url: _baseURL + '/api/dt/registration-form',
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         data: 'id',
                         orderable: false,
@@ -98,14 +101,14 @@
                         }
                     },
                     {
-                        name: 'period', 
+                        name: 'period',
                         data: 'period',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
                         }
                     },
                     {
-                        name: 'track_n_wave', 
+                        name: 'track_n_wave',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -116,18 +119,38 @@
                         }
                     },
                     {
-                        name: 'rate', 
+                        name: 'rate',
                         data: 'rate',
                         render: (data) => {
                             return Rupiah.format(data);
+                        }
+                    },
+                    {
+                        name: 'track',
+                        data: 'track',
+                        render: (data) => {
+                            return data;
+                        },
+                    },
+                    {
+                        name: 'wave',
+                        data: 'wave',
+                        render: (data) => {
+                            return data;
+                        },
+                    },
+                    {
+                        name: 'period',
+                        data: 'period',
+                        render: (data) => {
+                            return data;
                         }
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"registration-form-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
@@ -135,6 +158,19 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [{
+                    extend: 'excel',
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                    className: "dt-button buttons-collection btn btn-outline-secondary",
+                    exportOptions: {
+                        columns:[6, 4, 5, 3],
+                        format: {
+                            body: function(data, row, column, node) {
+                                return data;
+                            }
+                        }
+                    }
+                }],
                 initComplete: function() {
                     feather.replace()
                 }
@@ -164,7 +200,7 @@
                 modalTitle: 'Tambah Skema',
                 config: {
                     formId: 'form-add-registraton-form',
-                    formActionUrl: _baseURL+"/api/dt/registration-form/create",
+                    formActionUrl: _baseURL + "/api/dt/registration-form/create",
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
@@ -228,56 +264,56 @@
             });
         },
         edit: function(id) {
-            $.get(_baseURL+'/api/dt/registration-form/id/'+id, function(result, status){
+            $.get(_baseURL + '/api/dt/registration-form/id/' + id, function(result, status) {
                 var data = result;
                 Modal.show({
-                type: 'form',
-                modalTitle: 'Edit Skema',
-                config: {
-                    formId: 'form-edit-rates',
-                    formActionUrl: _baseURL+'/api/dt/registration-form/edit/id/'+id,
-                    formType: 'edit',
-                    isTwoColumn: true,
-                    fields: {
-                        entry_period: {
-                            title: 'Periode Masuk',
-                            content: {
-                                template: `<input type="text" name="rate" value="${data.period}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
+                    type: 'form',
+                    modalTitle: 'Edit Skema',
+                    config: {
+                        formId: 'form-edit-rates',
+                        formActionUrl: _baseURL + '/api/dt/registration-form/edit/id/' + id,
+                        formType: 'edit',
+                        isTwoColumn: true,
+                        fields: {
+                            entry_period: {
+                                title: 'Periode Masuk',
+                                content: {
+                                    template: `<input type="text" name="rate" value="${data.period}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
+                                },
+                            },
+                            registration_path: {
+                                title: 'Jalur Pendaftaran',
+                                content: {
+                                    template: `<input type="text" name="rate" value="${data.track}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
+                                },
+                            },
+                            wave: {
+                                title: 'Gelombang',
+                                content: {
+                                    template: `<input type="text" name="rate" value="${data.wave}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
+                                },
+                            },
+                            rate: {
+                                title: 'Nominal Tarif',
+                                content: {
+                                    template: `<input type="number" name="rate" value="${data.rate}" class="form-control" placeholder="Masukkan nominal tarif" />`,
+                                },
                             },
                         },
-                        registration_path: {
-                            title: 'Jalur Pendaftaran',
-                            content: {
-                                template: `<input type="text" name="rate" value="${data.track}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
-                            },
-                        },
-                        wave: {
-                            title: 'Gelombang',
-                            content: {
-                                template: `<input type="text" name="rate" value="${data.wave}" class="form-control" placeholder="Masukkan nominal tarif" readonly />`,
-                            },
-                        },
-                        rate: {
-                            title: 'Nominal Tarif',
-                            content: {
-                                template: `<input type="number" name="rate" value="${data.rate}" class="form-control" placeholder="Masukkan nominal tarif" />`,
-                            },
+                        formSubmitLabel: 'Edit Skema',
+                        callback: function() {
+                            // ex: reload table
+                            Swal.fire({
+                                icon: 'success',
+                                text: 'Berhasil mengupdate skema',
+                            }).then(() => {
+                                this.tableRef.reload()
+                            })
                         },
                     },
-                    formSubmitLabel: 'Edit Skema',
-                    callback: function() {
-                        // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil mengupdate skema',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
-                    },
-                },
-            });
+                });
             })
-            
+
         },
         delete: function() {
             Swal.fire({
@@ -301,40 +337,40 @@
         },
     }
 
-    function filter(){
+    function filter() {
         var periode = $("#periode").val();
         var jalur = $("#jalur").val();
         var gelombang = $("#gelombang").val();
         tables.columns().search("").draw();
-        if(periode == "#" && jalur == "#" && gelombang == "#"){
+        if (periode == "#" && jalur == "#" && gelombang == "#") {
             tables.columns().search("").draw();
         }
-        if(periode == "#" && jalur == "#" && gelombang != "#"){
+        if (periode == "#" && jalur == "#" && gelombang != "#") {
             tables.columns(2).search(gelombang).draw();
         }
-        if(periode == "#" && jalur != "#" && gelombang == "#"){
+        if (periode == "#" && jalur != "#" && gelombang == "#") {
             tables.columns(2).search(jalur).draw();
         }
-        if(periode == "#" && jalur != "#" && gelombang != "#"){
+        if (periode == "#" && jalur != "#" && gelombang != "#") {
             tables.columns(2).search(gelombang).draw();
             tables.columns(2).search(jalur).draw();
         }
-        if(periode != "#" && jalur == "#" && gelombang == "#"){
+        if (periode != "#" && jalur == "#" && gelombang == "#") {
             tables.columns(1).search(periode).draw();
         }
-        if(periode != "#" && jalur == "#" && gelombang != "#"){
+        if (periode != "#" && jalur == "#" && gelombang != "#") {
             tables.columns(2).search(gelombang).draw();
             tables.columns(1).search(periode).draw();
         }
-        if(periode != "#" && jalur != "#" && gelombang == "#"){
-            tables.columns(2).search(jalur).draw();
-            tables.columns(1).search(periode).draw();
-        }
-        if(periode != "#" && jalur != "#" && gelombang != "#"){
-            tables.columns(2).search(gelombang).draw();
+        if (periode != "#" && jalur != "#" && gelombang == "#") {
             tables.columns(2).search(jalur).draw();
             tables.columns(1).search(periode).draw();
         }
-    }   
+        if (periode != "#" && jalur != "#" && gelombang != "#") {
+            tables.columns(2).search(gelombang).draw();
+            tables.columns(2).search(jalur).draw();
+            tables.columns(1).search(periode).draw();
+        }
+    }
 </script>
 @endsection

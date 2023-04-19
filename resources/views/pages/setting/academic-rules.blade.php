@@ -401,7 +401,6 @@
     }
 
     function filter(){
-        alert($('#filter-status').val());
         tables.columns(6).search($('#filter-status').val()).draw();
     }
 </script>
