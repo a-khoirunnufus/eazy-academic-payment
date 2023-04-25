@@ -165,6 +165,61 @@
 
 @section('js_section')
 <script>
+    const CreditSchemaModal = new ModalBuilder('creditSchemaModal', 'Skema Cicilan', 'md');
+    const formOptionsDefault = {
+        id: 'form-add-credit-scheme',
+        type: 'add',
+        actionUrl: _baseURL+'/',
+        fieldConfig: {
+            invoice_component_code: {
+                title: 'Kode Komponen Tagihan',
+                content: {
+                    template:
+                        `<input
+                            type="text"
+                            name="invoice_component_code"
+                            class="form-control"
+                            value="BPP"
+                        >`,
+                },
+            },
+            invoice_component_name: {
+                title: 'Nama Komponen Tagihan',
+                content: {
+                    template:
+                        `<input
+                            type="text"
+                            name="invoice_component_name"
+                            class="form-control"
+                            value="Biaya Perkuliahan"
+                        >`,
+                },
+            },
+            subjects: {
+                title: null,
+                type: 'checkbox',
+                content: {
+                    template: `
+                        <table class="table table-bordered">
+                            <tr class="bg-light">
+                                <th class="text-center">Mahasiswa Lama</th>
+                                <th class="text-center">Mahasiswa Baru</th>
+                                <th class="text-center">Pendaftar</th>
+                            </tr>
+                            <tr>
+                                <td class="text-center"><input type="checkbox" name="old_student" class="form-check-input" checked /></td>
+                                <td class="text-center"><input type="checkbox" name="new_student" class="form-check-input" checked /></td>
+                                <td class="text-center"><input type="checkbox" name="registrant" class="form-check-input" /></td>
+                            </tr>
+                        </table>
+                    `
+                },
+            },
+        },
+        submitLabel: 'Tambah Komponen',
+    };
+    const CreditSchemaForm = new FormBuilder(formOptionsDefault);
+
     $(function(){
         _instalmentTemplateTable.init();
         $('.flatpickr-basic').flatpickr();
@@ -189,14 +244,14 @@
                     },
                     {name: 'schema_name', data: 'schema_name'},
                     {
-                        name: 'n_payment', 
+                        name: 'n_payment',
                         data: 'n_payment',
                         render: (data) => {
                             return `${data} Pembayaran`
                         }
                     },
                     {
-                        name: 'validity', 
+                        name: 'validity',
                         data: 'validity',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'

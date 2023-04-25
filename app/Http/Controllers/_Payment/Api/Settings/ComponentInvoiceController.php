@@ -59,16 +59,16 @@ class ComponentInvoiceController extends Controller
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            return response()->json($e->getMessage()); 
+            return response()->json($e->getMessage());
         }
-        return json_encode(array('status' => 'ok', 'text' => $text));
+        return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function delete($id)
     {
         $data = Component::findOrFail($id);
         $data->delete();
 
-        return json_encode(array('success' => true, 'text' => "Berhasil menghapus komponen tagihan"));
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen tagihan"));
     }
 }

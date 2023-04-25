@@ -213,7 +213,7 @@ $(function(){
 
 // ==================== HELPER SECTION ===============================
 
-/** 
+/**
  * DEBOUNCE HELPER
  */
 const _debounce = (callback, time) => {
@@ -221,6 +221,7 @@ const _debounce = (callback, time) => {
         clearTimeout(window.timeOut)
 
     window.timeOut = setTimeout(function(){
+        console.log('callback called')
         callback()
     }, time)
 }
@@ -230,14 +231,14 @@ const _debounceSync = (time) => {
     })
 }
 
-/** 
+/**
  * DATATABLE HELPER
  */
 const _datatable = {
     instance: null,
     reload: function(){
-        // this.instance.draw()
-        this.instance.ajax.reload(null, false)
+        this.instance.draw()
+        // this.instance.ajax.reload(null, false)
     },
     getRowData: function(e){
         return this.instance.row($(e).parents('tr')).data()
@@ -245,7 +246,11 @@ const _datatable = {
     updateRowData: function(e, data){
         this.instance.row($(e).parents('tr')).data(data)
     },
-    implementSearchDelay: function(_time = 500){
+    /**
+     * Customize datatable default search behaviour, wait for specific amount of time after latest
+     * input action performed then perform search.
+     */
+    implementSearchDelay: function(_time = 1000){
         let self = this
         let id = this.instance.table().node().id
         $(`#${id}_filter input`).unbind()
@@ -319,9 +324,9 @@ const _datatableTemplates = {
         if(invoiceTotal) {
             html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
         }
-        
+
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
-        
+
         const minItemPerColumn = 2;
         const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
         let firstCol = invoiceItems.slice(0, half);
@@ -349,7 +354,7 @@ const _datatableTemplates = {
         let html = '<div class="d-flex flex-column" style="gap: .5rem">';
         if (listHeader) html += `<div class="fw-bold text-nowrap">${listHeader}</div>`;
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
-        
+
         const minItemPerColumn = 2;
         const half = listItems.length > minItemPerColumn ? Math.ceil(listItems.length/2) : listItems.length;
         let firstCol = listItems.slice(0, half);
@@ -375,7 +380,7 @@ const _datatableTemplates = {
     },
     listDetailCellV2: function(listItems, listHeader = null, itemValueFormatter = null) {
         let html = '<div class="d-flex flex-column" style="gap: .5rem">';
-        
+
         if (listHeader) {
             html += `
                 <div class="d-flex flex-column" style="gap: .5rem">
@@ -390,7 +395,7 @@ const _datatableTemplates = {
         }
 
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
-        
+
         const minItemPerColumn = 2;
         const half = listItems.length > minItemPerColumn ? Math.ceil(listItems.length/2) : listItems.length;
         let firstCol = listItems.slice(0, half);
@@ -416,7 +421,7 @@ const _datatableTemplates = {
     },
 }
 
-/** 
+/**
  * SELECT2 HELPER
  */
 const _select2AjaxUtil = {
@@ -434,7 +439,7 @@ const _select2AjaxUtil = {
         }
         for(const item of params.searchColumns)
             query.columns.push({name: item, data: item})
-        
+
         if(params.url.indexOf('?') !== -1)
             return `&${$.param(query)}`
         else
@@ -476,7 +481,7 @@ const _select2AjaxWithDTOptions = (params) => {
                         let data = response.data.map((item) => {
                             return params.item(item)
                         })
-                        _select2AjaxUtil.cache.set(itemCount, key, data)                        
+                        _select2AjaxUtil.cache.set(itemCount, key, data)
                         successCallback(data)
                     })
                 }
@@ -517,7 +522,7 @@ const _options = {
     }
 }
 
-/** 
+/**
  * TOASTR HELPER
  */
 const _toastr = {
@@ -540,7 +545,7 @@ const _toastr = {
     }
 }
 
-/** 
+/**
  * SWAL CONFIRMATION HELPER
  */
 const _swalConfirm = (option) => {
@@ -565,29 +570,42 @@ const _swalConfirmSync = (option) => {
     return new Promise((resolve) => {
         _swalConfirm(option).then((result) => {
             resolve(result.value)
-        })  
+        })
     })
 }
 
-/** 
+/**
  * RESPONSE HANDLER RESPONSE
  */
 const _responseHandler = {
+    /**
+     * Capitalize first letter for given string
+     *
+     * @param {string} str
+     *
+     * @return {string}
+     */
     capitalizeFirstLetter: function(str){
         str = str.toLowerCase()
         return str.charAt(0).toUpperCase() + str.slice(1);
     },
+    /**
+     *
+     * @param {jqXHR} data
+     * @returns
+     */
     generalFailResponse: function(data){
+        console.log(data);
         let response = data.responseJSON
-                
+
         if(response.errors === undefined)
             return _toastr.error(response.message, 'Alert')
 
         if(typeof(response.errors) == 'object'){
             for(let i in response.errors){
                 _toastr.error(
-                    this.capitalizeFirstLetter(response.errors[i][0]), 
-                    'Alert', 
+                    this.capitalizeFirstLetter(response.errors[i][0]),
+                    'Alert',
                     toastrOptions
                 )
             }
@@ -598,10 +616,12 @@ const _responseHandler = {
     },
     formFailResponse: function(data, scopeElement = null){
         let response = data.responseJSON
-                
+
+        // input validation errors not exist
         if(response.errors === undefined)
             return _toastr.error(response.message, 'Alert')
 
+        // input validation errors exist
         if(typeof(response.errors) == 'object'){
             $(".form-alert").remove()
             for(let i in response.errors){
@@ -614,8 +634,8 @@ const _responseHandler = {
                 // if element not found
                 if(el.length == 0){
                     _toastr.error(
-                        this.capitalizeFirstLetter(response.errors[i][0]), 
-                        'Alert', 
+                        this.capitalizeFirstLetter(response.errors[i][0]),
+                        'Alert',
                         toastrOptions
                     )
                 } else {
@@ -636,7 +656,7 @@ const _responseHandler = {
  * MODAL HELPER
  */
 const mainModalElm = new bootstrap.Modal(document.getElementById('mainModal'));
-        
+
 $('#mainModal').on('hidden.bs.modal', function (event) {
     Modal.close();
 });
@@ -644,7 +664,7 @@ $('#mainModal').on('hidden.bs.modal', function (event) {
 class Modal {
     /**
      * Displaying modal to user
-     * 
+     *
      * @params {string} type - type of modal content, 'detail' modal or 'form' modal.
      * @params {string} modalTitle - label for modal title.
      * @params {object} config - modal content configurations.
@@ -677,7 +697,7 @@ class Modal {
             $(`#mainModal .modal-body`).html(html);
             config.modalShow && config.modalShow();
             $('#'+config.formId).on(
-                'submit', 
+                'submit',
                 this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId),
             );
         } else if(type == 'confirmation') {
@@ -685,7 +705,7 @@ class Modal {
             $(`#mainModal .modal-body`).html(html);
             config.callback();
         }
-        
+
         feather.replace();
         $('.flatpickr-basic').flatpickr();
         select2Replace();
@@ -715,7 +735,7 @@ class Modal {
                         <div>${contentHtml}</div>
                     </div>
                 `;
-            }                    
+            }
         }
 
         html += '</div>';
@@ -761,7 +781,7 @@ class Modal {
                         </div>
                     `;
                 }
-            }    
+            }
         }
 
         if (isTwoColumn) {
@@ -810,7 +830,7 @@ class Modal {
                 if(beforeSubmit) await beforeSubmit();
 
                 var formData = new FormData($('#'+formId)[0]);
-                rowId ? formData.append('msc_id', rowId) : ""
+                rowId ? formData.append('msc_id', rowId) : "";
 
                 $.ajax({
                     url: formActionUrl,
@@ -820,30 +840,30 @@ class Modal {
                     processData: false,
                     dataType:'json',
                     success : (data, textStatus, jqXHR) => {
-                        if(data.status === 'ok') {
+                        if (data.success == true) {
                             Swal.fire({
                                 icon: 'success',
-                                text: data.text,
+                                text: data.message,
                             }).then(() => {
                                 this.close();
                                 callback();
                             });
-                        } else if(data.status === 'error') {
+                        } else if (data.success == false) {
                             Swal.fire({
                                 icon: 'error',
-                                text: data.text,
+                                text: data.message,
                             });
                         } else {
-                            handleAjaxError(jqXHR);
+                            _responseHandler.generalFailResponse(jqXHR);
                         }
                     },
                     error: function(data){
                         _responseHandler.formFailResponse(data);
                     },
                 });
-                
+
             } catch (error) {
-                // do nothing
+                _responseHandler.generalFailResponse(jqXHR);
             }
 
         }
@@ -852,7 +872,7 @@ class Modal {
     static close() {
         var formId = $('#mainModal').find('form').attr('id');
         formId && $('#'+formId).unbind('submit');
-        
+
         $('#mainModal .modal-dialog').attr('class', 'modal-dialog modal-dialog-centered');
         $(`#mainModal #mainModalLabel`).text('...');
         $(`#mainModal .modal-body`).html('...');
