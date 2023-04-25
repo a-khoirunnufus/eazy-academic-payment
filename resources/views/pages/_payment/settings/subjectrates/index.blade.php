@@ -142,10 +142,17 @@
                                 <input type="text" class="form-control comp_price" name="comp_price[]" value="1,000"
                                     placeholder="Tulis Harga Komponen Biaya">
                             </div>
-                            <div>
-                                <label class="form-label" style="opacity: 0">#</label>
-                                <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            <div class="d-flex align-content-end">
+                                <div class="me-1">
+                                    <label class="form-label" style="opacity: 0">#</label>
+                                    <button class="btn btn-warning text-white btn-sm d-flex" style="height: 36px"
+                                    onclick="del_comp('0')"> <i class="bx bx-copy m-auto"></i> </button>
+                                </div>
+                                <div class="">
+                                    <label class="form-label" style="opacity: 0">#</label>
+                                    <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
                                     onclick="del_comp('0')"> <i class="bx bx-trash m-auto"></i> </button>
+                                </div>
                             </div>
                         </div>
 
@@ -177,10 +184,17 @@
                                 <input type="text" class="form-control comp_price" name="comp_price[]" value="2,000"
                                     placeholder="Tulis Harga Komponen Biaya">
                             </div>
-                            <div>
-                                <label class="form-label" style="opacity: 0">#</label>
-                                <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-                                    onclick="del_comp('1')"> <i class="bx bx-trash m-auto"></i> </button>
+                            <div class="d-flex align-content-end">
+                                <div class="me-1">
+                                    <label class="form-label" style="opacity: 0">#</label>
+                                    <button class="btn btn-warning text-white btn-sm d-flex" style="height: 36px"
+                                    onclick="del_comp('0')"> <i class="bx bx-copy m-auto"></i> </button>
+                                </div>
+                                <div class="">
+                                    <label class="form-label" style="opacity: 0">#</label>
+                                    <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                                    onclick="del_comp('0')"> <i class="bx bx-trash m-auto"></i> </button>
+                                </div>
                             </div>
                         </div>
                     </div>
