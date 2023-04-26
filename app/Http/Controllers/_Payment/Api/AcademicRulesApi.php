@@ -13,25 +13,21 @@ class AcademicRulesApi extends Controller
     //
     public function academicRules()
     {
-        $data = DB::select('
-        select distinct
-            mra_id as id,
-            sy.school_year as period,
-            mr.mr_name as rule_name,
-            mc.msc_name as invoice_component,
-            cs.cs_name as instalment,
-            mra_minimum as minimum_paid_percent,
-            mra_active_status as is_active
-        from finance.ms_rule_academics mra
-        join academic.school_year sy
-            on mra.mra_school_year_code = sy.school_year_code
-        join finance.ms_rules mr 
-            on mra.mra_mr_id = mr.mr_id
-        join finance.ms_component mc 
-            on mra.mra_msc_id = mc.msc_id
-        join finance.credit_schema cs 
-            on mra.mra_cs_id = cs.cs_id
-        ');
+        $data = DB::table('finance.ms_rule_academics as mra')
+                ->select(
+                    'mra_id as id',
+                    'sy.school_year as period',
+                    'mr.mr_name as rule_name',
+                    'mc.msc_name as invoice_component',
+                    'cs.cs_name as instalment',
+                    'mra_minimum as minimum_paid_percent',
+                    'mra_active_status as is_active'
+                )
+                ->join('academic.school_year as sy', 'mra.mra_school_year_code', '=', 'sy.school_year_code')
+                ->join('finance.ms_rules as mr', 'mra.mra_mr_id', '=', 'mr.mr_id')
+                ->join('finance.ms_component as mc', 'mra.mra_msc_id', '=', 'mc.msc_id')
+                ->join('finance.credit_schema as cs', 'mra.mra_cs_id', '=', 'cs.cs_id')
+                ->distinct()->get();
 
         $datatable = datatables($data);
 
@@ -42,12 +38,16 @@ class AcademicRulesApi extends Controller
         $validated = $request->validated();
 
         try{
-            DB::insert('
-                insert into finance.ms_rule_academics(mra_school_year_code, mra_mr_id, mra_msc_id, mra_cs_id, mra_active_status, mra_minimum, created_at)
-                values(?,?,?,?,?,?,?)
-            ',[
-                $validated['periode'],$validated['aturan'],$validated['komponen'],$validated['cicilan'],$validated['is_active'],$validated['minimum_paid'], date("Y-m-d H:i:s")
-            ]);
+            DB::table('finance.ms_rule_academics')
+                ->insert([
+                   'mra_school_year_code' => $validated['periode'],
+                   'mra_mr_id' => $validated['aturan'],
+                   'mra_msc_id' => $validated['komponen'],
+                   'mra_cs_id' => $validated['cicilan'],
+                   'mra_active_status' => $validated['is_active'],
+                   'mra_minimum' => $validated['minimum_paid'],
+                   'created_at' => date("Y-m-d H:i:s")
+                ]);
         }catch(\Throwable $e){
             return $e;
         }
@@ -66,18 +66,17 @@ class AcademicRulesApi extends Controller
         $validated = $request->validated();
         
         try{
-            DB::update('
-            update finance.ms_rule_academics 
-            set 
-                mra_school_year_code = ?, 
-                mra_mr_id = ?, 
-                mra_msc_id = ?, 
-                mra_cs_id = ?, 
-                mra_active_status = ?, 
-                mra_minimum = ?,
-                updated_at = ?
-            where mra_id = ?
-            ',[$validated['periode'],$validated['aturan'],$validated['komponen'],$validated['cicilan'],$validated['is_active'],$validated['minimum_paid'], date("Y-m-d H:i:s"), $id]);
+            DB::table('finance.ms_rule_academics')
+            ->whereRaw('mra_id = ?', [$id])
+            ->update([
+                'mra_school_year_code' => DB::raw($validated['periode']),
+                'mra_mr_id' => DB::raw($validated['aturan']),
+                'mra_msc_id' => DB::raw($validated['komponen']),
+                'mra_cs_id' => DB::raw($validated['cicilan']),
+                'mra_active_status' => DB::raw($validated['is_active']),
+                'mra_minimum' => DB::raw($validated['minimum_paid']),
+                'updated_at' => date("Y-m-d H:i:s")
+            ]);
         }catch(\Throwable $e){
             return $e;
         }
