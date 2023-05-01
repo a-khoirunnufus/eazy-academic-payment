@@ -632,22 +632,31 @@ const _responseHandler = {
     formFailResponse: function(data, scopeElement = null){
         let response = data.responseJSON
 
-        // input validation errors not exist
         if(response.errors === undefined)
+            // input validation errors not exist
             return _toastr.error(response.message, 'Alert')
 
-        // input validation errors exist
+        /**
+         * Display error message at bottom of input element
+         */
         if(typeof(response.errors) == 'object'){
             $(".form-alert").remove()
             for(let i in response.errors){
-                let el = ""
+                let el = undefined;
                 if(scopeElement == null){
-                    el = $(`[name='${i}']`)
+                    if (i.split('.')[1]) {
+                        // field is array
+                        const [fieldKey, arrIdx] = i.split('.');
+                        el = $(`[name='${fieldKey}[]']`).eq(arrIdx);
+                    } else {
+                        // field is not array
+                        el = $(`[name='${i}']`);
+                    }
                 } else {
                     el = $(`${scopeElement} [name='${i}']`)
                 }
                 // if element not found
-                if(el.length == 0){
+                if( el.length == 0 ){
                     _toastr.error(
                         this.capitalizeFirstLetter(response.errors[i][0]),
                         'Alert',
