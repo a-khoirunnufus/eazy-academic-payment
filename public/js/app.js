@@ -183,6 +183,20 @@ const _setMomentConfig = () => {
         });
     } catch(e) {}
 }
+const _setDatepickerConfig = () => {
+    $.fn.datepicker.dates['id'] = {
+        days: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"],
+        daysShort: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+        daysMin: ["Mn", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"],
+        months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+        monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+        today: "Hari Ini",
+        clear: "Clear",
+        format: "dd-mm-yyyy",
+        titleFormat: "MM yyyy",
+        weekStart: 1
+    };
+}
 const _setIconConfig = () => {
     try {
         feather.replace({
@@ -208,6 +222,7 @@ $(function(){
     _ajaxConfig.set()
     _setFormDataJSONConfig()
     _setMomentConfig()
+    _setDatepickerConfig()
     _setIconConfig()
 })
 
