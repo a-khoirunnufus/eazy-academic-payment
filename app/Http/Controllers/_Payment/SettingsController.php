@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\ComponentType;
 use Illuminate\Support\Facades\DB;
+use App\Models\Studyprogram;
 
 class SettingsController extends Controller
 {
@@ -16,7 +17,8 @@ class SettingsController extends Controller
     
     public function subjectrates()
     {
-        return view('pages._payment.settings.subjectrates.index');
+        $studyProgram = Studyprogram::all();
+        return view('pages._payment.settings.subjectrates.index', compact('studyProgram'));
     }
     
     public function creditSchema()

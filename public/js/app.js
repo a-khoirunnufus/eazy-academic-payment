@@ -508,15 +508,15 @@ const _select2AjaxWithDTOptions = (params) => {
 }
 
 const _options = {
-    load: function({optionUrl, idField, nameField, val = null}){
+    load: function({optionUrl, nameField, idData, nameData, val = null}){
         $.get(optionUrl, (data) => {
             JSON.parse(data).map(item => {
-                $("[name="+idField+"]").append(`
-                    <option value="`+item[idField]+`">`+item[nameField]+`</option>
+                $("[name="+nameField+"]").append(`
+                    <option value="`+item[idData]+`">`+item[nameData]+`</option>
                 `)
             })
-            val ? $("[name="+idField+"]").val(val) : ""
-            $("[name="+idField+"]").trigger('change')
+            val ? $("[name="+nameField+"]").val(val) : ""
+            $("[name="+nameField+"]").trigger('change')
             selectRefresh()
         })
     }
@@ -698,7 +698,7 @@ class Modal {
             config.modalShow && config.modalShow();
             $('#'+config.formId).on(
                 'submit',
-                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId),
+                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId, config.data),
             );
         } else if(type == 'confirmation') {
             html = this.generateModalConfirmationBody(config);
@@ -780,6 +780,10 @@ class Modal {
                             ${contentHtml}
                         </div>
                     `;
+                } else if (fieldType == 'custom-field'){
+                    formContentHtml += `
+                        ${contentHtml}
+                    `;
                 }
             }
         }
@@ -798,12 +802,26 @@ class Modal {
             `;
         }
 
-        var formActionHtml = `
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
-                <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
-            </div>
-        `;
+        var formSubmitNote = config.formSubmitNote ?? false;
+
+        if(formSubmitNote){
+            var formActionHtml = `
+                <div class="d-flex align-items-center flex-wrap justify-content-between mt-4" style="gap:10px">
+                    ${formSubmitNote}
+                    <span>
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
+                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    </span>
+                </div>
+            `;
+        }else{
+            var formActionHtml = `
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
+                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                </div>
+            `;
+        }
 
         return formTemplate(formContentHtml + formActionHtml);
     }
@@ -822,14 +840,14 @@ class Modal {
         return html;
     }
 
-    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null) {
+    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null, data = null) {
         return async (e) => {
             e.preventDefault();
 
             try {
                 if(beforeSubmit) await beforeSubmit();
-
-                var formData = new FormData($('#'+formId)[0]);
+                var formData = null;
+                data ? formData = data : formData = new FormData($('#'+formId)[0]);
                 rowId ? formData.append('msc_id', rowId) : "";
 
                 $.ajax({
@@ -893,7 +911,8 @@ function select2Replace() {
 
 function selectRefresh() {
     $('.select2').select2({
-        placeholder: "Pilih Opsi yang Tersedia"
+        placeholder: "Pilih Opsi yang Tersedia",
+        dropdownParent: $("#mainModal"),
     });
 };
 
