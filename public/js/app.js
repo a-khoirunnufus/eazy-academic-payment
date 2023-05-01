@@ -183,6 +183,20 @@ const _setMomentConfig = () => {
         });
     } catch(e) {}
 }
+const _setDatepickerConfig = () => {
+    $.fn.datepicker.dates['id'] = {
+        days: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"],
+        daysShort: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+        daysMin: ["Mn", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"],
+        months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+        monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+        today: "Hari Ini",
+        clear: "Clear",
+        format: "dd-mm-yyyy",
+        titleFormat: "MM yyyy",
+        weekStart: 1
+    };
+}
 const _setIconConfig = () => {
     try {
         feather.replace({
@@ -208,6 +222,7 @@ $(function(){
     _ajaxConfig.set()
     _setFormDataJSONConfig()
     _setMomentConfig()
+    _setDatepickerConfig()
     _setIconConfig()
 })
 
@@ -606,7 +621,7 @@ const _responseHandler = {
                 _toastr.error(
                     this.capitalizeFirstLetter(response.errors[i][0]),
                     'Alert',
-                    toastrOptions
+                    _toastr.options
                 )
             }
             return
@@ -617,26 +632,35 @@ const _responseHandler = {
     formFailResponse: function(data, scopeElement = null){
         let response = data.responseJSON
 
-        // input validation errors not exist
         if(response.errors === undefined)
+            // input validation errors not exist
             return _toastr.error(response.message, 'Alert')
 
-        // input validation errors exist
+        /**
+         * Display error message at bottom of input element
+         */
         if(typeof(response.errors) == 'object'){
             $(".form-alert").remove()
             for(let i in response.errors){
-                let el = ""
+                let el = undefined;
                 if(scopeElement == null){
-                    el = $(`[name='${i}']`)
+                    if (i.split('.')[1]) {
+                        // field is array
+                        const [fieldKey, arrIdx] = i.split('.');
+                        el = $(`[name='${fieldKey}[]']`).eq(arrIdx);
+                    } else {
+                        // field is not array
+                        el = $(`[name='${i}']`);
+                    }
                 } else {
                     el = $(`${scopeElement} [name='${i}']`)
                 }
                 // if element not found
-                if(el.length == 0){
+                if( el.length == 0 ){
                     _toastr.error(
                         this.capitalizeFirstLetter(response.errors[i][0]),
                         'Alert',
-                        toastrOptions
+                        _toastr.options
                     )
                 } else {
                     el.parents('.form-group').append(`
