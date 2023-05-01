@@ -621,7 +621,7 @@ const _responseHandler = {
                 _toastr.error(
                     this.capitalizeFirstLetter(response.errors[i][0]),
                     'Alert',
-                    toastrOptions
+                    _toastr.options
                 )
             }
             return
@@ -651,7 +651,7 @@ const _responseHandler = {
                     _toastr.error(
                         this.capitalizeFirstLetter(response.errors[i][0]),
                         'Alert',
-                        toastrOptions
+                        _toastr.options
                     )
                 } else {
                     el.parents('.form-group').append(`
