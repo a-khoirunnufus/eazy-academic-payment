@@ -83,4 +83,12 @@ class CourseRatesController extends Controller
         // $data = Course::where('studyprogram_id',$studyProgramId)->orderBy('course_id')->get();
         // return $data->toJson();
     }
+    
+    public function delete($id)
+    {
+        $data = CourseRate::findOrFail($id);
+        $data->delete();
+
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus tarif mata kuliah"));
+    }
 }

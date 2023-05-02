@@ -24,7 +24,7 @@
         <div class="rates-per-course-filter">
             <div>
                 <label class="form-label">Fakultas</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select select2">
                     <option value="all" selected>Semua Fakultas</option>
                     @foreach($static_faculties as $faculty)
                         <option value="{{ $faculty }}">{{ $faculty }}</option>
@@ -33,7 +33,7 @@
             </div>
             <div>
                 <label class="form-label">Program Studi</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select select2">
                     <option value="all" selected>Semua Program Studi</option>
                     @foreach($static_study_programs as $study_program)
                         <option value="{{ $study_program }}">{{ $study_program }}</option>
@@ -128,6 +128,17 @@
     $(function(){
         _ratesPerCourseTable.init()
     })
+
+    const _Filter = {
+        init: function(){
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
+                nameField: 'program_study',
+                idData: 'studyprogram_id',
+                nameData: 'studyprogram_name'
+            });
+        }
+    }
 
     const _ratesPerCourseTable = {
         ..._datatable,
@@ -255,7 +266,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_ratesPerCourseTableActions.edit(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerCourseTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -298,7 +309,7 @@
                         <div class="">
                             <label class="form-label" style="opacity: 0">#</label>
                             <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-                            onclick="_ratesPerCourseTableActions.courseRateDeleteField(this)"> <i class="bx bx-trash m-auto"></i> </a>
+                            onclick="_ratesPerCourseTableActions.courseRateDeleteField(this,${id})"> <i class="bx bx-trash m-auto"></i> </a>
                         </div>
                     </div>
                 </div>
@@ -312,8 +323,12 @@
                 $("#paket"+id+"").trigger('change');
             }
         },
-        courseRateDeleteField: function(e){
-            $(e).parents('.courseRateInputField').get(0).remove();
+        courseRateDeleteField: function(e,id){
+            if(id === 0){
+                $(e).parents('.courseRateInputField').get(0).remove();
+            }else{
+                _ratesPerCourseTableActions.delete(e,id);
+            }
         },
         // courseRateStore: function(){
         //     const formData = new FormData($('#coureRateForm')[0]);
@@ -424,28 +439,31 @@
                 });
             })
             $("#courseId").change(function () {
-                courseId = $(this).val();
-                if(courseId){
-                    $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
-                        _method: 'GET'
-                    }, function(data){
-                        data = JSON.parse(data)
-                        $('#courseRateInput').empty();
-                        if(Object.keys(data).length > 0){
-                            data.map(item => {
-                                _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
-                            })
-                        }
-                        console.log(data);
-                    }).fail((error) => {
-                        Swal.fire({
-                            icon: 'error',
-                            text: data.text,
-                        });
-                    })
-                }
+                _ratesPerCourseTableActions.tarif("#courseId");
             })
 
+        },
+        tarif: function(e){
+            courseId = $(e).val();
+            if(courseId){
+                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
+                    _method: 'GET'
+                }, function(data){
+                    data = JSON.parse(data)
+                    $('#courseRateInput').empty();
+                    if(Object.keys(data).length > 0){
+                        data.map(item => {
+                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
+                        })
+                    }
+                    console.log(data);
+                }).fail((error) => {
+                    Swal.fire({
+                        icon: 'error',
+                        text: data.text,
+                    });
+                })
+            }
         },
         edit: function(spId, cId) {
             
@@ -557,10 +575,18 @@
             })
             $('#courseId').prop('disabled', true);
         },
-        delete: function() {
+        delete: function(e,id = 0) {
+            let data = _ratesPerCourseTable.getRowData(e);
+            let mcrId = 0;
+            if(id == 0) {
+                mcrId = data.mcr_id;
+            }else{
+                mcrId = id;
+            }
+            console.log(mcrId);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tarif matakuliah ini?',
+                text: 'Apakah anda yakin ingin menghapus tarif mata kuliah ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -569,46 +595,29 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tarif matakuliah',
+                    $.post(_baseURL + '/api/payment/settings/courserates/delete/' + mcrId, {
+                        _method: 'DELETE'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _ratesPerCourseTable.reload();
+                            if(id != 0){
+                                _ratesPerCourseTableActions.tarif("#courseId");
+                            }
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
                     })
                 }
             })
         },
     }
-
-    
-
-
-
-    
-    $('#form-add-credit-schema #btn-add-credit-schema-component').click(() => {
-        $('#credit-schema-component-list').append(`
-            <li class="d-flex align-items-center" style="gap: 1rem">
-                <div class="w-10 index"></div>
-                <div class="input-group w-40">
-                    <input type="number" name="csd_percentage[]" class="form-control" placeholder="Masukkan persentase" />
-                    <span class="input-group-text">%</span>
-                </div>
-                <div class="w-40">
-                    <input type="text" name="csd_date[]" class="form-control flatpickr-basic" placeholder="Pilih tanggal" />
-                </div>
-                <div class="w-10 text-center">
-                    <a class="btn-delete-credit-schema-component btn btn-danger btn-icon"><i data-feather="trash"></i></a>
-                </div>
-            </li>
-        `);
-
-        $('#form-add-credit-schema .btn-delete-credit-schema-component').click((e) => {
-            $(e.currentTarget).parents('li').get(0).remove();
-        });
-
-        feather.replace();
-        $('.flatpickr-basic').flatpickr();
-        select2Replace();
-    });
-
 </script>
 @endsection
