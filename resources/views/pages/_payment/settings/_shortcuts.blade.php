@@ -15,7 +15,7 @@
             <span>Template<br>Cicilan</span>
         </div>
     </a>
-    <a href="{{ url('setting/rates') }}" class="eazy-shortcut-item {{ $active == 'rates' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.payment-rates') }}" class="eazy-shortcut-item {{ $active == 'payment-rates' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="activity"></i>
         </div>
