@@ -222,7 +222,6 @@ $(function(){
     _ajaxConfig.set()
     _setFormDataJSONConfig()
     _setMomentConfig()
-    _setDatepickerConfig()
     _setIconConfig()
 })
 
