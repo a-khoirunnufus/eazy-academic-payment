@@ -105,9 +105,9 @@
                 <th>Program Studi / Fakultas</th>
                 <th>Jalur / Gelombang</th>
                 <th>Jenis Perkuliahan</th>
-                {{-- <th>Komponen Tagihan</th>
-                <th>Nominal Tarif</th> --}}
                 <th>Cicilan</th>
+                <th>Komponen Tagihan</th>
+                <th>Total</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -186,14 +186,43 @@
                     {
                         name: 'credit.cs_id',
                         render: (data, _, row) => {
-                            let html = '<div>';
+                            let html = '<div><ul>';
                             if(Object.keys(row.credit).length > 0){
                                 row.credit.map(item => {
-                                    html += `<span class="fw-bold">${item.credit_schema.cs_name}</span><br>`;
+                                    html += `<li class="fw-bold">${item.credit_schema.cs_name}</li>`;
                                 })
                             }
-                            html += '</div>';
+                            html += '</ul></div>';
                             return html;
+                        }
+                    },
+                    {
+                        name: 'component.f_id',
+                        render: (data, _, row) => {
+                            let html = '<div><ul>';
+                            if(Object.keys(row.component).length > 0){
+                                row.component.map(item => {
+                                    html += `<li class="fw-bold">${item.component_detail.msc_name}: `+Rupiah.format(item.fc_rate)+`</li>`;
+                                })
+                            }
+                            html += '</ul></div>';
+                            return html;
+                        }
+                    },
+                    {
+                        name: 'component.fc_rate',
+                        render: (data, _, row) => {
+                            let total = 0;
+                            if(Object.keys(row.component).length > 0){
+                                row.component.map(item => {
+                                    total = total + item.fc_rate
+                                })
+                            }
+                            return `
+                                <div>
+                                    <span class="fw-bold">`+Rupiah.format(total)+`</span><br>
+                                </div>
+                            `;
                         }
                     }
                     
