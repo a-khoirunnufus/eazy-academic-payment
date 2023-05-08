@@ -13,8 +13,6 @@ class CreditSchemaRequest extends FormRequest
             'cs_valid' => 'Status Validitas',
             'csd_percentage' => 'Persentase Pembayaran',
             'csd_percentage.*' => 'Persentase Pembayaran',
-            'csd_date' => 'Tenggat Pembayaran',
-            'csd_date.*' => 'Tenggat Pembayaran'
         ];
     }
 
@@ -36,22 +34,6 @@ class CreditSchemaRequest extends FormRequest
                 }
             ],
             'csd_percentage.*' => 'required|numeric|min:0.000000001|max:100',
-            'csd_date' => [
-                'required',
-                'array',
-                'min:1',
-                function ($attribute, $value, $fail) {
-                    foreach ($value as $i => $date) {
-                        if ($i > 0) {
-                            $previous_date = $value[$i-1];
-                            if (strtotime($previous_date) >= strtotime($date)) {
-                                $fail("Pemilihan tanggal tenggat pembayaran tidak valid.");
-                            }
-                        }
-                    }
-                }
-            ],
-            'csd_date.*' => 'required|date_format:Y-m-d',
             'cs_valid' => 'required|min:1',
         ];
     }

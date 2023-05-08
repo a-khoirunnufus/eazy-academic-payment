@@ -13,7 +13,5 @@ class CreditSchemaDetail extends Model
 
     protected $primaryKey = 'csd_id';
 
-    public $timestamps = false;
-
-    protected $fillable = ['csd_cs_id', 'csd_percentage', 'csd_date', 'csd_order'];
+    protected $fillable = ['csd_cs_id', 'csd_percentage', 'csd_order'];
 }
