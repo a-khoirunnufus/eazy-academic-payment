@@ -23,6 +23,14 @@
         ul#credit-schema-component-list li .index:before {
             content: 'Ke-' counter( li-count);
         }
+        ul.installment-percentage-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        ul.installment-percentage-list li {
+            padding: .5rem 0;
+        }
     </style>
 @endsection
 
@@ -36,7 +44,8 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Nama Skema</th>
-                <th>X Kali Pembayaran</th>
+                <th>Frekuensi Pembayaran</th>
+                <th>Persentase Cicilan</th>
                 <th class="text-center">Status Validitas</th>
             </tr>
         </thead>
@@ -191,7 +200,21 @@
                     {
                         name: 'payment_count',
                         render: (data, _, row) => {
-                            return this.template.defaultCell(row.credit_schema_detail.length, {postfix: ' Pembayaran'});
+                            return this.template.defaultCell(row.credit_schema_detail.length, {postfix: ' Kali Pembayaran'});
+                        }
+                    },
+                    {
+                        name: 'percentage',
+                        render: (data, _, row) => {
+                            return (`
+                                <ul class="installment-percentage-list">
+                                    ${
+                                        row.credit_schema_detail
+                                            .map((item, i) => `<li>Cicilan ke-${i+1}: ${item.csd_percentage}%</li>`)
+                                            .join('')
+                                    }
+                                </ul>
+                            `);
                         }
                     },
                     {
