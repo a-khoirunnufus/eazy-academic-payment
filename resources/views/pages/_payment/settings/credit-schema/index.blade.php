@@ -23,6 +23,14 @@
         ul#credit-schema-component-list li .index:before {
             content: 'Ke-' counter( li-count);
         }
+        ul.installment-percentage-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        ul.installment-percentage-list li {
+            padding: .5rem 0;
+        }
     </style>
 @endsection
 
@@ -36,7 +44,8 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Nama Skema</th>
-                <th>X Kali Pembayaran</th>
+                <th>Frekuensi Pembayaran</th>
+                <th>Persentase Cicilan</th>
                 <th class="text-center">Status Validitas</th>
             </tr>
         </thead>
@@ -71,7 +80,6 @@
                                 <tr>
                                     <th>Pembayaran</th>
                                     <th>Persen Pembayaran</th>
-                                    <th>Tenggat Pembayaran</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -85,7 +93,7 @@
 
 <!-- Credit Schema Form Modal -->
 <div class="modal fade" id="creditSchemaFormModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="creditSchemaFormModalLabel">...</h5>
@@ -94,52 +102,31 @@
             <div class="modal-body">
                 <form id="credit-schema-form">
                     <div class="row mb-1">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Nama Skema Cicilan</label>
-                                <input type="text" class="form-control" name="cs_name" placeholder="Masukkan nama skema cicilan" />
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Status Validitas</label>
-                                <select name="cs_valid" class="form-select">
-                                    <option value="" disabled selected>Pilih status validitas</option>
-                                    <option value="no">Tidak Valid</option>
-                                    <option value="yes">Valid</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Skema Cicilan</label>
+                            <input type="text" class="form-control" name="cs_name" placeholder="Masukkan nama skema cicilan" />
                         </div>
                     </div>
-                    <div id="installment-component-group" style="margin-bottom: 0.6em">
+                    <div class="row mb-1">
+                        <div class="form-group">
+                            <label class="form-label">Status Validitas</label>
+                            <select name="cs_valid" class="form-select">
+                                <option value="" disabled selected>Pilih status validitas</option>
+                                <option value="no">Tidak Valid</option>
+                                <option value="yes">Valid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="installment-component-group">
                         <label class="form-label">Komponen Cicilan</label>
                         <div class="border rounded p-1">
                             <div id="credit-schema-component" class="d-flex flex-column" style="gap: 1rem">
                                 <div class="d-flex" style="gap: 1rem">
-                                    <div class="fw-bold" style="width: 15%">Pembayaran</div>
-                                    <div class="w-40 fw-bold">Persen Pembayaran</div>
-                                    <div class="w-40 fw-bold">Tenggat Pembayaran</div>
-                                    <div class="fw-bold text-center" style="width: 5%">Aksi</div>
+                                    <div class="fw-bold" style="width: 100px">Pembayaran</div>
+                                    <div class="fw-bold flex-grow-1">Persen Pembayaran</div>
+                                    <div class="fw-bold text-center" style="width: 50px">Aksi</div>
                                 </div>
-                                <ul id="credit-schema-component-list">
-                                    <li>
-                                        <div class="d-flex align-items-start" style="gap: 1rem">
-                                            <div class="index" style="width: 15%"></div>
-                                            <div class="form-group w-40">
-                                                <div class="input-group input-group-sm">
-                                                    <input type="number" name="csd_percentage[]" class="form-control form-control-sm" placeholder="Masukkan persentase" min="0" max="100" step="any" />
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-                                            <div class="form-group w-40">
-                                                <input type="text" name="csd_date[]" class="form-control form-control-sm daterange-single" autocomplete="off" placeholder="Pilih tanggal" />
-                                            </div>
-                                            <div class="text-center" style="width: 5%">
-                                                <a onclick="creditSchemaForm.removePaymentComponent(event)" class="btn-delete-credit-schema-component btn btn-danger btn-icon btn-sm"><i data-feather="trash"></i></a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
+                                <ul id="credit-schema-component-list"></ul>
                             </div>
                             <div class="d-flex justify-content-end mt-2">
                                 <a onclick="creditSchemaForm.addPaymentComponent()" id="btn-add-credit-schema-component" class="btn btn-sm btn-primary">
@@ -213,7 +200,21 @@
                     {
                         name: 'payment_count',
                         render: (data, _, row) => {
-                            return this.template.defaultCell(row.credit_schema_detail.length, {postfix: ' Pembayaran'});
+                            return this.template.defaultCell(row.credit_schema_detail.length, {postfix: ' Kali Pembayaran'});
+                        }
+                    },
+                    {
+                        name: 'percentage',
+                        render: (data, _, row) => {
+                            return (`
+                                <ul class="installment-percentage-list">
+                                    ${
+                                        row.credit_schema_detail
+                                            .map((item, i) => `<li>Cicilan ke-${i+1}: ${item.csd_percentage}%</li>`)
+                                            .join('')
+                                    }
+                                </ul>
+                            `);
                         }
                     },
                     {
@@ -343,7 +344,6 @@
                         <tr>
                             <td>Ke-${item.csd_order}</td>
                             <td>${item.csd_percentage} %</td>
-                            <td>${moment(item.csd_date).format('DD-MM-YYYY')}</td>
                         </tr>
                     `;
                 }).join('')
@@ -445,7 +445,7 @@
                 .val($('#credit-schema-form select[name="cs_valid"] option:first').val())
                 .trigger('change');
             $('#credit-schema-form #credit-schema-component-list')
-                .html(creditSchemaTemplate.schemaComponentItem);
+                .html(creditSchemaTemplate.schemaComponentItem());
             feather.replace();
             datepicker.init();
         },
@@ -454,25 +454,7 @@
             $('#credit-schema-form select[name="cs_valid"]').val(data.cs_valid).trigger('change');
             $('#credit-schema-form #credit-schema-component-list').html(
                 data.credit_schema_detail.map(item => {
-                    return `
-                        <li>
-                            <div class="d-flex align-items-start" style="gap: 1rem">
-                                <div class="index" style="width: 15%"></div>
-                                <div class="form-group w-40">
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" name="csd_percentage[]" value="${item.csd_percentage}" class="form-control form-control-sm" placeholder="Masukkan persentase" min="0" max="100" step="any" />
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                                <div class="form-group w-40">
-                                    <input type="text" name="csd_date[]" value="${item.csd_date}" class="form-control form-control-sm daterange-single" autocomplete="off" placeholder="Pilih tanggal" />
-                                </div>
-                                <div class="text-center" style="width: 5%">
-                                    <a onclick="creditSchemaForm.removePaymentComponent(event)" class="btn-delete-credit-schema-component btn btn-danger btn-icon btn-sm"><i data-feather="trash"></i></a>
-                                </div>
-                            </div>
-                        </li>
-                    `;
+                    return creditSchemaTemplate.schemaComponentItem(item.csd_percentage);
                 }).join('')
             );
             feather.replace();
@@ -497,7 +479,7 @@
             }
         },
         addPaymentComponent: () => {
-            $('#credit-schema-component-list').append(creditSchemaTemplate.schemaComponentItem);
+            $('#credit-schema-component-list').append(creditSchemaTemplate.schemaComponentItem());
             feather.replace();
             datepicker.init();
         },
@@ -507,21 +489,18 @@
     }
 
     const creditSchemaTemplate = {
-        schemaComponentItem: `
+        schemaComponentItem: (percentage = null) => `
             <li>
                 <div class="d-flex align-items-start" style="gap: 1rem">
-                    <div class="index" style="width: 15%"></div>
-                    <div class="form-group w-40">
-                        <div class="input-group input-group-sm">
-                            <input type="number" name="csd_percentage[]" class="form-control form-control-sm" placeholder="Masukkan persentase" min="0" max="100" step="any" />
+                    <div class="index" style="width: 100px"></div>
+                    <div class="form-group flex-grow-1">
+                        <div class="input-group">
+                            <input type="number" name="csd_percentage[]" ${ percentage ? `value="${percentage}"` : '' } class="form-control" placeholder="Masukkan persentase" min="0" max="100" step="any" />
                             <span class="input-group-text">%</span>
                         </div>
                     </div>
-                    <div class="form-group w-40">
-                        <input type="text" name="csd_date[]" class="form-control form-control-sm daterange-single" autocomplete="off" placeholder="Pilih tanggal" />
-                    </div>
-                    <div class="text-center" style="width: 5%">
-                        <a onclick="creditSchemaForm.removePaymentComponent(event)" class="btn-delete-credit-schema-component btn btn-danger btn-icon btn-sm"><i data-feather="trash"></i></a>
+                    <div class="text-center" style="width: 50px">
+                        <a onclick="creditSchemaForm.removePaymentComponent(event)" class="btn-delete-credit-schema-component btn btn-danger btn-icon"><i data-feather="trash"></i></a>
                     </div>
                 </div>
             </li>

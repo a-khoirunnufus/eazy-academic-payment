@@ -43,7 +43,6 @@ class CreditSchemaController extends Controller
                     'csd_cs_id' => $credit_schema->cs_id,
                     'csd_order' => $key+1,
                     'csd_percentage' => $percent,
-                    'csd_date' => $validated['csd_date'][$key],
                 ]);
             }
             DB::commit();
@@ -78,7 +77,6 @@ class CreditSchemaController extends Controller
                     'csd_cs_id' => $credit_schema->cs_id,
                     'csd_order' => $key+1,
                     'csd_percentage' => $percent,
-                    'csd_date' => $validated['csd_date'][$key],
                 ]);
             }
 

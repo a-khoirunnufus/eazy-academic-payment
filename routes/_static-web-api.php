@@ -1,6 +1,14 @@
 <?php
 
-// Test
+/**
+ * Fungsi file ini untuk menyediakan data statis terkait resource tertentu.
+ *
+ * File ini bersifat sementara, jika fitur(setting, generate, report) selesai dibangun file
+ * ini akan dihapus.
+ *
+ * commented_by: Ahmad
+ */
+
 
 // use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route;
