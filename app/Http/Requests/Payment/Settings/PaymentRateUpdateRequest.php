@@ -18,10 +18,18 @@ class PaymentRateUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'f_id' => 'required',
-            'fc_id' => 'nullable',
+            
+            'main_ppm_id' => 'required',
+            'cd_id' => 'nullable',
+            'mma_id' => 'nullable',
+            'period_id' => 'nullable',
+            'path_id' => 'nullable',
+            'msy_id' => 'nullable',
+            'mlt_id' => 'nullable',
+            'ppm_id' => 'nullable',
             'msc_id' => 'nullable',
-            'fc_rate' => 'nullable'
+            'cd_fee' => 'nullable',
+            'cs_id' => 'nullable',
         ];
     }
 }

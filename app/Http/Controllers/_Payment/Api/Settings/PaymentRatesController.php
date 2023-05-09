@@ -10,6 +10,7 @@ use App\Models\Payment\PaymentComponent;
 use App\Models\Payment\Component;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\CreditSchema;
+use App\Models\Payment\CreditSchemaPeriodPath;
 use App\Http\Requests\Payment\Settings\PaymentRateRequest;
 use App\Http\Requests\Payment\Settings\PaymentRateUpdateRequest;
 use App\Models\Period;
@@ -58,18 +59,6 @@ class PaymentRatesController extends Controller
         return datatables($collection)->toJson();
     }
     
-    public function getPeriod()
-    {
-        $period = Period::all();
-        return $period->toJson();
-    }
-    
-    public function getPath()
-    {
-        $path = Path::all();
-        return $path->toJson();
-    }
-    
     public function getComponent()
     {
         $component = Component::all();
@@ -82,70 +71,42 @@ class PaymentRatesController extends Controller
         return $schema->toJson();
     }
 
-    public function store(PaymentRateRequest $request)
-    {
-        $validated = $request->validated();
-        // dd($validated);
-        DB::beginTransaction();
-        try{
-            $paymentRate = PaymentRate::create([
-                'f_period_id' => $validated['f_period_id'],
-                'f_studyprogram_id' => $validated['f_studyprogram_id'],
-                'f_path_id' => $validated['f_path_id'],
-                'f_jenis_perkuliahan_id' => $validated['f_jenis_perkuliahan_id'],
-            ]);
-            $f_id = $paymentRate->f_id;
-
-            $count = count($validated['cs_id']);
-            for ($i=0; $i < $count; $i++) { 
-                PaymentCredit::create([
-                    'f_id' => $f_id,
-                    'cs_id' => $validated['cs_id'][$i]
-                ]);
-            }
-            
-            $count = count($validated['msc_id']);
-            for ($i=0; $i < $count; $i++) { 
-                PaymentComponent::create([
-                    'f_id' => $f_id,
-                    'msc_id' => $validated['msc_id'][$i],
-                    'fc_rate' => $validated['fc_rate'][$i],
-                ]);
-            }
-            $text = "Berhasil menambahkan tarif dan pembayaran";
-            DB::commit();
-        }catch(\Exception $e){
-            DB::rollback();
-            return response()->json($e->getMessage());
-        }
-        return json_encode(array('success' => true, 'message' => $text));
-    }
-    
     public function update(PaymentRateUpdateRequest $request)
     {
         $validated = $request->validated();
-        // dd($validated);
         DB::beginTransaction();
         try{
-            $paymentRate = PaymentRate::findorfail($validated['f_id']);
-            $f_id = $paymentRate->f_id;
-
             $count = count($validated['msc_id']);
             for ($i=0; $i < $count; $i++) { 
-                if($validated['fc_id'][$i] == 0){
-                    PaymentComponent::create([
-                        'f_id' => $f_id,
+                if($validated['cd_id'][$i] == 0){
+                    ComponentDetail::create([
+                        'mma_id' => $validated['mma_id'][$i],
                         'msc_id' => $validated['msc_id'][$i],
-                        'fc_rate' => $validated['fc_rate'][$i]
+                        'period_id' => $validated['period_id'][$i],
+                        'path_id' => $validated['path_id'][$i],
+                        'cd_fee' => $validated['cd_fee'][$i],
+                        'msy_id' => $validated['msy_id'][$i],
+                        'mlt_id' => $validated['mlt_id'][$i],
+                        'ppm_id' => $validated['ppm_id'][$i]
                     ]);
                 }else{
-                    $data = PaymentComponent::findorfail($validated['fc_id'][$i]);
+                    $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
                     $data->update([
                         'msc_id' => $validated['msc_id'][$i],
-                        'fc_rate' => $validated['fc_rate'][$i]
+                        'cd_fee' => $validated['cd_fee'][$i]
                     ]);
                 }
             }
+            foreach($validated['cs_id'] as $item){
+                $data = CreditSchemaPeriodPath::where('cs_id',$item)->where('ppm_id', $validated['main_ppm_id'])->first();
+                if(!$data){
+                    CreditSchemaPeriodPath::create([
+                        'cs_id' => $item,
+                        'ppm_id' => $validated['main_ppm_id']
+                    ]);
+                }
+            }
+            CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
             $text = "Berhasil memperbarui tarif dan pembayaran";
             DB::commit();
         }catch(\Exception $e){
@@ -157,17 +118,69 @@ class PaymentRatesController extends Controller
     
     public function deleteComponent($id)
     {
-        $data = PaymentComponent::findOrFail($id);
+        $data = ComponentDetail::findOrFail($id);
         $data->delete();
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen"));
     }
     
-    public function delete($id)
-    {
-        $data = PaymentRate::findOrFail($id);
-        $data->delete();
+    // OLD CODE
+    // public function store(request $request)
+    // {
+    //     $validated = $request->validated();
+    //     // dd($validated);
+    //     DB::beginTransaction();
+    //     try{
+    //         $paymentRate = PaymentRate::create([
+    //             'f_period_id' => $validated['f_period_id'],
+    //             'f_studyprogram_id' => $validated['f_studyprogram_id'],
+    //             'f_path_id' => $validated['f_path_id'],
+    //             'f_jenis_perkuliahan_id' => $validated['f_jenis_perkuliahan_id'],
+    //         ]);
+    //         $f_id = $paymentRate->f_id;
 
-        return json_encode(array('success' => true, 'message' => "Berhasil menghapus tarif dan pembayaran"));
-    }
+    //         $count = count($validated['cs_id']);
+    //         for ($i=0; $i < $count; $i++) { 
+    //             PaymentCredit::create([
+    //                 'f_id' => $f_id,
+    //                 'cs_id' => $validated['cs_id'][$i]
+    //             ]);
+    //         }
+            
+    //         $count = count($validated['msc_id']);
+    //         for ($i=0; $i < $count; $i++) { 
+    //             PaymentComponent::create([
+    //                 'f_id' => $f_id,
+    //                 'msc_id' => $validated['msc_id'][$i],
+    //                 'fc_rate' => $validated['fc_rate'][$i],
+    //             ]);
+    //         }
+    //         $text = "Berhasil menambahkan tarif dan pembayaran";
+    //         DB::commit();
+    //     }catch(\Exception $e){
+    //         DB::rollback();
+    //         return response()->json($e->getMessage());
+    //     }
+    //     return json_encode(array('success' => true, 'message' => $text));
+    // }
+    
+    // public function getPeriod()
+    // {
+    //     $period = Period::all();
+    //     return $period->toJson();
+    // }
+    
+    // public function getPath()
+    // {
+    //     $path = Path::all();
+    //     return $path->toJson();
+    // }
+    
+    // public function delete($id)
+    // {
+    //     $data = PaymentRate::findOrFail($id);
+    //     $data->delete();
+
+    //     return json_encode(array('success' => true, 'message' => "Berhasil menghapus tarif dan pembayaran"));
+    // }
 }

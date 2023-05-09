@@ -31,6 +31,7 @@ class PeriodPathMajor extends Model
     
     public function periodPath()
     {
-        return $this->belongsTo(PeriodPath::class, 'ppd_id','ppd_id');
+        return $this->belongsTo(PeriodPath::class, 'ppd_id','ppd_id')->with('period');
     }
+    
 }
