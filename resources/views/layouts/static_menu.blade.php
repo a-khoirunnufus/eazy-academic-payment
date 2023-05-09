@@ -75,10 +75,16 @@
                             <span class="menu-title text-truncate">Setting Template<br>Cicilan</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'payment.settings.payment-rates' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.payment-rates') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Setting Tarif</span>
+                        </a>
+                    </li>
                     <li class="menu__item nav-item {{ 'payment.settings.subject-rates' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.subject-rates') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Tarif</span>
+                            <span class="menu-title text-truncate">Setting Tarif Per Mata Kuliah</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'setting/registration-form' == request()->path() ? 'active' : '' }}">

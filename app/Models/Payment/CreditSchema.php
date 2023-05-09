@@ -4,16 +4,15 @@ namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CreditSchema extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = "finance.credit_schema";
 
     protected $primaryKey = 'cs_id';
-
-    public $timestamps = false;
 
     protected $fillable = ['cs_name', 'cs_valid'];
 

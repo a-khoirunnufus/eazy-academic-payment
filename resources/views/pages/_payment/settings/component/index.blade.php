@@ -118,6 +118,14 @@
                                 </span>
                             </button>
                         </div>
+                        <div class="ms-1" style="margin-bottom: 7px">
+                            <button onclick="_invoiceComponentTableActions.import()" class="btn btn-primary">
+                                <span style="vertical-align: middle">
+                                    <i data-feather="download" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    Import Komponen Tagihan
+                                </span>
+                            </button>
+                        </div>
                     `)
                     feather.replace()
                 }
@@ -152,8 +160,9 @@
             $("[name=msc_description]").val(data.msc_description)
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/component-type',
-                idField: 'msct_id',
-                nameField: 'msct_name',
+                nameField: 'msct_id',
+                idData: 'msct_id',
+                nameData: 'msct_name',
                 val: data.msct_id
             });
             data.msc_is_new_student == 1 ? $('[name=msc_is_new_student]').prop('checked', true) : '';
@@ -233,8 +242,9 @@
             });
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/component-type',
-                idField: 'msct_id',
-                nameField: 'msct_name'
+                nameField: 'msct_id',
+                idData: 'msct_id',
+                nameData: 'msct_name'
             });
         },
         edit: function(e) {
@@ -345,6 +355,55 @@
                     })
                 }
             })
+        },
+        import: function() {
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Import Komponen Tagihan',
+                modalSize: 'md',
+                config: {
+                    formId: 'form-add-invoice-component',
+                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
+                    formType: 'add',
+                    fields: {
+                        invoice_component_code: {
+                            title: 'Template Komponen Tagihan',
+                            content: {
+                                template: 
+                                    `<div class="d-grid">
+                                        <button onclick="_invoiceComponentTableActions.import()" class="btn btn-primary">
+                                            <span style="vertical-align: middle">
+                                                <i data-feather="layout" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                                Download Template
+                                            </span>
+                                        </button>
+                                    </div>`,
+                            },
+                        },
+                        invoice_component_name: {
+                            title: 'File Import Komponen Tagihan',
+                            content: {
+                                template: 
+                                    `<input 
+                                        type="file" 
+                                        name="msc_description" 
+                                        class="form-control"
+                                    >`,
+                            },
+                        }
+                    },
+                    formSubmitLabel: 'Import Komponen',
+                    callback: function(e) {
+                        _invoiceComponentTable.reload()
+                    },
+                },
+            });
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/component-type',
+                nameField: 'msct_id',
+                idData: 'msct_id',
+                nameData: 'msct_name'
+            });
         }
     }
 </script>

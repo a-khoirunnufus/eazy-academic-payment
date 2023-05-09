@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\ComponentType;
 use Illuminate\Support\Facades\DB;
+use App\Models\Studyprogram;
+use App\Models\PeriodPath;
 
 class SettingsController extends Controller
 {
@@ -16,7 +18,38 @@ class SettingsController extends Controller
     
     public function subjectrates()
     {
-        return view('pages._payment.settings.subjectrates.index');
+        $studyProgram = Studyprogram::all();
+        return view('pages._payment.settings.subjectrates.index', compact('studyProgram'));
+    }
+    
+    public function paymentrates()
+    {
+        return view('pages._payment.settings.paymentrates.index');
+    }
+    
+    public function paymentratesdetail($id)
+    {
+        $data = PeriodPath::with('path','period')->findorfail($id);
+        $data['periode'] = "";
+        $data['jalur'] = "";
+        $data['tahun'] = "";
+        if($data->path){
+            $data['jalur'] = $data->path->path_name;
+            
+        }
+        if($data->period){
+            $data['periode'] = $data->period->period_name;
+            if($data->period->schoolyear){
+                if($data->period->schoolyear->msy_semester == 1){
+                    $semester = "Ganjil";
+                }else{
+                    $semester = "Genap";
+                }
+                $data['tahun'] = $data->period->schoolyear->msy_year.' - '.$semester;
+            }
+        }
+
+        return view('pages._payment.settings.paymentrates.detail',compact('data','id'));
     }
     
     public function creditSchema()

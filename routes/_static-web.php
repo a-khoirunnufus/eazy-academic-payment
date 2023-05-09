@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Fungsi file ini untuk menampilkan view dengan data statis.
+ *
+ * File ini bersifat sementara, jika fitur(setting, generate, report) selesai dibangun file
+ * ini akan dihapus.
+ *
+ * commented_by: Ahmad
+ */
+
+
 use App\Http\Controllers\_Payment\AcademicRules;
 use App\Http\Controllers\_Payment\SettingsController;
 

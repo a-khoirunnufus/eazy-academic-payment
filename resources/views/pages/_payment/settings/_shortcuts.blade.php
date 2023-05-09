@@ -4,8 +4,7 @@
             <i data-feather="list"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Komponen Tagihan</span>
-            <small class="text-secondary">Atur Komponen Tagihan</small>
+            <span>Komponen<br>Tagihan</span>
         </div>
     </a>
     <a href="{{ route('payment.settings.credit-schema') }}" class="eazy-shortcut-item {{ $active == 'credit-schema' ? 'active' : '' }}">
@@ -13,17 +12,15 @@
             <i data-feather="archive"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Template Cicilan</span>
-            <small class="text-secondary">Atur Skema Tagihan Cicilan</small>
+            <span>Template<br>Cicilan</span>
         </div>
     </a>
-    <a href="{{ url('setting/rates') }}" class="eazy-shortcut-item {{ $active == 'rates' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.payment-rates') }}" class="eazy-shortcut-item {{ $active == 'payment-rates' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="activity"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Tarif dan Pembayaran</span>
-            <small class="text-secondary">Atur Tarif Tagihan Pembayaran</small>
+            <span>Tarif<br>dan Pembayaran</span>
         </div>
     </a>
     <a href="{{ route('payment.settings.subject-rates') }}" class="eazy-shortcut-item {{ $active == 'subject-rates' ? 'active' : '' }}">
@@ -31,8 +28,7 @@
             <i data-feather="book"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Tarif Per Mata Kuliah</span>
-            <small class="text-secondary">Atur Permbayaran Per Mata Kuliah</small>
+            <span>Tarif Per<br>Mata Kuliah</span>
         </div>
     </a>
     <a href="{{ url('setting/registration-form') }}" class="eazy-shortcut-item {{ $active == 'registration-form' ? 'active' : '' }}">
@@ -40,8 +36,7 @@
             <i data-feather="file-text"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Formulir Pendaftaran</span>
-            <small class="text-secondary">Atur Pembayaran Formulir PMB</small>
+            <span>Formulir<br>Pendaftaran</span>
         </div>
     </a>
     <a href="{{ url('setting/academic-rules') }}" class="eazy-shortcut-item {{ $active == 'academic-rules' ? 'active' : '' }}">
@@ -49,8 +44,7 @@
             <i data-feather="pocket"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Aturan Akademik</span>
-            <small class="text-secondary">Atur Pembayaran Akademik</small>
+            <span>Aturan<br>Akademik</span>
         </div>
     </a>
 </div>

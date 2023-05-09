@@ -183,6 +183,20 @@ const _setMomentConfig = () => {
         });
     } catch(e) {}
 }
+const _setDatepickerConfig = () => {
+    $.fn.datepicker.dates['id'] = {
+        days: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"],
+        daysShort: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+        daysMin: ["Mn", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"],
+        months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+        monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+        today: "Hari Ini",
+        clear: "Clear",
+        format: "dd-mm-yyyy",
+        titleFormat: "MM yyyy",
+        weekStart: 1
+    };
+}
 const _setIconConfig = () => {
     try {
         feather.replace({
@@ -508,15 +522,15 @@ const _select2AjaxWithDTOptions = (params) => {
 }
 
 const _options = {
-    load: function({optionUrl, idField, nameField, val = null}){
+    load: function({optionUrl, nameField, idData, nameData, val = null}){
         $.get(optionUrl, (data) => {
             JSON.parse(data).map(item => {
-                $("[name="+idField+"]").append(`
-                    <option value="`+item[idField]+`">`+item[nameField]+`</option>
+                $("[name="+nameField+"]").append(`
+                    <option value="`+item[idData]+`">`+item[nameData]+`</option>
                 `)
             })
-            val ? $("[name="+idField+"]").val(val) : ""
-            $("[name="+idField+"]").trigger('change')
+            val ? $("[name="+nameField+"]").val(val) : ""
+            $("[name="+nameField+"]").trigger('change')
             selectRefresh()
         })
     }
@@ -606,7 +620,7 @@ const _responseHandler = {
                 _toastr.error(
                     this.capitalizeFirstLetter(response.errors[i][0]),
                     'Alert',
-                    toastrOptions
+                    _toastr.options
                 )
             }
             return
@@ -617,26 +631,35 @@ const _responseHandler = {
     formFailResponse: function(data, scopeElement = null){
         let response = data.responseJSON
 
-        // input validation errors not exist
         if(response.errors === undefined)
+            // input validation errors not exist
             return _toastr.error(response.message, 'Alert')
 
-        // input validation errors exist
+        /**
+         * Display error message at bottom of input element
+         */
         if(typeof(response.errors) == 'object'){
             $(".form-alert").remove()
             for(let i in response.errors){
-                let el = ""
+                let el = undefined;
                 if(scopeElement == null){
-                    el = $(`[name='${i}']`)
+                    if (i.split('.')[1]) {
+                        // field is array
+                        const [fieldKey, arrIdx] = i.split('.');
+                        el = $(`[name='${fieldKey}[]']`).eq(arrIdx);
+                    } else {
+                        // field is not array
+                        el = $(`[name='${i}']`);
+                    }
                 } else {
                     el = $(`${scopeElement} [name='${i}']`)
                 }
                 // if element not found
-                if(el.length == 0){
+                if( el.length == 0 ){
                     _toastr.error(
                         this.capitalizeFirstLetter(response.errors[i][0]),
                         'Alert',
-                        toastrOptions
+                        _toastr.options
                     )
                 } else {
                     el.parents('.form-group').append(`
@@ -698,7 +721,7 @@ class Modal {
             config.modalShow && config.modalShow();
             $('#'+config.formId).on(
                 'submit',
-                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId),
+                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId, config.data),
             );
         } else if(type == 'confirmation') {
             html = this.generateModalConfirmationBody(config);
@@ -780,6 +803,10 @@ class Modal {
                             ${contentHtml}
                         </div>
                     `;
+                } else if (fieldType == 'custom-field'){
+                    formContentHtml += `
+                        ${contentHtml}
+                    `;
                 }
             }
         }
@@ -798,12 +825,26 @@ class Modal {
             `;
         }
 
-        var formActionHtml = `
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
-                <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
-            </div>
-        `;
+        var formSubmitNote = config.formSubmitNote ?? false;
+
+        if(formSubmitNote){
+            var formActionHtml = `
+                <div class="d-flex align-items-center flex-wrap justify-content-between mt-4" style="gap:10px">
+                    ${formSubmitNote}
+                    <span>
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
+                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    </span>
+                </div>
+            `;
+        }else{
+            var formActionHtml = `
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
+                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                </div>
+            `;
+        }
 
         return formTemplate(formContentHtml + formActionHtml);
     }
@@ -822,14 +863,14 @@ class Modal {
         return html;
     }
 
-    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null) {
+    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null, data = null) {
         return async (e) => {
             e.preventDefault();
 
             try {
                 if(beforeSubmit) await beforeSubmit();
-
-                var formData = new FormData($('#'+formId)[0]);
+                var formData = null;
+                data ? formData = data : formData = new FormData($('#'+formId)[0]);
                 rowId ? formData.append('msc_id', rowId) : "";
 
                 $.ajax({
@@ -893,7 +934,8 @@ function select2Replace() {
 
 function selectRefresh() {
     $('.select2').select2({
-        placeholder: "Pilih Opsi yang Tersedia"
+        placeholder: "Pilih Opsi yang Tersedia",
+        dropdownParent: $("#mainModal"),
     });
 };
 

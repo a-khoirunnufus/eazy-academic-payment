@@ -5,15 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Studyprogram extends Model
+class LectureType extends Model
 {
     use HasFactory;
     
-    protected $table = "masterdata.ms_studyprogram";
+    protected $table = "masterdata.ms_lecture_type";
 
-    protected $primaryKey = 'studyprogram_id';
+    protected $primaryKey = 'mlt_id';
 
     protected $fillable = [
-        'studyprogram_name', 'studyprogram_name_english'
+        'mlt_name'
     ];
+    		
 }

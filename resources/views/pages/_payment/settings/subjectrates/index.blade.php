@@ -24,7 +24,7 @@
         <div class="rates-per-course-filter">
             <div>
                 <label class="form-label">Fakultas</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select select2">
                     <option value="all" selected>Semua Fakultas</option>
                     @foreach($static_faculties as $faculty)
                         <option value="{{ $faculty }}">{{ $faculty }}</option>
@@ -33,7 +33,7 @@
             </div>
             <div>
                 <label class="form-label">Program Studi</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select select2">
                     <option value="all" selected>Semua Program Studi</option>
                     @foreach($static_study_programs as $study_program)
                         <option value="{{ $study_program }}">{{ $study_program }}</option>
@@ -55,9 +55,9 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Nama / Kode Matakuliah</th>
-                <th>Jenis</th>
+                <th>Jurusan</th>
                 <th>Jumlah SKS</th>
-                <th>Semester</th>
+                <th>Tingkat</th>
                 <th>Nominal Tarif</th>
                 <th class="text-center">Status Mata Kuliah</th>
                 <th class="text-center">Paket?</th>
@@ -66,7 +66,7 @@
         <tbody></tbody>
     </table>
 </div>
-<div class="modal fade" id="frmbox-comp" tabindex="-1" aria-labelledby="frmbox-title" style="display: none;"
+{{-- <div class="modal fade" id="mainModal" tabindex="-1" aria-labelledby="frmbox-title" style="display: none;"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg justify-content-center">
         <div class="modal-content" style="">
@@ -75,143 +75,51 @@
             </div>
             <div class="modal-body px-sm-5 mx-50 pb-3">
                 <h1 class=" fw-bolder h3 mb-1" id="frmbox-title">Tambah Tarif Matakuliah</h1>
-
-                <div class="mb-2">
-                    <div class="row">
-                        <div class="col-lg-6 col-md-6">
-                            <label class="form-label">Program Studi</label>
-                            <select class="form-select" eazy-select2-active>
-                                <option value="all" selected>Semua Program Studi</option>
-                                @foreach($static_study_programs as $study_program)
-                                    <option value="{{ $study_program }}">{{ $study_program }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-6 col-md-6">
-                            <label class="form-label">Mata Kuliah</label>
-                            <select class="form-select" eazy-select2-active>
-                                <option value="all" selected>Semua Mata Kuliah</option>
-                                @foreach($static_faculties as $faculty)
-                                    <option value="{{ $faculty }}">{{ $faculty }}</option>
-                                @endforeach
-                            </select>
+                <form id="coureRateForm" method="post">
+                    <div class="mb-2">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6">
+                                <label class="form-label">Program Studi</label>
+                                <select class="form-select select2" eazy-select2-active id="programStudy">
+                                    <option value="all" selected>Semua Program Studi</option>
+                                    @foreach($studyProgram as $item)
+                                        <option value="{{ $item->studyprogram_id }}">{{ $item->studyprogram_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-lg-6 col-md-6">
+                                <label class="form-label">Mata Kuliah</label>
+                                <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+                                </select>
+                            </div>
                         </div>
                     </div>
-
-                </div>
-
-                <!-- form -->
-                <form id="frm-comp">
-                    <input type="hidden" name="_token" value="nJvUaN69Vo4RqgtRTjkyFs5O3uT7Cfe5O7ZHqdT0">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:10px">
-                        <h4 class="fw-bolder mb-0">Tarif Per Semester</h4>
+                    <!-- form -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+                        <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
                         <button type="button"
-                            class="btn btn-primary text-white btn-sm edit-component waves-effect waves-float waves-light"
-                            onclick="addNewComp()"> <i class="bx bx-plus m-auto"></i>
+                            class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                            onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                         </button>
                     </div>
-
-                    <hr>
-
-                    <div id="comp-container-input">
-                        <div class="d-flex flex-wrap align-items-center mb-1" style="gap:10px"
-                            id="comp-order-preview-0">
-                            <input type="hidden" name="cd_id[]" value="107">
-                            <div class="flex-fill" style="width:40%">
-                                <label class="form-label">Semester</label>
-                                <select class="select2-comp form-select select2-hidden-accessible" name="comp_id[]"
-                                    data-select2-id="26" tabindex="-1" aria-hidden="true">
-                                    <option selected="" disabled="">Pilih Nama Komponen Biaya</option>
-                                    <option value="41">SDP2</option>,<option value="42">UP3</option>,<option value="11">
-                                        Biaya Daftar Ulang</option>,<option value="43" selected="" data-select2-id="28">
-                                        BPP</option>,<option value="40">biaya daftar ulang 2</option>,<option
-                                        value="44">Asrama</option>
-                                </select><span class="select2 select2-container select2-container--default" dir="ltr"
-                                    data-select2-id="27" style="width: auto;"><span class="selection"><span
-                                            class="select2-selection select2-selection--single" role="combobox"
-                                            aria-haspopup="true" aria-expanded="false" tabindex="0"
-                                            aria-disabled="false" aria-labelledby="select2-comp_id-zq-container"><span
-                                                class="select2-selection__rendered" id="select2-comp_id-zq-container"
-                                                role="textbox" aria-readonly="true" title="BPP">BPP</span><span
-                                                class="select2-selection__arrow" role="presentation"><b
-                                                    role="presentation"></b></span></span></span><span
-                                        class="dropdown-wrapper" aria-hidden="true"></span></span>
-                            </div>
-                            <div class="flex-fill">
-                                <label class="form-label">Tarif</label>
-                                <input type="text" class="form-control comp_price" name="comp_price[]" value="1,000"
-                                    placeholder="Tulis Harga Komponen Biaya">
-                            </div>
-                            <div class="d-flex align-content-end">
-                                <div class="me-1">
-                                    <label class="form-label" style="opacity: 0">#</label>
-                                    <button class="btn btn-warning text-white btn-sm d-flex" style="height: 36px"
-                                    onclick="del_comp('0')"> <i class="bx bx-copy m-auto"></i> </button>
-                                </div>
-                                <div class="">
-                                    <label class="form-label" style="opacity: 0">#</label>
-                                    <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-                                    onclick="del_comp('0')"> <i class="bx bx-trash m-auto"></i> </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-wrap align-items-center mb-1" style="gap:10px"
-                            id="comp-order-preview-1">
-                            <input type="hidden" name="cd_id[]" value="108">
-                            <div class="flex-fill" style="width:40%">
-                                <label class="form-label">Semester</label>
-                                <select class="select2-comp form-select select2-hidden-accessible" name="comp_id[]"
-                                    data-select2-id="29" tabindex="-1" aria-hidden="true">
-                                    <option selected="" disabled="">Pilih Nama Komponen Biaya</option>
-                                    <option value="41">SDP2</option>,<option value="42" selected=""
-                                        data-select2-id="31">UP3</option>,<option value="11">Biaya Daftar Ulang</option>
-                                    ,<option value="43">BPP</option>,<option value="40">biaya daftar ulang 2</option>,
-                                    <option value="44">Asrama</option>
-                                </select><span class="select2 select2-container select2-container--default" dir="ltr"
-                                    data-select2-id="30" style="width: auto;"><span class="selection"><span
-                                            class="select2-selection select2-selection--single" role="combobox"
-                                            aria-haspopup="true" aria-expanded="false" tabindex="0"
-                                            aria-disabled="false" aria-labelledby="select2-comp_id-3x-container"><span
-                                                class="select2-selection__rendered" id="select2-comp_id-3x-container"
-                                                role="textbox" aria-readonly="true" title="UP3">UP3</span><span
-                                                class="select2-selection__arrow" role="presentation"><b
-                                                    role="presentation"></b></span></span></span><span
-                                        class="dropdown-wrapper" aria-hidden="true"></span></span>
-                            </div>
-                            <div class="flex-fill">
-                                <label class="form-label">Tarif</label>
-                                <input type="text" class="form-control comp_price" name="comp_price[]" value="2,000"
-                                    placeholder="Tulis Harga Komponen Biaya">
-                            </div>
-                            <div class="d-flex align-content-end">
-                                <div class="me-1">
-                                    <label class="form-label" style="opacity: 0">#</label>
-                                    <button class="btn btn-warning text-white btn-sm d-flex" style="height: 36px"
-                                    onclick="del_comp('0')"> <i class="bx bx-copy m-auto"></i> </button>
-                                </div>
-                                <div class="">
-                                    <label class="form-label" style="opacity: 0">#</label>
-                                    <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-                                    onclick="del_comp('0')"> <i class="bx bx-trash m-auto"></i> </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="courseRateInput">
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap justify-content-between mt-3" style="gap:10px">
+                        <small style="color:#163485">
+                            *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+                        </small>
+                        <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button"
+                            onclick="_ratesPerCourseTableActions.courseRateStore()">
+                            Simpan
+                        </button>
+                        <button type="reset">Reset</button>
                     </div>
                 </form>
-                <div class="d-flex align-items-center flex-wrap justify-content-between mt-3" style="gap:10px">
-                    <small style="color:#163485">
-                        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
-                    </small>
-                    <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button"
-                        onclick="save_comp()">
-                        Simpan
-                    </button>
-                </div>
             </div>
         </div>
     </div>
-</div>
+</div> --}}
+
 @endsection
 
 
@@ -221,62 +129,83 @@
         _ratesPerCourseTable.init()
     })
 
+    const _Filter = {
+        init: function(){
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
+                nameField: 'program_study',
+                idData: 'studyprogram_id',
+                nameData: 'studyprogram_name'
+            });
+        }
+    }
+
     const _ratesPerCourseTable = {
         ..._datatable,
         init: function() {
             this.instance = $('#rates-per-course-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/rates-per-course',
+                    url: _baseURL+'/api/payment/settings/courserates/index',
                 },
                 columns: [
                     {
                         name: 'action',
-                        data: 'id',
+                        data: 'mcr_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            return this.template.rowAction(data)
+                            return this.template.rowAction(row)
                         }
                     },
                     {
-                        name: 'course_name_n_code',
+                        name: 'course.subject_name',
                         render: (data, _, row) => {
                             return `
                                 <div>
-                                    <span class="fw-bold">${row.course_name}</span><br>
-                                    <small class="text-secondary">${row.course_code}</small>
+                                    <span class="fw-bold">${row.course.subject_name}</span><br>
+                                    <small class="text-secondary">${row.course.subject_code}</small>
                                 </div>
                             `;
                         }
                     },
-                    {name: 'course_type', data: 'course_type'},
                     {
-                        name: 'sks', 
-                        data: 'sks',
+                        name: 'course.subject_code',
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="fw-bold">${row.course.study_program.studyprogram_name}</span><br>
+                                    <small class="text-secondary">${row.course.study_program.studyprogram_type}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'course.credit', 
+                        data: 'course.credit',
                         render: (data) => {
                             return data+' SKS';
                         }
                     },
                     {
-                        name: 'semester', 
-                        data: 'semester',
+                        name: 'mcr_tingkat', 
+                        data: 'mcr_tingkat',
                         render: (data) => {
-                            return 'Semester '+data;
+                            return 'Tingkat '+data;
                         }
                     },
                     {
-                        name: 'rate', 
-                        data: 'rate',
+                        name: 'mcr_rate', 
+                        data: 'mcr_rate',
                         render: (data) => {
                             return Rupiah.format(data);
                         }
                     },
                     {
-                        name: 'mandatory', 
-                        data: 'mandatory',
+                        name: 'mandatory_status', 
+                        data: 'mandatory_status',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data.toUpperCase() == 'W') {
+                            if(data.toUpperCase() == 'WAJIB_PRODI') {
                                 html += '<div class="badge bg-success" style="font-size: inherit">Wajib</div>'
                             } else {
                                 html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Wajib</div>'
@@ -286,8 +215,8 @@
                         }
                     },
                     {
-                        name: 'is_package', 
-                        data: 'is_package',
+                        name: 'mcr_is_package', 
+                        data: 'mcr_is_package',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
                             if(data) {
@@ -329,15 +258,15 @@
             })
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(row) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_ratesPerCourseTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerCourseTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_ratesPerCourseTableActions.edit(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -347,158 +276,317 @@
 
     const _ratesPerCourseTableActions = {
         tableRef: _ratesPerCourseTable,
-        add: function() {
-            $("#frmbox-comp").modal('show');
-            // Modal.show({
-            //     type: 'form',
-            //     modalTitle: 'Tambah Tarif Matakuliah',
-            //     modalSize: 'lg',
-            //     config: {
-            //         formId: 'form-add-rates-per-course',
-            //         formActionUrl: '#',
-            //         formType: 'add',
-            //         isTwoColumn: true,
-            //         fields: {
-            //             course_name: {
-            //                 title: 'Mata Kuliah',
-            //                 content: {
-            //                     template: `
-            //                         <select class="form-select" eazy-select2-active>
-            //                             <option disabled selected>Pilih Mata Kuliah</option>
-            //                             @foreach($static_courses as $course)
-            //                                 <option value="{{ $course['code'] }}">{{ $course['code'].' - '.$course['name'] }}</option>
-            //                             @endforeach
-            //                         </select>
-            //                     `,
-            //                 },
-            //             },
-            //             course_type: {
-            //                 title: 'Jenis',
-            //                 content: {
-            //                     template: `<input type="text" class="form-control" disabled eazy-exclude-field />`
-            //                 },
-            //             },
-            //             sks: {
-            //                 title: 'SKS',
-            //                 content: {
-            //                     template: `<input type="number" class="form-control" disabled eazy-exclude-field />`
-            //                 },
-            //             },
-            //             semester: {
-            //                 title: 'Semester',
-            //                 content: {
-            //                     template: `<input type="number" class="form-control" disabled eazy-exclude-field />`
-            //                 },
-            //             },
-            //             mandatory: {
-            //                 title: 'Status Mata Kuliah',
-            //                 content: {
-            //                     template: `<input type="text" class="form-control" disabled eazy-exclude-field />`
-            //                 },
-            //             },
-            //             is_package: {
-            //                 title: 'Paket?',
-            //                 content: {
-            //                     template: `<input type="text" class="form-control" disabled eazy-exclude-field />`
-            //                 },
-            //             },
-            //             rate: {
-            //                 title: 'Nominal Tarif',
-            //                 content: {
-            //                     template: `<input name="rate" type="number" class="form-control" placeholder="Masukkan nominal tarif" />`
-            //                 },
-            //             },
-            //         },
-            //         formSubmitLabel: 'Tambah Tarif',
-            //         callback: function() {
-            //             // ex: reload table
-            //             Swal.fire({
-            //                 icon: 'success',
-            //                 text: 'Berhasil menambah tarif',
-            //             }).then(() => {
-            //                 this.tableRef.reload()
-            //             })
-            //         },
-            //     },
-            // });
+        courseRateInputField: function(id = 0, rate = 0, is_package = null, tingkat = null) {
+            $('#courseRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 courseRateInputField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <input type="hidden" name="mcr_id[]" value="${id}">
+                    <div class="flex-fill">
+                        <label class="form-label">Tingkat</label>
+                        <select class="form-select select2" eazy-select2-active name="mcr_tingkat[]" id="tingkat${id}" value="">
+                            <option value="1">Tingkat 1</option>
+                            <option value="2">Tingkat 2</option>
+                            <option value="3">Tingkat 3</option>
+                            <option value="4">Tingkat 4</option>
+                            <option value="5">Tingkat > 4</option>
+                        </select>
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Tarif</label>
+                        <input type="text" class="form-control comp_price" name="mcr_rate[]" value="${rate}"
+                            placeholder="Tarif Mata Kuliah">
+                    </div>
+                    <div class="flex-fill text-center">
+                        <label class="form-label">Paket</label>
+                        <div class="d-flex justify-content-center">
+                            <select class="form-select select2" eazy-select2-active name="mcr_is_package[]" id="paket${id}" value="">
+                                <option value="0">Tidak</option>
+                                <option value="1">Ya</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex align-content-end">
+                        <div class="">
+                            <label class="form-label" style="opacity: 0">#</label>
+                            <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            onclick="_ratesPerCourseTableActions.courseRateDeleteField(this,${id})"> <i class="bx bx-trash m-auto"></i> </a>
+                        </div>
+                    </div>
+                </div>
+            `);
+            if(tingkat){
+                $("#tingkat"+id+"").val(tingkat);
+                $("#tingkat"+id+"").trigger('change');
+            }
+            if(is_package){
+                $("#paket"+id+"").val(is_package);
+                $("#paket"+id+"").trigger('change');
+            }
         },
-        edit: function() {
+        courseRateDeleteField: function(e,id){
+            if(id === 0){
+                $(e).parents('.courseRateInputField').get(0).remove();
+            }else{
+                _ratesPerCourseTableActions.delete(e,id);
+            }
+        },
+        // courseRateStore: function(){
+        //     const formData = new FormData($('#coureRateForm')[0]);
+        //     $.post(_baseURL + '/api/payment/settings/courserates/store',$("#coureRateForm").serialize(), function(data){
+        //         data = JSON.parse(data)
+        //         Swal.fire({
+        //             icon: 'success',
+        //             text: data.message,
+        //         }).then(() => {
+        //             this.tableRef.reload()
+        //         })
+        //         $("#programStudy").val("").trigger("change");
+        //         $("#courseId").val("").trigger("change");
+        //         $('#courseRateInput').empty();
+        //         $("#mainModal").modal('hide');
+        //     }).fail((error) => {
+        //         Swal.fire({
+        //             icon: 'error',
+        //             text: data.text,
+        //         });
+        //     })
+        // },
+        add: function() {
+            // $("#mainModal").modal('show');
+            // $('#mainModal').on('hidden.bs.modal', function (event) {
+            //     $("#programStudy").val("").trigger("change");
+            //     $("#courseId").val("").trigger("change");
+            //     $('#courseRateInput').empty();
+            //     $("#mainModal").modal('hide');
+            // });
+
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Tarif Matakuliah',
+                modalTitle: 'Tambah Tarif Matakuliah',
                 modalSize: 'lg',
                 config: {
-                    formId: 'form-edit-rates-per-course',
-                    formActionUrl: '#',
-                    formType: 'edit',
-                    isTwoColumn: true,
+                    formId: 'form-add-rates-per-course',
+                    formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
+                    formType: 'add',
+                    data: $("#coureRateForm").serialize(),
+                    isTwoColumn: false,
                     fields: {
-                        course_code: {
-                            title: 'Kode',
+                        selections: {
+                            type: 'custom-field',
                             content: {
-                                template: `<input type="text" class="form-control" value="CSH1A2" disabled eazy-exclude-field />`
+                                template: `<div class="mb-2">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label">Program Studi</label>
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="program_study">
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label">Mata Kuliah</label>
+                                            <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>`
                             },
                         },
-                        course_name: {
-                            title: 'Nama Matakuliah',
+                        input_fields: {
+                            type: 'custom-field',
                             content: {
-                                template: `<input type="text" class="form-control" value="Pembentukan Karakter" disabled eazy-exclude-field />`
-                            },
-                        },
-                        course_type: {
-                            title: 'Jenis',
-                            content: {
-                                template: `<input type="text" class="form-control" value="Kuliah" disabled eazy-exclude-field />`
-                            },
-                        },
-                        sks: {
-                            title: 'SKS',
-                            content: {
-                                template: `<input type="number" class="form-control" value="2" disabled eazy-exclude-field />`
-                            },
-                        },
-                        semester: {
-                            title: 'Semester',
-                            content: {
-                                template: `<input type="number" class="form-control" value="1" disabled eazy-exclude-field />`
-                            },
-                        },
-                        mandatory: {
-                            title: 'Status Mata Kuliah',
-                            content: {
-                                template: `<input type="text" class="form-control" value="Wajib" disabled eazy-exclude-field />`
-                            },
-                        },
-                        is_package: {
-                            title: 'Paket?',
-                            content: {
-                                template: `<input type="text" class="form-control" value="Ya" disabled eazy-exclude-field />`
-                            },
-                        },
-                        rate: {
-                            title: 'Nominal Tarif',
-                            content: {
-                                template: `<input name="rate" type="number" class="form-control" value="1000000" />`
+                                template: `
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+                                    <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
+                                    <button type="button"
+                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
+                                    </button>
+                                </div>
+                                <div id="courseRateInput">
+                                </div>
+                                `
                             },
                         },
                     },
-                    formSubmitLabel: 'Edit Tarif',
+                    formSubmitLabel: 'Simpan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+                    </small>`,
                     callback: function() {
                         // ex: reload table
-                        Swal.fire({
-                            icon: 'success',
-                            text: 'Berhasil mengupdate tarif',
-                        }).then(() => {
-                            this.tableRef.reload()
-                        })
+                        _ratesPerCourseTable.reload()
                     },
                 },
             });
+            $('#programStudy').empty().trigger("change");
+            $('#courseRateInput').empty();
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
+                nameField: 'program_study',
+                idData: 'studyprogram_id',
+                nameData: 'studyprogram_name'
+            });
+
+            $("#programStudy").change(function () {
+                studyProgramId = $(this).val();
+                $('#courseId').empty().trigger("change");
+                $('#courseRateInput').empty();
+                _options.load({
+                    optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
+                    nameField: 'mcr_course_id',
+                    idData: 'course_id',
+                    nameData: 'subject_name'
+                });
+            })
+            $("#courseId").change(function () {
+                _ratesPerCourseTableActions.tarif("#courseId");
+            })
+
         },
-        delete: function() {
+        tarif: function(e){
+            courseId = $(e).val();
+            if(courseId){
+                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
+                    _method: 'GET'
+                }, function(data){
+                    data = JSON.parse(data)
+                    $('#courseRateInput').empty();
+                    if(Object.keys(data).length > 0){
+                        data.map(item => {
+                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
+                        })
+                    }
+                    console.log(data);
+                }).fail((error) => {
+                    Swal.fire({
+                        icon: 'error',
+                        text: data.text,
+                    });
+                })
+            }
+        },
+        edit: function(spId, cId) {
+            
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Tambah Tarif Matakuliah',
+                modalSize: 'lg',
+                config: {
+                    formId: 'form-add-rates-per-course',
+                    formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
+                    formType: 'add',
+                    data: $("#coureRateForm").serialize(),
+                    isTwoColumn: false,
+                    fields: {
+                        selections: {
+                            type: 'custom-field',
+                            content: {
+                                template: `<div class="mb-2">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label">Program Studi</label>
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="program_study">
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <label class="form-label">Mata Kuliah</label>
+                                            <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+                                            </select>
+                                        </div>
+                                        <input type="hidden" name="mcr_course_id" id="courseHiddenId">
+                                    </div>
+                                </div>`
+                            },
+                        },
+                        input_fields: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+                                    <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
+                                    <button type="button"
+                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
+                                    </button>
+                                </div>
+                                <div id="courseRateInput">
+                                </div>
+                                `
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Simpan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+                    </small>`,
+                    callback: function() {
+                        // ex: reload table
+                        _ratesPerCourseTable.reload()
+                    },
+                },
+            });
+            
+            $("#courseHiddenId").val(cId);
+            $('#programStudy').empty().trigger("change");
+            $('#courseRateInput').empty();
+            _options.load({
+                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
+                nameField: 'program_study',
+                idData: 'studyprogram_id',
+                nameData: 'studyprogram_name',
+                val: spId
+            });
+
+            $("#programStudy").change(function () {
+                studyProgramId = $(this).val();
+                $('#courseId').empty().trigger("change");
+                $('#courseRateInput').empty();
+                _options.load({
+                    optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
+                    nameField: 'mcr_course_id',
+                    idData: 'course_id',
+                    nameData: 'subject_name',
+                    val: cId
+                });
+            })
+            $('#programStudy').prop('disabled', true);
+            $("#courseId").change(function () {
+                courseId = $(this).val();
+                if(courseId){
+                    $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
+                        _method: 'GET'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        $('#courseRateInput').empty();
+                        if(Object.keys(data).length > 0){
+                            data.map(item => {
+                                _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
+                            })
+                        }
+                        console.log(data);
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                    })
+                }
+            })
+            $('#courseId').prop('disabled', true);
+        },
+        delete: function(e,id = 0) {
+            let data = _ratesPerCourseTable.getRowData(e);
+            let mcrId = 0;
+            if(id == 0) {
+                mcrId = data.mcr_id;
+            }else{
+                mcrId = id;
+            }
+            console.log(mcrId);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tarif matakuliah ini?',
+                text: 'Apakah anda yakin ingin menghapus tarif mata kuliah ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -507,10 +595,25 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tarif matakuliah',
+                    $.post(_baseURL + '/api/payment/settings/courserates/delete/' + mcrId, {
+                        _method: 'DELETE'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _ratesPerCourseTable.reload();
+                            if(id != 0){
+                                _ratesPerCourseTableActions.tarif("#courseId");
+                            }
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
                     })
                 }
             })
