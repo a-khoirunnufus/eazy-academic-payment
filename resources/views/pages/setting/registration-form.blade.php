@@ -81,7 +81,7 @@
     var tables;
     $(function() {
         _registrationFormTable.init()
-        tables.columns([4,5,6]).visible(true);
+        tables.columns([4,5,6]).visible(false);
     })
 
     const _registrationFormTable = {
