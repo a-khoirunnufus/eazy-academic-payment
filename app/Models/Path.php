@@ -9,7 +9,7 @@ class Path extends Model
 {
     use HasFactory;
     
-    protected $table = "pmb.ms_path";
+    protected $table = "masterdata.ms_path";
 
     protected $primaryKey = 'path_id';
 

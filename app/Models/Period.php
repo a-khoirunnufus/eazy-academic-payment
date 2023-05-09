@@ -10,7 +10,7 @@ class Period extends Model
 {
     use HasFactory;
     
-    protected $table = "pmb.ms_period";
+    protected $table = "masterdata.ms_period";
 
     protected $primaryKey = 'period_id';
 

@@ -8,25 +8,54 @@ use App\Models\Payment\PaymentRate;
 use App\Models\Payment\PaymentCredit;
 use App\Models\Payment\PaymentComponent;
 use App\Models\Payment\Component;
+use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\CreditSchema;
 use App\Http\Requests\Payment\Settings\PaymentRateRequest;
 use App\Http\Requests\Payment\Settings\PaymentRateUpdateRequest;
 use App\Models\Period;
 use App\Models\Path;
+use App\Models\PeriodPath;
+use App\Models\PeriodPathMajor;
 use DB;
+use Builder;
 
 class PaymentRatesController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PaymentRate::query();
-        $query = $query->with('credit','path','period','studyProgram','component')->orderBy('f_id');
-        // $query = $this->loadRelation($query, $request, ['faculty']);
-        // $query = $this->applyFilter($query, $request, [
-        //     'studyprogram_active_status', 'faculty_id'
-        // ]);
+        // $query = PaymentRate::query();
+        // $query = $query->with('credit','path','period','studyProgram','component')->orderBy('f_id');
+        
+        $query = PeriodPath::query();
+        $query = $query->with('major','path','period')->orderBy('ppd_id');
         // dd($query->get());
         return datatables($query)->toJson();
+    }
+
+    public function detail($id)
+    {
+        $query = PeriodPathMajor::query();
+        $query = $query->where('ppd_id',$id)->with('majorLectureType','credit','periodPath')->orderBy('ppm_id');
+        $query = $query->get();
+        $collection = collect();
+        foreach($query as $item){
+            $mma_id = 0;
+            $mlt_id = 0;
+            $path_id = 0;
+            $period_id = 0;
+            if($item->majorLectureType){
+                $mma_id = $item->majorLectureType->mma_id;
+                $mlt_id = $item->majorLectureType->mlt_id;
+            }
+            if($item->periodPath){
+                $path_id = $item->periodPath->path_id;
+                $period_id = $item->periodPath->period_id;
+            }
+            $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->get();
+            $data = ['ppm' => $item,'component' => $search];
+            $collection->push($data);
+        }
+        return datatables($collection)->toJson();
     }
     
     public function getPeriod()
