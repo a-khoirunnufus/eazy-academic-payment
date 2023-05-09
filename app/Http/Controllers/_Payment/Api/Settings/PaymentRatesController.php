@@ -76,37 +76,41 @@ class PaymentRatesController extends Controller
         $validated = $request->validated();
         DB::beginTransaction();
         try{
-            $count = count($validated['msc_id']);
-            for ($i=0; $i < $count; $i++) { 
-                if($validated['cd_id'][$i] == 0){
-                    ComponentDetail::create([
-                        'mma_id' => $validated['mma_id'][$i],
-                        'msc_id' => $validated['msc_id'][$i],
-                        'period_id' => $validated['period_id'][$i],
-                        'path_id' => $validated['path_id'][$i],
-                        'cd_fee' => $validated['cd_fee'][$i],
-                        'msy_id' => $validated['msy_id'][$i],
-                        'mlt_id' => $validated['mlt_id'][$i],
-                        'ppm_id' => $validated['ppm_id'][$i]
-                    ]);
-                }else{
-                    $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
-                    $data->update([
-                        'msc_id' => $validated['msc_id'][$i],
-                        'cd_fee' => $validated['cd_fee'][$i]
-                    ]);
+            if(isset($validated['msc_id'])){
+                $count = count($validated['msc_id']);
+                for ($i=0; $i < $count; $i++) { 
+                    if($validated['cd_id'][$i] == 0){
+                        ComponentDetail::create([
+                            'mma_id' => $validated['mma_id'][$i],
+                            'msc_id' => $validated['msc_id'][$i],
+                            'period_id' => $validated['period_id'][$i],
+                            'path_id' => $validated['path_id'][$i],
+                            'cd_fee' => $validated['cd_fee'][$i],
+                            'msy_id' => $validated['msy_id'][$i],
+                            'mlt_id' => $validated['mlt_id'][$i],
+                            'ppm_id' => $validated['ppm_id'][$i]
+                        ]);
+                    }else{
+                        $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
+                        $data->update([
+                            'msc_id' => $validated['msc_id'][$i],
+                            'cd_fee' => $validated['cd_fee'][$i]
+                        ]);
+                    }
                 }
             }
-            foreach($validated['cs_id'] as $item){
-                $data = CreditSchemaPeriodPath::where('cs_id',$item)->where('ppm_id', $validated['main_ppm_id'])->first();
-                if(!$data){
-                    CreditSchemaPeriodPath::create([
-                        'cs_id' => $item,
-                        'ppm_id' => $validated['main_ppm_id']
-                    ]);
+            if(isset($validated['cs_id'])){
+                foreach($validated['cs_id'] as $item){
+                    $data = CreditSchemaPeriodPath::where('cs_id',$item)->where('ppm_id', $validated['main_ppm_id'])->first();
+                    if(!$data){
+                        CreditSchemaPeriodPath::create([
+                            'cs_id' => $item,
+                            'ppm_id' => $validated['main_ppm_id']
+                        ]);
+                    }
                 }
+                CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
             }
-            CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
             $text = "Berhasil memperbarui tarif dan pembayaran";
             DB::commit();
         }catch(\Exception $e){
