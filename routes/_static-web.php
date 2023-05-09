@@ -10,7 +10,6 @@ Route::get('/setting/rates-per-course', fn() => view('pages.setting.rates-per-co
 Route::get('/setting/registration-form', [SettingsController::class, "registrationForm"]);
 Route::get('/setting/academic-rules', [AcademicRules::class, "index"]);
 
-Route::get('/generate/registrant-invoice', fn() => view('pages.generate.registrant-invoice'));
 Route::get('/generate/old-student-invoice', fn() => view('pages.generate.old-student-invoice'));
 Route::get('/generate/new-student-invoice', fn() => view('pages.generate.new-student-invoice'));
 Route::get('/generate/student-invoice-detail', fn() => view('pages.generate.student-invoice-detail'));
