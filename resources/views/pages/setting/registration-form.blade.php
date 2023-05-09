@@ -44,7 +44,7 @@
                 <select class="form-select" eazy-select2-active id="gelombang">
                     <option value="#" selected>Semua Gelombang</option>
                     @foreach($gelombang as $kloter)
-                    <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
+                    <option value="{{ $kloter->period_name }}">{{ $kloter->period_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -81,14 +81,14 @@
     var tables;
     $(function() {
         _registrationFormTable.init()
-        tables.columns([4,5,6]).visible(false);
+        tables.columns([4,5,6]).visible(true);
     })
 
     const _registrationFormTable = {
         ..._datatable,
         init: function() {
             tables = this.instance = $('#registration-form-table').DataTable({
-                serverSide: true,
+                serverSide: false,
                 ajax: {
                     url: _baseURL + '/api/dt/registration-form',
                 },
@@ -341,36 +341,38 @@
         var periode = $("#periode").val();
         var jalur = $("#jalur").val();
         var gelombang = $("#gelombang").val();
+        console.log(gelombang);
         tables.columns().search("").draw();
         if (periode == "#" && jalur == "#" && gelombang == "#") {
             tables.columns().search("").draw();
         }
         if (periode == "#" && jalur == "#" && gelombang != "#") {
-            tables.columns(2).search(gelombang).draw();
+            tables.columns(5).search(gelombang).draw();
         }
         if (periode == "#" && jalur != "#" && gelombang == "#") {
-            tables.columns(2).search(jalur).draw();
+            tables.columns(4).search(jalur).draw();
         }
         if (periode == "#" && jalur != "#" && gelombang != "#") {
-            tables.columns(2).search(gelombang).draw();
-            tables.columns(2).search(jalur).draw();
+            tables.columns(5).search(gelombang).draw();
+            tables.columns(4).search(jalur).draw();
         }
         if (periode != "#" && jalur == "#" && gelombang == "#") {
-            tables.columns(1).search(periode).draw();
+            tables.columns(6).search(periode).draw();
         }
         if (periode != "#" && jalur == "#" && gelombang != "#") {
-            tables.columns(2).search(gelombang).draw();
-            tables.columns(1).search(periode).draw();
+            tables.columns(5).search(gelombang).draw();
+            tables.columns(6).search(periode).draw();
         }
         if (periode != "#" && jalur != "#" && gelombang == "#") {
-            tables.columns(2).search(jalur).draw();
-            tables.columns(1).search(periode).draw();
+            tables.columns(4).search(jalur).draw();
+            tables.columns(6).search(periode).draw();
         }
         if (periode != "#" && jalur != "#" && gelombang != "#") {
-            tables.columns(2).search(gelombang).draw();
-            tables.columns(2).search(jalur).draw();
-            tables.columns(1).search(periode).draw();
+            tables.columns(5).search(gelombang).draw();
+            tables.columns(4).search(jalur).draw();
+            tables.columns(6).search(periode).draw();
         }
+        // tables.columns(5).search(gelombang).draw();
     }
 </script>
 @endsection
