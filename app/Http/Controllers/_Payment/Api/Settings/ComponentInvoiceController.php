@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\_Payment\Api\Settings;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\Settings\ComponentRequest;
 use App\Models\Payment\ComponentType;
 use App\Models\Payment\Component;
 use App\Traits\Models\QueryFilterByRequest;
 use App\Traits\Models\LoadDataRelationByRequest;
+use App\Imports\InvoiceComponentsImport;
+use App\Exports\ArrayExport;
 use DB;
 
 class ComponentInvoiceController extends Controller
 {
     use QueryFilterByRequest, LoadDataRelationByRequest;
-    
+
     public function index(Request $request)
     {
         $query = Component::query();
@@ -31,7 +34,7 @@ class ComponentInvoiceController extends Controller
         $data = ComponentType::orderBy('msct_id')->get();
         return $data->toJson();
     }
-    
+
     public function store(ComponentRequest $request)
     {
         $validated = $request->validated();
@@ -70,5 +73,46 @@ class ComponentInvoiceController extends Controller
         $data->delete();
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen tagihan"));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|mimes:xlsx',
+        ]);
+
+        $import = new InvoiceComponentsImport();
+        $import->import($request->file('excel_file'));
+
+        $failures = $import->failures();
+        $error_url = '';
+        if (!empty($failures)) {
+            $failures_processed = [];
+            foreach ($failures as $failure) {
+                $row = $failure->row(); // row that went wrong
+                // $attribute = $failure->attribute(); // either heading key (if using heading row concern) or column index
+                $errors = $failure->errors(); // Actual error messages from Laravel validator
+                // $values = $failure->values(); // The values of the row that has failed.
+                $failures_processed[] = [
+                    'nomor_baris' => $row,
+                    'keterangan' => implode(', ', Arr::flatten($errors)),
+                ];
+            }
+            $exportFailures = new ArrayExport($failures_processed);
+            $filename = 'excel-import-errors-'.time().'.xlsx';
+            $path = 'app/public/excel-logs/'.$filename;
+            $exportFailures->store($path);
+            $error_url = url('api/download?storage=local&type=excel-log&filename='.$filename);
+        }
+
+        $res = [
+            'success' => true,
+            'message' => 'Berhasil import '.$import->imported_rows.' komponen tagihan.'
+                .(!empty($failures) ? ' Terdapat beberapa error, keterangan error akan otomatis didownload.' : ''),
+        ];
+
+        if (!empty($failures)) $res['error_url'] = $error_url;
+
+        return response()->json($res, 200);
     }
 }

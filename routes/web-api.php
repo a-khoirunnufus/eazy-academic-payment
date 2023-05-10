@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\Request;
+
 Route::group(['middleware' => ['auth']], function(){
 
     Route::resource('curriculum', 'App\Http\Controllers\Api\CurriculumController');
@@ -22,6 +24,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('component-type', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@getComponentType');
         Route::post('component/store', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@store');
         Route::delete('component/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@delete');
+        Route::post('component/import', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@import');
 
         Route::get('courserates/index', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@index');
         Route::get('courserates/studyprogram', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@getStudyProgram');
@@ -40,11 +43,30 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('paymentrates/update', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@update');
         Route::delete('paymentrates/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@delete');
         Route::delete('paymentrates/deletecomponent/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@deletecomponent');
-        
+
         Route::get('credit-schema/index', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@index');
         Route::get('credit-schema/show/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@show');
         Route::post('credit-schema/store', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@store');
         Route::put('credit-schema/update/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@update');
         Route::delete('credit-schema/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@delete');
     });
+});
+
+Route::get('download', function(Request $request) {
+    $storage = $request->query('storage');
+    $type = $request->query('type');
+    $filename = $request->query('filename');
+
+    if ($storage && $type && $filename) {
+        if ($storage == 'local') {
+            if ($type == 'excel-log') {
+                $path = storage_path('app/public/excel-logs/'.$filename);
+                return response()->download($path, $filename);
+            }
+            if ($type == 'excel-template') {
+                $path = storage_path('app/public/excel-templates/'.$filename);
+                return response()->download($path, $filename);
+            }
+        }
+    }
 });
