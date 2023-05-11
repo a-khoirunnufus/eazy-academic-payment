@@ -24,6 +24,37 @@
         <tbody></tbody>
     </table>
 </div>
+
+<!-- Import Invoice Component Modal -->
+<div class="modal fade" id="importInvoiceComponentModal" tabindex="-1" data-bs-backdrop="static" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content">
+            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
+                <h4 class="modal-title fw-bolder" id="importInvoiceComponentModalLabel">Import Komponen Tagihan</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 pt-0">
+                <form id="form-import-invoice-component">
+                    <div class="form-group mb-2">
+                        <label class="form-label-md">Template Komponen Tagihan</label>
+                        <a onclick="importInvoiceComponentForm.downloadTemplate()" class="btn btn-primary">
+                            <i data-feather="layout" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                            Download Template
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label-md">File Import Komponen Tagihan</label>
+                        <input type="file" name="excel_file" class="form-control" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="_invoiceComponentTableActions.import()" class="btn btn-success me-1">Import Komponen</button>
+                <button data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 
@@ -54,7 +85,7 @@
                     {name: 'msc_name', data: 'msc_name'},
                     {name: 'msc_description', data: 'msc_description'},
                     {
-                        name: 'msc_is_student', 
+                        name: 'msc_is_student',
                         data: 'msc_is_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -68,7 +99,7 @@
                         }
                     },
                     {
-                        name: 'msc_is_new_student', 
+                        name: 'msc_is_new_student',
                         data: 'msc_is_new_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -82,7 +113,7 @@
                         }
                     },
                     {
-                        name: 'msc_is_participant', 
+                        name: 'msc_is_participant',
                         data: 'msc_is_participant',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -119,9 +150,9 @@
                             </button>
                         </div>
                         <div class="ms-1" style="margin-bottom: 7px">
-                            <button onclick="_invoiceComponentTableActions.import()" class="btn btn-primary">
+                            <button onclick="_invoiceComponentTableActions.openImport()" class="btn btn-primary">
                                 <span style="vertical-align: middle">
-                                    <i data-feather="download" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Import Komponen Tagihan
                                 </span>
                             </button>
@@ -171,6 +202,8 @@
         }
     }
 
+    const importInvoiceComponentModal = new bootstrap.Modal(document.getElementById('importInvoiceComponentModal'));
+
     const _invoiceComponentTableActions = {
         add: function() {
             Modal.show({
@@ -185,10 +218,10 @@
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="msc_name" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="msc_name"
                                         class="form-control"
                                     >`,
                             },
@@ -196,10 +229,10 @@
                         invoice_component_name: {
                             title: 'Nama Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="msc_description" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="msc_description"
                                         class="form-control"
                                     >`,
                             },
@@ -207,7 +240,7 @@
                         component_type: {
                             title: 'Jenis Komponen Tagihan',
                             content: {
-                                template: 
+                                template:
                                     `<select name="msct_id" class="form-control select2">
                                         <option value="">Pilih Jenis Komponen</option>
                                     </select>`,
@@ -262,10 +295,10 @@
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="msc_name" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="msc_name"
                                         class="form-control"
                                         value=""
                                     >`,
@@ -274,10 +307,10 @@
                         invoice_component_name: {
                             title: 'Nama Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="msc_description" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="msc_description"
                                         class="form-control"
                                         value=""
                                     >`,
@@ -286,7 +319,7 @@
                         component_type: {
                             title: 'Jenis Komponen Tagihan',
                             content: {
-                                template: 
+                                template:
                                     `<select name="msct_id" id="msct_id" class="form-control select2">
                                         <option value="">Pilih Jenis Komponen</option>
                                     </select>`,
@@ -356,55 +389,46 @@
                 }
             })
         },
+        openImport: function() {
+            importInvoiceComponentForm.clearForm();
+            importInvoiceComponentModal.show();
+        },
         import: function() {
-            Modal.show({
-                type: 'form',
-                modalTitle: 'Import Komponen Tagihan',
-                modalSize: 'md',
-                config: {
-                    formId: 'form-add-invoice-component',
-                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
-                    formType: 'add',
-                    fields: {
-                        invoice_component_code: {
-                            title: 'Template Komponen Tagihan',
-                            content: {
-                                template: 
-                                    `<div class="d-grid">
-                                        <button onclick="_invoiceComponentTableActions.import()" class="btn btn-primary">
-                                            <span style="vertical-align: middle">
-                                                <i data-feather="layout" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                                Download Template
-                                            </span>
-                                        </button>
-                                    </div>`,
-                            },
-                        },
-                        invoice_component_name: {
-                            title: 'File Import Komponen Tagihan',
-                            content: {
-                                template: 
-                                    `<input 
-                                        type="file" 
-                                        name="msc_description" 
-                                        class="form-control"
-                                    >`,
-                            },
+            let formData = new FormData(document.getElementById('form-import-invoice-component'));
+
+            $.ajax({
+                url: _baseURL+'/api/payment/settings/component/import',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function(data) {
+                    if(data.success){
+                        importInvoiceComponentModal.hide();
+                        _toastr.success(data.message, 'Success');
+                        _invoiceComponentTable.reload();
+                        if (data.error_url) {
+                            window.location.href = data.error_url;
                         }
-                    },
-                    formSubmitLabel: 'Import Komponen',
-                    callback: function(e) {
-                        _invoiceComponentTable.reload()
-                    },
+                    } else {
+                        _toastr.error(data.message, 'Failed');
+                    }
                 },
-            });
-            _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/component-type',
-                nameField: 'msct_id',
-                idData: 'msct_id',
-                nameData: 'msct_name'
+                error: function(jqXHR) {
+                    _responseHandler.formFailResponse(jqXHR);
+                }
             });
         }
+    }
+
+    const importInvoiceComponentForm = {
+        downloadTemplate: () => {
+            window.location.href = _baseURL+'/api/download?storage=local&type=excel-template&filename=import-invoice-component-template-1683776326.xlsx';
+        },
+        clearForm: () => {
+            $('form#form-import-invoice-component input[name="excel_file"]').val('');
+        },
     }
 </script>
 @endsection

@@ -17,4 +17,6 @@ class ComponentType extends Model
         'msct_name'
     ];
 
+    protected $visible = ['msct_id', 'msct_name'];
+
 }
