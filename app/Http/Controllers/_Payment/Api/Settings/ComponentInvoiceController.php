@@ -85,8 +85,9 @@ class ComponentInvoiceController extends Controller
         $import->import($request->file('excel_file'));
 
         $failures = $import->failures();
+        $is_failures = $failures->count() > 0;
         $error_url = '';
-        if (!empty($failures)) {
+        if ($is_failures) {
             $failures_processed = [];
             foreach ($failures as $failure) {
                 $row = $failure->row(); // row that went wrong
@@ -100,7 +101,8 @@ class ComponentInvoiceController extends Controller
             }
             $exportFailures = new ArrayExport($failures_processed);
             $filename = 'excel-import-errors-'.time().'.xlsx';
-            $path = 'app/public/excel-logs/'.$filename;
+            $path_arr = ['app', 'public', 'excel-logs', $filename];
+            $path = join(DIRECTORY_SEPARATOR, $path_arr);
             $exportFailures->store($path);
             $error_url = url('api/download?storage=local&type=excel-log&filename='.$filename);
         }
@@ -108,10 +110,10 @@ class ComponentInvoiceController extends Controller
         $res = [
             'success' => true,
             'message' => 'Berhasil import '.$import->imported_rows.' komponen tagihan.'
-                .(!empty($failures) ? ' Terdapat beberapa error, keterangan error akan otomatis didownload.' : ''),
+                .($is_failures ? ' Terdapat beberapa error, keterangan error akan otomatis didownload.' : ''),
         ];
 
-        if (!empty($failures)) $res['error_url'] = $error_url;
+        if ($is_failures) $res['error_url'] = $error_url;
 
         return response()->json($res, 200);
     }

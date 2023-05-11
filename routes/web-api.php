@@ -64,11 +64,13 @@ Route::get('download', function(Request $request) {
     if ($storage && $type && $filename) {
         if ($storage == 'local') {
             if ($type == 'excel-log') {
-                $path = storage_path('app/public/excel-logs/'.$filename);
+                $path_arr = ['app', 'public', 'excel-logs', $filename];
+                $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
             if ($type == 'excel-template') {
-                $path = storage_path('app/public/excel-templates/'.$filename);
+                $path_arr = ['app', 'public', 'excel-templates', $filename];
+                $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
         }
