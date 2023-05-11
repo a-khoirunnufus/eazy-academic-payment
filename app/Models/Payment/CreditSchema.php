@@ -18,6 +18,6 @@ class CreditSchema extends Model
 
     public function creditSchemaDetail()
     {
-        return $this->hasMany(CreditSchemaDetail::class, 'csd_cs_id', 'cs_id');
+        return $this->hasMany(CreditSchemaDetail::class, 'csd_cs_id', 'cs_id')->orderBy('csd_order')->with('creditSchemaDeadline');
     }
 }

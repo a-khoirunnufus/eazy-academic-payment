@@ -307,6 +307,8 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div id="schemaDeadline">
+                                    </div>
                                 </div>`
                             },
                         },
@@ -328,21 +330,104 @@
                 })
             }
             // Skema
+            var val = [];
+            if(Object.keys(data.ppm.credit).length > 0){
+                data.ppm.credit.map(item => {
+                    val.push(item.cs_id.toString());
+                })
+            }
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
                     $("#csId").append(`
                         <option value="`+item['cs_id']+`">`+item['cs_name']+`</option>
                     `)
                 })
-                let val = [];
-                if(Object.keys(data.ppm.credit).length > 0){
-                    data.ppm.credit.map(item => {
-                        val.push(item.cs_id);
-                    })
-                }
+                
                 $('#csId').val(val).change();
                 selectRefresh()
             })
+            if(Object.keys(data.ppm.credit).length > 0){
+                data.ppm.credit.map(item => {
+                    _ratesTableActions.SchemaDeadlineField(item.cs_id,item.credit_schema.cs_name,item.credit_schema.credit_schema_detail)
+                })
+            }
+            $("#csId").change(function () {
+                schema = $(this).val();
+                diff = _ratesTableActions.difference(schema,val);
+                diff.map(item => {
+                    if(val.includes(item)){
+                        val = val.filter(function(x) {
+                            if (x !== item) {
+                            return x;
+                            }
+                        });
+                        // console.log("hapus "+item);
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/'+data.ppm.ppm_id+'/'+item, (d) => {
+                            d = JSON.parse(d)
+                            _toastr.success(d.message, 'Success')
+                        })
+                        $("#schemaDeadlineTag"+item).remove();
+                    }else{
+                        val.push(item.toString());
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/'+data.ppm.ppm_id+'/'+item, (d) => {
+                            d = JSON.parse(d)
+                            _ratesTableActions.SchemaDeadlineField(item,d.credit_schema.cs_name,d.credit_schema.credit_schema_detail)
+                        })
+                        // console.log("tambah "+item);
+                    }
+                });
+            })
+        },
+        difference: function(a1, a2) {
+            var a = [], diff = [];
+            for (var i = 0; i < a1.length; i++) {
+                a[a1[i]] = true;
+            }
+            for (var i = 0; i < a2.length; i++) {
+                if (a[a2[i]]) {
+                    delete a[a2[i]];
+                } else {
+                    a[a2[i]] = true;
+                }
+            }
+            for (var k in a) {
+                diff.push(k);
+            }
+            return diff;
+        },
+        SchemaDeadlineField: function(cs_id = 0, name = null,percentage = null) {
+            let html = "";
+            if(percentage != null){
+                percentage.map(item => {
+                    let deadline = "";
+                    if(item.credit_schema_deadline){
+                        deadline = item.credit_schema_deadline.cse_deadline;
+                    }
+                    html += `
+                    <div class="d-flex flex-wrap align-items-center mb-1 SchemaDeadlineField" style="gap:10px"
+                        id="comp-order-preview-0">
+                        <div class="flex-fill">
+                            <label class="form-label">Persentase Pembayaran</label>
+                            <input type="text" class="form-control" name="" value="${item.csd_percentage}%"
+                                placeholder="Persentase Pembayaran" readonly>
+                        </div>
+                        <div class="flex-fill">
+                            <label class="form-label">Tenggat Pembayaran</label>
+                            <input type="date" class="form-control" name="cse_deadline[]" value="${deadline}"
+                                placeholder="Tenggat Pembayaran" required>
+                            <input type="hidden" name="cse_cs_id[]" value="${cs_id}">
+                            <input type="hidden" name="cse_csd_id[]" value="${item.csd_id}">
+                        </div>
+                    </div>
+                    `
+                })
+            }
+            $('#schemaDeadline').append(`
+                <div id="schemaDeadlineTag${cs_id}">
+                    <h5 class="fw-bolder mb-1 mt-2">Pengaturan Skema ${name}</h5>
+                    ${html}
+                </div>
+            `);
         },
         deleteComponent: function(e,id) {
             Swal.fire({
@@ -376,173 +461,6 @@
                 }
             })
         },
-
-        // Schema
-        // PaymentRateSchemaField: function(id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0) {
-        //     let isId = 0;
-        //     if(increment === 1){
-        //         isId = count++;
-        //     }else{
-        //         isId = id;
-        //     }
-        //     $('#PaymentRateSchema').append(`
-        //         <div class="d-flex flex-wrap align-items-center mb-1 PaymentRateSchemaField" style="gap:10px"
-        //             id="comp-order-preview-0">
-        //             <input type="hidden" name="cd_id[]" value="${id}">
-        //             <input type="hidden" name="mma_id[]" value="${mma_id}">
-        //             <input type="hidden" name="period_id[]" value="${period_id}">
-        //             <input type="hidden" name="path_id[]" value="${path_id}">
-        //             <input type="hidden" name="msy_id[]" value="${msy_id}">
-        //             <input type="hidden" name="mlt_id[]" value="${mlt_id}">
-        //             <input type="hidden" name="ppm_id[]" value="${ppm_id}">
-        //             <div class="flex-fill">
-        //                 <label class="form-label">Nama Komponen</label>
-        //                 <select class="form-select select2" eazy-select2-active name="msc_id[]" id="component${isId}" value="">
-        //                 </select>
-        //             </div>
-        //             <div class="flex-fill">
-        //                 <label class="form-label">Harga Komponen Biaya</label>
-        //                 <input type="text" class="form-control comp_price" name="cd_fee[]" value="${rate}"
-        //                     placeholder="Tarif Komponen">
-        //             </div>
-        //             <div class="d-flex align-content-end">
-        //                 <div class="">
-        //                     <label class="form-label" style="opacity: 0">#</label>
-        //                     <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-        //                     onclick="_ratesTableActions.paymentRateSchemaDeleteField(this,${id})"> <i class="bx bx-trash m-auto"></i> </a>
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     `);
-        //     $.get(_baseURL + '/api/payment/settings/paymentrates/component', (data) => {
-        //         JSON.parse(data).map(item => {
-        //             $("#component"+isId).append(`
-        //                 <option value="`+item['msc_id']+`">`+item['msc_name']+`</option>
-        //             `)
-        //         })
-        //         component ? $("#component"+isId).val(component) : ""
-        //         $("#component"+isId).trigger('change')
-        //         selectRefresh()
-        //     })
-
-        // },
-        // paymentRateSchemaDeleteField: function(e,id){
-        //     if(id === 0){
-        //         $(e).parents('.PaymentRateSchemaField').get(0).remove();
-        //     }else{
-        //         _ratesTableActions.deleteComponent(e,id);
-        //     }
-        // },
-        // schema: function(e) {
-        //     let data = _ratesTable.getRowData(e);
-        //     console.log(data)
-        //     Modal.show({
-        //         type: 'form',
-        //         modalTitle: 'Pengaturan Skema Cicilan',
-        //         modalSize: 'lg',
-        //         config: {
-        //             formId: 'paymentRateSchemaForm',
-        //             formActionUrl: _baseURL + '/api/payment/settings/paymentrates/updateschema',
-        //             formType: 'add',
-        //             data: $("#paymentRateSchemaForm").serialize(),
-        //             isTwoColumn: false,
-        //             fields: {
-        //                 selections: {
-        //                     type: 'custom-field',
-        //                     content: {
-        //                         template: `<div>
-        //                             <div class="d-flex flex-wrap justify-content-between align-items-center" style="gap:10px">
-        //                                 <h1 class="h4 fw-bolder mb-0">Lengkapi Data Di Bawah!</h1>
-        //                             </div>
-        //                             <hr>
-        //                             <div class="row">
-        //                                 <div class="col-lg-3 col-md-6">
-        //                                     <h6>Tahun</h6>
-        //                                     <h1 class="h6 fw-bolder" id="tahun-name">{!! $data->tahun !!}</h1>
-        //                                 </div>
-        //                                 <div class="col-lg-3 col-md-6">
-        //                                     <h6>Periode</h6>
-        //                                     <h1 class="h6 fw-bolder" id="period-name">{!! $data->periode !!}</h1>
-        //                                 </div>
-        //                                 <div class="col-lg-3 col-md-6">
-        //                                     <h6>Jalur</h6>
-        //                                     <h1 class="h6 fw-bolder" id="path-name">{!! $data->jalur !!}</h1>
-        //                                 </div>
-        //                                 <div class="col-lg-3 col-md-6">
-        //                                     <h6>Program Studi</h6>
-        //                                     <h1 class="h6 fw-bolder" id="prodi-name">${data.ppm.major_lecture_type.study_program.studyprogram_type} - ${data.ppm.major_lecture_type.study_program.studyprogram_name} - ${data.ppm.major_lecture_type.lecture_type.mlt_name}</h1>
-        //                                 </div>
-        //                             </div>
-        //                             <hr>
-        //                         </div>`
-        //                     },
-        //                 },
-        //                 input_fields: {
-        //                     type: 'custom-field',
-        //                     content: {
-        //                         template: `
-        //                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
-        //                             <h4 class="fw-bolder mb-0">Skema Cicilan</h4>
-        //                             <button type="button"
-        //                                 class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
-        //                                 onclick="_ratesTableActions.PaymentRateSchemaField(0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Skema Cicilan
-        //                             </button>
-        //                         </div>
-        //                         <div id="PaymentRateSchema">
-        //                         </div>
-        //                         `
-        //                     },
-        //                 },
-        //             },
-        //             formSubmitLabel: 'Simpan',
-        //             formSubmitNote: `
-        //             <small style="color:#163485">
-        //                 *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
-        //             </small>`,
-        //             callback: function() {
-        //                 // ex: reload table
-        //                 _ratesTable.reload()
-        //             },
-        //         },
-        //     });
-        //     if(Object.keys(data.component).length > 0){
-        //         data.component.map(item => {
-        //             _ratesTableActions.PaymentRateSchemaField(item.cd_id,item.cd_fee,item.msc_id, null)
-        //         })
-        //     }
-        // },
-        // deleteSchema: function(e,id) {
-        //     Swal.fire({
-        //         title: 'Konfirmasi',
-        //         text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
-        //         icon: 'warning',
-        //         showCancelButton: true,
-        //         confirmButtonColor: '#ea5455',
-        //         cancelButtonColor: '#82868b',
-        //         confirmButtonText: 'Hapus',
-        //         cancelButtonText: 'Batal',
-        //     }).then((result) => {
-        //         if (result.isConfirmed) {
-        //             $.post(_baseURL + '/api/payment/settings/paymentrates/deletecomponent/' + id, {
-        //                 _method: 'DELETE'
-        //             }, function(data){
-        //                 data = JSON.parse(data)
-        //                 Swal.fire({
-        //                     icon: 'success',
-        //                     text: data.message,
-        //                 }).then(() => {
-        //                     $(e).parents('.PaymentRateSchemaField').get(0).remove();
-        //                 });
-        //             }).fail((error) => {
-        //                 Swal.fire({
-        //                     icon: 'error',
-        //                     text: data.text,
-        //                 });
-        //                 _responseHandler.generalFailResponse(error)
-        //             })
-        //         }
-        //     })
-        // }
     }
 </script>
 @endsection

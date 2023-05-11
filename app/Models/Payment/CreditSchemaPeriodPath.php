@@ -19,6 +19,6 @@ class CreditSchemaPeriodPath extends Model
     
     public function creditSchema()
     {
-        return $this->belongsTo(CreditSchema::class, 'cs_id','cs_id');
+        return $this->belongsTo(CreditSchema::class, 'cs_id','cs_id')->with('creditSchemaDetail');
     }
 }

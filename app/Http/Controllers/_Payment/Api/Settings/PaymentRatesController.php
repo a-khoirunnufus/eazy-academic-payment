@@ -11,6 +11,7 @@ use App\Models\Payment\Component;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\CreditSchema;
 use App\Models\Payment\CreditSchemaPeriodPath;
+use App\Models\Payment\CreditSchemaDeadline;
 use App\Http\Requests\Payment\Settings\PaymentRateRequest;
 use App\Http\Requests\Payment\Settings\PaymentRateUpdateRequest;
 use App\Models\Period;
@@ -71,6 +72,25 @@ class PaymentRatesController extends Controller
         return $schema->toJson();
     }
 
+    public function getSchemaById($ppm_id,$cs_id)
+    {
+        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id',$ppm_id)->where('cs_id',$cs_id)->first();
+        if(!$schema){
+            $create = CreditSchemaPeriodPath::create([
+                'cs_id' => $cs_id,
+                'ppm_id' => $ppm_id
+            ]);
+            $schema = CreditSchemaPeriodPath::with('creditSchema')->where('cspp_id',$create->cspp_id)->first();
+        }
+        return $schema->toJson();
+    }
+
+    public function removeSchemaById($ppm_id,$cs_id)
+    {
+        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id',$ppm_id)->where('cs_id',$cs_id)->delete();
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus skema"));
+    }
+
     public function update(PaymentRateUpdateRequest $request)
     {
         $validated = $request->validated();
@@ -110,6 +130,22 @@ class PaymentRatesController extends Controller
                     }
                 }
                 CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
+            }
+            if(isset($validated['cse_cs_id'])){
+                foreach($validated['cse_cs_id'] as $key => $item){
+                    $data = CreditSchemaDeadline::where('cs_id',$item)->where('csd_id', $validated['cse_csd_id'][$key])->first();
+                    if(!$data){
+                        CreditSchemaDeadline::create([
+                            'cs_id' => $item,
+                            'csd_id' => $validated['cse_csd_id'][$key],
+                            'cse_deadline' => $validated['cse_deadline'][$key],
+                        ]);
+                    }else{
+                        $data->update([
+                            'cse_deadline' => $validated['cse_deadline'][$key]
+                        ]);
+                    }
+                }
             }
             $text = "Berhasil memperbarui tarif dan pembayaran";
             DB::commit();
