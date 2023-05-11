@@ -50,6 +50,10 @@ Route::group(['prefix' => 'payment'], function(){
         Route::put('credit-schema/update/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@update');
         Route::delete('credit-schema/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@delete');
     });
+
+    Route::group(['prefix' => 'generate'], function(){
+        Route::get('new-student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@index');
+    });
 });
 
 Route::get('download', function(Request $request) {

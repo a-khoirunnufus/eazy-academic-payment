@@ -33,12 +33,12 @@
                 @foreach($category['groups'] as $group)
                     <li class="nav-item">
                         <a class="align-items-center d-flex" href="#">
-                            <i data-feather="{{ $group['icon'] }}"></i> 
+                            <i data-feather="{{ $group['icon'] }}"></i>
                             <span class="menu-title text-truncate">{{ trans('modules.group.'.$group['name']) }}</span>
                         </a>
                         <ul class="menu-content">
                             @foreach($group['modules'] as $module)
-                                <li class="{{ request()->is($module['path']) || request()->is(substr($module['path'], 1)) ? 'active' : '' }}">										
+                                <li class="{{ request()->is($module['path']) || request()->is(substr($module['path'], 1)) ? 'active' : '' }}">
                                     <a href="{{ url($module['path']) }}" class="align-items-center d-flex">
                                         <i class="menu-item-icon" data-feather="circle" style="color:#163485"></i>
                                         <span class="menu-item">{{ trans('modules.modules.'.$module['name']) }}</span>
@@ -49,7 +49,7 @@
                     </li>
                 @endforeach
             @endforeach --}}
-        
+
             <li class="nav-item mb-50">
                 <a class="d-flex align-items-center fw-bold" href="/home">
                     <i data-feather="home"></i>
@@ -127,8 +127,8 @@
                             <span class="menu-title text-truncate">Generate Tagihan<br>Mahasiswa Lama</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'generate/new-student-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('generate/new-student-invoice') }}">
+                    <li class="menu__item nav-item {{ 'payment.generate.new-student-invoice' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.new-student-invoice') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Generate Tagihan<br>Mahasiswa Baru</span>
                         </a>
