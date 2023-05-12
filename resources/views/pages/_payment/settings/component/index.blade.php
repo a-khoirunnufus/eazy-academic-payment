@@ -424,7 +424,7 @@
 
     const importInvoiceComponentForm = {
         downloadTemplate: () => {
-            window.location.href = _baseURL+'/api/download?storage=local&type=excel-template&filename=import-invoice-component-template.xlsx';
+            window.location.href = _baseURL+'/api/download?storage=local&type=excel-template&filename=import-invoice-component-template-1683776326.xlsx';
         },
         clearForm: () => {
             $('form#form-import-invoice-component input[name="excel_file"]').val('');

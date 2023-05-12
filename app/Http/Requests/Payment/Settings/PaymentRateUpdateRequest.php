@@ -30,6 +30,9 @@ class PaymentRateUpdateRequest extends FormRequest
             'msc_id' => 'nullable',
             'cd_fee' => 'nullable',
             'cs_id' => 'nullable',
+            'cse_deadline' => 'nullable',
+            'cse_cs_id' => 'nullable',
+            'cse_csd_id' => 'nullable',
         ];
     }
 }

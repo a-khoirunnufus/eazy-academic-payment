@@ -39,6 +39,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('paymentrates/path', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getPath');
         Route::get('paymentrates/component', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getComponent');
         Route::get('paymentrates/schema', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getSchema');
+        Route::get('paymentrates/getschemabyid/{ppm_id}/{cs_id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getSchemaById');
+        Route::get('paymentrates/removeschemabyid/{ppm_id}/{cs_id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@removeSchemaById');
         Route::post('paymentrates/store', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@store');
         Route::post('paymentrates/update', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@update');
         Route::delete('paymentrates/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@delete');
@@ -50,6 +52,10 @@ Route::group(['prefix' => 'payment'], function(){
         Route::put('credit-schema/update/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@update');
         Route::delete('credit-schema/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CreditSchemaController@delete');
     });
+
+    Route::group(['prefix' => 'generate'], function(){
+        Route::get('new-student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@index');
+    });
 });
 
 Route::get('download', function(Request $request) {
@@ -60,11 +66,13 @@ Route::get('download', function(Request $request) {
     if ($storage && $type && $filename) {
         if ($storage == 'local') {
             if ($type == 'excel-log') {
-                $path = storage_path('app/public/excel-logs/'.$filename);
+                $path_arr = ['app', 'public', 'excel-logs', $filename];
+                $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
             if ($type == 'excel-template') {
-                $path = storage_path('app/public/excel-templates/'.$filename);
+                $path_arr = ['app', 'public', 'excel-templates', $filename];
+                $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
         }

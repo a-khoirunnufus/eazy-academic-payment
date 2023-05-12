@@ -15,4 +15,9 @@ class CreditSchemaDetail extends Model
     protected $primaryKey = 'csd_id';
 
     protected $fillable = ['csd_cs_id', 'csd_percentage', 'csd_order'];
+    
+    public function creditSchemaDeadline()
+    {
+        return $this->belongsTo(creditSchemaDeadline::class, 'csd_id','csd_id');
+    }
 }
