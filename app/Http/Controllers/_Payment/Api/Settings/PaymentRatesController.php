@@ -14,10 +14,13 @@ use App\Models\Payment\CreditSchemaPeriodPath;
 use App\Models\Payment\CreditSchemaDeadline;
 use App\Http\Requests\Payment\Settings\PaymentRateRequest;
 use App\Http\Requests\Payment\Settings\PaymentRateUpdateRequest;
+use App\Models\LectureType;
+use App\Models\MajorLectureType;
 use App\Models\Period;
 use App\Models\Path;
 use App\Models\PeriodPath;
 use App\Models\PeriodPathMajor;
+use App\Models\Studyprogram;
 use DB;
 use Builder;
 
@@ -204,18 +207,39 @@ class PaymentRatesController extends Controller
     //     return json_encode(array('success' => true, 'message' => $text));
     // }
     
-    // public function getPeriod()
-    // {
-    //     $period = Period::all();
-    //     return $period->toJson();
-    // }
+    public function getPeriod()
+    {
+        $period = Period::all();
+        return $period->toJson();
+    }
     
-    // public function getPath()
-    // {
-    //     $path = Path::all();
-    //     return $path->toJson();
-    // }
+    public function getPath()
+    {
+        $path = Path::all();
+        return $path->toJson();
+    }
     
+    public function getStudyProgram(){
+        $major = Studyprogram::all();
+        return $major->toJson();
+    }
+
+    public function getLectureType(){
+        $lecture = LectureType::all();
+        return $lecture->toJson();
+    }
+
+    public function getCreditSchema(){
+        $credit = CreditSchema::all();
+        return $credit->toJson();
+    }
+
+    public function getRowData($id){
+        $query = PeriodPath::query();
+        $query = $query->with('major','path','period')->where('ppd_id', '=', $id);
+        // dd($query->get());
+        return datatables($query)->toJson();
+    }
     // public function delete($id)
     // {
     //     $data = PaymentRate::findOrFail($id);
