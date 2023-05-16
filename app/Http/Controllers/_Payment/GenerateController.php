@@ -11,4 +11,9 @@ class GenerateController extends Controller
     {
         return view('pages._payment.generate.new-student-invoice.detail');
     }
+
+    public function StudentInvoice()
+    {
+        return view('pages._payment.generate.student-invoice.index');
+    }
 }

@@ -5,6 +5,9 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Path;
+use App\Models\Period;
+use App\Models\lectureType;
 
 class ComponentDetail extends Model
 {
@@ -24,6 +27,21 @@ class ComponentDetail extends Model
     public function component()
     {
         return $this->belongsTo(Component::class, 'msc_id','msc_id');
+    }
+    
+    public function path()
+    {
+        return $this->belongsTo(Path::class, 'path_id','path_id');
+    }
+    
+    public function period()
+    {
+        return $this->belongsTo(Period::class, 'period_id','period_id');
+    }
+    
+    public function lectureType()
+    {
+        return $this->belongsTo(lectureType::class, 'mlt_id','mlt_id');
     }
 }
 												

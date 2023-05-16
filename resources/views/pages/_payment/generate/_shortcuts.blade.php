@@ -7,7 +7,7 @@
             <span>Tagihan Pendaftar</span>
         </div>
     </a>
-    <a href="{{ url('generate/old-student-invoice') }}" class="eazy-shortcut-item {{ $active == 'old-student-invoice' ? 'active' : '' }}">
+    <a href="{{ route('payment.generate.student-invoice') }}" class="eazy-shortcut-item {{ $active == 'student-invoice' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="users"></i>
         </div>
