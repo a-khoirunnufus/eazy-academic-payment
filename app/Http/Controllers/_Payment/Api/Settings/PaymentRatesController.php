@@ -28,13 +28,39 @@ class PaymentRatesController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->input('custom_filters');
+
+        // remove item with null value or #ALL value
+        $filters = array_filter($filters, function($item){
+            return !is_null($item) && $item != '#ALL';
+        });
+
         // $query = PaymentRate::query();
         // $query = $query->with('credit','path','period','studyProgram','component')->orderBy('f_id');
-        
-        $query = PeriodPath::query();
-        $query = $query->with('major','path','period')->orderBy('ppd_id');
-        // dd($query->get());
-        return datatables($query)->toJson();
+
+        $query = PeriodPath::with('major', 'period', 'path');
+
+        if(isset($filters['school_year_id'])) {
+            $query->whereHas('period.schoolyear', function($q) use ($filters) {
+                $q->where('msy_id', '=', $filters['school_year_id']);
+            });
+        }
+
+        if(isset($filters['period_id'])) {
+            $query->whereHas('period', function($q) use ($filters) {
+                $q->where('period_id', '=', $filters['period_id']);
+            });
+        }
+
+        if(isset($filters['path_id'])) {
+            $query->whereHas('path', function($q) use ($filters) {
+                $q->where('path_id', '=', $filters['path_id']);
+            });
+        }
+
+        $data = $query->orderBy('ppd_id')->get();
+
+        return datatables($data)->toJson();
     }
 
     public function detail($id)
