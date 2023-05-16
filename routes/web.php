@@ -42,8 +42,11 @@ Route::group(['prefix' => 'payment'], function(){
 
     // Generate
     Route::group(['prefix' => 'generate'], function(){
-        Route::get('new-student-invoice', 'App\Http\Controllers\_Payment\GenerateController@newStudentInvoice')->name('payment.generate.new-student-invoice');
-        
+        Route::get('new-student-invoice/per-institution', 'App\Http\Controllers\_Payment\Frontend\Generate\NewStudentInvoiceController@perInstitution')->name('payment.generate.new-student-invoice.per-institution');
+        Route::get('new-student-invoice/per-faculty', 'App\Http\Controllers\_Payment\Frontend\Generate\NewStudentInvoiceController@perFaculty')->name('payment.generate.new-student-invoice.per-faculty');
+        Route::get('new-student-invoice/per-studyprogram', 'App\Http\Controllers\_Payment\Frontend\Generate\NewStudentInvoiceController@perStudyprogram')->name('payment.generate.new-student-invoice.per-studyprogram');
+        Route::get('new-student-invoice/per-student', 'App\Http\Controllers\_Payment\Frontend\Generate\NewStudentInvoiceController@perStudent')->name('payment.generate.new-student-invoice.per-student');
+
         Route::get('student-invoice', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoice')->name('payment.generate.student-invoice');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
     });
