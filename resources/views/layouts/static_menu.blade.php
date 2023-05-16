@@ -127,8 +127,8 @@
                             <span class="menu-title text-truncate">Generate Tagihan<br>Mahasiswa Lama</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'payment.generate.new-student-invoice' == request()->route()->getName() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.new-student-invoice') }}">
+                    <li class="menu__item nav-item {{ 'payment.generate.new-student-invoice.per-institution' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.new-student-invoice.per-institution') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Generate Tagihan<br>Mahasiswa Baru</span>
                         </a>
