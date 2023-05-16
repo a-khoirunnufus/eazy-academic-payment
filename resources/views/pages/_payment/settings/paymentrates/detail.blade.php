@@ -64,6 +64,9 @@
 
 @section('js_section')
 <script>
+    var dataCopy = null;
+    var idIncrement = 0;
+    var skema_cicilan = [];
     $(function(){
         _ratesTable.init()
 
@@ -167,8 +170,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
                             <a onclick="_ratesTableActions.edit(this)" class="dropdown-item"><i data-feather="dollar-sign"></i> Komponen Tagihan</a>
+                            <a onclick="_ratesTableActions.copy(this)" class="dropdown-item"><i data-feather="clipboard"></i> Salin Data</a>
                         </div>
                     </div>
                 `
@@ -219,6 +222,16 @@
                     $("#component"+isId).append(`
                         <option value="`+item['msc_id']+`">`+item['msc_name']+`</option>
                     `)
+                    // var count_elm = $(".PaymentRateInputField").length;
+                    // $(
+                    //     $(
+                    //         $(
+                    //             $(".PaymentRateInputField")[count_elm - 1]
+                    //         ).children(".flex-fill")[0]
+                    //     ).children("select")[0]
+                    // ).append(`
+                    //     <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
+                    // `)
                 })
                 component ? $("#component"+isId).val(component) : ""
                 $("#component"+isId).trigger('change')
@@ -285,10 +298,17 @@
                                 template: `
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Komponen Tagihan</h4>
+                                    <div>
+                                    <button type="button"
+                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        onclick="_ratesTableActions.paste()"> Paste
+                                    </button>
                                     <button type="button"
                                         class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
+                                    </div>
+                                    
                                 </div>
                                 <div id="PaymentRateInput">
                                 </div>
@@ -324,9 +344,11 @@
                     },
                 },
             });
+            idIncrement = 0;
             if(Object.keys(data.component).length > 0){
                 data.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(item.cd_id,item.cd_fee,item.msc_id, null)
+                    _ratesTableActions.PaymentRateInputField(idIncrement,item.cd_fee,item.msc_id, null)
+                    idIncrement++;
                 })
             }
             // Skema
@@ -336,6 +358,7 @@
                     val.push(item.cs_id.toString());
                 })
             }
+            skema_cicilan = val;
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
                     $("#csId").append(`
@@ -377,6 +400,32 @@
                     }
                 });
             })
+        },
+        copy: function(e){
+            dataCopy = _ratesTable.getRowData(e);
+        },
+        paste: function(){
+            if(Object.keys(dataCopy.component).length > 0){
+                dataCopy.component.map(item => {
+                    _ratesTableActions.PaymentRateInputField(idIncrement,item.cd_fee,item.msc_id, null)
+                    idIncrement++;
+                })
+            }
+            if(Object.keys(dataCopy.ppm.credit).length > 0){
+                dataCopy.ppm.credit.map(item => {
+                    skema_cicilan.push(item.cs_id.toString());
+                })
+            }
+            $('#csId').val([]).change();
+            selectRefresh()
+            $('#csId').val(skema_cicilan).change();
+            selectRefresh()
+
+            if(Object.keys(dataCopy.ppm.credit).length > 0){
+                dataCopy.ppm.credit.map(item => {
+                    _ratesTableActions.SchemaDeadlineField(item.cs_id,item.credit_schema.cs_name,item.credit_schema.credit_schema_detail)
+                })
+            }
         },
         difference: function(a1, a2) {
             var a = [], diff = [];

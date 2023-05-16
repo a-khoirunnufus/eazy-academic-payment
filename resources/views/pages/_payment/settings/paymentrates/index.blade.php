@@ -220,16 +220,16 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.invoice-component-actions').html(`
-                        <div style="margin-bottom: 7px">
-                            <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Komponen Baru
-                                </span>
-                            </button>
-                        </div>
-                    `)
+                    // $('.invoice-component-actions').html(`
+                    //     <div style="margin-bottom: 7px">
+                    //         <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
+                    //             <span style="vertical-align: middle">
+                    //                 <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                    //                 Tambah Komponen Baru
+                    //             </span>
+                    //         </button>
+                    //     </div>
+                    // `)
                     feather.replace()
                 }
             })
@@ -244,7 +244,7 @@
                         <div class="dropdown-menu">
                             
                             <a href="${_baseURL}/payment/settings/payment-rates/detail/${id}" class="dropdown-item"><i data-feather="dollar-sign"></i>&nbsp;&nbsp;Edit Komponen Biaya</a>
-                            <a href="#" class="dropdown-item" onclick="salinData(${id})"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin Data</a>
+                            <!-- <a href="#" class="dropdown-item" onclick="salinData(${id})"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin Data</a> -->
                         </div>
                     </div>
                 `
