@@ -6,13 +6,13 @@
 @section('url_back', url('setting/rates'))
 
 @section('css_section')
-    <style>
-        .rates-per-course-filter {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-gap: 1rem;
-        }
-    </style>
+<style>
+    .rates-per-course-filter {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-gap: 1rem;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -27,7 +27,7 @@
                 <select class="form-select select2">
                     <option value="all" selected>Semua Fakultas</option>
                     @foreach($static_faculties as $faculty)
-                        <option value="{{ $faculty }}">{{ $faculty }}</option>
+                    <option value="{{ $faculty }}">{{ $faculty }}</option>
                     @endforeach
                 </select>
             </div>
@@ -36,7 +36,7 @@
                 <select class="form-select select2">
                     <option value="all" selected>Semua Program Studi</option>
                     @foreach($static_study_programs as $study_program)
-                        <option value="{{ $study_program }}">{{ $study_program }}</option>
+                    <option value="{{ $study_program }}">{{ $study_program }}</option>
                     @endforeach
                 </select>
             </div>
@@ -84,40 +84,37 @@
                                     <option value="all" selected>Semua Program Studi</option>
                                     @foreach($studyProgram as $item)
                                         <option value="{{ $item->studyprogram_id }}">{{ $item->studyprogram_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-6 col-md-6">
-                                <label class="form-label">Mata Kuliah</label>
-                                <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- form -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
-                        <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
-                        <button type="button"
-                            class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
-                            onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
-                        </button>
-                    </div>
-                    <div id="courseRateInput">
-                    </div>
-                    <div class="d-flex align-items-center flex-wrap justify-content-between mt-3" style="gap:10px">
-                        <small style="color:#163485">
-                            *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
-                        </small>
-                        <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button"
-                            onclick="_ratesPerCourseTableActions.courseRateStore()">
-                            Simpan
-                        </button>
-                        <button type="reset">Reset</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+@endforeach
+</select>
+</div>
+<div class="col-lg-6 col-md-6">
+    <label class="form-label">Mata Kuliah</label>
+    <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+    </select>
+</div>
+</div>
+</div>
+<!-- form -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+    <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
+    <button type="button" class="btn btn-primary text-white edit-component waves-effect waves-float waves-light" onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
+    </button>
+</div>
+<div id="courseRateInput">
+</div>
+<div class="d-flex align-items-center flex-wrap justify-content-between mt-3" style="gap:10px">
+    <small style="color:#163485">
+        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+    </small>
+    <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button" onclick="_ratesPerCourseTableActions.courseRateStore()">
+        Simpan
+    </button>
+    <button type="reset">Reset</button>
+</div>
+</form>
+</div>
+</div>
+</div>
 </div> --}}
 
 @endsection
@@ -125,12 +122,15 @@
 
 @section('js_section')
 <script>
-    $(function(){
+    var dataCopy = null;
+    var spIdCopy = null;
+    var cIdCopy = null;
+    $(function() {
         _ratesPerCourseTable.init()
     })
 
     const _Filter = {
-        init: function(){
+        init: function() {
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
                 nameField: 'program_study',
@@ -146,10 +146,9 @@
             this.instance = $('#rates-per-course-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/settings/courserates/index',
+                    url: _baseURL + '/api/payment/settings/courserates/index',
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         data: 'mcr_id',
                         orderable: false,
@@ -180,32 +179,32 @@
                         }
                     },
                     {
-                        name: 'course.credit', 
+                        name: 'course.credit',
                         data: 'course.credit',
                         render: (data) => {
-                            return data+' SKS';
+                            return data + ' SKS';
                         }
                     },
                     {
-                        name: 'mcr_tingkat', 
+                        name: 'mcr_tingkat',
                         data: 'mcr_tingkat',
                         render: (data) => {
-                            return 'Tingkat '+data;
+                            return 'Tingkat ' + data;
                         }
                     },
                     {
-                        name: 'mcr_rate', 
+                        name: 'mcr_rate',
                         data: 'mcr_rate',
                         render: (data) => {
                             return Rupiah.format(data);
                         }
                     },
                     {
-                        name: 'mandatory_status', 
+                        name: 'mandatory_status',
                         data: 'mandatory_status',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data.toUpperCase() == 'WAJIB_PRODI') {
+                            if (data.toUpperCase() == 'WAJIB_PRODI') {
                                 html += '<div class="badge bg-success" style="font-size: inherit">Wajib</div>'
                             } else {
                                 html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Wajib</div>'
@@ -215,11 +214,11 @@
                         }
                     },
                     {
-                        name: 'mcr_is_package', 
+                        name: 'mcr_is_package',
                         data: 'mcr_is_package',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
-                            if(data) {
+                            if (data) {
                                 html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
                             } else {
                                 html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
@@ -228,13 +227,12 @@
                             return html
                         }
                     },
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"rate-per-course-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
@@ -266,6 +264,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_ratesPerCourseTableActions.edit(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_ratesPerCourseTableActions.copy(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
                             <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
@@ -314,20 +313,20 @@
                     </div>
                 </div>
             `);
-            if(tingkat){
-                $("#tingkat"+id+"").val(tingkat);
-                $("#tingkat"+id+"").trigger('change');
+            if (tingkat) {
+                $("#tingkat" + id + "").val(tingkat);
+                $("#tingkat" + id + "").trigger('change');
             }
-            if(is_package){
-                $("#paket"+id+"").val(is_package);
-                $("#paket"+id+"").trigger('change');
+            if (is_package) {
+                $("#paket" + id + "").val(is_package);
+                $("#paket" + id + "").trigger('change');
             }
         },
-        courseRateDeleteField: function(e,id){
-            if(id === 0){
+        courseRateDeleteField: function(e, id) {
+            if (id === 0) {
                 $(e).parents('.courseRateInputField').get(0).remove();
-            }else{
-                _ratesPerCourseTableActions.delete(e,id);
+            } else {
+                _ratesPerCourseTableActions.delete(e, id);
             }
         },
         // courseRateStore: function(){
@@ -375,6 +374,7 @@
                             type: 'custom-field',
                             content: {
                                 template: `<div class="mb-2">
+                                    <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('prodi')">Paste</button>
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
@@ -396,10 +396,14 @@
                                 template: `
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
+                                    <div>
                                     <button type="button"
                                         class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
+                                    <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>
+                                    </div>
+                                    
                                 </div>
                                 <div id="courseRateInput">
                                 </div>
@@ -427,7 +431,7 @@
                 nameData: 'studyprogram_name'
             });
 
-            $("#programStudy").change(function () {
+            $("#programStudy").change(function() {
                 studyProgramId = $(this).val();
                 $('#courseId').empty().trigger("change");
                 $('#courseRateInput').empty();
@@ -438,22 +442,22 @@
                     nameData: 'subject_name'
                 });
             })
-            $("#courseId").change(function () {
+            $("#courseId").change(function() {
                 _ratesPerCourseTableActions.tarif("#courseId");
             })
 
         },
-        tarif: function(e){
+        tarif: function(e) {
             courseId = $(e).val();
-            if(courseId){
+            if (courseId) {
                 $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
                     _method: 'GET'
-                }, function(data){
+                }, function(data) {
                     data = JSON.parse(data)
                     $('#courseRateInput').empty();
-                    if(Object.keys(data).length > 0){
+                    if (Object.keys(data).length > 0) {
                         data.map(item => {
-                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
+                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
                         })
                     }
                     console.log(data);
@@ -466,7 +470,7 @@
             }
         },
         edit: function(spId, cId) {
-            
+
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Tarif Matakuliah',
@@ -526,7 +530,7 @@
                     },
                 },
             });
-            
+
             $("#courseHiddenId").val(cId);
             $('#programStudy').empty().trigger("change");
             $('#courseRateInput').empty();
@@ -538,7 +542,7 @@
                 val: spId
             });
 
-            $("#programStudy").change(function () {
+            $("#programStudy").change(function() {
                 studyProgramId = $(this).val();
                 $('#courseId').empty().trigger("change");
                 $('#courseRateInput').empty();
@@ -551,17 +555,17 @@
                 });
             })
             $('#programStudy').prop('disabled', true);
-            $("#courseId").change(function () {
+            $("#courseId").change(function() {
                 courseId = $(this).val();
-                if(courseId){
+                if (courseId) {
                     $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
                         _method: 'GET'
-                    }, function(data){
+                    }, function(data) {
                         data = JSON.parse(data)
                         $('#courseRateInput').empty();
-                        if(Object.keys(data).length > 0){
+                        if (Object.keys(data).length > 0) {
                             data.map(item => {
-                                _ratesPerCourseTableActions.courseRateInputField(item.mcr_id,item.mcr_rate,item.mcr_is_package, item.mcr_tingkat)
+                                _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
                             })
                         }
                         console.log(data);
@@ -575,12 +579,12 @@
             })
             $('#courseId').prop('disabled', true);
         },
-        delete: function(e,id = 0) {
+        delete: function(e, id = 0) {
             let data = _ratesPerCourseTable.getRowData(e);
             let mcrId = 0;
-            if(id == 0) {
+            if (id == 0) {
                 mcrId = data.mcr_id;
-            }else{
+            } else {
                 mcrId = id;
             }
             console.log(mcrId);
@@ -597,14 +601,14 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/settings/courserates/delete/' + mcrId, {
                         _method: 'DELETE'
-                    }, function(data){
+                    }, function(data) {
                         data = JSON.parse(data)
                         Swal.fire({
                             icon: 'success',
                             text: data.message,
                         }).then(() => {
                             _ratesPerCourseTable.reload();
-                            if(id != 0){
+                            if (id != 0) {
                                 _ratesPerCourseTableActions.tarif("#courseId");
                             }
                         });
@@ -618,6 +622,55 @@
                 }
             })
         },
+        copy: function(spId, cId) {
+            spIdCopy = spId;
+            cIdCopy = cId;
+        },
+        paste: function(type) {
+            if (type == "prodi") {
+                $('#programStudy').empty().trigger("change");
+                $('#courseRateInput').empty();
+                _options.load({
+                    optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
+                    nameField: 'program_study',
+                    idData: 'studyprogram_id',
+                    nameData: 'studyprogram_name',
+                    val: spIdCopy
+                });
+
+                $("#programStudy").change(function() {
+                    studyProgramId = $(this).val();
+                    $('#courseId').empty().trigger("change");
+                    $('#courseRateInput').empty();
+                    _options.load({
+                        optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
+                        nameField: 'mcr_course_id',
+                        idData: 'course_id',
+                        nameData: 'subject_name',
+                        val: cIdCopy
+                    });
+                })
+            }
+            if (type == "component") {
+                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + cIdCopy, {
+                    _method: 'GET'
+                }, function(data) {
+                    data = JSON.parse(data)
+                    $('#courseRateInput').empty();
+                    if (Object.keys(data).length > 0) {
+                        data.map(item => {
+                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
+                        })
+                    }
+                    console.log(data);
+                }).fail((error) => {
+                    Swal.fire({
+                        icon: 'error',
+                        text: data.text,
+                    });
+                })
+            }
+        }
     }
 </script>
 @endsection
