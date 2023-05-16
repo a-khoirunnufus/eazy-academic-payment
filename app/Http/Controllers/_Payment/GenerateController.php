@@ -16,4 +16,13 @@ class GenerateController extends Controller
     {
         return view('pages._payment.generate.student-invoice.index');
     }
+    
+    public function StudentInvoiceDetail(Request $request)
+    {
+        $data['msy'] = $request->query()['msy'];
+        $data['f'] = $request->query()['f'];
+        $data['sp'] = $request->query()['sp'];
+
+        return view('pages._payment.generate.student-invoice.detail',compact('data'));
+    }
 }
