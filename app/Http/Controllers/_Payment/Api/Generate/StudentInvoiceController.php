@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Studyprogram;
 use App\Models\Faculty;
 use App\Models\PeriodPath;
+use App\Models\Student;
 use App\Models\Payment\ComponentDetail;
 
 class StudentInvoiceController extends Controller
@@ -36,5 +37,23 @@ class StudentInvoiceController extends Controller
             }
         }
         return datatables($result)->toJson();
+    }
+
+    public function detail(Request $request){
+        // dd($request);
+        $data['msy'] = $request->query()['msy'];
+        $data['f'] = $request->query()['f'];
+        $data['sp'] = $request->query()['sp'];
+
+        $query = Student::query();
+        $query = $query->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')->select('hr.ms_student.*');
+        if($data['f'] != 0 && $data['f']){
+            $query = $query->where('sp.faculty_id',$data['f']);
+        }
+        if($data['sp'] != 0 && $data['sp']){
+            $query = $query->where('sp.studyprogram_id',$data['sp']);
+        }
+        // dd($query->get());
+        return datatables($query->get())->toJson();
     }
 }

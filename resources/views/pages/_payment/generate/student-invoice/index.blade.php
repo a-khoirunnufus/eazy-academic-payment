@@ -113,11 +113,19 @@
                 columns: [
                     {
                         name: 'action',
-                        data: 'id',
+                        data: 'year.msy_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            // console.log(row);
-                            return this.template.rowAction(data)
+                            console.log(row);
+                            var sp = 0;
+                            var f = 0;
+                            if(row.study_program){
+                                sp = row.study_program.studyprogram_id;
+                            }
+                            if(row.faculty){
+                                f = row.faculty.faculty_id;
+                            }
+                            return this.template.rowAction(data, f, sp)
                         }
                     },
                     {
@@ -144,7 +152,7 @@
                         render: (data, _, row) => {
                             return `
                                 <div class="${ row.study_program ? 'ps-2' : '' }">
-                                    <a type="button" href="${_baseURL+'/generate/student-invoice-detail'}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
+                                    <a type="button" href="${_baseURL+'/payment/generate/student-invoice/detail'}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
                                 </div>
                             `;
                         }
@@ -227,14 +235,14 @@
             })
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(msy_id,faculty_id,studyprogram_id) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="${_baseURL+'/generate/student-invoice-detail'}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
+                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?msy='+msy_id+'&f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>

@@ -8,6 +8,8 @@ use App\Models\Payment\ComponentType;
 use Illuminate\Support\Facades\DB;
 use App\Models\Studyprogram;
 use App\Models\PeriodPath;
+use App\Models\Period;
+use App\Models\Path;
 
 class SettingsController extends Controller
 {
@@ -15,18 +17,35 @@ class SettingsController extends Controller
     {
         return view('pages._payment.settings.component.index');
     }
-    
+
     public function subjectrates()
     {
         $studyProgram = Studyprogram::all();
         return view('pages._payment.settings.subjectrates.index', compact('studyProgram'));
     }
-    
+
     public function paymentrates()
     {
-        return view('pages._payment.settings.paymentrates.index');
+        $school_years = DB::table('masterdata.ms_school_year')
+            ->select(
+                'msy_id as id',
+                DB::raw("
+                    CASE
+                        WHEN msy_semester = '1' THEN msy_year || ' - Ganjil'
+                        WHEN msy_semester = '2' THEN msy_year || ' - Genap'
+                        ELSE msy_year || ' - ' || msy_semester
+                    END AS text
+                ")
+            )
+            ->orderBy('msy_year', 'ASC')
+            ->orderBy('msy_semester', 'ASC')
+            ->get();
+        $periods = Period::all();
+        $paths = Path::all();
+
+        return view('pages._payment.settings.paymentrates.index', compact('school_years', 'periods', 'paths'));
     }
-    
+
     public function paymentratesdetail($id)
     {
         $data = PeriodPath::with('path','period')->findorfail($id);
