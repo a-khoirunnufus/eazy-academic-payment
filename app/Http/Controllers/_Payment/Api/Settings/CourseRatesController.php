@@ -8,6 +8,7 @@ use App\Models\Studyprogram;
 use App\Models\Course;
 use App\Models\Payment\CourseRate;
 use App\Http\Requests\Payment\Settings\CourseRateRequest;
+use App\Models\Faculty;
 use DB;
 use Exception;
 
@@ -15,8 +16,27 @@ class CourseRatesController extends Controller
 {
     public function index(Request $request)
     {
-        $query = CourseRate::query();
-        $query = $query->with('course')->orderBy('mcr_id');
+        $filters = $request->input('custom_filter');
+        // remove item with null value or #ALL value
+        $filters = array_filter($filters, function($item){
+            return !is_null($item) && $item != '#ALL';
+        });
+
+        // $query = CourseRate::query();
+        $query = CourseRate::with('course');
+        // $query = $query->with('course')->orderBy('mcr_id');
+        // $query = $query->with('course');
+        if(isset($filters['faculty_id'])){
+            $query->whereHas('course.studyProgram', function($q) use ($filters) {
+                $q->where('faculty_id', '=', $filters['faculty_id']);
+            });
+        }
+        if(isset($filters['studyprogram_id'])){
+            $query->whereHas('course', function($q) use ($filters){
+                $q->where('studyprogram_id', '=', $filters['studyprogram_id']);
+            });
+        }
+        $query = $query->orderBy('mcr_id');
         // $query = $this->loadRelation($query, $request, ['faculty']);
         // $query = $this->applyFilter($query, $request, [
         //     'studyprogram_active_status', 'faculty_id'

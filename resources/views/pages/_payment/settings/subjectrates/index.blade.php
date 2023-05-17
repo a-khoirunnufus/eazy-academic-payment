@@ -18,30 +18,31 @@
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'subject-rates'])
+
 <input type="file" name="import" id="myFiles" style="display:none;" onchange="myImport()">
 <div class="card">
     <div class="card-body">
         <div class="rates-per-course-filter">
             <div>
                 <label class="form-label">Fakultas</label>
-                <select class="form-select select2">
-                    <option value="all" selected>Semua Fakultas</option>
-                    @foreach($static_faculties as $faculty)
-                    <option value="{{ $faculty }}">{{ $faculty }}</option>
+                <select class="form-select select2" name="faculty-filter">
+                    <option value="#ALL" selected>Semua Fakultas</option>
+                    @foreach($faculty as $item)
+                    <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
                 <label class="form-label">Program Studi</label>
-                <select class="form-select select2">
-                    <option value="all" selected>Semua Program Studi</option>
-                    @foreach($static_study_programs as $study_program)
-                    <option value="{{ $study_program }}">{{ $study_program }}</option>
+                <select class="form-select select2" name="studyprogram-filter">
+                    <option value="#ALL" selected>Semua Program Studi</option>
+                    @foreach($studyProgram as $item)
+                    <option value="{{ $item->studyprogram_id }}">{{ $item->studyprogram_type." ".$item->studyprogram_name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="_ratesPerCourseTable.reload()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -147,6 +148,12 @@
                 serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/payment/settings/courserates/index',
+                    data: function(d) {
+                        d.custom_filter = {
+                            'studyprogram_id': $('select[name="studyprogram-filter"]').val(),
+                            'faculty_id': $('select[name="faculty-filter"]').val(),
+                        };
+                    }
                 },
                 columns: [{
                         name: 'action',

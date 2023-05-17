@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
+use App\Models\Faculty;
 use Illuminate\Http\Request;
 use App\Models\Payment\ComponentType;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,8 @@ class SettingsController extends Controller
     public function subjectrates()
     {
         $studyProgram = Studyprogram::all();
-        return view('pages._payment.settings.subjectrates.index', compact('studyProgram'));
+        $faculty = Faculty::all();
+        return view('pages._payment.settings.subjectrates.index', compact('studyProgram', 'faculty'));
     }
 
     public function paymentrates()
