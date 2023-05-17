@@ -31,7 +31,7 @@ class PaymentRatesController extends Controller
         $filters = $request->input('custom_filters');
 
         // remove item with null value or #ALL value
-        $filters = array_filter($filters, function($item){
+        $filters = array_filter($filters, function ($item) {
             return !is_null($item) && $item != '#ALL';
         });
 
@@ -40,20 +40,20 @@ class PaymentRatesController extends Controller
 
         $query = PeriodPath::with('major', 'period', 'path');
 
-        if(isset($filters['school_year_id'])) {
-            $query->whereHas('period.schoolyear', function($q) use ($filters) {
+        if (isset($filters['school_year_id'])) {
+            $query->whereHas('period.schoolyear', function ($q) use ($filters) {
                 $q->where('msy_id', '=', $filters['school_year_id']);
             });
         }
 
-        if(isset($filters['period_id'])) {
-            $query->whereHas('period', function($q) use ($filters) {
+        if (isset($filters['period_id'])) {
+            $query->whereHas('period', function ($q) use ($filters) {
                 $q->where('period_id', '=', $filters['period_id']);
             });
         }
 
-        if(isset($filters['path_id'])) {
-            $query->whereHas('path', function($q) use ($filters) {
+        if (isset($filters['path_id'])) {
+            $query->whereHas('path', function ($q) use ($filters) {
                 $q->where('path_id', '=', $filters['path_id']);
             });
         }
@@ -66,57 +66,57 @@ class PaymentRatesController extends Controller
     public function detail($id)
     {
         $query = PeriodPathMajor::query();
-        $query = $query->where('ppd_id',$id)->with('majorLectureType','credit','periodPath')->orderBy('ppm_id');
+        $query = $query->where('ppd_id', $id)->with('majorLectureType', 'credit', 'periodPath')->orderBy('ppm_id');
         $query = $query->get();
         $collection = collect();
-        foreach($query as $item){
+        foreach ($query as $item) {
             $mma_id = 0;
             $mlt_id = 0;
             $path_id = 0;
             $period_id = 0;
-            if($item->majorLectureType){
+            if ($item->majorLectureType) {
                 $mma_id = $item->majorLectureType->mma_id;
                 $mlt_id = $item->majorLectureType->mlt_id;
             }
-            if($item->periodPath){
+            if ($item->periodPath) {
                 $path_id = $item->periodPath->path_id;
                 $period_id = $item->periodPath->period_id;
             }
             $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->get();
-            $data = ['ppm' => $item,'component' => $search];
+            $data = ['ppm' => $item, 'component' => $search];
             $collection->push($data);
         }
         return datatables($collection)->toJson();
     }
-    
+
     public function getComponent()
     {
         $component = Component::all();
         return $component->toJson();
     }
-    
+
     public function getSchema()
     {
         $schema = CreditSchema::all();
         return $schema->toJson();
     }
 
-    public function getSchemaById($ppm_id,$cs_id)
+    public function getSchemaById($ppm_id, $cs_id)
     {
-        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id',$ppm_id)->where('cs_id',$cs_id)->first();
-        if(!$schema){
+        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->first();
+        if (!$schema) {
             $create = CreditSchemaPeriodPath::create([
                 'cs_id' => $cs_id,
                 'ppm_id' => $ppm_id
             ]);
-            $schema = CreditSchemaPeriodPath::with('creditSchema')->where('cspp_id',$create->cspp_id)->first();
+            $schema = CreditSchemaPeriodPath::with('creditSchema')->where('cspp_id', $create->cspp_id)->first();
         }
         return $schema->toJson();
     }
 
-    public function removeSchemaById($ppm_id,$cs_id)
+    public function removeSchemaById($ppm_id, $cs_id)
     {
-        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id',$ppm_id)->where('cs_id',$cs_id)->delete();
+        $schema = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->delete();
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus skema"));
     }
 
@@ -124,11 +124,11 @@ class PaymentRatesController extends Controller
     {
         $validated = $request->validated();
         DB::beginTransaction();
-        try{
-            if(isset($validated['msc_id'])){
+        try {
+            if (isset($validated['msc_id'])) {
                 $count = count($validated['msc_id']);
-                for ($i=0; $i < $count; $i++) { 
-                    if($validated['cd_id'][$i] == 0){
+                for ($i = 0; $i < $count; $i++) {
+                    if ($validated['cd_id'][$i] == 0) {
                         ComponentDetail::create([
                             'mma_id' => $validated['mma_id'][$i],
                             'msc_id' => $validated['msc_id'][$i],
@@ -139,7 +139,7 @@ class PaymentRatesController extends Controller
                             'mlt_id' => $validated['mlt_id'][$i],
                             'ppm_id' => $validated['ppm_id'][$i]
                         ]);
-                    }else{
+                    } else {
                         $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
                         $data->update([
                             'msc_id' => $validated['msc_id'][$i],
@@ -148,10 +148,10 @@ class PaymentRatesController extends Controller
                     }
                 }
             }
-            if(isset($validated['cs_id'])){
-                foreach($validated['cs_id'] as $item){
-                    $data = CreditSchemaPeriodPath::where('cs_id',$item)->where('ppm_id', $validated['main_ppm_id'])->first();
-                    if(!$data){
+            if (isset($validated['cs_id'])) {
+                foreach ($validated['cs_id'] as $item) {
+                    $data = CreditSchemaPeriodPath::where('cs_id', $item)->where('ppm_id', $validated['main_ppm_id'])->first();
+                    if (!$data) {
                         CreditSchemaPeriodPath::create([
                             'cs_id' => $item,
                             'ppm_id' => $validated['main_ppm_id']
@@ -160,16 +160,16 @@ class PaymentRatesController extends Controller
                 }
                 CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
             }
-            if(isset($validated['cse_cs_id'])){
-                foreach($validated['cse_cs_id'] as $key => $item){
-                    $data = CreditSchemaDeadline::where('cs_id',$item)->where('csd_id', $validated['cse_csd_id'][$key])->first();
-                    if(!$data){
+            if (isset($validated['cse_cs_id'])) {
+                foreach ($validated['cse_cs_id'] as $key => $item) {
+                    $data = CreditSchemaDeadline::where('cs_id', $item)->where('csd_id', $validated['cse_csd_id'][$key])->first();
+                    if (!$data) {
                         CreditSchemaDeadline::create([
                             'cs_id' => $item,
                             'csd_id' => $validated['cse_csd_id'][$key],
                             'cse_deadline' => $validated['cse_deadline'][$key],
                         ]);
-                    }else{
+                    } else {
                         $data->update([
                             'cse_deadline' => $validated['cse_deadline'][$key]
                         ]);
@@ -178,13 +178,13 @@ class PaymentRatesController extends Controller
             }
             $text = "Berhasil memperbarui tarif dan pembayaran";
             DB::commit();
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function deleteComponent($id)
     {
         $data = ComponentDetail::findOrFail($id);
@@ -192,7 +192,73 @@ class PaymentRatesController extends Controller
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen"));
     }
-    
+
+    // ppd_id => $id
+    public function import($id, Request $request)
+    {
+        $file = $request->file('file');
+
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        // $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($file->getRealPath());
+
+        $list_data = array();
+        foreach ($spreadsheet->getSheetNames() as $list) {
+            $sheet = $spreadsheet->getSheetByName($list);
+            $dataSheet = $sheet->toArray();
+
+            $data = array();
+            $jenis_perkuliahan = array();
+            $tagihan = array();
+            $cicilan = array();
+            for ($i = 2; $i < count($dataSheet); $i++) {
+                if ($dataSheet[$i][0] != null && $dataSheet[$i][0] != NULL) {
+                    array_push($jenis_perkuliahan, array(
+                        "mlt_id" => $dataSheet[$i][0]
+                    ));
+                }
+                if ($dataSheet[$i][1] != null && $dataSheet[$i][1] != NULL) {
+                    $default_fee = $dataSheet[$i][2] == NULL ? 0 : $dataSheet[$i][2];
+                    array_push($tagihan, array(
+                        "msc_id" => $dataSheet[$i][1],
+                        "fee" => $default_fee
+                    ));
+                }
+                if ($dataSheet[$i][3] != null && $dataSheet[$i][3] != NULL) {
+                    $default_date = $dataSheet[$i][4] == NULL ? date("Y-m-d") : $dataSheet[$i][4];
+                    array_push($cicilan, array(
+                        "cs_id" => $dataSheet[$i][3],
+                        "tenggat" => array($default_date)
+                    ));
+                } else {
+                    $default_date = $dataSheet[$i][4] == NULL ? date("Y-m-d") : $dataSheet[$i][4];
+                    if (count($cicilan) > 0) {
+                        array_push($cicilan[count($cicilan) - 1]["tenggat"], $default_date);
+                    }
+                }
+            }
+            array_push($data, array(
+                "mma_id" => $spreadsheet->getSheetNames()[0],
+                "detail" => array(
+                    "jenis_perkuliahan" => $jenis_perkuliahan,
+                    "komponen_tagihan" => $tagihan,
+                    "cicilan" => $cicilan
+                )
+            ));
+
+            array_push($list_data, $data);
+        }
+
+        //ambil data dari variabel $list_data untuk dimasukkan ke database
+
+        //format response
+        // return json_encode(array(
+        //     'status' => 1, //1 untuk success/true, 0 untuk fail/false
+        //     'message' => 'Berhasil import data' //message menyesuaikan kondisi
+        // ));
+        
+        return json_encode($list_data);
+    }
     // OLD CODE
     // public function store(request $request)
     // {
@@ -215,7 +281,7 @@ class PaymentRatesController extends Controller
     //                 'cs_id' => $validated['cs_id'][$i]
     //             ]);
     //         }
-            
+
     //         $count = count($validated['msc_id']);
     //         for ($i=0; $i < $count; $i++) { 
     //             PaymentComponent::create([
@@ -232,37 +298,41 @@ class PaymentRatesController extends Controller
     //     }
     //     return json_encode(array('success' => true, 'message' => $text));
     // }
-    
+
     public function getPeriod()
     {
         $period = Period::all();
         return $period->toJson();
     }
-    
+
     public function getPath()
     {
         $path = Path::all();
         return $path->toJson();
     }
-    
-    public function getStudyProgram(){
+
+    public function getStudyProgram()
+    {
         $major = Studyprogram::all();
         return $major->toJson();
     }
 
-    public function getLectureType(){
+    public function getLectureType()
+    {
         $lecture = LectureType::all();
         return $lecture->toJson();
     }
 
-    public function getCreditSchema(){
+    public function getCreditSchema()
+    {
         $credit = CreditSchema::all();
         return $credit->toJson();
     }
 
-    public function getRowData($id){
+    public function getRowData($id)
+    {
         $query = PeriodPath::query();
-        $query = $query->with('major','path','period')->where('ppd_id', '=', $id);
+        $query = $query->with('major', 'path', 'period')->where('ppd_id', '=', $id);
         // dd($query->get());
         return datatables($query)->toJson();
     }

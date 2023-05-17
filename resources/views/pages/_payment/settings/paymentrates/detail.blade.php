@@ -18,6 +18,7 @@
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'payment-rates'])
+<input type="file" name="import" id="myFiles" style="display:none;" onchange="myImport()">
 <div class="card">
     <div class="card-body">
         <div class="row align-items-center">
@@ -158,6 +159,9 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
+                    $('.invoice-component-actions').html(`
+                        <button type="button" class="btn btn-success" onclick="importBtn()">Import</button>
+                    `)
                     feather.replace()
                 }
             })
@@ -510,6 +514,43 @@
                 }
             })
         },
+    }
+
+    function myImport() {
+        var x = document.getElementById("myFiles");
+        var txt = "";
+        if ('files' in x) {
+            if (x.files.length > 0) {
+                console.log(x.files[0]);
+                Swal.fire({
+                    title: "Anda Yakin?",
+                    text: "Ingin mengimport data dari file tersebut",
+                    showDenyButton: true,
+                    confirmButtonText: 'Import',
+                    denyButtonText: "Cancel",
+                }).then((result) => {
+                    if(result.isConfirmed) {
+                        var formData = new FormData();
+                        formData.append("file", x.files[0]);
+                        formData.append("_token", "{{ csrf_token() }}");
+                        var xhr = new XMLHttpRequest();
+                        xhr.onload = function(){
+                            var response = JSON.parse(this.responseText);
+                            console.log(response)
+                            // if(response.status){
+                            //     Swal.fire(response.message, '', 'success');
+                            // }
+                        }
+                        xhr.open("POST", _baseURL+'/api/payment/settings/paymentrates/import/{!! $id !!}', true);
+                        xhr.send(formData);
+                    }
+                })
+            }
+        } 
+    }
+
+    function importBtn(){
+        $('#myFiles').click()
     }
 </script>
 @endsection
