@@ -256,8 +256,8 @@ class PaymentRatesController extends Controller
         //     'status' => 1, //1 untuk success/true, 0 untuk fail/false
         //     'message' => 'Berhasil import data' //message menyesuaikan kondisi
         // ));
-        
-        return json_encode($list_data);
+
+        // return json_encode($list_data);
     }
     // OLD CODE
     // public function store(request $request)
