@@ -537,9 +537,9 @@
                         xhr.onload = function(){
                             var response = JSON.parse(this.responseText);
                             console.log(response)
-                            // if(response.status){
-                            //     Swal.fire(response.message, '', 'success');
-                            // }
+                            if(response.status){
+                                Swal.fire(response.message, '', 'success');
+                            }
                         }
                         xhr.open("POST", _baseURL+'/api/payment/settings/paymentrates/import/{!! $id !!}', true);
                         xhr.send(formData);
