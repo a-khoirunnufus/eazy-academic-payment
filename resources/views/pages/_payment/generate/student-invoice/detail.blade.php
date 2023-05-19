@@ -16,7 +16,7 @@
 
 @section('content')
 
-@include('pages.generate._shortcuts', ['active' => null])
+@include('pages._payment.generate._shortcuts', ['active' => null])
 {{-- {{ dd($data) }} --}}
 <div class="card">
     <div class="card-body">
