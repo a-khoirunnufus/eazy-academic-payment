@@ -23,28 +23,28 @@
         <div class="d-flex" style="gap: 2rem">
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Masuk</span>
-                <h5 class="fw-bolder">2020/2021</h5>
+                <h5 class="fw-bolder" id="msy_year"></h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Tagihan</span>
-                <h5 class="fw-bolder">2022/2023 - Ganjil</h5>
+                <h5 class="fw-bolder" id="active"></h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Fakultas</span>
-                <h5 class="fw-bolder">Fakultas Informatika</h5>
+                <h5 class="fw-bolder" id="faculty"></h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Program Studi</span>
-                <h5 class="fw-bolder">S1 Rekayasa Perangkat Lunak</h5>
+                <h5 class="fw-bolder" id="study_program"></h5>
             </div>
-            <div class="flex-grow-1">
+            {{-- <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Sistem Kuliah</span>
                 <h5 class="fw-bolder">Reguler</h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Angkatan</span>
                 <h5 class="fw-bolder">Angkatan 2021</h5>
-            </div>
+            </div> --}}
         </div>
     </div>
 </div>
@@ -55,7 +55,8 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Nama / NIM</th>
-                {{-- <th>Total / Rincian Tagihan</th> --}}
+                <th>Jalur Masuk / Jenis Perkuliahan</th>
+                <th>Total / Rincian Tagihan</th>
                 <th>Status Mahasiswa</th>
             </tr>
         </thead>
@@ -68,6 +69,12 @@
 @section('js_section')
 <script>
     $(function(){
+        $.get(_baseURL + '/api/payment/generate/student-invoice/header?msy={!! $data["msy"] !!}&f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
+            $('#active').html(d.active);
+            $('#faculty').html(d.faculty);
+            $('#msy_year').html(d.msy_year);
+            $('#study_program').html(d.study_program);
+        })
         _studentInvoiceDetailTable.init()
     })
 
@@ -85,7 +92,7 @@
                         data: 'id',
                         orderable: false,
                         render: (data, _, row) => {
-                            console.log(row);
+                            // console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
@@ -96,6 +103,17 @@
                                 <div>
                                     <span class="text-nowrap fw-bold">${row.fullname}</span><br>
                                     <small class="text-nowrap text-secondary">${row.student_id}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'lecture_type.mlt_name', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${(row.period.period_name) ? row.period.period_name : ""}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.lecture_type.mlt_name}</small>
                                 </div>
                             `;
                         }

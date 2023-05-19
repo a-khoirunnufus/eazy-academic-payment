@@ -14,6 +14,12 @@ class Studyprogram extends Model
     protected $primaryKey = 'studyprogram_id';
 
     protected $fillable = [
-        'studyprogram_name', 'studyprogram_name_english'
+        'faculty_id','studyprogram_name', 'studyprogram_name_english'
     ];
+    
+    public function faculty()
+    {
+        return $this->belongsTo(Faculty::class, 'faculty_id','faculty_id');
+    }
+    
 }

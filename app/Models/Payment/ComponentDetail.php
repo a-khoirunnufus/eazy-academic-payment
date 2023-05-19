@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Path;
 use App\Models\Period;
-use App\Models\lectureType;
+use App\Models\LectureType;
 
 class ComponentDetail extends Model
 {
@@ -41,7 +41,7 @@ class ComponentDetail extends Model
     
     public function lectureType()
     {
-        return $this->belongsTo(lectureType::class, 'mlt_id','mlt_id');
+        return $this->belongsTo(LectureType::class, 'mlt_id','mlt_id');
     }
 }
 												

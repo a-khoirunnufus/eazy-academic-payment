@@ -24,7 +24,7 @@ class MajorLectureType extends Model
     
     public function lectureType()
     {
-        return $this->belongsTo(lectureType::class, 'mlt_id','mlt_id');
+        return $this->belongsTo(LectureType::class, 'mlt_id','mlt_id');
     }
     
     

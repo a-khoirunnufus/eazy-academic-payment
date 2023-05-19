@@ -8,7 +8,10 @@ use App\Models\Studyprogram;
 use App\Models\Faculty;
 use App\Models\PeriodPath;
 use App\Models\Student;
+use App\Models\ActiveYear;
+use App\Models\Year;
 use App\Models\Payment\ComponentDetail;
+use Carbon\Carbon;
 
 class StudentInvoiceController extends Controller
 {
@@ -44,16 +47,52 @@ class StudentInvoiceController extends Controller
         $data['msy'] = $request->query()['msy'];
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
-
         $query = Student::query();
-        $query = $query->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')->select('hr.ms_student.*');
+        $query = $query->with('lectureType','period')
+        ->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')
+        
+        ->select('hr.ms_student.*');
         if($data['f'] != 0 && $data['f']){
             $query = $query->where('sp.faculty_id',$data['f']);
         }
         if($data['sp'] != 0 && $data['sp']){
             $query = $query->where('sp.studyprogram_id',$data['sp']);
         }
+        if($data['msy'] != 0 && $data['msy']){
+            $query = $query->where('msy_id',$data['msy']);
+        }
         // dd($query->get());
         return datatables($query->get())->toJson();
+    }
+
+    // MANUAL
+    public function getActiveSchoolYear(){
+        return "2022/2023 - Ganjil";
+    }
+    
+    public function header(Request $request){
+        // dd($request);
+        $data['msy'] = $request->query()['msy'];
+        $data['f'] = $request->query()['f'];
+        $data['sp'] = $request->query()['sp'];
+
+        // dd($data);
+        $faculty = Faculty::find($data['f']);
+        $studyProgram = Studyprogram::with('faculty')->find($data['sp']);
+        $date = Carbon::today()->toDateString();
+        $activeSchoolYear = $this->getActiveSchoolYear();
+        $msy_year = Year::find($data['msy']);
+
+        if($faculty){
+            $header['faculty'] = $faculty->faculty_name;
+        }else{
+            $header['faculty'] = $studyProgram->faculty->faculty_name;
+        }
+        $header['study_program'] = $studyProgram->studyprogram_type.' '.$studyProgram->studyprogram_name;
+        $header['msy_year'] = $msy_year->msy_year;
+        $header['active'] = $activeSchoolYear;
+
+        // dd($query->get());
+        return $header;
     }
 }
