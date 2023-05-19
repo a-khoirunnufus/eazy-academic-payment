@@ -31,11 +31,12 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('courserates/course/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@getMataKuliah');
         Route::get('courserates/getbycourseid/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@getCourseRateByCourseId');
         Route::post('courserates/store', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@store');
-        Route::delete('courserates/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@delete');
+        Route::post('courserates/import', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@import');
 
         Route::get('paymentrates/index', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@index');
         Route::get('paymentrates/getrowdata/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getRowData');
         Route::get('paymentrates/detail/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@detail');
+        Route::post('paymentrates/import/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@import');
         Route::get('paymentrates/period', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getPeriod');
         Route::get('paymentrates/path', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getPath');
         Route::get('paymentrates/component', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getComponent');
@@ -58,7 +59,12 @@ Route::group(['prefix' => 'payment'], function(){
     });
 
     Route::group(['prefix' => 'generate'], function(){
-        Route::get('new-student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@index');
+        // New Student Invoice
+        Route::get('new-student-invoice/get-period-path', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getPeriodPath');
+        Route::get('new-student-invoice/get-faculties', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getFaculties');
+        Route::get('new-student-invoice/get-studyprograms-lecture-types', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudyprogramsLectureTypes');
+        Route::get('new-student-invoice/get-students', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudents');
+        Route::get('new-student-invoice/get-student-count', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudentCount');
 
         Route::get('student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@index');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@detail');

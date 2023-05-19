@@ -5,92 +5,44 @@
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
-@section('css_section')
-<style>
-    .rates-filter {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-gap: 1rem;
-    }
-</style>
-@endsection
-
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'payment-rates'])
 
 <div class="card">
     <div class="card-body">
-        <div class="d-flex flex-column" style="gap: 2rem">
-            <div class="rates-filter" style="flex-grow: 1">
-                <div>
-                    <label class="form-label">Periode Masuk</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Periode Masuk</option>
-                        @foreach($static_school_years as $school_year)
-                        <option value="{{ $school_year }}">{{ $school_year }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Gelombang</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Gelombang</option>
-                        @foreach($static_registration_periods as $registration_period)
-                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Jalur Pendaftaran</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Jalur Pendaftaran</option>
-                        @foreach($static_registration_paths as $registration_path)
-                        <option value="{{ $registration_path }}">{{ $registration_path }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Sistem Kuliah</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Sistem Kuliah</option>
-                        @foreach($static_study_systems as $study_system)
-                        <option value="{{ $study_system }}">{{ $study_system }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Fakultas</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Fakultas</option>
-                        @foreach($static_faculties as $faculty)
-                        <option value="{{ $faculty }}">{{ $faculty }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Program Studi</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Program Studi</option>
-                        @foreach($static_study_programs as $study_program)
-                        <option value="{{ $study_program }}">{{ $study_program }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Komponen Tagihan</label>
-                    <select class="form-select">
-                        <option value="all" selected>Semua Komponen Tagihan</option>
-                        @foreach($static_invoice_components as $invoice_component)
-                        <option value="{{ $invoice_component }}">{{ $invoice_component }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="d-flex align-items-end">
-                    <button class="btn btn-primary">
-                        <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                    </button>
-                </div>
+        <div class="datatable-filter one-row">
+            <div>
+                <label class="form-label">Tahun Ajaran dan Semester</label>
+                <select name="filter-school-year" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Tahun Ajaran dan Semester</option>
+                    @foreach($school_years as $school_year)
+                        <option value="{{ $school_year->id }}">{{ $school_year->text }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Periode Masuk</label>
+                <select name="filter-period" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Periode Masuk</option>
+                    @foreach($periods as $period)
+                        <option value="{{ $period->period_id }}">{{ $period->period_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Jalur dan Gelombang</label>
+                <select name="filter-path" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Jalur dan Gelombang</option>
+                    @foreach($paths as $path)
+                        <option value="{{ $path->path_id }}">{{ $path->path_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button onclick="_ratesTable.reload()" class="btn btn-primary text-nowrap">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
             </div>
         </div>
     </div>
@@ -135,6 +87,13 @@
                 serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/payment/settings/paymentrates/index',
+                    data: function(d) {
+                        d.custom_filters = {
+                            'school_year_id': $('select[name="filter-school-year"]').val(),
+                            'period_id': $('select[name="filter-period"]').val(),
+                            'path_id': $('select[name="filter-path"]').val(),
+                        };
+                    }
                 },
                 columns: [{
                         name: 'action',
