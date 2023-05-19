@@ -78,7 +78,11 @@ class StudentInvoiceController extends Controller
 
         // dd($data);
         $faculty = Faculty::find($data['f']);
-        $studyProgram = Studyprogram::with('faculty')->find($data['sp']);
+        if($data['sp'] != 0){
+            $studyProgram = Studyprogram::with('faculty')->find($data['sp']);
+        }else{
+            $studyProgram = "-";
+        }
         $date = Carbon::today()->toDateString();
         $activeSchoolYear = $this->getActiveSchoolYear();
         $msy_year = Year::find($data['msy']);
@@ -88,7 +92,7 @@ class StudentInvoiceController extends Controller
         }else{
             $header['faculty'] = $studyProgram->faculty->faculty_name;
         }
-        $header['study_program'] = $studyProgram->studyprogram_type.' '.$studyProgram->studyprogram_name;
+        $header['study_program'] = ($data['sp'] != 0) ? $studyProgram->studyprogram_type.' '.$studyProgram->studyprogram_name : $studyProgram;
         $header['msy_year'] = $msy_year->msy_year;
         $header['active'] = $activeSchoolYear;
 
