@@ -9,8 +9,8 @@
     <meta name="keywords" content="">
     <meta name="author" content="Bandung Techno Park">
     <title>@yield('page_title') | EAZY</title>
-    <link rel="apple-touch-icon" href="https://assets.eazy.id/images/logo-eazy-icon-small.png">
-    <link rel="shortcut icon" type="image/x-icon" href="https://assets.eazy.id/images/logo-eazy-icon-small.png">
+    <link rel="apple-touch-icon" href="{{ env('ASSET_URL') }}/images/logo-eazy-icon-small.png">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ env('ASSET_URL') }}/images/logo-eazy-icon-small.png">
 
     <!-- fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600" rel="stylesheet">
@@ -19,24 +19,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.0.96/css/materialdesignicons.min.css" integrity="sha512-fXnjLwoVZ01NUqS/7G5kAnhXNXat6v7e3M9PhoMHOTARUMCaf5qNO84r5x9AFf5HDzm3rEZD8sb/n6dZ19SzFA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- plugins -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/forms/select/select2.min.css">    
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/tables/datatable/responsive.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/tables/datatable/buttons.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/tables/datatable/rowGroup.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/pickers/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/forms/select/select2.min.css">    
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/tables/datatable/responsive.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/tables/datatable/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/tables/datatable/rowGroup.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/pickers/flatpickr/flatpickr.min.css">
     <!-- template -->
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/vendors.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/bootstrap-extended.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/colors.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/components.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/themes/dark-layout.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/themes/bordered-layout.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/themes/semi-dark-layout.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/core/menu/menu-types/vertical-menu.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/vendors.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/bootstrap-extended.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/colors.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/components.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/themes/dark-layout.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/themes/bordered-layout.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/themes/semi-dark-layout.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/core/menu/menu-types/vertical-menu.css">
     <!-- plugins (must below template) -->
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/vendors/css/extensions/toastr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://assets.eazy.id/themes/vuexy/css/plugins/extensions/ext-component-toastr.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/vendors/css/extensions/toastr.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ env('ASSET_URL') }}/themes/vuexy/css/plugins/extensions/ext-component-toastr.css">
     
     <link rel="stylesheet" type="text/css" href="{{ url('css/style.css') }}?version={{ config('version.css_style') }}">
     
@@ -131,13 +131,13 @@
     </footer>
     
     <!-- TEMPLATE VENDOR -->
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/vendors.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/vendors.min.js"></script>
 
     <!-- EXTENSIONS -->
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/extensions/toastr.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/forms/select/select2.full.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/forms/validation/jquery.validate.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/extensions/toastr.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/forms/select/select2.full.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/forms/validation/jquery.validate.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/2.0.13/autoNumeric.min.js" integrity="sha512-IOt1IqHe4gQXHlRHQv9HWp/771RdI6dATdXaNq63pByU1zKa0tohtVg11/GWinzGJkbrZBkhtEsa8LqFmvI1Fw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
@@ -149,20 +149,20 @@
     <!-- datatable stuff -->
     <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/responsive.bootstrap5.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/jszip.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/pdfmake.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/vfs_fonts.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/buttons.html5.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/buttons.print.min.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/responsive.bootstrap5.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/jszip.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/pdfmake.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/vfs_fonts.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/buttons.html5.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/buttons.print.min.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
     <!-- Extention applicators -->
-    <script src="https://assets.eazy.id/themes/vuexy/js/core/app-menu.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/js/core/app.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/js/core/jquery.uniform.js"></script>
-    <script src="https://assets.eazy.id/themes/vuexy/js/scripts/forms/form-select2.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/js/core/app-menu.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/js/core/app.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/js/core/jquery.uniform.js"></script>
+    <script src="{{ env('ASSET_URL') }}/themes/vuexy/js/scripts/forms/form-select2.js"></script>
     <!-- Custom things -->
     <script>
         const _baseURL = "{{ url('/') }}"
