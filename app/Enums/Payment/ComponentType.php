@@ -1,6 +1,6 @@
 <?php
   
-namespace App\Payment\Enums;
+namespace App\Enums\Payment;
  
 enum ComponentType:int {
     case Default = 1;

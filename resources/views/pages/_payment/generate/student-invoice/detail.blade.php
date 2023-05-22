@@ -88,7 +88,7 @@
                         data: 'student_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            console.log(row);
+                            // console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
@@ -133,7 +133,7 @@
                         render: (data, _, row) => {
                             return `
                                 <div>
-                                    <a href="" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
+                                    <a  onclick="_studentInvoiceDetailTableAction.detail(event)" href="javascript:void(0);" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
                                 </div>
                             `;
                         }
@@ -189,7 +189,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_studentInvoiceDetailTableAction.detail(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
-                            <a onclick="_studentInvoiceDetailTableAction.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>
+                            <a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>
                             <a onclick="_studentInvoiceDetailTableAction.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
                         </div>
                     </div>
@@ -230,55 +230,72 @@
         tableRef: _studentInvoiceDetailTable,
         detail: function(e) {
             const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
-
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Mahasiswa',
-                modalSize: 'md',
+                modalSize: 'lg',
                 config: {
                     fields: {
-                        fullname: {
-                            title: 'Nama Lengkap',
+                        header: {
+                            type: 'custom-field',
+                            title: 'Data Mahasiswa',
                             content: {
-                                template: ':text',
-                                text: data.fullname,
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Nama Lengkap</h6>
+                                            <h1 class="h6 fw-bolder">${data.fullname}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>NIM</h6>
+                                            <h1 class="h6 fw-bolder">${data.student_id}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>No Handphone</h6>
+                                            <h1 class="h6 fw-bolder">${data.phone_number}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Status Pembayaran</h6>
+                                            <h1 class="h6 fw-bolder" id="statusPembayaran"></h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
                             },
                         },
-                        nik: {
-                            title: 'NIK',
+                        tagihan: {
+                            type: 'custom-field',
+                            title: 'Detail Tagihan',
                             content: {
-                                template: ':text',
-                                text: data.nik,
-                            }
+                                template: `
+                                    <table class="table table-bordered" id="paymentDetail" style="line-height: 3">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Komponen Tagihan</th>
+                                            <th class="text-center">Harga</th>
+                                        </tr>
+                                        
+                                    </table>
+                                `
+                            },
                         },
-                        phone: {
-                            title: 'No HP',
+                        bill: {
+                            type: 'custom-field',
+                            title: 'Riwayat Transaksi',
                             content: {
-                                template: ':text',
-                                text: data.phone_number,
-                            }
-                        },
-                        birth: {
-                            title: 'TTL',
-                            content: {
-                                template: ':birthplace, :birthday',
-                                birthplace: data.birthplace,
-                                birthday: data.birthdate,
-                            }
-                        },
-                        gender: {
-                            title: 'Jenis Kelamin',
-                            content: {
-                                template: ':text',
-                                text: data.gender,
-                            }
-                        },
-                        religion: {
-                            title: 'Agama',
-                            content: {
-                                template: ':text',
-                                text: data.religion,
-                            }
+                                template: `
+                                    <table class="table table-bordered" id="paymentBill">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Invoice ID</th>
+                                            <th class="text-center">Expired Date</th>
+                                            <th class="text-center">Amount</th>
+                                            <th class="text-center">Fee</th>
+                                            <th class="text-center">Paid Date</th>
+                                            <th class="text-center">Status</th>
+                                        </tr>
+                                    </table>
+                                `
+                            },
                         },
                     },
                     callback: function() {
@@ -286,11 +303,121 @@
                     }
                 },
             });
+            if(data.payment){
+                
+                // Status
+                var status = "";
+                if(data.payment){
+                    if(data.payment.prr_status == 'lunas'){
+                        status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                    }else{
+                        status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                    }
+                }
+                $("#statusPembayaran").append(status);
+
+                // Tagihan
+                var total = 0;
+                if (Object.keys(data.payment.payment_detail).length > 0) {
+                    data.payment.payment_detail.map(item => {
+                        total = total+item.prrd_amount;
+                        _studentInvoiceDetailTableAction.rowDetail(item.prrd_component, item.prrd_amount,'paymentDetail');
+                    });
+                }
+                $("#paymentDetail").append(`
+                    <tr class="bg-light">
+                        <td class="text-center fw-bolder">Total Tagihan</td>
+                        <td class="text-center fw-bolder">${Rupiah.format(total)}</td>
+                    </tr>
+                `);
+                $("#paymentDetail").append(`
+                    <tr class="bg-light">
+                        <td class="text-center fw-bolder">Eazy Service</td>
+                        <td class="text-center" style="color:red!important">-${Rupiah.format({{ \App\Enums\Payment\FeeAmount::eazy }})}</td>
+                    </tr>
+                `);
+                $("#paymentDetail").append(`
+                    <tr style="background-color:#163485">
+                        <td class="text-center fw-bolder" style="color:white!important">Total yang Diterima</td>
+                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_paid_net)}</td>
+                    </tr>
+                `);
+
+                var total_terbayar = 0;
+                if (Object.keys(data.payment.payment_bill).length > 0) {
+                    $("#paymentDetail").append(`
+                        <tr class="bg-light">
+                            <td class="text-center fw-bolder" colspan="2">Fee</th>
+                        </tr>
+                    `);
+                    data.payment.payment_bill.map(item => {
+                        if(item.prrb_status == "lunas"){
+                            total_terbayar = total_terbayar + item.prrb_amount+item.prrb_admin_cost;
+                        }
+                        _studentInvoiceDetailTableAction.rowDetail('Biaya Transaksi - INV.'+item.prrb_invoice_num, item.prrb_admin_cost,'paymentDetail');
+                    });
+                }
+                $("#paymentDetail").append(`
+                    <tr style="background-color:#163485">
+                        <td class="text-center fw-bolder" style="color:white!important">Total yang Harus Dibayarkan</td>
+                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_total)}</td>
+                    </tr>
+                `);
+                $("#paymentDetail").append(`
+                    <tr class="bg-success">
+                        <td class="text-center fw-bolder" style="color:white!important">Total Terbayar</td>
+                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(total_terbayar)}</td>
+                    </tr>
+                `);
+
+
+                // Transaksi
+                if (Object.keys(data.payment.payment_bill).length > 0) {
+                    data.payment.payment_bill.map(item => {
+                        _studentInvoiceDetailTableAction.rowBill(item.prrb_invoice_num,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
+                    });
+                }
+            }
+            
         },
-        generate: function() {
+        rowDetail(name,amount,id){
+            $("#"+id+"").append(`
+                <tr>
+                    <td class="text-center fw-bolder">${name}</td>
+                    <td class="text-center">${Rupiah.format(amount)}</td>
+                </tr>
+            `)
+        },
+        rowBill(inv_num,expired_date,paid_date,amount,fee,status,id){
+            var stat = "";
+            var expired = "";
+            var paid = "";
+            if(status == 'lunas'){
+                stat = '<div class="badge badge-small bg-success" style="padding: 5px!important;">Lunas</div>';
+                expired = '-';
+                paid = (new Date(paid_date)).toLocaleString();
+            }else{
+                stat = '<div class="badge bg-danger" style="padding: 5px!important;">Belum Lunas</div>';
+                expired = (new Date(expired_date)).toLocaleString();
+                paid = '-';
+            }
+            $("#"+id+"").append(`
+                <tr>
+                    <td class="text-center fw-bolder">${inv_num}</td>
+                    <td class="text-center">${expired}</td>
+                    <td class="text-center">${Rupiah.format(amount)}</td>
+                    <td class="text-center">${Rupiah.format(fee)}</td>
+                    <td class="text-center">${paid}</td>
+                    <td class="text-center">${stat}</td>
+                </tr>
+            `)
+        },
+        
+        generate: function(e) {
+            let data = _studentInvoiceDetailTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan mahasiswa ini?',
+                text: 'Apakah anda yakin ingin generate tagihan mahasiswa '+data.fullname+' ?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#356CFF',

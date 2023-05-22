@@ -16,4 +16,14 @@ class Payment extends Model
     protected $primaryKey = 'prr_id';
 
     protected $fillable = ['reg_id', 'prr_status','prr_method','prr_total','prr_paid_net','student_number'];
+    
+    public function paymentDetail()
+    {
+        return $this->hasMany(PaymentDetail::class, 'prr_id', 'prr_id')->orderBy('prrd_id', 'asc');
+    }
+    
+    public function paymentBill()
+    {
+        return $this->hasMany(PaymentBill::class, 'prr_id', 'prr_id')->orderBy('prrb_id', 'asc');
+    }
 }

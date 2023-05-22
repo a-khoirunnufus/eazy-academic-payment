@@ -38,6 +38,6 @@ class Student extends Model
     
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'student_number','student_number');
+        return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill');
     }
 }
