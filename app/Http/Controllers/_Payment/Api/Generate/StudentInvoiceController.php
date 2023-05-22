@@ -15,27 +15,18 @@ use Carbon\Carbon;
 
 class StudentInvoiceController extends Controller
 {
-    public function index($msy_id = 7){
+    public function index(){
         
         $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
-        $year = PeriodPath::join('masterdata.ms_period as mp','mp.period_id','masterdata.period_path.period_id')
-        ->join('masterdata.ms_school_year as sy','sy.msy_id','mp.msy_id')
-        ->select('sy.msy_id','sy.msy_year','sy.msy_semester')->distinct('mp.msy_id')->get();
-        $rates = ComponentDetail::with('period','path','lectureType')
-        ->selectRaw('mma_id,period_id,path_id,SUM(cd_fee) as total,msy_id,mlt_id')
-        ->groupBy('mma_id','period_id','path_id','msy_id','mlt_id')->get();
         $result = collect();
-        foreach($year as $y){
-            foreach($query as $item){
-                $collection = collect();
-                $data = ['year' => $y,'faculty' => $item,'study_program' => null,'components' => null];
-                $result->push($data);
-                if($item->studyProgram){
-                    foreach($item->studyProgram as $sp){
-                        $rate = $rates->where('mma_id',$sp->studyprogram_id)->where('msy_id',$y->msy_id);
-                        $data = ['year' => $y,'faculty' => null,'study_program' => $sp,'components' => $rate];
-                        $result->push($data);
-                    }
+        foreach($query as $item){
+            $collection = collect();
+            $data = ['faculty' => $item,'study_program' => null,'total' => null];
+            $result->push($data);
+            if($item->studyProgram){
+                foreach($item->studyProgram as $sp){
+                    $data = ['faculty' => null,'study_program' => $sp,'total' => null];
+                    $result->push($data);
                 }
             }
         }
@@ -44,11 +35,10 @@ class StudentInvoiceController extends Controller
 
     public function detail(Request $request){
         // dd($request);
-        $data['msy'] = $request->query()['msy'];
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
         $query = Student::query();
-        $query = $query->with('lectureType','period')
+        $query = $query->with('lectureType','period','payment')
         ->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')
         
         ->select('hr.ms_student.*');
@@ -57,9 +47,6 @@ class StudentInvoiceController extends Controller
         }
         if($data['sp'] != 0 && $data['sp']){
             $query = $query->where('sp.studyprogram_id',$data['sp']);
-        }
-        if($data['msy'] != 0 && $data['msy']){
-            $query = $query->where('msy_id',$data['msy']);
         }
         // dd($query->get());
         return datatables($query->get())->toJson();
@@ -72,7 +59,6 @@ class StudentInvoiceController extends Controller
     
     public function header(Request $request){
         // dd($request);
-        $data['msy'] = $request->query()['msy'];
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
 
@@ -85,7 +71,6 @@ class StudentInvoiceController extends Controller
         }
         $date = Carbon::today()->toDateString();
         $activeSchoolYear = $this->getActiveSchoolYear();
-        $msy_year = Year::find($data['msy']);
 
         if($faculty){
             $header['faculty'] = $faculty->faculty_name;
@@ -93,7 +78,6 @@ class StudentInvoiceController extends Controller
             $header['faculty'] = $studyProgram->faculty->faculty_name;
         }
         $header['study_program'] = ($data['sp'] != 0) ? $studyProgram->studyprogram_type.' '.$studyProgram->studyprogram_name : $studyProgram;
-        $header['msy_year'] = $msy_year->msy_year;
         $header['active'] = $activeSchoolYear;
 
         // dd($query->get());

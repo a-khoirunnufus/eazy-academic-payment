@@ -4,9 +4,6 @@ namespace App\Http\Controllers\_Payment\Api\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Payment\PaymentRate;
-use App\Models\Payment\PaymentCredit;
-use App\Models\Payment\PaymentComponent;
 use App\Models\Payment\Component;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\CreditSchema;

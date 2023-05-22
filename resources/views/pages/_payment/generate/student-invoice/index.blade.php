@@ -83,9 +83,8 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Periode Masuk</th>
                 <th>Program Studi / Fakultas</th>
-                <th>Tagihan</th>
+                <th>Total Pembayaran</th>
                 {{-- <th rowspan="2">Jumlah Total</th> --}}
             </tr>
             
@@ -113,7 +112,6 @@
                 columns: [
                     {
                         name: 'action',
-                        data: 'year.msy_id',
                         orderable: false,
                         render: (data, _, row) => {
                             console.log(row);
@@ -125,25 +123,7 @@
                             if(row.faculty){
                                 f = row.faculty.faculty_id;
                             }
-                            return this.template.rowAction(data, f, sp)
-                        }
-                    },
-                    {
-                        name: 'year.msy_year', 
-                        searchable: true,
-                        render: (data, _, row) => {
-                            var semester = "Unknown";
-                            if(row.year.msy_semester == 1){
-                                semester = "Ganjil";
-                            }else{
-                                semester = "Genap";
-                            }
-                            return `
-                                <div>
-                                    <span class="fw-bold">${row.year.msy_year}</span><br>
-                                    <small class="text-secondary">${semester}</small>
-                                </div>
-                            `;
+                            return this.template.rowAction(f, sp)
                         }
                     },
                     {
@@ -157,46 +137,46 @@
                             `;
                         }
                     },
-                    {
-                        name: 'components', 
-                        searchable: true,
-                        render: (data, _, row) => {
-                            let html = '<div class="d-flex flex-wrap" style="gap:10px">';
-                            if(row.components){
-                                if(Object.keys(row.components).length > 0){
-                                    for (const key in row.components) {
-                                        // console.log(`${key}: ${row.components[key]}`);
-                                        var path = "Unknown";
-                                        var period = "Unknown";
-                                        var lecture_type = "Unknown";
-                                        if(row.components[key].path){
-                                            path = row.components[key].path.path_name;
-                                        }
-                                        if(row.components[key].period){
-                                            period = row.components[key].period.period_name;
-                                        }
-                                        if(row.components[key].lecture_type){
-                                            lecture_type = row.components[key].lecture_type.mlt_name;
-                                        }
-                                        html += `<span class="badge bg-primary">${lecture_type} (${path}) - ${period}: ${Rupiah.format(row.components[key].total)}</span>`;
-                                    }
-                                }else{
-                                    if(row.study_program){
-                                        html += `<a href="{!! route('payment.settings.payment-rates') !!}" target="_blank"> Atur Tagihan Disini </a>`;
-                                    }
-                                }
-                            }
-                            html += '</div>';
-                            return html;
-                        }
-                    },
                     // {
-                    //     name: 'penalty', 
-                    //     data: 'penalty',
-                    //     render: (data) => {
-                    //         return Rupiah.format(data)
+                    //     name: 'components', 
+                    //     searchable: true,
+                    //     render: (data, _, row) => {
+                    //         let html = '<div class="d-flex flex-wrap" style="gap:10px">';
+                    //         if(row.components){
+                    //             if(Object.keys(row.components).length > 0){
+                    //                 for (const key in row.components) {
+                    //                     // console.log(`${key}: ${row.components[key]}`);
+                    //                     var path = "Unknown";
+                    //                     var period = "Unknown";
+                    //                     var lecture_type = "Unknown";
+                    //                     if(row.components[key].path){
+                    //                         path = row.components[key].path.path_name;
+                    //                     }
+                    //                     if(row.components[key].period){
+                    //                         period = row.components[key].period.period_name;
+                    //                     }
+                    //                     if(row.components[key].lecture_type){
+                    //                         lecture_type = row.components[key].lecture_type.mlt_name;
+                    //                     }
+                    //                     html += `<span class="badge bg-primary">${lecture_type} (${path}) - ${period}: ${Rupiah.format(row.components[key].total)}</span>`;
+                    //                 }
+                    //             }else{
+                    //                 if(row.study_program){
+                    //                     html += `<a href="{!! route('payment.settings.payment-rates') !!}" target="_blank"> Atur Tagihan Disini </a>`;
+                    //                 }
+                    //             }
+                    //         }
+                    //         html += '</div>';
+                    //         return html;
                     //     }
                     // },
+                    {
+                        name: 'total', 
+                        data: 'total',
+                        render: (data) => {
+                            return Rupiah.format(1000000000)
+                        }
+                    },
                     // {
                     //     name: 'discount', 
                     //     data: 'discount',
@@ -235,14 +215,14 @@
             })
         },
         template: {
-            rowAction: function(msy_id,faculty_id,studyprogram_id) {
+            rowAction: function(faculty_id,studyprogram_id) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?msy='+msy_id+'&f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
+                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>

@@ -14,7 +14,6 @@ class GenerateController extends Controller
 
     public function StudentInvoiceDetail(Request $request)
     {
-        $data['msy'] = $request->query()['msy'];
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
 

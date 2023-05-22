@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Payment\ComponentDetail;
+use App\Models\Payment\Payment;
 use App\Models\LectureType;
 use App\Models\Period;
 
@@ -33,5 +34,10 @@ class Student extends Model
     public function componentDetail()
     {
         return $this->hasMany(ComponentDetail::class, 'studyprogram_id','mma_id')->orderBy('cd_id','asc')->with('component');
+    }
+    
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class, 'student_number','student_number');
     }
 }

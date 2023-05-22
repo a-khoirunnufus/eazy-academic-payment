@@ -22,10 +22,6 @@
     <div class="card-body">
         <div class="d-flex" style="gap: 2rem">
             <div class="flex-grow-1">
-                <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Masuk</span>
-                <h5 class="fw-bolder" id="msy_year"></h5>
-            </div>
-            <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Tagihan</span>
                 <h5 class="fw-bolder" id="active"></h5>
             </div>
@@ -56,8 +52,9 @@
                 <th class="text-center">Aksi</th>
                 <th>Nama / NIM</th>
                 <th>Jalur Masuk / Jenis Perkuliahan</th>
-                <th>Total / Rincian Tagihan</th>
-                <th>Status Mahasiswa</th>
+                <th class="text-center">Status Mahasiswa</th>
+                <th>Total Tagihan</th>
+                <th class="text-center">Status Tagihan</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -69,10 +66,9 @@
 @section('js_section')
 <script>
     $(function(){
-        $.get(_baseURL + '/api/payment/generate/student-invoice/header?msy={!! $data["msy"] !!}&f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
+        $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
             $('#active').html(d.active);
             $('#faculty').html(d.faculty);
-            $('#msy_year').html(d.msy_year);
             $('#study_program').html(d.study_program);
         })
         _studentInvoiceDetailTable.init()
@@ -84,15 +80,15 @@
             this.instance = $('#student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/generate/student-invoice/detail?msy={!! $data["msy"] !!}&f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
+                    url: _baseURL+'/api/payment/generate/student-invoice/detail?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
                 },
                 columns: [
                     {
                         name: 'action',
-                        data: 'id',
+                        data: 'student_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            // console.log(row);
+                            console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
@@ -112,18 +108,12 @@
                         render: (data, _, row) => {
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${(row.period.period_name) ? row.period.period_name : ""}</span><br>
-                                    <small class="text-nowrap text-secondary">${row.lecture_type.mlt_name}</small>
+                                    <span class="text-nowrap fw-bold">${(row.period) ? row.period.period_name : "-"}</span><br>
+                                    <small class="text-nowrap text-secondary">${(row.lecture_type) ? row.lecture_type.mlt_name : "-"}</small>
                                 </div>
                             `;
                         }
                     },
-                    // {
-                    //     name: 'invoice', 
-                    //     render: (data, _, row) => {
-                    //         return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
-                    //     }    
-                    // },
                     {
                         name: 'student_status', 
                         data: 'student_status',
@@ -136,6 +126,34 @@
                             }
                             html += '</div>'
                             return html
+                        }
+                    },
+                    {
+                        name: 'payment.prr_id', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <a href="" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        name: 'payment.prr_id', 
+                        render: (data, _, row) => {
+                            var status = "";
+                            if(row.payment){
+                                if(row.payment.prr_status == 'lunas'){
+                                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                                }else{
+                                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                                }
+                            }
+                            return `
+                                <div class="d-flex justify-content-center">
+                                    ${status}
+                                </div>
+                            `;
                         }
                     },
                 ],
