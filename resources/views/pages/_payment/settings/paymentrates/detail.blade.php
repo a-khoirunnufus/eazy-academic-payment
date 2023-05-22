@@ -6,13 +6,13 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .rates-filter {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-gap: 1rem;
-        }
-    </style>
+<style>
+    .rates-filter {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-gap: 1rem;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -68,7 +68,7 @@
     var dataCopy = null;
     var idIncrement = 0;
     var skema_cicilan = [];
-    $(function(){
+    $(function() {
         _ratesTable.init()
 
         select2Replace();
@@ -80,10 +80,9 @@
             this.instance = $('#rates-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/settings/paymentrates/detail/{!! $id !!}',
+                    url: _baseURL + '/api/payment/settings/paymentrates/detail/{!! $id !!}',
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         data: 'ppm.ppm_id',
                         orderable: false,
@@ -104,7 +103,7 @@
                         }
                     },
                     {
-                        name: 'ppm.major_lecture_type.lecture_type.mlt_name', 
+                        name: 'ppm.major_lecture_type.lecture_type.mlt_name',
                         data: 'ppm.major_lecture_type.lecture_type.mlt_name',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
@@ -114,10 +113,10 @@
                         name: 'component',
                         render: (data, _, row) => {
                             let html = '<div><ul>';
-                            if(Object.keys(row.component).length > 0){
+                            if (Object.keys(row.component).length > 0) {
                                 row.component.map(item => {
                                     let component = "";
-                                    if(item.component){
+                                    if (item.component) {
                                         component = `<li class="fw-bold">${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
                                     }
                                     html += component;
@@ -131,10 +130,10 @@
                         name: 'ppm.credit.cspp_id',
                         render: (data, _, row) => {
                             let html = '<div><ul>';
-                            if(Object.keys(row.ppm.credit).length > 0){
+                            if (Object.keys(row.ppm.credit).length > 0) {
                                 row.ppm.credit.map(item => {
                                     let credit = "";
-                                    if(item.credit_schema){
+                                    if (item.credit_schema) {
                                         credit = `<li class="fw-bold">${item.credit_schema.cs_name}</li>`;
                                     }
                                     html += credit;
@@ -144,13 +143,12 @@
                             return html;
                         }
                     },
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
@@ -187,9 +185,9 @@
         tableRef: _ratesTable,
         PaymentRateInputField: function(id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0) {
             let isId = 0;
-            if(increment === 1){
+            if (increment === 1) {
                 isId = count++;
-            }else{
+            } else {
                 isId = id;
             }
             $('#PaymentRateInput').append(`
@@ -223,8 +221,8 @@
             `);
             $.get(_baseURL + '/api/payment/settings/paymentrates/component', (data) => {
                 JSON.parse(data).map(item => {
-                    $("#component"+isId).append(`
-                        <option value="`+item['msc_id']+`">`+item['msc_name']+`</option>
+                    $("#component" + isId).append(`
+                        <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
                     `)
                     // var count_elm = $(".PaymentRateInputField").length;
                     // $(
@@ -237,17 +235,17 @@
                     //     <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
                     // `)
                 })
-                component ? $("#component"+isId).val(component) : ""
-                $("#component"+isId).trigger('change')
+                component ? $("#component" + isId).val(component) : ""
+                $("#component" + isId).trigger('change')
                 selectRefresh()
             })
 
         },
-        paymentRateDeleteField: function(e,id){
-            if(id === 0){
+        paymentRateDeleteField: function(e, id) {
+            if (id === 0) {
                 $(e).parents('.PaymentRateInputField').get(0).remove();
-            }else{
-                _ratesTableActions.deleteComponent(e,id);
+            } else {
+                _ratesTableActions.deleteComponent(e, id);
             }
         },
 
@@ -349,15 +347,15 @@
                 },
             });
             idIncrement = 0;
-            if(Object.keys(data.component).length > 0){
+            if (Object.keys(data.component).length > 0) {
                 data.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(idIncrement,item.cd_fee,item.msc_id, null)
+                    _ratesTableActions.PaymentRateInputField(idIncrement, item.cd_fee, item.msc_id, null)
                     idIncrement++;
                 })
             }
             // Skema
             var val = [];
-            if(Object.keys(data.ppm.credit).length > 0){
+            if (Object.keys(data.ppm.credit).length > 0) {
                 data.ppm.credit.map(item => {
                     val.push(item.cs_id.toString());
                 })
@@ -366,73 +364,106 @@
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
                     $("#csId").append(`
-                        <option value="`+item['cs_id']+`">`+item['cs_name']+`</option>
+                        <option value="` + item['cs_id'] + `">` + item['cs_name'] + `</option>
                     `)
                 })
-                
+
                 $('#csId').val(val).change();
                 selectRefresh()
             })
-            if(Object.keys(data.ppm.credit).length > 0){
+            if (Object.keys(data.ppm.credit).length > 0) {
                 data.ppm.credit.map(item => {
-                    _ratesTableActions.SchemaDeadlineField(item.cs_id,item.credit_schema.cs_name,item.credit_schema.credit_schema_detail)
+                    _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
                 })
             }
-            $("#csId").change(function () {
+            // schema = $("#csId").val();
+            // diff = _ratesTableActions.difference(schema, val);
+            // diff.map(item => {
+            //     if (val.includes(item)) {
+            //         val = val.filter(function(x) {
+            //             if (x !== item) {
+            //                 return x;
+            //             }
+            //         });
+            //         // console.log("hapus "+item);
+            //         $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
+            //             d = JSON.parse(d)
+            //             _toastr.success(d.message, 'Success')
+            //         })
+            //         $("#schemaDeadlineTag" + item).remove();
+            //     } else {
+            //         val.push(item.toString());
+            //         $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
+            //             d = JSON.parse(d)
+            //             _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
+            //         })
+            //         // console.log("tambah "+item);
+            //     }
+            // });
+            $("#csId").change(function() {
                 schema = $(this).val();
-                diff = _ratesTableActions.difference(schema,val);
+                diff = _ratesTableActions.difference(schema, val);
                 diff.map(item => {
-                    if(val.includes(item)){
+                    if (val.includes(item)) {
                         val = val.filter(function(x) {
                             if (x !== item) {
-                            return x;
+                                return x;
                             }
                         });
                         // console.log("hapus "+item);
-                        $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/'+data.ppm.ppm_id+'/'+item, (d) => {
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
                             d = JSON.parse(d)
                             _toastr.success(d.message, 'Success')
                         })
-                        $("#schemaDeadlineTag"+item).remove();
-                    }else{
+                        $("#schemaDeadlineTag" + item).remove();
+                    } else {
                         val.push(item.toString());
-                        $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/'+data.ppm.ppm_id+'/'+item, (d) => {
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
                             d = JSON.parse(d)
-                            _ratesTableActions.SchemaDeadlineField(item,d.credit_schema.cs_name,d.credit_schema.credit_schema_detail)
+                            _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
                         })
                         // console.log("tambah "+item);
                     }
                 });
             })
         },
-        copy: function(e){
+        copy: function(e) {
             dataCopy = _ratesTable.getRowData(e);
         },
-        paste: function(){
-            if(Object.keys(dataCopy.component).length > 0){
+        paste: function() {
+            if (Object.keys(dataCopy.component).length > 0) {
                 dataCopy.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(idIncrement,item.cd_fee,item.msc_id, null)
+                    _ratesTableActions.PaymentRateInputField(idIncrement, item.cd_fee, item.msc_id, null)
                     idIncrement++;
                 })
             }
+            skema_cicilan = [];
             if(Object.keys(dataCopy.ppm.credit).length > 0){
                 dataCopy.ppm.credit.map(item => {
                     skema_cicilan.push(item.cs_id.toString());
                 })
             }
-            $('#csId').val([]).change();
-            selectRefresh()
+            
             $('#csId').val(skema_cicilan).change();
             selectRefresh()
 
-            if(Object.keys(dataCopy.ppm.credit).length > 0){
+            if (Object.keys(dataCopy.ppm.credit).length > 0) {
                 dataCopy.ppm.credit.map(item => {
-                    _ratesTableActions.SchemaDeadlineField(item.cs_id,item.credit_schema.cs_name,item.credit_schema.credit_schema_detail)
+                    var deadlines = $("#schemaDeadlineTag"+item.cs_id).find('input[name="cse_deadline[]"]');
+                    
+                    for(var i = 0; i < item.credit_schema.credit_schema_detail.length; i++){
+                        var valDeadline = "";
+                        if(item.credit_schema.credit_schema_detail[i].credit_schema_deadline){
+                            valDeadline = item.credit_schema.credit_schema_detail[i].credit_schema_deadline.cse_deadline
+                        }
+                        deadlines[i].value = valDeadline;
+                    }
                 })
             }
         },
         difference: function(a1, a2) {
-            var a = [], diff = [];
+            var a = [],
+                diff = [];
             for (var i = 0; i < a1.length; i++) {
                 a[a1[i]] = true;
             }
@@ -448,12 +479,12 @@
             }
             return diff;
         },
-        SchemaDeadlineField: function(cs_id = 0, name = null,percentage = null) {
+        SchemaDeadlineField: function(cs_id = 0, name = null, percentage = null) {
             let html = "";
-            if(percentage != null){
+            if (percentage != null) {
                 percentage.map(item => {
                     let deadline = "";
-                    if(item.credit_schema_deadline){
+                    if (item.credit_schema_deadline) {
                         deadline = item.credit_schema_deadline.cse_deadline;
                     }
                     html += `
@@ -482,7 +513,7 @@
                 </div>
             `);
         },
-        deleteComponent: function(e,id) {
+        deleteComponent: function(e, id) {
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
@@ -496,7 +527,7 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/settings/paymentrates/deletecomponent/' + id, {
                         _method: 'DELETE'
-                    }, function(data){
+                    }, function(data) {
                         data = JSON.parse(data)
                         Swal.fire({
                             icon: 'success',
@@ -529,27 +560,27 @@
                     confirmButtonText: 'Import',
                     denyButtonText: "Cancel",
                 }).then((result) => {
-                    if(result.isConfirmed) {
+                    if (result.isConfirmed) {
                         var formData = new FormData();
                         formData.append("file", x.files[0]);
                         formData.append("_token", "{{ csrf_token() }}");
                         var xhr = new XMLHttpRequest();
-                        xhr.onload = function(){
+                        xhr.onload = function() {
                             var response = JSON.parse(this.responseText);
                             console.log(response)
-                            if(response.status){
+                            if (response.status) {
                                 Swal.fire(response.message, '', 'success');
                             }
                         }
-                        xhr.open("POST", _baseURL+'/api/payment/settings/paymentrates/import/{!! $id !!}', true);
+                        xhr.open("POST", _baseURL + '/api/payment/settings/paymentrates/import/{!! $id !!}', true);
                         xhr.send(formData);
                     }
                 })
             }
-        } 
+        }
     }
 
-    function importBtn(){
+    function importBtn() {
         $('#myFiles').click()
     }
 </script>

@@ -25,7 +25,7 @@
         <div class="rates-per-course-filter">
             <div>
                 <label class="form-label">Fakultas</label>
-                <select class="form-select select2" name="faculty-filter">
+                <select class="form-select select2" name="faculty-filter" onchange="setProdiFilter(this.value)">
                     <option value="#ALL" selected>Semua Fakultas</option>
                     @foreach($faculty as $item)
                     <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
@@ -36,9 +36,9 @@
                 <label class="form-label">Program Studi</label>
                 <select class="form-select select2" name="studyprogram-filter">
                     <option value="#ALL" selected>Semua Program Studi</option>
-                    @foreach($studyProgram as $item)
+                    <!-- @foreach($studyProgram as $item)
                     <option value="{{ $item->studyprogram_id }}">{{ $item->studyprogram_type." ".$item->studyprogram_name }}</option>
-                    @endforeach
+                    @endforeach -->
                 </select>
             </div>
             <div class="d-flex align-items-end">
@@ -694,28 +694,46 @@
                     confirmButtonText: 'Import',
                     denyButtonText: "Cancel",
                 }).then((result) => {
-                    if(result.isConfirmed) {
+                    if (result.isConfirmed) {
                         var formData = new FormData();
                         formData.append("file", x.files[0]);
                         formData.append("_token", "{{ csrf_token() }}");
                         var xhr = new XMLHttpRequest();
-                        xhr.onload = function(){
+                        xhr.onload = function() {
                             var response = JSON.parse(this.responseText);
                             console.log(response)
-                            if(response.status){
+                            if (response.status) {
                                 Swal.fire(response.message, '', 'success');
                             }
                         }
-                        xhr.open("POST", _baseURL+'/api/payment/settings/courserates/import', true);
+                        xhr.open("POST", _baseURL + '/api/payment/settings/courserates/import', true);
                         xhr.send(formData);
                     }
                 })
             }
-        } 
+        }
     }
 
-    function importBtn(){
+    function importBtn() {
         $('#myFiles').click()
+    }
+
+    function setProdiFilter(id) {
+        $($('select[name="studyprogram-filter"]')[0]).html('');
+        $($('select[name="studyprogram-filter"]')[0]).append(`
+            <option value="#ALL" selected>Semua Program Studi</option>    
+        `)
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            var data = JSON.parse(this.responseText);
+            data.map(item => {
+                $($('select[name="studyprogram-filter"]')[0]).append(`
+                    <option value="${item.studyprogram_id}">${item.studyprogram_type} ${item.studyprogram_name}</option>
+                `)
+            })
+        }
+        xhr.open("GET", _baseURL + "/api/payment/settings/courserates/studyprogram/" + id, true);
+        xhr.send();
     }
 </script>
 @endsection

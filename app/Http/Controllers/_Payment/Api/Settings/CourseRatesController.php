@@ -45,8 +45,13 @@ class CourseRatesController extends Controller
         return datatables($query)->toJson();
     }
 
-    public function getStudyProgram()
+    public function getStudyProgram($id = null)
     {
+        if($id != null){
+            $studyProgram = Studyprogram::where('faculty_id', '=', $id)->get();
+            return $studyProgram->toJson();
+
+        }
         $studyProgram = Studyprogram::all();
         return $studyProgram->toJson();
     }
