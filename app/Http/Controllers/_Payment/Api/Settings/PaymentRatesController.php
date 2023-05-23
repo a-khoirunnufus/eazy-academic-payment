@@ -18,6 +18,8 @@ use App\Models\Path;
 use App\Models\PeriodPath;
 use App\Models\PeriodPathMajor;
 use App\Models\Studyprogram;
+use App\Exports\SettingFeeTemplateExport;
+use App\Imports\SettingFeeImport;
 use DB;
 use Builder;
 
@@ -124,8 +126,8 @@ class PaymentRatesController extends Controller
         try {
             if (isset($validated['msc_id'])) {
                 $count = count($validated['msc_id']);
-                for ($i = 0; $i < $count; $i++) {
-                    if ($validated['cd_id'][$i] == 0) {
+                for ($i=0; $i < $count; $i++) {
+                    if($validated['cd_id'][$i] == 0){
                         ComponentDetail::create([
                             'mma_id' => $validated['mma_id'][$i],
                             'msc_id' => $validated['msc_id'][$i],
@@ -272,7 +274,7 @@ class PaymentRatesController extends Controller
     //         $f_id = $paymentRate->f_id;
 
     //         $count = count($validated['cs_id']);
-    //         for ($i=0; $i < $count; $i++) { 
+    //         for ($i=0; $i < $count; $i++) {
     //             PaymentCredit::create([
     //                 'f_id' => $f_id,
     //                 'cs_id' => $validated['cs_id'][$i]
@@ -280,7 +282,7 @@ class PaymentRatesController extends Controller
     //         }
 
     //         $count = count($validated['msc_id']);
-    //         for ($i=0; $i < $count; $i++) { 
+    //         for ($i=0; $i < $count; $i++) {
     //             PaymentComponent::create([
     //                 'f_id' => $f_id,
     //                 'msc_id' => $validated['msc_id'][$i],
@@ -333,6 +335,7 @@ class PaymentRatesController extends Controller
         // dd($query->get());
         return datatables($query)->toJson();
     }
+
     // public function delete($id)
     // {
     //     $data = PaymentRate::findOrFail($id);
@@ -340,4 +343,117 @@ class PaymentRatesController extends Controller
 
     //     return json_encode(array('success' => true, 'message' => "Berhasil menghapus tarif dan pembayaran"));
     // }
+
+    public function downloadFileForImport(Request $request)
+    {
+        $validated = $request->validate([
+            'period_path_id' => 'required|integer'
+        ]);
+
+        $period_path = PeriodPath::with(['period', 'path', 'major'])
+            ->where(['ppd_id' => $validated['period_path_id']])
+            ->first()
+            ->toArray();
+
+        // Period Data
+        $period = $period_path['period'];
+
+        // Path Data
+        $path = $period_path['path'];
+
+        // Academic Year Data
+        $academic_year = $period_path['period']['schoolyear'];
+
+        // Study Program Data
+        $studyprogram_lecturetype_list = array_map(function($item) {
+            return [
+                'studyprogram_id' => $item['major_lecture_type']['study_program']['studyprogram_id'],
+                'studyprogram_name' => $item['major_lecture_type']['study_program']['studyprogram_name'],
+                'lecture_type_id' => $item['major_lecture_type']['lecture_type']['mlt_id'],
+                'lecture_type_name' => $item['major_lecture_type']['lecture_type']['mlt_name'],
+            ];
+        }, $period_path['major']);
+
+        $data = [
+            'period' => $period,
+            'path' => $path,
+            'academic_year' => $academic_year,
+            'studyprogram_lecturetype_list' => $studyprogram_lecturetype_list
+        ];
+
+        $export = new SettingFeeTemplateExport($data);
+
+        return $export->download('Import Pengaturan Tarif_'.$period['period_name'].'_'.$path['path_name'].'_'.time().'.xlsx');
+    }
+
+    public function uploadFileForImport(Request $request)
+    {
+        $validated = $request->validate([
+            'file' => 'required|mimes:xlsx'
+        ]);
+
+        // empty temporary storage
+        DB::table('temp.finance_import_setting_fee')->truncate();
+
+        $import = new SettingFeeImport(6);
+        $import->import($validated['file']);
+
+        // send import id
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil import setting tarif dan pembayaran.'
+        ], 200);
+    }
+
+    public function dtImportPreview(Request $request)
+    {
+        $query1 = DB::table('temp.finance_import_setting_fee as tfisf')
+            ->leftJoin('masterdata.ms_studyprogram as mms', 'tfisf.studyprogram_id', '=', 'mms.studyprogram_id')
+            ->leftJoin('masterdata.ms_lecture_type as mslt', 'tfisf.lecture_type_id', '=', 'mslt.mlt_id')
+            ->select(
+                'mms.studyprogram_name',
+                'mslt.mlt_name',
+                DB::raw("
+                    CASE
+                        WHEN tfisf.setting_fee_type = 'component_fee' THEN
+                            '[' ||
+                                string_agg('{' ||
+                                    '\"name\":\"' || tfisf.column_1 || '\",' ||
+                                    '\"nominal\":\"' || tfisf.column_2 || '\"' ||
+                                '}', ',')
+                            || ']'
+                        ELSE NULL
+                    END as invoice_component
+                "),
+                DB::raw("
+                    CASE
+                        WHEN tfisf.setting_fee_type = 'credit_schema' THEN
+                            '[' ||
+                                string_agg('{' ||
+                                    '\"percentage\":\"' || tfisf.column_1 || '\",' ||
+                                    '\"due_date\":\"' || tfisf.column_2 || '\"' ||
+                                '}', ',')
+                            || ']'
+                        ELSE NULL
+                    END as installment
+                ")
+            )
+            ->groupBy('mms.studyprogram_name', 'mslt.mlt_name', 'tfisf.setting_fee_type');
+            // ->orderBy('mms.studyprogram_name')
+            // ->orderBy('mslt.mlt_name')
+            // ->get();
+
+        $data = DB::table('pre')
+            ->withExpression('pre', $query1)
+            ->select(
+                'pre.studyprogram_name as studyprogram',
+                'pre.mlt_name as lecture_type',
+                DB::raw("string_agg(pre.invoice_component, '_') as invoice_component"),
+                DB::raw("string_agg(pre.installment, '_') as installment"),
+            )
+            ->groupBy('pre.studyprogram_name', 'pre.mlt_name')
+            ->get();
+
+        return datatables($data)->toJson();
+    }
 }
