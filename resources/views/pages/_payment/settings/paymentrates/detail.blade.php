@@ -6,13 +6,22 @@
 @section('url_back', '')
 
 @section('css_section')
-<style>
-    .rates-filter {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-gap: 1rem;
-    }
-</style>
+    <style>
+        .rates-filter {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 1rem;
+        }
+        .custom-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        .custom-list-item {
+            padding: .5rem;
+            white-space: nowrap;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -60,16 +69,202 @@
         <tbody></tbody>
     </table>
 </div>
+
+<!-- Modal Import Komponen Tagihan -->
+<div class="modal fade" id="importInvoiceComponentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom d-flex flex-column align-items-start">
+                <div class="d-flex justify-content-between w-100 mb-1">
+                    <h4 class="modal-title fw-bolder" id="importInvoiceComponentModalLabel">Import Komponen Tagihan</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="d-flex w-100" style="gap: 2rem">
+                    <div>
+                        Periode: Periode Mei
+                    </div>
+                    <div>
+                        Jalur: Rapor
+                    </div>
+                    <div>
+                        Tahun Ajaran: 2023/2034
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body p-2">
+                <div class="d-flex flex-column" style="gap: 1.5rem">
+                    <div>
+                        <button onclick="downloadTemplate()" class="btn btn-link px-0"><i data-feather="download"></i>&nbsp;&nbsp;Download Template</button>
+                        <small class="d-flex align-items-center">
+                            <i data-feather="info" style="margin-right: .5rem"></i>
+                            <span>File template khusus untuk Periode, Jalur dan Tahun Ajaran yang dipilih.<span>
+                        </small>
+                    </div>
+                    <div>
+                        <form id="form-upload-file">
+                            <div class="form-group">
+                                <label class="form-label">File Import</label>
+                                <div class="input-group" style="width: 500px">
+                                    <input name="file" type="file" class="form-control">
+                                    <a onclick="_uploadFileForm.submit()" class="btn btn-primary" type="button">
+                                        <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <hr style="margin: 2rem 0" />
+                <div>
+                    <h4>Preview Import</h4>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Preview akan muncul setelah file diupload.<span>
+                    </small>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Tekan tombol Import Komponen untuk memproses Data(hanya Data Valid) untuk diimport.<span>
+                    </small>
+                </div>
+                <div class="mt-2">
+                    <div class="my-1">
+                        <span class="d-inline-block me-1">Data Valid: 2</span>
+                        <span class="d-inline-block">Data Tidak Valid: 1</span>
+                    </div>
+                    <table id="table-import-preview" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Program Studi</th>
+                                <th>Jenis Perkuliahan</th>
+                                <th class="text-nowrap">Komponen Tagihan<br>(Nama | Nominal)</th>
+                                <th class="text-nowrap">Cicilan<br>(Persentase | Tenggat)</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span>Teknik Infrastruktur Lingkungan</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span>Reguler</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <ul class="custom-list">
+                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
+                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
+                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>
+                                    <ul class="custom-list">
+                                        <li class="custom-list-item">40% | 30-05-2023</li>
+                                        <li class="custom-list-item">30% | 30-06-2023</li>
+                                        <li class="custom-list-item">30% | 30-07-2023</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Valid</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span>Teknik Infrastruktur Lingkungan</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span>Reguler</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <ul class="custom-list">
+                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
+                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
+                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>
+                                    <ul class="custom-list">
+                                        <li class="custom-list-item">40% | 30-05-2023</li>
+                                        <li class="custom-list-item">30% | 30-06-2023</li>
+                                        <li class="custom-list-item">30% | 30-07-2023</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger">Tidak Valid</span>
+                                </td>
+                                <td>
+                                    Nilai nominal komponen tagihan tidak valid.<br>
+                                    Cicilan tidak boleh kosong.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span>Teknik Infrastruktur Lingkungan</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span>Reguler</span>
+                                </td>
+                                <td>
+                                    <div>
+                                    type               <ul class="custom-list">
+                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
+                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
+                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>
+                                    <ul class="custom-list">
+                                        <li class="custom-list-item">40% | 30-05-2023</li>
+                                        <li class="custom-list-item">30% | 30-06-2023</li>
+                                        <li class="custom-list-item">30% | 30-07-2023</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Valid</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
+                    <button onclick="" class="btn btn-primary">Import Komponen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 
 @section('js_section')
 <script>
+    const periodPathId = "{{ request()->route('id') }}";
+    // console.log(periodPathId);
+
     var dataCopy = null;
     var idIncrement = 0;
     var skema_cicilan = [];
-    $(function() {
-        _ratesTable.init()
+    let isImporting = false;
+
+    $(function(){
+        _ratesTable.init();
+        _importPreviewTable.init();
 
         select2Replace();
     })
@@ -158,9 +353,16 @@
                     '>',
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
-                        <button type="button" class="btn btn-success" onclick="importBtn()">Import</button>
-                    `)
-                    feather.replace()
+                        <div style="margin-bottom: 7px">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importInvoiceComponentModal">
+                                <span style="vertical-align: middle">
+                                    <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    Import Komponen Tagihan
+                                </span>
+                            </button>
+                        </div>
+                    `);
+                    feather.replace();
                 }
             })
         },
@@ -310,7 +512,7 @@
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                     </div>
-                                    
+
                                 </div>
                                 <div id="PaymentRateInput">
                                 </div>
@@ -443,14 +645,14 @@
                     skema_cicilan.push(item.cs_id.toString());
                 })
             }
-            
+
             $('#csId').val(skema_cicilan).change();
             selectRefresh()
 
             if (Object.keys(dataCopy.ppm.credit).length > 0) {
                 dataCopy.ppm.credit.map(item => {
                     var deadlines = $("#schemaDeadlineTag"+item.cs_id).find('input[name="cse_deadline[]"]');
-                    
+
                     for(var i = 0; i < item.credit_schema.credit_schema_detail.length; i++){
                         var valDeadline = "";
                         if(item.credit_schema.credit_schema_detail[i].credit_schema_deadline){
@@ -582,6 +784,125 @@
 
     function importBtn() {
         $('#myFiles').click()
+    }
+
+    function downloadTemplate() {
+        window.location.href = `${_baseURL}/api/payment/settings`
+            +`/paymentrates/download-file-for-import`
+            +`?period_path_id=${periodPathId}`;
+    }
+
+    function setImportStatus(status) {
+        if (status == 'idle') {
+            // do nothing
+        } else if (status == 'importing') {
+            // display loading message
+            alert('Sedang memproses file.');
+        } else if (status == 'complete') {
+            // display complete process file
+            alert('Selesai memproses file.');
+        }
+    }
+
+    const _uploadFileForm = {
+        clearInput: () => {
+            $('#form-upload-file input[name="file"]').val('');
+        },
+        submit: () => {
+            setImportStatus('importing');
+
+            let formData = new FormData(document.getElementById('form-upload-file'));
+
+            $.ajax({
+                url: _baseURL+'/api/payment/settings/paymentrates/upload-file-for-import',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function(data) {
+                    setImportStatus('complete');
+                    _uploadFileForm.clearInput();
+                    if(data.success){
+                        _toastr.success(data.message, 'Success');
+                        _importPreviewTable.reload();
+                    } else {
+                        _toastr.error(data.message, 'Failed')
+                    }
+                },
+                error: function(jqXHR) {
+                    _responseHandler.formFailResponse(jqXHR);
+                }
+            });
+        }
+    }
+
+    const _importPreviewTable = {
+        ..._datatable,
+        init: function() {
+            this.instance = $('#table-import-preview').DataTable({
+                serverSide: true,
+                ajax: {
+                    url: _baseURL+'/api/payment/settings/paymentrates/dt-import-preview',
+                },
+                columns: [
+                    {
+                        name: 'studyprogram',
+                        data: 'studyprogram',
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        name: 'lecture_type',
+                        data: 'lecture_type',
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        name: 'invoice_component',
+                        data: 'invoice_component',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {nowrap: false});
+                        }
+                    },
+                    {
+                        name: 'installment',
+                        data: 'installment',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {nowrap: false});
+                        }
+                    },
+                    {
+                        name: 'status',
+                        render: () => {
+                            return this.template.defaultCell('N/A');
+                        }
+                    },
+                    {
+                        name: 'notes',
+                        render: () => {
+                            return this.template.defaultCell('N/A');
+                        }
+                    },
+                ],
+                drawCallback: function(settings) {
+                    feather.replace();
+                },
+                dom:
+                    't' +
+                    '<"d-flex justify-content-between row"' +
+                    '<"col-sm-12 col-md-6"i>' +
+                    '<"col-sm-12 col-md-6"p>' +
+                    '>',
+                buttons: [],
+                initComplete: function() {}
+            })
+        },
+        template: {
+            ..._datatableTemplates,
+        }
     }
 </script>
 @endsection

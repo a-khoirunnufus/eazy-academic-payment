@@ -51,3 +51,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
     });
 });
+
+Route::get('test', function() {
+    return view('test');
+});
