@@ -12,12 +12,32 @@ use App\Models\ActiveYear;
 use App\Models\Year;
 use App\Models\Payment\ComponentDetail;
 use Carbon\Carbon;
+use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class StudentInvoiceController extends Controller
 {
-    public function index(){
+    public function index(Request $request){
         
-        $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
+        // $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
+        // $query = Faculty::with('studyProgram');
+        $student = Student::query();
+        if($request->query('year') !== "all"){
+            $student = $student->where('msy_id', '=', $request->query('year'));
+            // $query = $query->whereIn('studyprogram_id', $year);
+        }
+        if($request->query('path') !== "all"){
+            $student = $student->where('path_id', '=', $request->query('path'));
+        }
+        if($request->query('period') !== "all"){
+            $student = $student->where('period_id', '=', $request->query('period'));
+        }
+        $student = $student->get('studyprogram_id');
+        
+        $query = Faculty::whereHas('studyProgram', function(EloquentBuilder $tb) use($student){
+            $tb->whereIn('studyprogram_id', $student);
+        })->orderBy('faculty_name')->get();
+
         $result = collect();
         foreach($query as $item){
             $collection = collect();

@@ -24,16 +24,14 @@
         <div class="new-student-invoice-filter">
             <div>
                 <label class="form-label">Periode Pendaftaran</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select" eazy-select2-active id="year-filter">
                     <option value="all" selected>Semua Periode Pendaftaran</option>
-                    @foreach($static_school_years as $school_year)
-                        @foreach($static_semesters as $semester)
-                            <option value="{{ $school_year.'_'.$semester }}">{{ $school_year.' '.$semester }}</option>
-                        @endforeach
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_id }}">{{ $tahun->msy_year." ".($tahun->msy_semester%2 == 0 ? "GANJIL":"GENAP") }}</option>
                     @endforeach
                 </select>
             </div>
-            <div>
+            <!-- <div>
                 <label class="form-label">Pilih Jenjang Studi</label>
                 <select class="form-select" eazy-select2-active>
                     <option value="all" selected>Semua Jenjang Studi</option>
@@ -41,26 +39,29 @@
                         <option value="{{ $study_level }}">{{ $study_level }}</option>
                     @endforeach
                 </select>
-            </div>
+            </div> -->
             <div>
                 <label class="form-label">Gelombang</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select" eazy-select2-active id="period-filter">
                     <option value="all" selected>Semua Gelombang</option>
-                    @foreach($static_registration_periods as $registration_period)
-                        <option value="{{ $registration_period }}">{{ $registration_period }}</option>
+                    @foreach($period as $item)
+                        <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
                 <label class="form-label">Jalur Pendaftaran</label>
-                <select class="form-select" eazy-select2-active>
+                <select class="form-select" eazy-select2-active id="path-filter">
                     <option value="all" selected>Semua Jalur Pendaftaran</option>
                     @foreach($static_registration_paths as $registration_path)
                         <option value="{{ $registration_path }}">{{ $registration_path }}</option>
                     @endforeach
+                    @foreach($path as $item)
+                        <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                    @endforeach
                 </select>
             </div>
-            <div>
+            <!-- <div>
                 <label class="form-label">Jenis Tagihan</label>
                 <select class="form-select" eazy-select2-active>
                     <option value="all" selected>Semua Jenis Tagihan</option>
@@ -68,9 +69,9 @@
                         <option value="{{ $invoice_type }}">{{ $invoice_type }}</option>
                     @endforeach
                 </select>
-            </div>
+            </div> -->
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="filters()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -97,6 +98,7 @@
 
 @section('js_section')
 <script>
+    var dataTable = null;
     $(function(){
         _newStudentInvoiceTable.init()
     })
@@ -104,10 +106,15 @@
     const _newStudentInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#new-student-invoice-table').DataTable({
+            dataTable = this.instance = $('#new-student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/generate/student-invoice/index',
+                    data: {
+                        year: $('#year-filter').val(),
+                        path: $('#path-filter').val(),
+                        period: $('#period-filter').val()
+                    },
                 },
                 columns: [
                     {
@@ -274,6 +281,11 @@
                 }
             })
         },
+    }
+
+    function filters(){
+        dataTable.destroy();
+        _newStudentInvoiceTable.init();
     }
 </script>
 @endsection
