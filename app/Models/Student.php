@@ -15,7 +15,7 @@ class Student extends Model
     
     protected $table = "hr.ms_student";
 
-    protected $primaryKey = 'student_id';
+    protected $primaryKey = 'student_number';
 
     protected $fillable = [
         'path_id','period_id','msy_id','mlt_id','student_number','student_id','fullname','studyprogram_id'
@@ -39,5 +39,12 @@ class Student extends Model
     public function payment()
     {
         return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill');
+    }
+    
+    public function getComponent()
+    {
+        return $this->hasMany(ComponentDetail::class, 'mma_id','studyprogram_id')
+        
+        ->orderBy('cd_id','asc')->with('component');
     }
 }
