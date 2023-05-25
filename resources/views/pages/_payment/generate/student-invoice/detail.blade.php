@@ -374,7 +374,7 @@
                 // Transaksi
                 if (Object.keys(data.payment.payment_bill).length > 0) {
                     data.payment.payment_bill.map(item => {
-                        _studentInvoiceDetailTableAction.rowBill(item.prrb_invoice_num,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
+                        _studentInvoiceDetailTableAction.rowBill(item.prrb_id,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
                     });
                 }
             }
@@ -395,10 +395,10 @@
             if(status == 'lunas'){
                 stat = '<div class="badge badge-small bg-success" style="padding: 5px!important;">Lunas</div>';
                 expired = '-';
-                paid = (new Date(paid_date)).toLocaleString();
+                paid = (new Date(paid_date)).toLocaleString("id-ID");
             }else{
                 stat = '<div class="badge bg-danger" style="padding: 5px!important;">Belum Lunas</div>';
-                expired = (new Date(expired_date)).toLocaleString();
+                expired = (new Date(expired_date)).toLocaleString("id-ID");
                 paid = '-';
             }
             $("#"+id+"").append(`
