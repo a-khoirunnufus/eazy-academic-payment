@@ -11,7 +11,11 @@ use App\Models\Student;
 use App\Models\ActiveYear;
 use App\Models\Year;
 use App\Models\Payment\ComponentDetail;
+use App\Models\Payment\Payment;
+use App\Models\Payment\PaymentBill;
+use App\Models\Payment\PaymentDetail;
 use Carbon\Carbon;
+use DB;
 
 class StudentInvoiceController extends Controller
 {
@@ -83,4 +87,47 @@ class StudentInvoiceController extends Controller
         // dd($query->get());
         return $header;
     }
+
+    public function studentGenerate(Request $request){
+        $student = Student::with('getComponent')->findorfail($request['student_number']);
+
+        $components = $student->getComponent()
+        ->where('path_id',$student->path_id)
+        ->where('period_id',$student->period_id)
+        ->where('msy_id',$student->msy_id)
+        ->where('mlt_id',$student->mlt_id)
+        ->get();
+
+        if($components){
+            $prr_total = 0;
+            foreach($components as $item){
+                $prr_total = $prr_total+$item->cd_fee;
+            }
+            DB::beginTransaction();
+            try{
+                $payment = Payment::create([
+                    'prr_status' => 'belum lunas',
+                    'prr_total' => $prr_total,
+                    'prr_paid_net' => $prr_total,
+                    'student_number' => $student->student_number
+                ]);
+
+                foreach($components as $item){
+                    PaymentDetail::create([
+                        'prr_id' => $payment->prr_id,
+                        'prrd_component' => $item->component->msc_name,
+                        'prrd_amount' => $item->cd_fee
+                    ]);
+                }
+                DB::commit();
+            }catch(\Exception $e){
+                DB::rollback();
+                return response()->json($e->getMessage());
+            }
+        }
+        $text = "Berhasil generate tagihan mahasiswa ".$student->fullname;
+        return json_encode(array('success' => true, 'message' => $text));
+
+    }
+    
 }

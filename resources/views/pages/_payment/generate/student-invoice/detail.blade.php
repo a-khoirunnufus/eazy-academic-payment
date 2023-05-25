@@ -330,12 +330,12 @@
                         <td class="text-center fw-bolder">${Rupiah.format(total)}</td>
                     </tr>
                 `);
-                $("#paymentDetail").append(`
-                    <tr class="bg-light">
-                        <td class="text-center fw-bolder">Eazy Service</td>
-                        <td class="text-center" style="color:red!important">-${Rupiah.format({{ \App\Enums\Payment\FeeAmount::eazy }})}</td>
-                    </tr>
-                `);
+                // $("#paymentDetail").append(`
+                //     <tr class="bg-light">
+                //         <td class="text-center fw-bolder">Eazy Service</td>
+                //         <td class="text-center" style="color:red!important">-${Rupiah.format({{ \App\Enums\Payment\FeeAmount::eazy }})}</td>
+                //     </tr>
+                // `);
                 $("#paymentDetail").append(`
                     <tr style="background-color:#163485">
                         <td class="text-center fw-bolder" style="color:white!important">Total yang Diterima</td>
@@ -426,10 +426,20 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil generate tagihan',
+                    let requestData = {
+                        student_number: data.student_number
+                    };
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/student', requestData, (data) => {
+                        console.log(data);
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _studentInvoiceDetailTable.reload()
+                        });
+                    }).fail((error) => {
+                        _responseHandler.generalFailResponse(error)
                     })
                 }
             })
