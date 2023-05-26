@@ -36,7 +36,7 @@
             <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
                 <div class="px-1 py-2 border-bottom">
                     <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
-                        <x-datatable-select-filter 
+                        <x-datatable-select-filter
                             title="Tahun Akademik dan Semester"
                             elementId="filter-school-year"
                             resourceName="school-year"
@@ -44,7 +44,7 @@
                             labelTemplate=":year Semester :semester"
                             :labelTemplateItems="array('year', 'semester')"
                         />
-                        <x-datatable-select-filter 
+                        <x-datatable-select-filter
                             title="Jalur Pendaftaran"
                             elementId="filter-registration-path"
                             resourceName="registration-path"
@@ -52,7 +52,7 @@
                             labelTemplate=":name"
                             :labelTemplateItems="array('name')"
                         />
-                        <x-datatable-select-filter 
+                        <x-datatable-select-filter
                             title="Periode Pendaftaran"
                             elementId="filter-registration-period"
                             resourceName="registration-period"
@@ -71,14 +71,14 @@
                             <th colspan="2" class="text-center">Jenis Tagihan</th>
                             <th rowspan="2">
                                 Total Harus Dibayar<br>
-                                (A+B)-(C+D)
+                                (A-B)
                             </th>
                             <th rowspan="2">Sisa Tagihan</th>
                             <th rowspan="2">Status</th>
                         </tr>
                         <tr>
-                            <th>Tagihan A</th>
-                            <th>Denda B</th>
+                            <th>Tagihan(A)</th>
+                            <th>Potongan(B)</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -126,7 +126,7 @@
                 columns: [
                     {
                         name: 'student_name',
-                        data: 'student_name', 
+                        data: 'student_name',
                         render: (data) => {
                             return this.template.defaultCell(data, {bold: true});
                         }
@@ -138,22 +138,22 @@
                         }
                     },
                     {
-                        name: 'payment', 
+                        name: 'payment',
                         render: (data, _, row) => {
                             return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
-                        }    
+                        }
                     },
                     {
-                        name: 'invoice_a', 
+                        name: 'invoice_a',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.invoice_a_detail, row.invoice_a_total);
-                        }    
+                        }
                     },
                     {
-                        name: 'invoice_b', 
+                        name: 'invoice_b',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.invoice_b_detail, row.invoice_b_total);
-                        }    
+                        }
                     },
                     {
                         name: 'total_must_be_paid',
@@ -211,31 +211,31 @@
                 },
                 columns: [
                     {
-                        name: 'payment_date', 
+                        name: 'payment_date',
                         data: 'payment_date',
                         render: (data) => {
                             return this.template.dateCell(data);
                         }
                     },
                     {
-                        name: 'invoice_component', 
+                        name: 'invoice_component',
                         data: 'invoice_component',
                         render: (data) => {
                             return this.template.defaultCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'payment_nominal', 
+                        name: 'payment_nominal',
                         data: 'payment_nominal',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'payment', 
+                        name: 'payment',
                         render: (data, _, row) => {
                             return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
-                        }    
+                        }
                     },
                 ],
                 drawCallback: function(settings) {
