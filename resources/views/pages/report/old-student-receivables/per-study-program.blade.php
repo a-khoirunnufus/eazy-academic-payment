@@ -63,7 +63,7 @@
 <div class="card">
     <div class="card-body">
         <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
-            <x-datatable-select-filter 
+            <x-datatable-select-filter
                 title="Tahun Akademik dan Semester"
                 elementId="filter-school-year"
                 resourceName="school-year"
@@ -125,10 +125,10 @@
                 <th rowspan="2">Piutang</th>
             </tr>
             <tr>
-                <th>Tagihan A</th>
-                <th>Tagihan B</th>
-                <th>Tagihan C</th>
-                <th>Tagihan D</th>
+                <th>Tagihan(A)</th>
+                <th>Denda(B)</th>
+                <th>Beasiswa(C)</th>
+                <th>Potongan(D)</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -168,20 +168,20 @@
                 },
                 columns: [
                     {
-                        name: 'academic_year', 
+                        name: 'academic_year',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(row.school_year, row.semester);
                         }
                     },
                     {
                         name: 'study_program_name',
-                        data: 'study_program_name', 
+                        data: 'study_program_name',
                         render: (data) => {
                             return this.template.buttonLinkCell(data, {link: _baseURL+'/report/old-student-receivables?type=student'});
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'student',
                         render: (data, _, row) => {
                             const listHeader = [
                                 {label: 'Lunas', value: row.paid_off_count},

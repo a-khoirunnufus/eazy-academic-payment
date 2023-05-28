@@ -45,9 +45,9 @@ class SettingFeeTemplateSheetExport implements FromView, WithTitle
     public function view(): View
     {
         $title = 'TABEL ';
-        if ($this->sheet_type == 'component') {
+        if ($this->sheet_type == 'component_fee') {
             $title .= 'KOMPONEN TAGIHAN';
-        } elseif ($this->sheet_type == 'installment') {
+        } elseif ($this->sheet_type == 'credit_schema') {
             $title .= 'SKEMA CICILAN';
         }
 

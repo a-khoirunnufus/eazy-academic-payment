@@ -2,21 +2,24 @@
 
 namespace App\Imports;
 
+use Illuminate\Support\Facades\Log;
 use App\Imports\Sheets\SettingFeeSheetImport;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\BeforeSheet;
 use DB;
 
 class SettingFeeImport implements WithMultipleSheets
 {
     use Importable;
 
+    private $import_id;
     private $num_sheets;
+    private $component_fee_header_row = 13;
+    private $credit_schema_header_row = 14;
 
-    public function __construct(int $num_sheets)
+    public function __construct(int $import_id, int $num_sheets)
     {
+        $this->import_id = $import_id;
         $this->num_sheets = $num_sheets;
     }
 
@@ -24,34 +27,14 @@ class SettingFeeImport implements WithMultipleSheets
     {
         $sheets = [];
 
-        if(!$this->validateSheets($this->num_sheets)) {
-            // error
-        }
-
-        $import_id = DB::select("select nextval('temp.finance_import_setting_fee_import_id_num_seq')")[0]->nextval;
-
         for ($i=1; $i <= $this->num_sheets; $i+=2) {
             // component_fee sheet
-            $sheets[] = new SettingFeeSheetImport($import_id, 13);
+            $sheets[] = new SettingFeeSheetImport($this->import_id, $this->component_fee_header_row);
 
             // credit_schema sheet
-            $sheets[] = new SettingFeeSheetImport($import_id, 14);
+            $sheets[] = new SettingFeeSheetImport($this->import_id, $this->credit_schema_header_row);
         }
-
-        // dd($sheets);
 
         return $sheets;
-    }
-
-    /**
-     * Cek jumlah sheet genap
-     */
-    private function validateSheets($num_sheets)
-    {
-        if ($num_sheets % 2 == 0) {
-            return false;
-        } else {
-            return true;
-        }
     }
 }

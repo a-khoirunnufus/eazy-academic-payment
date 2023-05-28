@@ -102,6 +102,7 @@
                     </div>
                     <div>
                         <form id="form-upload-file">
+                            <input type="hidden" name="period_path_id" value="{{ request()->route('id') }}" />
                             <div class="form-group">
                                 <label class="form-label">File Import</label>
                                 <div class="input-group" style="width: 500px">
@@ -128,8 +129,8 @@
                 </div>
                 <div class="mt-2">
                     <div class="my-1">
-                        <span class="d-inline-block me-1">Data Valid: 2</span>
-                        <span class="d-inline-block">Data Tidak Valid: 1</span>
+                        <span class="d-inline-block me-1">Data Valid: <span id="valid-import-data-count"></span></span>
+                        <span class="d-inline-block">Data Tidak Valid: <span id="invalid-import-data-count"></span></span>
                     </div>
                     <table id="table-import-preview" class="table table-striped table-bordered">
                         <thead>
@@ -142,108 +143,14 @@
                                 <th>Keterangan</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div>
-                                        <span>Teknik Infrastruktur Lingkungan</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span>Reguler</span>
-                                </td>
-                                <td>
-                                    <div>
-                                        <ul class="custom-list">
-                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
-                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
-                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
-                                        </ul>
-                                    </div>
-                                </td>
-                                <td>
-                                    <ul class="custom-list">
-                                        <li class="custom-list-item">40% | 30-05-2023</li>
-                                        <li class="custom-list-item">30% | 30-06-2023</li>
-                                        <li class="custom-list-item">30% | 30-07-2023</li>
-                                    </ul>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">Valid</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div>
-                                        <span>Teknik Infrastruktur Lingkungan</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span>Reguler</span>
-                                </td>
-                                <td>
-                                    <div>
-                                        <ul class="custom-list">
-                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
-                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
-                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
-                                        </ul>
-                                    </div>
-                                </td>
-                                <td>
-                                    <ul class="custom-list">
-                                        <li class="custom-list-item">40% | 30-05-2023</li>
-                                        <li class="custom-list-item">30% | 30-06-2023</li>
-                                        <li class="custom-list-item">30% | 30-07-2023</li>
-                                    </ul>
-                                </td>
-                                <td>
-                                    <span class="badge bg-danger">Tidak Valid</span>
-                                </td>
-                                <td>
-                                    Nilai nominal komponen tagihan tidak valid.<br>
-                                    Cicilan tidak boleh kosong.
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div>
-                                        <span>Teknik Infrastruktur Lingkungan</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span>Reguler</span>
-                                </td>
-                                <td>
-                                    <div>
-                                    type               <ul class="custom-list">
-                                            <li class="custom-list-item">BPP | Rp&nbsp;1.000,00</li>
-                                            <li class="custom-list-item">UP3 | Rp&nbsp;2.000,00</li>
-                                            <li class="custom-list-item">SDP2 | Rp&nbsp;3.000,00</li>
-                                        </ul>
-                                    </div>
-                                </td>
-                                <td>
-                                    <ul class="custom-list">
-                                        <li class="custom-list-item">40% | 30-05-2023</li>
-                                        <li class="custom-list-item">30% | 30-06-2023</li>
-                                        <li class="custom-list-item">30% | 30-07-2023</li>
-                                    </ul>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">Valid</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
             <div class="modal-footer">
                 <div class="d-flex justify-content-end">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="" class="btn btn-primary">Import Komponen</button>
+                    <button onclick="importSettingFee()" class="btn btn-primary">Import Komponen</button>
                 </div>
             </div>
         </div>
@@ -255,12 +162,18 @@
 @section('js_section')
 <script>
     const periodPathId = "{{ request()->route('id') }}";
-    // console.log(periodPathId);
 
     var dataCopy = null;
     var idIncrement = 0;
     var skema_cicilan = [];
     let isImporting = false;
+
+    // enabling multiple modal open
+    $(document).on('show.bs.modal', '.modal', function() {
+        const zIndex = 1040 + 10 * $('.modal:visible').length;
+        $(this).css('z-index', zIndex);
+        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    });
 
     $(function(){
         _ratesTable.init();
@@ -282,7 +195,7 @@
                         data: 'ppm.ppm_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            console.log(row)
+                            // console.log(row)
                             return this.template.rowAction(data)
                         }
                     },
@@ -453,7 +366,7 @@
 
         edit: function(e) {
             let data = _ratesTable.getRowData(e);
-            console.log(data)
+            // console.log(data);
             Modal.show({
                 type: 'form',
                 modalTitle: 'Pengaturan Komponen Tagihan',
@@ -563,12 +476,28 @@
                 })
             }
             skema_cicilan = val;
+
+            /**
+             * Include non template Credit Schema on select option
+             */
+            let creditSchemaUnlisted = val;
+            creditSchemaUnlisted.forEach(async (item) => {
+                let d = await $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item);
+                const {credit_schema} = JSON.parse(d);
+                $("#csId").append(`
+                    <option value="` + credit_schema.cs_id + `">` + credit_schema.cs_name + `</option>
+                `);
+            });
+
+            // console.log(skema_cicilan);
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
-                    $("#csId").append(`
-                        <option value="` + item['cs_id'] + `">` + item['cs_name'] + `</option>
-                    `)
-                })
+                    if (!creditSchemaUnlisted.includes(`${item['cs_id']}`)) {
+                        $("#csId").append(`
+                            <option value="` + item['cs_id'] + `">` + item['cs_name'] + `</option>
+                        `);
+                    }
+                });
 
                 $('#csId').val(val).change();
                 selectRefresh()
@@ -612,7 +541,7 @@
                                 return x;
                             }
                         });
-                        // console.log("hapus "+item);
+                        console.log("hapus "+item);
                         $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
                             d = JSON.parse(d)
                             _toastr.success(d.message, 'Success')
@@ -749,42 +678,48 @@
         },
     }
 
-    function myImport() {
-        var x = document.getElementById("myFiles");
-        var txt = "";
-        if ('files' in x) {
-            if (x.files.length > 0) {
-                console.log(x.files[0]);
-                Swal.fire({
-                    title: "Anda Yakin?",
-                    text: "Ingin mengimport data dari file tersebut",
-                    showDenyButton: true,
-                    confirmButtonText: 'Import',
-                    denyButtonText: "Cancel",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        var formData = new FormData();
-                        formData.append("file", x.files[0]);
-                        formData.append("_token", "{{ csrf_token() }}");
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function() {
-                            var response = JSON.parse(this.responseText);
-                            console.log(response)
-                            if (response.status) {
-                                Swal.fire(response.message, '', 'success');
-                            }
-                        }
-                        xhr.open("POST", _baseURL + '/api/payment/settings/paymentrates/import/{!! $id !!}', true);
-                        xhr.send(formData);
-                    }
-                })
-            }
-        }
-    }
+    /**
+     * OLD CODE
+     */
+    // function myImport() {
+    //     var x = document.getElementById("myFiles");
+    //     var txt = "";
+    //     if ('files' in x) {
+    //         if (x.files.length > 0) {
+    //             console.log(x.files[0]);
+    //             Swal.fire({
+    //                 title: "Anda Yakin?",
+    //                 text: "Ingin mengimport data dari file tersebut",
+    //                 showDenyButton: true,
+    //                 confirmButtonText: 'Import',
+    //                 denyButtonText: "Cancel",
+    //             }).then((result) => {
+    //                 if (result.isConfirmed) {
+    //                     var formData = new FormData();
+    //                     formData.append("file", x.files[0]);
+    //                     formData.append("_token", "{{ csrf_token() }}");
+    //                     var xhr = new XMLHttpRequest();
+    //                     xhr.onload = function() {
+    //                         var response = JSON.parse(this.responseText);
+    //                         console.log(response)
+    //                         if (response.status) {
+    //                             Swal.fire(response.message, '', 'success');
+    //                         }
+    //                     }
+    //                     xhr.open("POST", _baseURL + '/api/payment/settings/paymentrates/import/{!! $id !!}', true);
+    //                     xhr.send(formData);
+    //                 }
+    //             })
+    //         }
+    //     }
+    // }
 
-    function importBtn() {
-        $('#myFiles').click()
-    }
+    /**
+     * OLD CODE
+     */
+    // function importBtn() {
+    //     $('#myFiles').click()
+    // }
 
     function downloadTemplate() {
         window.location.href = `${_baseURL}/api/payment/settings`
@@ -792,24 +727,12 @@
             +`?period_path_id=${periodPathId}`;
     }
 
-    function setImportStatus(status) {
-        if (status == 'idle') {
-            // do nothing
-        } else if (status == 'importing') {
-            // display loading message
-            alert('Sedang memproses file.');
-        } else if (status == 'complete') {
-            // display complete process file
-            alert('Selesai memproses file.');
-        }
-    }
-
     const _uploadFileForm = {
         clearInput: () => {
             $('#form-upload-file input[name="file"]').val('');
         },
         submit: () => {
-            setImportStatus('importing');
+            _toastr.info('Sedang memproses file, mungkin membutukan beberapa waktu.', 'Memproses');
 
             let formData = new FormData(document.getElementById('form-upload-file'));
 
@@ -821,10 +744,12 @@
                 cache: false,
                 processData: false,
                 success: function(data) {
-                    setImportStatus('complete');
                     _uploadFileForm.clearInput();
                     if(data.success){
-                        _toastr.success(data.message, 'Success');
+                        const import_id = data.payload.import_id ?? 0;
+                        setLocalStorageWithExpiry('eazy-academic-payment.settings.paymentrates.import_id', import_id, 24*60*60*1000);
+
+                        _toastr.success(data.message, 'Selesai');
                         _importPreviewTable.reload();
                     } else {
                         _toastr.error(data.message, 'Failed')
@@ -844,6 +769,27 @@
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/settings/paymentrates/dt-import-preview',
+                    data: function(d) {
+                        d.custom_payload = {
+                            import_id: getLocalStorageWithExpiry('eazy-academic-payment.settings.paymentrates.import_id') ?? 0,
+                        };
+                    },
+                    dataSrc: function (e){
+                        const data = e.data;
+                        let validCount = 0;
+                        let invalidCount = 0;
+                        data.forEach(item => {
+                            if (item.statuses.includes("invalid")) {
+                                invalidCount++;
+                            } else if (item.statuses.includes("valid")) {
+                                validCount++;
+                            }
+                        });
+                        // console.log(validCount,invalidCount);
+                        $('#valid-import-data-count').text(validCount);
+                        $('#invalid-import-data-count').text(invalidCount);
+                        return e.data;
+                    },
                 },
                 columns: [
                     {
@@ -861,29 +807,57 @@
                         }
                     },
                     {
-                        name: 'invoice_component',
-                        data: 'invoice_component',
+                        name: 'invoice_components',
+                        data: 'invoice_components',
                         render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
+                            let html = '<ul class="custom-list">';
+                            let array = JSON.parse(unescapeHtml(data));
+                            html += array.map((item) => {
+                                return `<li class="custom-list-item">${item.name} | ${Rupiah.format(parseInt(item.nominal))}</li>`;
+                            }).join('');
+                            html += '</ul>';
+                            return html;
                         }
                     },
                     {
-                        name: 'installment',
-                        data: 'installment',
+                        name: 'installments',
+                        data: 'installments',
                         render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
+                            let html = '<ul class="custom-list">';
+                            let array = JSON.parse(unescapeHtml(data));
+                            html += array.map((item) => {
+                                return `<li class="custom-list-item">${item.percentage}% | ${item.due_date}</li>`;
+                            }).join('');
+                            html += '</ul>';
+                            return html;
                         }
                     },
                     {
-                        name: 'status',
-                        render: () => {
-                            return this.template.defaultCell('N/A');
+                        name: 'statuses',
+                        data: 'statuses',
+                        render: (data) => {
+                            const isValid = !data.includes('invalid');
+                            if (isValid) {
+                                return this.template.badgeCell('Valid', 'success');
+                            } else {
+                                return this.template.badgeCell('Tidak Valid', 'danger');
+                            }
                         }
                     },
                     {
                         name: 'notes',
-                        render: () => {
-                            return this.template.defaultCell('N/A');
+                        data: 'notes',
+                        render: (data, _, row) => {
+                            const isValid = !row.statuses.includes('invalid');
+                            if (isValid) {
+                                return '';
+                            } else {
+                                return `
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <button onclick="openImportError(event)" class="btn btn-secondary btn-sm btn-icon round"><i data-feather="info"></i></button>
+                                    </div>
+                                `;
+                            }
                         }
                     },
                 ],
@@ -903,6 +877,65 @@
         template: {
             ..._datatableTemplates,
         }
+    }
+
+    function openImportError(e) {
+        let notes = _importPreviewTable.getRowData(e.currentTarget).notes;
+
+        Modal.show({
+            type: 'detail',
+            modalTitle: 'Detail Error',
+            modalSize: 'lg',
+            config: {
+                fields: {
+                    errors: {
+                        title: 'Daftar Error',
+                        content: {
+                            template: `
+                                <ul>
+                                    ${notes.split(';').map((item) => {
+                                        return `<li>${item}</li>`;
+                                    }).join('')}
+                                </ul>
+                            `,
+                        },
+                    },
+                },
+                callback: function() {
+                    feather.replace();
+                }
+            },
+        });
+    }
+
+    var ImportInvoiceComponentModal = new bootstrap.Modal(document.getElementById('importInvoiceComponentModal'));
+
+    function importSettingFee() {
+        _toastr.info('Sedang mengimport data, mungkin membutukan beberapa waktu.', 'Mengimport');
+
+        $.ajax({
+            url: _baseURL+'/api/payment/settings/paymentrates/import',
+            type: 'POST',
+            data: {
+                period_path_id: periodPathId,
+                import_id: getLocalStorageWithExpiry('eazy-academic-payment.settings.paymentrates.import_id') ?? 0,
+            },
+            success: function(data) {
+                if(data.success){
+                    localStorage.removeItem('eazy-academic-payment.settings.paymentrates.import_id');
+
+                    ImportInvoiceComponentModal.hide();
+                    _toastr.success(data.message, 'Success');
+                    _importPreviewTable.reload();
+                    _ratesTable.reload();
+                } else {
+                    _toastr.error(data.message, 'Failed')
+                }
+            },
+            error: function(jqXHR) {
+                _responseHandler.formFailResponse(jqXHR);
+            }
+        });
     }
 </script>
 @endsection

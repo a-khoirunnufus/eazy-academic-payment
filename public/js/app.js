@@ -946,3 +946,62 @@ let Rupiah = new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
 });
+
+/**
+ * Local Storage Helper
+ */
+
+function setLocalStorageWithExpiry(key, value, ttl) {
+    const now = new Date()
+
+    // `item` is an object which contains the original value
+    // as well as the time when it's supposed to expire
+    const item = {
+        value: value,
+        expiry: now.getTime() + ttl,
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+}
+
+function getLocalStorageWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    // if the item doesn't exist, return null
+    if (!itemStr) {
+        return null
+    }
+
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    // compare the expiry time of the item with the current time
+    if (now.getTime() > item.expiry) {
+        // If the item is expired, delete the item from storage
+        // and return null
+        localStorage.removeItem(key)
+        return null
+    }
+    return item.value
+}
+
+/**
+ * String Escape Helper
+ */
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function unescapeHtml(text) {
+    return text
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'");
+}
