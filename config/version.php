@@ -1,9 +1,9 @@
 <?php
 
 return [
-    
-    'css_style' => 1678960935,
 
-    'js_config' => 1679271014
+    'css_style' => 1685020318,
+
+    'js_config' => 1685020318
 
 ];

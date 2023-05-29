@@ -77,6 +77,13 @@
                 <th class="text-center">Status Mahasiswa</th>
                 <th>Total Tagihan</th>
                 <th class="text-center">Status Tagihan</th>
+                <th>Nama</th>
+                <th>Nim</th>
+                <th>Jalur Masuk</th>
+                <th>Jenis Perkuliahan</th>
+                <th>Status Mahasiswa</th>
+                <th>Total Tagihan</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -87,6 +94,7 @@
 
 @section('js_section')
 <script>
+    var dataTable = null;
     $(function(){
         $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
             $('#active').html(d.active);
@@ -94,12 +102,13 @@
             $('#study_program').html(d.study_program);
         })
         _studentInvoiceDetailTable.init()
+        dataTable.columns([6,7,8,9,10,11,12]).visible(false)
     })
 
     const _studentInvoiceDetailTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#student-invoice-detail-table').DataTable({
+            dataTable = this.instance = $('#student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/generate/student-invoice/detail?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
@@ -178,6 +187,61 @@
                             `;
                         }
                     },
+                    {
+                        name: 'student', 
+                        render: (data, _, row) => {
+                            return row.fullname;;
+                        }
+                    },
+                    {
+                        name: 'student', 
+                        render: (data, _, row) => {
+                            return row.student_id;
+                        }
+                    },
+                    {
+                        name: 'lecture_type.mlt_name', 
+                        render: (data, _, row) => {
+                            return row.period.period_name;
+                        }
+                    },
+                    {
+                        name: 'lecture_type.mlt_name', 
+                        render: (data, _, row) => {
+                            return row.lecture_type.mlt_name;
+                        }
+                    },
+                    {
+                        name: 'student_status', 
+                        data: 'student_status',
+                        render: (data) => {
+                            if(data == 'active') {
+                                return "Aktif";
+                            } else {
+                                return "Tidak Aktif"
+                            }
+                        }
+                    },
+                    {
+                        name: 'payment.prr_id', 
+                        render: (data, _, row) => {
+                            return (row.payment) ? Rupiah.format(row.payment.prr_total) : "-";
+                        }
+                    },
+                    {
+                        name: 'payment.prr_id', 
+                        render: (data, _, row) => {
+                            if(row.payment){
+                                if(row.payment.prr_status == 'lunas'){
+                                    return "Lunas"
+                                }else{
+                                    return "Belum Lunas"
+                                }
+                            }else {
+                                return ""
+                            }
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -192,6 +256,55 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [6,7,8,9,10,11,12]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [6,7,8,9,10,11,12]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [6,7,8,9,10,11,12]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [6,7,8,9,10,11,12]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [6,7,8,9,10,11,12]
+                                }
+                            }
+                        ],
+                    }
+                ],
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -698,5 +811,7 @@
             
         },
     }
+
+
 </script>
 @endsection

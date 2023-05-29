@@ -12,12 +12,88 @@
         grid-template-columns: 1fr 1fr 1fr;
         grid-gap: 1rem;
     }
+
+    #myModalContainer {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 1100;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(190, 192, 196, 0.3);
+    }
+
+    .mdl-container {
+        border-radius: 20px;
+        opacity: 1;
+    }
+
+    .cls-btn {
+        position: absolute;
+        right: -20px;
+        top: -18px;
+    }
+
+    #MyFile {
+        content: "";
+        display: block;
+        width: 100%;
+        padding: 50px 0px 55px 200px;
+        margin-top: 15px;
+        border-style: dashed;
+        border-width: 2px;
+        text-align: center;
+        background-color: #dfe1e6;
+    }
+
+    #MyFile::-webkit-file-upload-button {
+        visibility: hidden;
+    }
+
+    .preview {
+        width: 100%;
+        height: calc(100% - 210px);
+        overflow: scroll;
+    }
+
+    .actions {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+    }
 </style>
 @endsection
 
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'subject-rates'])
+<div id="myModalContainer" class="d-flex justify-content-center align-items-center">
+    <div class="w-75 h-75 bg-white position-relative mdl-container p-1">
+        <button type="button" class="cls-btn btn bg-danger rounded text-white" onclick="closeImport()">X</button>
+        <input type="file" name="" id="MyFile" onchange="myImport('preview')">
+        <div class="preview mt-1">
+            <table id="prevTable" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="text-center align-middle">Program Study</th>
+                        <th rowspan="2" class="text-center align-middle">Mata Kuliah</th>
+                        <th colspan="3" class="text-center align-middle">Tarif per Tingkat</th>
+                    </tr>
+                    <tr>
+                        <th>Tngkat</th>
+                        <th>Tarif</th>
+                        <th>Paket</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="actions d-flex justify-content-end">
+            <button class="btn bg-primary text-white mx-1" type="button" onclick="downloadTemplate()">Download</button>
+            <button class="btn bg-success text-white" type="button">Import</button>
+        </div>
+    </div>
+</div>
 
 <input type="file" name="import" id="myFiles" style="display:none;" onchange="myImport()">
 <div class="card">
@@ -126,6 +202,16 @@
     var dataCopy = null;
     var spIdCopy = null;
     var cIdCopy = null;
+
+    $('#myModalContainer').addClass("d-none").removeClass("d-flex");
+    $(document).on('keydown', function(e) {
+        if (e.keyCode === 27) {
+            $('#myModalContainer').addClass("d-none").removeClass("d-flex");
+        }
+    });
+
+    // $('#prevTable').DataTable();
+
     $(function() {
         _ratesPerCourseTable.init()
     })
@@ -681,41 +767,68 @@
         }
     }
 
-    function myImport() {
-        var x = document.getElementById("myFiles");
+    function myImport(type) {
+        var x = document.getElementById("MyFile");
         var txt = "";
         if ('files' in x) {
             if (x.files.length > 0) {
-                console.log(x.files[0]);
-                Swal.fire({
-                    title: "Anda Yakin?",
-                    text: "Ingin mengimport data dari file tersebut",
-                    showDenyButton: true,
-                    confirmButtonText: 'Import',
-                    denyButtonText: "Cancel",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        var formData = new FormData();
-                        formData.append("file", x.files[0]);
-                        formData.append("_token", "{{ csrf_token() }}");
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function() {
-                            var response = JSON.parse(this.responseText);
-                            console.log(response)
-                            if (response.status) {
-                                Swal.fire(response.message, '', 'success');
+                var formData = new FormData();
+                formData.append("file", x.files[0]);
+                formData.append("_token", "{{ csrf_token() }}");
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    var response = JSON.parse(this.responseText);
+                    if (type == "preview") {
+                        // $('#prevTable').DataTable().clear().destroy();
+                        // $('#prevTable').DataTable().empty();
+
+                        var target = document.querySelector('#prevTable').querySelector('tbody');
+                        target.innerHTML = '';
+                        for (var i = 0; i < response.length; i++) {
+                            var element = '<tr>';
+                            element += '<td rowspan="' + response[i].tarif_per_tingkat.length + '" class="text-center align-middle">' + response[i].program_studi_id.split('-')[1] + '</td>'
+                            element += '<td rowspan="' + response[i].tarif_per_tingkat.length + '" class="text-center align-middle">' + response[i].course_id.split('-')[1] + '</td>'
+                            for (var j = 0; j < response[i].tarif_per_tingkat.length; j++) {
+                                if (j >= 1) {
+                                    element += j == 1 ? '</tr><tr>' : '<tr>'
+                                }
+                                element += '<td>' + response[i].tarif_per_tingkat[j].tingkat + '</td>'
+                                element += '<td>' + response[i].tarif_per_tingkat[j].tarif + '</td>'
+                                element += '<td>' + response[i].tarif_per_tingkat[j].paket.split('-')[1] + '</td>'
+                                if (j >= 1) {
+                                    element += '</tr>'
+                                }
                             }
+                            element += response[i].tarif_per_tingkat.length > 1 ? '' : '</tr>';
+                            console.log(element);
+                            target.innerHTML += element
                         }
-                        xhr.open("POST", _baseURL + '/api/payment/settings/courserates/import', true);
-                        xhr.send(formData);
+                        // $('#prevTable').DataTable();
+                    } else {
+                        console.log(response)
+                        if (response.status) {
+                            Swal.fire(response.message, '', 'success');
+                        }
                     }
-                })
+                }
+                var endpoint = "";
+                if (type == "preview") {
+                    endpoint = _baseURL + '/api/payment/settings/courserates/preview';
+                } else {
+                    endpoint = _baseURL + '/api/payment/settings/courserates/import';
+                }
+                xhr.open("POST", endpoint, true);
+                xhr.send(formData);
             }
         }
     }
 
     function importBtn() {
-        $('#myFiles').click()
+        $('#myModalContainer').addClass('d-flex').removeClass('d-none');
+    }
+
+    function closeImport() {
+        $('#myModalContainer').addClass("d-none").removeClass("d-flex");
     }
 
     function setProdiFilter(id) {
@@ -734,6 +847,10 @@
         }
         xhr.open("GET", _baseURL + "/api/payment/settings/courserates/studyprogram/" + id, true);
         xhr.send();
+    }
+
+    function downloadTemplate() {
+        window.open(_baseURL + "/payment/settings/courserates/template");
     }
 </script>
 @endsection

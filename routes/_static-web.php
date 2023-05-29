@@ -9,7 +9,7 @@
  * commented_by: Ahmad
  */
 
-
+ use Illuminate\Http\Request;
 use App\Http\Controllers\_Payment\AcademicRules;
 use App\Http\Controllers\_Payment\SettingsController;
 
