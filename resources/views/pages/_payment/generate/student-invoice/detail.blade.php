@@ -11,6 +11,11 @@
             width: 100%;
             overflow-x: auto;
         }
+        .new-student-invoice-filter {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 1rem;
+        }
     </style>
 @endsection
 
@@ -41,6 +46,45 @@
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Angkatan</span>
                 <h5 class="fw-bolder">Angkatan 2021</h5>
             </div> --}}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="new-student-invoice-filter">
+            <div>
+                <label class="form-label">Periode Pendaftaran</label>
+                <select class="form-select" eazy-select2-active id="year-filter">
+                    <option value="all" selected>Semua Periode Pendaftaran</option>
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_id }}">{{ $tahun->msy_year." ".($tahun->msy_semester%2 == 0 ? "GANJIL":"GENAP") }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Gelombang</label>
+                <select class="form-select" eazy-select2-active id="period-filter">
+                    <option value="all" selected>Semua Gelombang</option>
+                    @foreach($period as $item)
+                        <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Jalur Pendaftaran</label>
+                <select class="form-select" eazy-select2-active id="path-filter">
+                    <option value="all" selected>Semua Jalur Pendaftaran</option>
+                    @foreach($path as $item)
+                        <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button class="btn btn-primary" onclick="filters()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -90,6 +134,11 @@
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/generate/student-invoice/detail?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
+                    data: {
+                        year: $('#year-filter').val(),
+                        path: $('#path-filter').val(),
+                        period: $('#period-filter').val()
+                    },
                 },
                 columns: [
                     {
@@ -579,6 +628,9 @@
         },
     }
 
-
+    function filters(){
+        dataTable.destroy();
+        _studentInvoiceDetailTable.init();
+    }
 </script>
 @endsection

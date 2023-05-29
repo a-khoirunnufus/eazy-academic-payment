@@ -23,6 +23,10 @@ class GenerateController extends Controller
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
 
-        return view('pages._payment.generate.student-invoice.detail',compact('data'));
+        $year = Year::all();
+        $path = Path::all();
+        $period = Period::all();
+
+        return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period'));
     }
 }

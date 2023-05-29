@@ -71,6 +71,16 @@ class StudentInvoiceController extends Controller
         if($data['sp'] != 0 && $data['sp']){
             $query = $query->where('sp.studyprogram_id',$data['sp']);
         }
+        if($request->query('year') !== "all"){
+            $query = $query->where('msy_id', '=', $request->query('year'));
+            // $query = $query->whereIn('studyprogram_id', $year);
+        }
+        if($request->query('path') !== "all"){
+            $query = $query->where('path_id', '=', $request->query('path'));
+        }
+        if($request->query('period') !== "all"){
+            $query = $query->where('period_id', '=', $request->query('period'));
+        }
         // dd($query->get());
         return datatables($query->get())->toJson();
     }
