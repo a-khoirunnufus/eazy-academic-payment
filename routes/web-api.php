@@ -75,6 +75,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@index');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@detail');
         Route::get('student-invoice/header', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@header');
+        Route::get('student-invoice/choice/{faculty}/{studyProgram}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@choice');
         Route::post('student-invoice/student', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@studentGenerate');
     });
 });

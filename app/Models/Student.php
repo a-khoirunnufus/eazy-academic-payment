@@ -8,6 +8,8 @@ use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\LectureType;
 use App\Models\Period;
+use App\Models\Path;
+use App\Models\Year;
 
 class Student extends Model
 {
@@ -31,6 +33,16 @@ class Student extends Model
         return $this->belongsTo(Period::class, 'period_id','period_id')->with('schoolyear');
     }
     
+    public function path()
+    {
+        return $this->belongsTo(Path::class, 'path_id','path_id');
+    }
+
+    public function year()
+    {
+        return $this->belongsTo(Year::class, 'msy_id','msy_id');
+    }
+
     public function componentDetail()
     {
         return $this->hasMany(ComponentDetail::class, 'studyprogram_id','mma_id')->orderBy('cd_id','asc')->with('component');
@@ -46,5 +58,10 @@ class Student extends Model
         return $this->hasMany(ComponentDetail::class, 'mma_id','studyprogram_id')
         
         ->orderBy('cd_id','asc')->with('component');
+    }
+    
+    public function studyProgram()
+    {
+        return $this->belongsTo(Studyprogram::class, 'studyprogram_id','studyprogram_id')->with('faculty');
     }
 }

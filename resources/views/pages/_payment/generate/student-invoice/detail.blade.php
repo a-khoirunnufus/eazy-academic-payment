@@ -95,11 +95,13 @@
 @section('js_section')
 <script>
     var dataTable = null;
+    var header = null;
     $(function(){
         $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
             $('#active').html(d.active);
             $('#faculty').html(d.faculty);
             $('#study_program').html(d.study_program);
+            header = d;
         })
         _studentInvoiceDetailTable.init()
         dataTable.columns([6,7,8,9,10,11,12]).visible(false)
@@ -609,207 +611,151 @@
                     fields: {
                         header: {
                             type: 'custom-field',
-                            title: 'Filter',
+                            title: 'Konfirmasi Generate Tagihan',
                             content: {
-                                template: `
-                                <div class="row">
-                                    <div class="col-12 col-md-6">
-                                        <label class="form-label">Tahun Masuk</label>
-                                        <select class="form-select" eazy-select2-active>
-                                            <option value="all" selected>Semua Tahun Ajar</option>
-                                        </select>
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Fakultas</h6>
+                                            <h1 class="h6 fw-bolder">${header.faculty}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Program Studi</h6>
+                                            <h1 class="h6 fw-bolder">${header.study_program}</h1>
+                                        </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
-                                        <label class="form-label">Periode Pendaftaran</label>
-                                        <select class="form-select" eazy-select2-active>
-                                            <option value="all" selected>Semua Periode Pendaftaran</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <label class="form-label">Jalur Pendaftaran</label>
-                                        <select class="form-select" eazy-select2-active>
-                                            <option value="all" selected>Semua Jalur Pendaftaran</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <label class="form-label">Status Generate</label>
-                                        <select class="form-select" eazy-select2-active>
-                                            <option value="all" selected>Semua Status</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <button class="btn btn-primary mt-2">
-                                            <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                                        </button>
-                                    </div>
-                                </div>
-                                `
+                                    <hr>
+                                </div>`
                             },
                         },
                         tagihan: {
                             type: 'custom-field',
-                            title: 'Konfirmasi Generate Tagihan',
+                            title: 'Pilih Data yang Akan Digenerate',
                             content: {
                                 template: `
                                 <ul class="nested-checkbox">
-                                    <li>
-                                        <input type="checkbox" class="form-check-input" /> S1 Biologi <div class="badge bg-danger">Belum Digenerate</div>
-                                        <ul>
-                                            <li>
-                                                <input type="checkbox" class="form-check-input" /> Tahun 2020/2021 <div class="badge bg-danger">Belum Digenerate</div>
-                                                <ul class="nested-checkbox">
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> Reguler <div class="badge bg-danger">Belum Digenerate</div>
-                                                        <ul>
-                                                            <li>
-                                                                <input type="checkbox" class="form-check-input" /> Periode 1 April <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                            <li>
-                                                                <input type="checkbox" class="form-check-input" /> Periode 1 Mei <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                            <li>
-                                                                <input type="checkbox" class="form-check-input" /> Periode 1 Juni <div class="badge bg-success">Sudah Digenerate</div><a href="" class="h6"> (20/05/2023 13:00:00)</a></li>
-                                                        </ul>
-                                                    </li>
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> USM <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> Prestasi <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                </ul>
-                                            </li>
-                                            <li>
-                                                <input type="checkbox" class="form-check-input" /> Tahun 2021/2022 <div class="badge bg-danger">Belum Digenerate</div>
-                                                <ul>
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> Reguler <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> USM <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                    <li>
-                                                        <input type="checkbox" class="form-check-input" /> Prestasi <div class="badge bg-danger">Belum Digenerate</div></li>
-                                                </ul>
-                                            </li>
-                                        </ul>
+                                    <li id="choice">
+                                        <input type="checkbox" class="form-check-input" /> ${header.study_program} <div class="badge bg-danger">Belum Digenerate</div>
                                     </li>
                                 </ul>
                                 `
                             },
                         },
-                        // bill: {
-                        //     type: 'custom-field',
-                        //     title: 'Riwayat Transaksi',
-                        //     content: {
-                        //         template: `
-                        //             <table class="table table-bordered" id="paymentBill">
-                        //                 <tr class="bg-light">
-                        //                     <th class="text-center">Invoice ID</th>
-                        //                     <th class="text-center">Expired Date</th>
-                        //                     <th class="text-center">Amount</th>
-                        //                     <th class="text-center">Fee</th>
-                        //                     <th class="text-center">Paid Date</th>
-                        //                     <th class="text-center">Status</th>
-                        //                 </tr>
-                        //             </table>
-                        //         `
-                        //     },
-                        // },
                     },
                     callback: function() {
-                        $('li :checkbox').on('click', function () {
-                            var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
-                            if ($li.has('ul')) {
-                                $li.find(':checkbox').not(this).prop('checked', this.checked)
+                        $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}', (data) => {
+                            console.log(data);
+                            if (Object.keys(data).length > 0) {
+                                // data.map(item => {
+                                //     _studentInvoiceDetailTableAction.choiceRow(
+                                //         'choice',
+                                //         'msyId',
+                                //         'msyId_'+item.msy_id,
+                                //         item.msy_id+'_mltId',
+                                //         'Tahun '+item.year.msy_year)
+
+                                //     _studentInvoiceDetailTableAction.choiceRow(
+                                //         item.msy_id+'_mltId',
+                                //         item.msy_id+'_mltId',
+                                //         item.msy_id+'_mltId_'+item.mlt_id,
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
+                                //         item.lecture_type.mlt_name)
+
+                                //     _studentInvoiceDetailTableAction.choiceRow(
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id,
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
+                                //         item.path.path_name)
+                                        
+                                //     _studentInvoiceDetailTableAction.choiceRow(
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
+                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
+                                //         item.msy_id+'_'+item.mlt_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                                //         item.msy_id+'_'+item.mlt_id+'_'+item.path_id+'_periodId_'+item.period_id+'_end',
+                                //         item.period.period_name)
+                                // })
+
+                                data.map(item => {
+                                    _studentInvoiceDetailTableAction.choiceRow(
+                                        'choice',
+                                        'msyId',
+                                        'msyId_'+item.msy_id,
+                                        item.msy_id+'_path',
+                                        'Tahun '+item.year.msy_year)
+
+                                    _studentInvoiceDetailTableAction.choiceRow(
+                                        item.msy_id+'_path',
+                                        item.msy_id+'_path',
+                                        item.msy_id+'_path_'+item.path_id,
+                                        item.msy_id+'_'+item.path_id+'_periodId',
+                                        item.path.path_name)
+
+                                    _studentInvoiceDetailTableAction.choiceRow(
+                                        item.msy_id+'_'+item.path_id+'_periodId',
+                                        item.msy_id+'_'+item.path_id+'_periodId',
+                                        item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                                        item.period.period_name)
+                                        
+                                    _studentInvoiceDetailTableAction.choiceRow(
+                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
+                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
+                                        item.lecture_type.mlt_name)
+                                })
                             }
-                            do {
-                                $ul = $li.parent();
-                                $parent = $ul.siblings(':checkbox');
-                                if ($chk.is(':checked')) {
-                                    $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
-                                } else {
-                                    $parent.prop('checked', false)
-                                }
-                                $chk = $parent;
-                                $li = $chk.closest('li');
-                            } while ($ul.is(':not(.someclass)'));
                         });
                         feather.replace();
+                        
                     }
                 },
             });
-            // if(data.payment){
-                
-            //     // Status
-            //     var status = "";
-            //     if(data.payment){
-            //         if(data.payment.prr_status == 'lunas'){
-            //             status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
-            //         }else{
-            //             status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
-            //         }
-            //     }
-            //     $("#statusPembayaran").append(status);
-
-            //     // Tagihan
-            //     var total = 0;
-            //     if (Object.keys(data.payment.payment_detail).length > 0) {
-            //         data.payment.payment_detail.map(item => {
-            //             total = total+item.prrd_amount;
-            //             _studentInvoiceDetailTableAction.rowDetail(item.prrd_component, item.prrd_amount,'paymentDetail');
-            //         });
-            //     }
-            //     $("#paymentDetail").append(`
-            //         <tr class="bg-light">
-            //             <td class="text-center fw-bolder">Total Tagihan</td>
-            //             <td class="text-center fw-bolder">${Rupiah.format(total)}</td>
-            //         </tr>
-            //     `);
-            //     // $("#paymentDetail").append(`
-            //     //     <tr class="bg-light">
-            //     //         <td class="text-center fw-bolder">Eazy Service</td>
-            //     //         <td class="text-center" style="color:red!important">-${Rupiah.format({{ \App\Enums\Payment\FeeAmount::eazy }})}</td>
-            //     //     </tr>
-            //     // `);
-            //     $("#paymentDetail").append(`
-            //         <tr style="background-color:#163485">
-            //             <td class="text-center fw-bolder" style="color:white!important">Total yang Diterima</td>
-            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_paid_net)}</td>
-            //         </tr>
-            //     `);
-
-            //     var total_terbayar = 0;
-            //     if (Object.keys(data.payment.payment_bill).length > 0) {
-            //         $("#paymentDetail").append(`
-            //             <tr class="bg-light">
-            //                 <td class="text-center fw-bolder" colspan="2">Fee</th>
-            //             </tr>
-            //         `);
-            //         data.payment.payment_bill.map(item => {
-            //             if(item.prrb_status == "lunas"){
-            //                 total_terbayar = total_terbayar + item.prrb_amount+item.prrb_admin_cost;
-            //             }
-            //             _studentInvoiceDetailTableAction.rowDetail('Biaya Transaksi - INV.'+item.prrb_invoice_num, item.prrb_admin_cost,'paymentDetail');
-            //         });
-            //     }
-            //     $("#paymentDetail").append(`
-            //         <tr style="background-color:#163485">
-            //             <td class="text-center fw-bolder" style="color:white!important">Total yang Harus Dibayarkan</td>
-            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_total)}</td>
-            //         </tr>
-            //     `);
-            //     $("#paymentDetail").append(`
-            //         <tr class="bg-success">
-            //             <td class="text-center fw-bolder" style="color:white!important">Total Terbayar</td>
-            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(total_terbayar)}</td>
-            //         </tr>
-            //     `);
-
-
-            //     // Transaksi
-            //     if (Object.keys(data.payment.payment_bill).length > 0) {
-            //         data.payment.payment_bill.map(item => {
-            //             _studentInvoiceDetailTableAction.rowBill(item.prrb_id,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
-            //         });
-            //     }
-            // }
-            
         },
+        choiceRow(tag,grandparent,parent,child,data){
+            if(!$("#choice").find("[id='" + grandparent + "']")[0]){
+                $('#'+tag).append(`
+                    <ul id="${grandparent}">
+                    </ul>
+                `);
+            }
+
+            if(!$("#choice").find("[id='" + parent + "']")[0]){
+                $('#'+grandparent).append(`
+                    <li id="${parent}">
+                        <input type="checkbox" class="form-check-input" /> ${data} <div class="badge bg-danger">Belum Digenerate</div>
+                        <ul id="${child}">
+                        </ul>
+                    </li>
+                `);
+            }
+            $('li :checkbox').on('click', function () {
+                console.log("hey");
+                var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
+                console.log($li);
+                if ($li.has('ul')) {
+                    $li.find(':checkbox').not(this).prop('checked', this.checked)
+                }
+                do {
+                    $ul = $li.parent();
+                    $parent = $ul.siblings(':checkbox');
+                    if ($chk.is(':checked')) {
+                        $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
+                    } else {
+                        $parent.prop('checked', false)
+                    }
+                    $chk = $parent;
+                    $li = $chk.closest('li');
+                } while ($ul.is(':not(.someclass)'));
+            });
+            
+        }
     }
 
 

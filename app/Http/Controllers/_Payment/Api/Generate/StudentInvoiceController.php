@@ -149,4 +149,24 @@ class StudentInvoiceController extends Controller
 
     }
     
+    public function choice($f, $sp){
+        // dd($f);
+
+        $student = Student::query()->with('studyProgram','lectureType','period','path','year');
+        if($f && $f != 0){
+            $sp_in_faculty = Studyprogram::where('faculty_id',$f)->pluck('studyprogram_id')->toArray();
+            $student = $student->whereIn('studyprogram_id',$sp_in_faculty);
+        }else{
+            $student = $student->where('studyprogram_id',$sp);
+        }
+        $student = $student
+        ->where('student_type_id',1)
+        ->select('mlt_id','path_id','period_id','msy_id','studyprogram_id')
+        ->groupBy('mlt_id','path_id','period_id','msy_id','studyprogram_id')
+        ->get();
+        
+        return $student;
+    }
+
+    
 }
