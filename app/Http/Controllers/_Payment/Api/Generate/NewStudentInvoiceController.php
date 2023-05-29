@@ -2,246 +2,139 @@
 
 namespace App\Http\Controllers\_Payment\Api\Generate;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Models\Student;
-use App\Models\Masterdata\MsInstitution;
-use App\Models\PeriodPath as RegistrationPeriodPath;
-use DB;
+use App\Http\Controllers\Controller;
+use App\Models\Masterdata\MsInstitution as Institution;
+use App\Models\Studyprogram;
+use App\Models\Faculty;
+use App\Services\Queries\NewStudent\NewStudent;
+use App\Services\Queries\NewStudent\Selects\DefaultSelect;
+use App\Services\Queries\NewStudent\Selects\InvoiceData;
+use App\Services\Queries\NewStudent\Filters\ByFaculty;
+use App\Services\Queries\NewStudent\Filters\ByStudyprogram;
+use App\Services\Queries\NewStudent\Filters\RegPassed;
 
 class NewStudentInvoiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = DB::table('pmb.participant as p')
-                    ->leftJoin('pmb.register as r', 'p.par_id', '=', 'r.par_id')
-                    ->select(
-                        'p.par_fullname as fullname',
-                        'p.par_nik as nik',
-                        'p.par_phone as phone',
-                        'p.par_birthday as birthday',
-                        'p.par_birthplace as birthplace',
-                        'p.par_gender as gender',
-                        'p.par_religion as religion'
-                    )
-                    ->whereNotNull('r.reg_major_pass')
-                    ->whereNotNull('r.reg_major_lecture_type_pass')
-                    ->where('r.reg_status_pass', '=', 1)
-                    ->where('r.re_register_status', '=', 0)
-                    ->where('p.par_active_status', '=', 1)
-                    ->get();
-
-        return datatables($data)->toJSON();
-    }
-
-    /**
-     * Datatable source to list period and path in this institution/university
-     */
-    public function getPeriodPath(Request $request)
-    {
-        $filters = $request->input('custom_filters');
-
-        // remove item with null value or #ALL value
-        $filters = array_filter($filters, function($item){
-            return !is_null($item) && $item != '#ALL';
-        });
-
-        $query = DB::table('masterdata.period_path as prpt')
-            ->leftJoin('masterdata.ms_period as pr', 'prpt.period_id', '=', 'pr.period_id')
-            ->leftJoin('masterdata.ms_path as pt', 'prpt.path_id', '=', 'pt.path_id')
-            ->leftJoin('masterdata.ms_school_year as sy', 'sy.msy_id', '=', 'pr.msy_id')
-            // Cek Institusi Begin
-            ->leftJoin('masterdata.period_path_major as ppm', 'ppm.ppd_id', '=', 'prpt.ppd_id')
-            ->leftJoin('masterdata.ms_major_lecture_type as mlct', 'mlct.mma_lt_id', '=', 'ppm.mma_lt_id')
-            ->leftJoin('masterdata.ms_studyprogram as mstd', 'mstd.studyprogram_id', '=', 'mlct.mma_id')
-            ->leftJoin('masterdata.ms_faculties as mfac', 'mfac.faculty_id', '=', 'mstd.faculty_id')
-            ->where('mfac.institution_id', MsInstitution::$defaultInstitutionId)
-            // Cek Institusi End
-            ->select(
-                'prpt.ppd_id as ppd_id',
-                'pr.period_id as period_id',
-                'pr.period_name as period_name',
-                'pr.period_start as period_start',
-                'pr.period_end as period_end',
-                'pt.path_id as path_id',
-                'pt.path_name as path_name',
-                'sy.msy_year as academic_year'
-            )
-            ->groupBy(
-                'prpt.ppd_id',
-                'pr.period_id',
-                'pr.period_name',
-                'pr.period_start',
-                'pr.period_end',
-                'pt.path_id',
-                'pt.path_name',
-                'sy.msy_year'
-            );
-
-        foreach($filters as $key => $value) {
-            $query->where($key, '=', $value);
-        }
-
-        $data = $query->get();
-
-        return datatables($data)->toJSON();
-    }
-
-    public function getFaculties(Request $request)
-    {
-        $validated = $request->validate([
-            'period_path_id' => 'required'
-        ]);
-
-        $query = DB::table('masterdata.ms_faculties as mfac')
-            ->leftJoin('masterdata.ms_studyprogram as mstd', 'mstd.faculty_id', '=', 'mfac.faculty_id')
-            ->leftJoin('masterdata.ms_major_lecture_type as mlct', 'mlct.mma_id', '=', 'mstd.studyprogram_id')
-            ->leftJoin('masterdata.ms_lecture_type as lct', 'lct.mlt_id', '=', 'mlct.mlt_id')
-            ->leftJoin('masterdata.period_path_major as ppm', 'ppm.mma_lt_id', '=', 'mlct.mma_lt_id')
-            ->leftJoin('masterdata.period_path as pp', 'pp.ppd_id', '=', 'ppm.ppd_id')
-            ->select('mfac.faculty_id', 'mfac.faculty_name')
-            ->where('pp.ppd_id', $validated['period_path_id'])
-            ->where('mfac.institution_id', MsInstitution::$defaultInstitutionId) // Cek Institusi
-            ->groupBy('mfac.faculty_id', 'mfac.faculty_name');
-
-        $data = $query->get();
-
-        return datatables($data)->toJSON();
-    }
-
-    public function getStudyprogramsLectureTypes(Request $request)
-    {
-        $validated = $request->validate([
-            'period_path_id' => 'required',
-            'faculty_id' => 'required',
-        ]);
-
-        $query = DB::table('masterdata.ms_major_lecture_type as mlct')
-            ->leftJoin('masterdata.ms_lecture_type as lct', 'lct.mlt_id', '=', 'mlct.mlt_id')
-            ->leftJoin('masterdata.ms_studyprogram as mstd', 'mlct.mma_id', '=', 'mstd.studyprogram_id')
-            ->leftJoin('masterdata.ms_faculties as mfac', 'mstd.faculty_id', '=', 'mfac.faculty_id')
-            ->leftJoin('masterdata.period_path_major as ppm', 'ppm.mma_lt_id', '=', 'mlct.mma_lt_id')
-            ->leftJoin('masterdata.period_path as pp', 'pp.ppd_id', '=', 'ppm.ppd_id')
-            ->select('mlct.mma_lt_id', 'mstd.studyprogram_name', 'lct.mlt_name')
-            ->where('pp.ppd_id', $validated['period_path_id'])
-            ->where('mfac.faculty_id', $validated['faculty_id'])
-            ->where('mfac.institution_id', MsInstitution::$defaultInstitutionId); // Cek Institusi
-
-        $data = $query->get();
-
-        return datatables($data)->toJSON();
-    }
-
-    public function getStudents(Request $request)
-    {
-        $validated = $request->validate([
-            'period_path_id' => 'required',
-            'studyprogram_lecture_type_id' => 'required',
-        ]);
-
-        $period_path = RegistrationPeriodPath::find($validated['period_path_id']);
-        $studyprogram_lecture_type = DB::table('masterdata.ms_major_lecture_type')
-            ->where('mma_lt_id', '=', $validated['studyprogram_lecture_type_id'])
-            ->first();
-
-        $data = DB::table('pmb.participant as p')
-            ->leftJoin('pmb.register as r', 'p.par_id', '=', 'r.par_id')
-            ->leftJoin('admission.payment_re_register as prr', 'r.reg_id', '=', 'prr.reg_id')
-            ->select(
-                'p.par_fullname as fullname',
-                'p.par_nik as nik',
-                'p.par_phone as phone',
-                'p.par_birthday as birthday',
-                'p.par_birthplace as birthplace',
-                'p.par_gender as gender',
-                'p.par_religion as religion'
-            )
-            // Cek Kelulusan
-            ->whereNotNull('r.reg_major_pass')
-            ->whereNotNull('r.reg_major_lecture_type_pass')
-            ->whereNotNull('r.reg_major_pass_date')
-            ->where('r.reg_status_pass', '=', 1)
-            // Filter Berdasarkan Period, Path, Studyprogram, Lecture Type
-            ->where('r.ms_period_id', '=', $period_path->period_id)
-            ->where('r.ms_path_id', '=', $period_path->path_id)
-            ->where('r.reg_major_pass', '=', $studyprogram_lecture_type->mma_id)
-            ->where('r.reg_major_lecture_type_pass', '=', $studyprogram_lecture_type->mlt_id)
-            // Cek Belum Bayar Daftar Ulang
-            ->where('prr.prr_status', '=', 'belum lunas')
-            ->whereNull('prr.deleted_at')
-            ->where('r.re_register_status', '=', 0)
+        $faculty_w_studyprogram = Faculty::with(['studyProgram' => function ($query) {
+                // $query->select('studyprogram_id', 'studyprogram_name');
+                $query->orderBy('studyprogram_type', 'asc');
+                $query->orderBy('studyprogram_name', 'asc');
+            }])
+            // ->select('faculty_id', 'faculty_name')
+            ->where('institution_id', '=', Institution::$defaultInstitutionId)
+            ->orderBy('faculty_name', 'asc')
             ->get();
 
+        $students = (new NewStudent())
+            ->selects(new DefaultSelect(), new InvoiceData())
+            ->filters(new RegPassed(false))
+            ->result()
+            ->toArray();
+
+        $data = [];
+        foreach($faculty_w_studyprogram as $faculty){
+            foreach (['faculty', 'studyprogram'] as $unit_type) {
+                if ($unit_type == 'faculty') {
+                    $student_count = 0;
+                    $invoice_amount = 0;
+                    $generated_invoice = 0;
+                    foreach ($students as $student) {
+                        if ($student->faculty_id == $faculty->faculty_id) {
+                            $student_count++;
+                            $invoice_amount += intval($student->invoice_amount);
+                            if ($student->invoice_status == 'generated') $generated_invoice++;
+                        }
+                    }
+                    $data[] = [
+                        'unit_type' => 'faculty',
+                        'unit_id' => $faculty->faculty_id,
+                        'unit_name' => $faculty->faculty_name,
+                        'student_count' => $student_count,
+                        'invoice_total_amount' => $invoice_amount,
+                        'generated_invoice' => $generated_invoice.' / '.$student_count,
+                    ];
+                }
+
+                if ($unit_type == 'studyprogram') {
+                    foreach ($faculty->studyProgram as $studyprogram) {
+                        $student_count = 0;
+                        $invoice_amount = 0;
+                        $generated_invoice = 0;
+                        foreach ($students as $student) {
+                            if ($student->studyprogram_id == $studyprogram->studyprogram_id) {
+                                $student_count++;
+                                $invoice_amount += intval($student->invoice_amount);
+                                if ($student->invoice_status == 'generated') $generated_invoice++;
+                            }
+                        }
+                        $data[] = [
+                            'unit_type' => 'studyprogram',
+                            'unit_id' => $studyprogram->studyprogram_id,
+                            'unit_name' => strtoupper($studyprogram->studyprogram_type).' '.$studyprogram->studyprogram_name,
+                            'student_count' => $student_count,
+                            'invoice_total_amount' => $invoice_amount,
+                            'generated_invoice' => $generated_invoice.' / '.$student_count,
+                        ];
+                    }
+                }
+            }
+        }
+
         return datatables($data)->toJSON();
     }
 
-    public function getStudentCount(Request $request)
+    public function detail(Request $request)
     {
         $validated = $request->validate([
-            'scope' => 'required',
-            'period_path_id' => 'required_if:scope,institution|required_if:scope,faculty|required_if:scope,studyprogram',
-            'faculty_id' => 'required_if:scope,faculty|required_if:scope,studyprogram',
-            'studyprogram_lecture_type_id' => 'required_if:scope,studyprogram',
+            'scope' => 'required|in:all,faculty,studyprogram',
+            'faculty_id' => 'required_if:scope,faculty',
+            'studyprogram_id' => 'required_if:scope,studyprogram',
         ]);
 
-        $query = DB::table('pmb.participant as p')
-            ->leftJoin('pmb.register as reg', 'p.par_id', '=', 'reg.par_id')
-            ->leftJoin('admission.payment_re_register as prr', 'reg.reg_id', '=', 'prr.reg_id')
-            ->leftJoin('masterdata.period_path as ppd', function($join) {
-                $join->on('ppd.period_id', '=', 'reg.ms_period_id');
-                $join->on('ppd.path_id', '=', 'reg.ms_path_id');
-            })
-            ->leftJoin('masterdata.period_path_major as ppm', 'ppm.ppd_id', '=', 'ppd.ppd_id')
-            ->leftJoin('masterdata.ms_major_lecture_type as mlt', 'mlt.mma_lt_id', '=', 'ppm.mma_lt_id')
-            ->leftJoin('masterdata.ms_studyprogram as sprg', 'sprg.studyprogram_id', '=', 'mlt.mma_id')
-            ->leftJoin('masterdata.ms_faculties as fac', 'fac.faculty_id', '=', 'sprg.faculty_id')
+        $selects = [new DefaultSelect(), new InvoiceData()];
 
-            ->select('p.par_id')
-
-            // Cek Institusi
-            ->where('fac.institution_id', MsInstitution::$defaultInstitutionId)
-
-            // Cek Kelulusan
-            ->whereNotNull('reg.reg_major_pass')
-            ->whereNotNull('reg.reg_major_lecture_type_pass')
-            ->whereNotNull('reg.reg_major_pass_date')
-            ->where('reg.reg_status_pass', '=', 1)
-
-            // Cek Belum Bayar Daftar Ulang
-            ->where('prr.prr_status', '=', 'belum lunas')
-            ->whereNull('prr.deleted_at')
-            ->where('reg.re_register_status', '=', 0);
-
-        if ($validated['scope'] == 'institution') {
-            $period_path = RegistrationPeriodPath::find($validated['period_path_id']);
-
-            $query->where('reg.ms_period_id', '=', $period_path->period_id)
-                ->where('reg.ms_path_id', '=', $period_path->path_id);
-        }
-
+        $filters = [new RegPassed(false)];
         if ($validated['scope'] == 'faculty') {
-            $period_path = RegistrationPeriodPath::find($validated['period_path_id']);
-
-            $query->where('reg.ms_period_id', '=', $period_path->period_id)
-                ->where('reg.ms_path_id', '=', $period_path->path_id)
-                ->where('fac.faculty_id', '=', $validated['faculty_id']);
+            $filters[] = new ByFaculty(intval($validated['faculty_id']));
+        } elseif ($validated['scope'] == 'studyprogram') {
+            $filters[] = new ByStudyprogram(intval($validated['studyprogram_id']));
         }
 
-        if ($validated['scope'] == 'studyprogram') {
-            $period_path = RegistrationPeriodPath::find($validated['period_path_id']);
-            $studyprogram_lecture_type = DB::table('masterdata.ms_major_lecture_type')
-                ->where('mma_lt_id', '=', $validated['studyprogram_lecture_type_id'])
-                ->first();
+        $data = (new NewStudent())
+            ->selects(...$selects)
+            ->filters(...$filters)
+            ->result();
 
-            $query->where('reg.ms_period_id', '=', $period_path->period_id)
-                ->where('reg.ms_path_id', '=', $period_path->path_id)
-                ->where('fac.faculty_id', '=', $validated['faculty_id'])
-                ->where('reg.reg_major_pass', '=', $studyprogram_lecture_type->mma_id)
-                ->where('reg.reg_major_lecture_type_pass', '=', $studyprogram_lecture_type->mlt_id);
-        }
+        return datatables($data)->toJSON();
+    }
 
-        $data = $query->groupBy('p.par_id')->get()->count();
+    public function invoiceDetail($prr_id)
+    {
+        $data = DB::table('admission.payment_re_register')
+            ->where('prr_id', '=', $prr_id)
+            ->whereNull('deleted_at')
+            ->first();
 
-        return response()->json(['count' => $data], 200);
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ], 200);
+    }
+
+    public function invoiceComponentDetail($prr_id)
+    {
+        $data = DB::table('admission.payment_re_register_detail')
+            ->where('prr_id', '=', $prr_id)
+            ->whereNull('deleted_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ], 200);
     }
 }

@@ -66,11 +66,10 @@ Route::group(['prefix' => 'payment'], function(){
 
     Route::group(['prefix' => 'generate'], function(){
         // New Student Invoice
-        Route::get('new-student-invoice/get-period-path', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getPeriodPath');
-        Route::get('new-student-invoice/get-faculties', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getFaculties');
-        Route::get('new-student-invoice/get-studyprograms-lecture-types', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudyprogramsLectureTypes');
-        Route::get('new-student-invoice/get-students', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudents');
-        Route::get('new-student-invoice/get-student-count', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getStudentCount');
+        Route::get('new-student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@index');
+        Route::get('new-student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@detail');
+        Route::get('new-student-invoice/show-invoice/{prr_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@invoiceDetail');
+        Route::get('new-student-invoice/show-invoice-component/{prr_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@invoiceComponentDetail');
 
         Route::get('student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@index');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@detail');

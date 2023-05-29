@@ -15,7 +15,7 @@
             <span>Tagihan Mahasiswa Lama</span>
         </div>
     </a>
-    <a href="{{ route('payment.generate.new-student-invoice.per-institution') }}" class="eazy-shortcut-item {{ $active == 'new-student-invoice' ? 'active' : '' }}">
+    <a href="{{ route('payment.generate.new-student-invoice') }}" class="eazy-shortcut-item {{ $active == 'new-student-invoice' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="user"></i>
         </div>
