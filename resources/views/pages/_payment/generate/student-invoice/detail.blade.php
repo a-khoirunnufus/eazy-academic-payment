@@ -16,6 +16,27 @@
             grid-template-columns: 1fr 1fr 1fr;
             grid-gap: 1rem;
         }
+        .nested-checkbox {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+        
+        .nested-checkbox ul {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .nested-checkbox ul li {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
     </style>
 @endsection
 
