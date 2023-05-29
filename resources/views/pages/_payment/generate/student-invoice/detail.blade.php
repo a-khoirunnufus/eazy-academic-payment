@@ -11,6 +11,27 @@
             width: 100%;
             overflow-x: auto;
         }
+
+        .nested-checkbox {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+        
+        .nested-checkbox ul {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .nested-checkbox ul li {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
     </style>
 @endsection
 
@@ -33,6 +54,7 @@
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Program Studi</span>
                 <h5 class="fw-bolder" id="study_program"></h5>
             </div>
+            
             {{-- <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Sistem Kuliah</span>
                 <h5 class="fw-bolder">Reguler</h5>
@@ -173,7 +195,8 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <h5>Detail Daftar Tagihan Mahasiswa Lama</h5>
+                            <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-primary" href="javascript:void(0);">
+                                <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
                         </div>
                     `)
                     feather.replace()
@@ -463,6 +486,216 @@
                     })
                 }
             })
+        },
+        generateForm: function() {
+            Modal.show({
+                type: 'detail',
+                modalTitle: 'Generate Tagihan Mahasiswa',
+                modalSize: 'lg',
+                config: {
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: 'Filter',
+                            content: {
+                                template: `
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Tahun Masuk</label>
+                                        <select class="form-select" eazy-select2-active>
+                                            <option value="all" selected>Semua Tahun Ajar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Periode Pendaftaran</label>
+                                        <select class="form-select" eazy-select2-active>
+                                            <option value="all" selected>Semua Periode Pendaftaran</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Jalur Pendaftaran</label>
+                                        <select class="form-select" eazy-select2-active>
+                                            <option value="all" selected>Semua Jalur Pendaftaran</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Status Generate</label>
+                                        <select class="form-select" eazy-select2-active>
+                                            <option value="all" selected>Semua Status</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <button class="btn btn-primary mt-2">
+                                            <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                                        </button>
+                                    </div>
+                                </div>
+                                `
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            title: 'Konfirmasi Generate Tagihan',
+                            content: {
+                                template: `
+                                <ul class="nested-checkbox">
+                                    <li>
+                                        <input type="checkbox" class="form-check-input" /> S1 Biologi <div class="badge bg-danger">Belum Digenerate</div>
+                                        <ul>
+                                            <li>
+                                                <input type="checkbox" class="form-check-input" /> Tahun 2020/2021 <div class="badge bg-danger">Belum Digenerate</div>
+                                                <ul class="nested-checkbox">
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> Reguler <div class="badge bg-danger">Belum Digenerate</div>
+                                                        <ul>
+                                                            <li>
+                                                                <input type="checkbox" class="form-check-input" /> Periode 1 April <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                            <li>
+                                                                <input type="checkbox" class="form-check-input" /> Periode 1 Mei <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                            <li>
+                                                                <input type="checkbox" class="form-check-input" /> Periode 1 Juni <div class="badge bg-success">Sudah Digenerate</div><a href="" class="h6"> (20/05/2023 13:00:00)</a></li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> USM <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> Prestasi <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <input type="checkbox" class="form-check-input" /> Tahun 2021/2022 <div class="badge bg-danger">Belum Digenerate</div>
+                                                <ul>
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> Reguler <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> USM <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                    <li>
+                                                        <input type="checkbox" class="form-check-input" /> Prestasi <div class="badge bg-danger">Belum Digenerate</div></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                `
+                            },
+                        },
+                        // bill: {
+                        //     type: 'custom-field',
+                        //     title: 'Riwayat Transaksi',
+                        //     content: {
+                        //         template: `
+                        //             <table class="table table-bordered" id="paymentBill">
+                        //                 <tr class="bg-light">
+                        //                     <th class="text-center">Invoice ID</th>
+                        //                     <th class="text-center">Expired Date</th>
+                        //                     <th class="text-center">Amount</th>
+                        //                     <th class="text-center">Fee</th>
+                        //                     <th class="text-center">Paid Date</th>
+                        //                     <th class="text-center">Status</th>
+                        //                 </tr>
+                        //             </table>
+                        //         `
+                        //     },
+                        // },
+                    },
+                    callback: function() {
+                        $('li :checkbox').on('click', function () {
+                            var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
+                            if ($li.has('ul')) {
+                                $li.find(':checkbox').not(this).prop('checked', this.checked)
+                            }
+                            do {
+                                $ul = $li.parent();
+                                $parent = $ul.siblings(':checkbox');
+                                if ($chk.is(':checked')) {
+                                    $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
+                                } else {
+                                    $parent.prop('checked', false)
+                                }
+                                $chk = $parent;
+                                $li = $chk.closest('li');
+                            } while ($ul.is(':not(.someclass)'));
+                        });
+                        feather.replace();
+                    }
+                },
+            });
+            // if(data.payment){
+                
+            //     // Status
+            //     var status = "";
+            //     if(data.payment){
+            //         if(data.payment.prr_status == 'lunas'){
+            //             status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+            //         }else{
+            //             status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+            //         }
+            //     }
+            //     $("#statusPembayaran").append(status);
+
+            //     // Tagihan
+            //     var total = 0;
+            //     if (Object.keys(data.payment.payment_detail).length > 0) {
+            //         data.payment.payment_detail.map(item => {
+            //             total = total+item.prrd_amount;
+            //             _studentInvoiceDetailTableAction.rowDetail(item.prrd_component, item.prrd_amount,'paymentDetail');
+            //         });
+            //     }
+            //     $("#paymentDetail").append(`
+            //         <tr class="bg-light">
+            //             <td class="text-center fw-bolder">Total Tagihan</td>
+            //             <td class="text-center fw-bolder">${Rupiah.format(total)}</td>
+            //         </tr>
+            //     `);
+            //     // $("#paymentDetail").append(`
+            //     //     <tr class="bg-light">
+            //     //         <td class="text-center fw-bolder">Eazy Service</td>
+            //     //         <td class="text-center" style="color:red!important">-${Rupiah.format({{ \App\Enums\Payment\FeeAmount::eazy }})}</td>
+            //     //     </tr>
+            //     // `);
+            //     $("#paymentDetail").append(`
+            //         <tr style="background-color:#163485">
+            //             <td class="text-center fw-bolder" style="color:white!important">Total yang Diterima</td>
+            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_paid_net)}</td>
+            //         </tr>
+            //     `);
+
+            //     var total_terbayar = 0;
+            //     if (Object.keys(data.payment.payment_bill).length > 0) {
+            //         $("#paymentDetail").append(`
+            //             <tr class="bg-light">
+            //                 <td class="text-center fw-bolder" colspan="2">Fee</th>
+            //             </tr>
+            //         `);
+            //         data.payment.payment_bill.map(item => {
+            //             if(item.prrb_status == "lunas"){
+            //                 total_terbayar = total_terbayar + item.prrb_amount+item.prrb_admin_cost;
+            //             }
+            //             _studentInvoiceDetailTableAction.rowDetail('Biaya Transaksi - INV.'+item.prrb_invoice_num, item.prrb_admin_cost,'paymentDetail');
+            //         });
+            //     }
+            //     $("#paymentDetail").append(`
+            //         <tr style="background-color:#163485">
+            //             <td class="text-center fw-bolder" style="color:white!important">Total yang Harus Dibayarkan</td>
+            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_total)}</td>
+            //         </tr>
+            //     `);
+            //     $("#paymentDetail").append(`
+            //         <tr class="bg-success">
+            //             <td class="text-center fw-bolder" style="color:white!important">Total Terbayar</td>
+            //             <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(total_terbayar)}</td>
+            //         </tr>
+            //     `);
+
+
+            //     // Transaksi
+            //     if (Object.keys(data.payment.payment_bill).length > 0) {
+            //         data.payment.payment_bill.map(item => {
+            //             _studentInvoiceDetailTableAction.rowBill(item.prrb_id,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
+            //         });
+            //     }
+            // }
+            
         },
     }
 </script>
