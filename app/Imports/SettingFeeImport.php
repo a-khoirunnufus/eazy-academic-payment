@@ -3,7 +3,8 @@
 namespace App\Imports;
 
 use Illuminate\Support\Facades\Log;
-use App\Imports\Sheets\SettingFeeSheetImport;
+use App\Imports\Sheets\SettingFeeComponentSheetImport;
+use App\Imports\Sheets\SettingFeeInstallmentSheetImport;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use DB;
@@ -14,8 +15,6 @@ class SettingFeeImport implements WithMultipleSheets
 
     private $import_id;
     private $num_sheets;
-    private $component_fee_header_row = 13;
-    private $credit_schema_header_row = 14;
 
     public function __construct(int $import_id, int $num_sheets)
     {
@@ -29,10 +28,10 @@ class SettingFeeImport implements WithMultipleSheets
 
         for ($i=1; $i <= $this->num_sheets; $i+=2) {
             // component_fee sheet
-            $sheets[] = new SettingFeeSheetImport($this->import_id, $this->component_fee_header_row);
+            $sheets[] = new SettingFeeComponentSheetImport($this->import_id);
 
             // credit_schema sheet
-            $sheets[] = new SettingFeeSheetImport($this->import_id, $this->credit_schema_header_row);
+            $sheets[] = new SettingFeeInstallmentSheetImport($this->import_id);
         }
 
         return $sheets;
