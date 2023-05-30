@@ -35,15 +35,17 @@
     const _newStudentInvoiceTable = {
         ..._datatable,
         init: function() {
-            dataTable = this.instance = $('#new-student-invoice-table').DataTable({
+            this.instance = $('#new-student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/generate/new-student-invoice/index',
                 },
+                stateSave: false,
                 columns: [
                     {
                         name: 'action',
                         orderable: false,
+                        searchable: false,
                         render: (data, _, row) => {
                             return this.template.rowAction(row.unit_type, row.unit_id);
                         }
@@ -63,6 +65,7 @@
                     {
                         name: 'student_count',
                         data: 'student_count',
+                        searchable: false,
                         render: (data) => {
                             return this.template.defaultCell(data);
                         }
@@ -70,6 +73,7 @@
                     {
                         name: 'invoice_total_amount',
                         data: 'invoice_total_amount',
+                        searchable: false,
                         render: (data) => {
                             return this.template.currencyCell(data);
                         }
@@ -77,6 +81,7 @@
                     {
                         name: 'generated_invoice',
                         data: 'generated_invoice',
+                        searchable: false,
                         render: (data) => {
                             return this.template.defaultCell(data);
                         }
@@ -94,6 +99,55 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            }
+                        ],
+                    }
+                ],
                 initComplete: function() {
                     $('.new-student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -102,7 +156,8 @@
                     `)
                     feather.replace()
                 }
-            })
+            });
+            this.implementSearchDelay();
         },
         template: {
             rowAction: function(unit_type, unit_id) {
