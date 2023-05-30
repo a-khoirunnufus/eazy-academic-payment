@@ -86,6 +86,21 @@
                             return this.template.defaultCell(data);
                         }
                     },
+                    {
+                        title: 'Total Tagihan',
+                        name: 'invoice_total_amount',
+                        data: 'invoice_total_amount',
+                        visible: false,
+                    },
+                    {
+                        title: 'Tagihan Tergenerate',
+                        name: 'generated_invoice',
+                        data: 'generated_invoice',
+                        visible: false,
+                        render: (data) => {
+                            return data.replace('/', 'dari') + ' Tagihan';
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -118,7 +133,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,3,4]
+                                    columns: [1,2,5,6]
                                 }
                             },
                             {
@@ -126,7 +141,7 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,3,4]
+                                    columns: [1,2,5,6]
                                 }
                             },
                             {
@@ -142,7 +157,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,3,4]
+                                    columns: [1,2,5,6]
                                 }
                             }
                         ],
