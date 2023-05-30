@@ -46,7 +46,7 @@ class NewStudentInvoiceController extends Controller
                         if ($student->faculty_id == $faculty->faculty_id) {
                             $student_count++;
                             $invoice_amount += intval($student->invoice_amount);
-                            if ($student->invoice_status == 'generated') $generated_invoice++;
+                            if ($student->invoice_status == 'Sudah Digenerate') $generated_invoice++;
                         }
                     }
                     $data[] = [
@@ -68,7 +68,7 @@ class NewStudentInvoiceController extends Controller
                             if ($student->studyprogram_id == $studyprogram->studyprogram_id) {
                                 $student_count++;
                                 $invoice_amount += intval($student->invoice_amount);
-                                if ($student->invoice_status == 'generated') $generated_invoice++;
+                                if ($student->invoice_status == 'Sudah Digenerate') $generated_invoice++;
                             }
                         }
                         $data[] = [
