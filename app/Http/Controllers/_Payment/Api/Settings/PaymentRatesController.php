@@ -422,7 +422,7 @@ class PaymentRatesController extends Controller
         ]);
 
         // define import_id
-        $import_id = DB::select("select nextval('temp.finance_import_setting_fee_import_id_num_seq')")[0]->nextval;
+        $import_id = DB::select("select nextval('temp.finance_import_fee_import_id_num_seq')")[0]->nextval;
 
         $studyprogram_count = DB::table('masterdata.period_path_major')
             ->where('ppd_id', '=', $validated['period_path_id'])
@@ -456,52 +456,8 @@ class PaymentRatesController extends Controller
     {
         $import_id = $request->input('custom_payload')['import_id'];
 
-        $pre_query = DB::table('temp.finance_import_setting_fee as tfisf')
-            ->leftJoin('masterdata.ms_studyprogram as mms', 'tfisf.studyprogram_id', '=', 'mms.studyprogram_id')
-            ->leftJoin('masterdata.ms_lecture_type as mslt', 'tfisf.lecture_type_id', '=', 'mslt.mlt_id')
-            ->select(
-                'mms.studyprogram_name',
-                'mslt.mlt_name',
-                DB::raw("
-                    CASE
-                        WHEN tfisf.setting_fee_type = 'component_fee' THEN
-                            string_agg('{' ||
-                                '\"name\":\"' || tfisf.column_1 || '\",' ||
-                                '\"nominal\":\"' || tfisf.column_2 || '\"' ||
-                            '}', ',')
-                        ELSE NULL
-                    END as invoice_component
-                "),
-                DB::raw("
-                    CASE
-                        WHEN tfisf.setting_fee_type = 'credit_schema' THEN
-                            string_agg('{' ||
-                                '\"percentage\":\"' || tfisf.column_1 || '\",' ||
-                                '\"due_date\":\"' || tfisf.column_2 || '\"' ||
-                            '}', ',')
-                        ELSE NULL
-                    END as installment
-                "),
-                'tfisf.status',
-                DB::raw("string_agg(tfisf.notes, ';') as notes"),
-            )
-            ->where('tfisf.import_id', '=', $import_id)
-            ->groupBy('mms.studyprogram_name', 'mslt.mlt_name', 'tfisf.setting_fee_type', 'tfisf.status', 'tfisf.order')
-            ->orderBy('mms.studyprogram_name', 'asc')
-            ->orderBy('mslt.mlt_name', 'asc')
-            ->orderBy('tfisf.order', 'asc');
-
-        $data = DB::table('pre')
-            ->withExpression('pre', $pre_query)
-            ->select(
-                'pre.studyprogram_name as studyprogram',
-                'pre.mlt_name as lecture_type',
-                DB::raw("'[' || string_agg(pre.invoice_component, ',') || ']' as invoice_components"),
-                DB::raw("'[' || string_agg(pre.installment, ',') || ']' as installments"),
-                DB::raw("string_agg(pre.status, ';') as statuses"),
-                DB::raw("string_agg(pre.notes, ';') as notes"),
-            )
-            ->groupBy('pre.studyprogram_name', 'pre.mlt_name')
+        $data = DB::table('temp.vw_finance_import_fee_master')
+            ->where('import_id', '=', $import_id)
             ->get();
 
         return datatables($data)->toJson();
@@ -516,154 +472,252 @@ class PaymentRatesController extends Controller
 
         $period_path = PeriodPath::find($validated['period_path_id']);
 
-        DB::beginTransaction();
+        // CLEAR INVOICE COMPONENTS
+        $ppm_ids = $this->clearComponents($validated['period_path_id']);
 
-        try {
+        // CLEAR CREDIT SCHEMAS
+        $this->clearCreditSchemas($ppm_ids);
 
-            // get temp import data
-            $data = DB::table('temp.finance_import_setting_fee')
-                ->where('import_id', '=', $validated['import_id'])
-                ->where('status', 'not like', '%invalid%')
-                ->get();
+        // Get temp import data
+        $master_records = DB::table('temp.finance_import_fee')
+            ->where('import_id', '=', $validated['import_id'])
+            ->get();
 
-            $ppm_ids = DB::table('temp.finance_import_setting_fee as fisf')
-                ->leftJoin('masterdata.ms_major_lecture_type as mmalt', function($join) {
-                    $join->on('mmalt.mma_id', '=', 'fisf.studyprogram_id');
-                    $join->on('mmalt.mlt_id', '=', 'fisf.lecture_type_id');
-                })
-                ->leftJoin('masterdata.period_path_major as ppm', 'ppm.mma_lt_id', '=', 'mmalt.mma_lt_id')
-                ->select('ppm.ppm_id')
-                ->where('ppm.ppd_id', '=', $validated['period_path_id'])
-                ->groupBy('ppm.ppm_id', 'mmalt.mma_lt_id')
-                ->get()
-                ->toArray();
-            $ppm_ids = array_map(function($item) {
-                return $item->ppm_id;
-            }, $ppm_ids);
+        foreach ($master_records as $master) {
+            // Get major lecture type
+            $major_lecture_type_id = MajorLectureType::where([
+                ['mma_id', '=', $master->studyprogram_id],
+                ['mlt_id', '=', $master->lecture_type_id]
+            ])->first()->mma_lt_id;
 
-            $cs_ids = DB::table('finance.credit_schema_periodpath')
-                ->select('cs_id')
-                ->whereIn('ppm_id', $ppm_ids)
-                ->groupBy('cs_id')
-                ->get()
-                ->toArray();
-            $cs_ids = array_map(function($item) {
-                return $item->cs_id;
-            }, $cs_ids);
+            // Get period path major
+            $period_path_major_id = PeriodPathMajor::where([
+                ['ppd_id', '=', $period_path->ppd_id],
+                ['mma_lt_id', '=', $major_lecture_type_id],
+            ])->first()->ppm_id;
 
-            // clear component detail
-            foreach ($ppm_ids as $ppm_id) {
-                ComponentDetail::where('ppm_id', '=', $ppm_id)->forceDelete();
+            try {
+                DB::beginTransaction();
+
+                // INSERT COMPONENT DETAILS
+                $this->insertComponentDetails($master, $period_path_major_id);
+
+                // INSERT CREDIT SCHEMAS
+                $this->insertCreditSchemas($master, $period_path_major_id);
+
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollback();
+                Log::debug('Skip record for period:'.$master->period_id.', path:'.$master->path_id.', studyprogram:'.$master->studyprogram_id.', lecture_type:'.$master->lecture_type_id);
             }
 
-            // clear credit schema
-            foreach ($cs_ids as $cs_id) {
-                $credit_schema = CreditSchema::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->first();
-                if ($credit_schema->is_template == false) {
-                    CreditSchemaPeriodPath::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
-                    CreditSchemaDeadline::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
-                    CreditSchemaDetail::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('csd_cs_id', '=', $cs_id)->forceDelete();
-                    CreditSchema::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
-                } else {
-                    CreditSchemaPeriodPath::withTrashed()->where('cs_id', '=', $cs_id)->forceDelete();
-                }
-            }
-
-            $cs_prev = 0;
-            $credit_schema_order = 0;
-            foreach ($data as $item) {
-                // get major lecture type
-                $major_lecture_type_id = MajorLectureType::where([
-                    ['mma_id', '=', $item->studyprogram_id],
-                    ['mlt_id', '=', $item->lecture_type_id]
-                ])->first()->mma_lt_id;
-
-                // get period path major
-                $period_path_major_id = PeriodPathMajor::where([
-                    ['ppd_id', '=', $period_path->ppd_id],
-                    ['mma_lt_id', '=', $major_lecture_type_id],
-                ])->first()->ppm_id;
-
-                if ($item->setting_fee_type == 'component_fee') {
-                    // get component id by component name
-                    $ms_component = DB::table('finance.ms_component')->where('msc_name', '=', $item->column_1)->first();
-
-                    // get school year
-                    $school_year_id = Period::find($item->period_id)->msy_id;
-
-                    // insert new record of component_detail
-                    ComponentDetail::create([
-                        'mma_id' => $item->studyprogram_id, // studyprogram_id
-                        'msc_id' => $ms_component->msc_id, // component_id
-                        'period_id' => $item->period_id,
-                        'path_id' => $item->path_id,
-                        'cd_fee' => $item->column_2,
-                        'msy_id' => $school_year_id, // school_year
-                        'mlt_id' => $item->lecture_type_id, // lecture_type
-                        'ppm_id' => $period_path_major_id,
-                    ]);
-                }
-                elseif ($item->setting_fee_type == 'credit_schema') {
-                    if ($item->studyprogram_id != $cs_prev) {
-                        // create new credit_schema(not for template)
-                        $credit_schema = CreditSchema::create([
-                            'cs_name' => 'IMP_'.$period_path_major_id,
-                            'cs_valid' => 'yes',
-                            'is_template' => false,
-                        ]);
-
-                        // insert new record of credit_schema_period_path
-                        CreditSchemaPeriodPath::create([
-                            'cs_id' => $credit_schema->cs_id,
-                            'ppm_id' => $period_path_major_id,
-                        ]);
-                    } else {
-                        $credit_schema = CreditSchema::withoutGlobalScope(CreditSchemaTemplateScope::class)
-                            ->where('cs_name', '=', 'IMP_'.$period_path_major_id)
-                            ->first();
-                    }
-
-                    // create credit_schema_detail, (installment percentage)
-                    $credit_schema_detail = CreditSchemaDetail::create([
-                        'csd_cs_id' => $credit_schema->cs_id,
-                        'csd_order' => $credit_schema_order+1,
-                        'csd_percentage' => $item->column_1,
-                    ]);
-
-                    // create credit_schema_deadline, (installment due date)
-                    $csd_arr = explode('-', $item->column_2);
-                    $credit_schema_deadline = $csd_arr[2].'-'.$csd_arr[1].'-'.$csd_arr[0];
-                    CreditSchemaDeadline::create([
-                        'cs_id' => $credit_schema->cs_id,
-                        'csd_id' => $credit_schema_detail->csd_id,
-                        'cse_deadline' => $credit_schema_deadline,
-                    ]);
-
-                    if ($item->studyprogram_id != $cs_prev) {
-                        $cs_prev = $item->studyprogram_id;
-                    }
-                }
-
-            }
-
-            // clear temp import data
-            $data = DB::table('temp.finance_import_setting_fee')
-                ->where('import_id', '=', $validated['import_id'])
-                ->delete();
-
-            DB::commit();
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
         }
+
+        // CLEAR TEMPORARY IMPORT DATA
+        $this->clearTempImports($validated['import_id']);
+
+        // return response()->json([
+        //     'success' => false,
+        //     'message' => $e->getMessage(),
+        // ], 500);
 
         return response()->json([
             'success' => true,
             'message' => 'Berhasil import setting tarif dan pembayaran.'
         ], 200);
     }
+
+    /**
+     * SECTION importSettingFee() HELPER BEGIN
+     */
+
+    private function clearComponents($period_path_id)
+    {
+        $ppm_ids = DB::table('temp.finance_import_fee as fif')
+            ->leftJoin('masterdata.ms_major_lecture_type as mmlt', function($join) {
+                $join->on('mmlt.mma_id', '=', 'fif.studyprogram_id');
+                $join->on('mmlt.mlt_id', '=', 'fif.lecture_type_id');
+            })
+            ->leftJoin('masterdata.period_path_major as ppm', 'ppm.mma_lt_id', '=', 'mmlt.mma_lt_id')
+            ->select('ppm.ppm_id')
+            ->where('ppm.ppd_id', '=', $period_path_id)
+            ->groupBy('ppm.ppm_id', 'mmlt.mma_lt_id')
+            ->get()
+            ->toArray();
+
+        $ppm_ids = array_map(function($item) {
+            return $item->ppm_id;
+        }, $ppm_ids);
+
+        foreach ($ppm_ids as $ppm_id) {
+            ComponentDetail::where('ppm_id', '=', $ppm_id)->delete();
+        }
+
+        return $ppm_ids;
+    }
+
+    private function clearCreditSchemas($ppm_ids)
+    {
+        $cs_ids = DB::table('finance.credit_schema_periodpath')
+            ->select('cs_id')
+            ->whereIn('ppm_id', $ppm_ids)
+            ->whereNull('deleted_at')
+            ->groupBy('cs_id')
+            ->get()
+            ->toArray();
+
+        $cs_ids = array_map(function($item) {
+            return $item->cs_id;
+        }, $cs_ids);
+
+        // clear credit schema
+        foreach ($cs_ids as $cs_id) {
+            $credit_schema = CreditSchema::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->first();
+            if ($credit_schema->is_template == false) {
+                CreditSchemaPeriodPath::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
+                CreditSchemaDeadline::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
+                CreditSchemaDetail::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('csd_cs_id', '=', $cs_id)->forceDelete();
+                CreditSchema::withTrashed()->withoutGlobalScope(CreditSchemaTemplateScope::class)->where('cs_id', '=', $cs_id)->forceDelete();
+            } else {
+                CreditSchemaPeriodPath::where('cs_id', '=', $cs_id)->delete();
+                CreditSchemaDeadline::where('cs_id', '=', $cs_id)->delete();
+            }
+        }
+    }
+
+    private function insertComponentDetails($master, $period_path_major_id)
+    {
+        // column id on temp.finance_import_fee
+        $import_fee_id = $master->id;
+
+        // temp component (imported)
+        $temp_components = DB::table('temp.finance_import_fee_component_detail')
+            ->where('import_fee_id', '=', $import_fee_id)
+            ->get();
+
+        // get school year
+        $school_year_id = Period::find($master->period_id)->msy_id;
+
+        foreach ($temp_components as $temp_component) {
+
+            if ($temp_component->status == 'invalid') {
+                throw new Exception("Data Invalid, Skipping.");
+            }
+
+            // get component id by component name
+            $ms_component = DB::table('finance.ms_component')->where('msc_name', '=', $temp_component->component_name)->first();
+
+            // insert new record of component_detail
+            ComponentDetail::create([
+                'mma_id' => $master->studyprogram_id, // studyprogram_id
+                'msc_id' => $ms_component->msc_id, // component_id
+                'period_id' => $master->period_id,
+                'path_id' => $master->path_id,
+                'cd_fee' => $temp_component->component_amount,
+                'msy_id' => $school_year_id, // school_year
+                'mlt_id' => $master->lecture_type_id, // lecture_type
+                'ppm_id' => $period_path_major_id,
+            ]);
+        }
+    }
+
+    private function insertCreditSchemas($master, $period_path_major_id)
+    {
+        $import_fee_id = $master->id;
+
+        $temp_credit_schema_types = DB::table('temp.finance_import_fee_credit_schema_detail')
+            ->where('import_fee_id', '=', $import_fee_id)
+            ->groupBy('credit_schema_name')
+            ->select('credit_schema_name')
+            ->get();
+
+        foreach ($temp_credit_schema_types as $temp_credit_schema_type) {
+            // get credit_schema
+            $ms_credit_schema = CreditSchema::where('cs_name', '=', $temp_credit_schema_type->credit_schema_name)->first();
+
+            // CASE WHEN CREDIT_SCHEMA NOT EXIST
+            if ($ms_credit_schema == null) {
+                // create new credit_schema(not for template)
+                $imp_credit_schema = CreditSchema::create([
+                    'cs_name' => 'IMP_'.$period_path_major_id.': '.$temp_credit_schema_type->credit_schema_name,
+                    'cs_valid' => 'yes',
+                    'is_template' => false,
+                ]);
+
+                $temp_credit_schema_details = DB::table('temp.finance_import_fee_credit_schema_detail')
+                    ->where('import_fee_id', '=', $import_fee_id)
+                    ->where('credit_schema_name', '=', $temp_credit_schema_type->credit_schema_name)
+                    ->get();
+
+                foreach ($temp_credit_schema_details as $temp_credit_schema_detail) {
+
+                    if ($temp_credit_schema_detail->status == 'invalid') {
+                        throw new Exception("Data Invalid, Skipping.");
+                    }
+
+                    // create credit_schema_detail, (installment percentage)
+                    CreditSchemaDetail::create([
+                        'csd_cs_id' => $imp_credit_schema->cs_id,
+                        'csd_order' => $temp_credit_schema_detail->item_order,
+                        'csd_percentage' => $temp_credit_schema_detail->percentage,
+                    ]);
+                }
+
+                $ms_credit_schema = $imp_credit_schema;
+            }
+
+            // insert new record of credit_schema_period_path
+            CreditSchemaPeriodPath::create([
+                'cs_id' => $ms_credit_schema->cs_id,
+                'ppm_id' => $period_path_major_id,
+            ]);
+
+            // get temp credit_schema_detail
+            $temp_credit_schema_details = DB::table('temp.finance_import_fee_credit_schema_detail')
+                ->where('import_fee_id', '=', $import_fee_id)
+                ->where('credit_schema_name', '=', $temp_credit_schema_type->credit_schema_name)
+                ->get();
+
+            foreach ($temp_credit_schema_details as $temp_credit_schema_detail) {
+                $ms_credit_schema_detail = CreditSchemaDetail::where('csd_cs_id', '=', $ms_credit_schema->cs_id)
+                    ->where('csd_order', '=', $temp_credit_schema_detail->item_order)
+                    ->first();
+
+                // create credit_schema_deadline, (installment due date)
+                $csd_arr = explode('-', $temp_credit_schema_detail->due_date);
+                $credit_schema_deadline = $csd_arr[2].'-'.$csd_arr[1].'-'.$csd_arr[0];
+                CreditSchemaDeadline::create([
+                    'cs_id' => $ms_credit_schema->cs_id,
+                    'csd_id' => $ms_credit_schema_detail->csd_id,
+                    'cse_deadline' => $credit_schema_deadline,
+                ]);
+            }
+        }
+    }
+
+    private function clearTempImports($import_id)
+    {
+        // Clear temp import data
+        $temp_imports = DB::table('temp.finance_import_fee')
+            ->where('import_id', '=', $import_id)
+            ->get();
+
+        foreach ($temp_imports as $temp_import) {
+            DB::table('temp.finance_import_fee_component_detail')
+                ->where('import_fee_id', '=', $temp_import->id)
+                ->delete();
+
+            DB::table('temp.finance_import_fee_credit_schema_detail')
+                ->where('import_fee_id', '=', $temp_import->id)
+                ->delete();
+        }
+
+        DB::table('temp.finance_import_fee')
+            ->where('import_id', '=', $import_id)
+            ->delete();
+    }
+
+    /**
+     * SECTION importSettingFee() HELPER END
+     */
 }

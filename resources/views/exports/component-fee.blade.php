@@ -52,8 +52,8 @@
         <!-- TABLE BODY -->
         @foreach($data as $row)
             <tr>
-                @foreach ($row as $value)
-                    <td>{{ $value }}</td>
+                @foreach ($row as $item)
+                    <td>{{ $item }}</td>
                 @endforeach
             </tr>
         @endforeach
