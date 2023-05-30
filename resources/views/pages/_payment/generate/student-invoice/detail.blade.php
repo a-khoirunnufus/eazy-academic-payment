@@ -18,7 +18,8 @@
         }
         .nested-checkbox {
             list-style-type: none;
-            padding-top: 3px;
+            padding-top: 2px;
+            padding-left: 0px;
             font-size: 15px!important;
             font-weight: bold!important;
         }
@@ -140,7 +141,6 @@
 <script>
     var dataTable = null;
     var header = null;
-    var store = [];
     $(function(){
         $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
             $('#active').html(d.active);
@@ -654,14 +654,18 @@
         },
         generateForm: function() {
             Modal.show({
-                type: 'detail',
+                type: 'form',
                 modalTitle: 'Generate Tagihan Mahasiswa',
                 modalSize: 'lg',
                 config: {
+                    formId: 'generateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/student-invoice/bulk',
+                    formType: 'add',
+                    data: $("#generateForm").serialize(),
+                    isTwoColumn: false,
                     fields: {
                         header: {
                             type: 'custom-field',
-                            title: 'Konfirmasi Generate Tagihan',
                             content: {
                                 template: `<div>
                                     <hr>
@@ -685,104 +689,110 @@
                         },
                         tagihan: {
                             type: 'custom-field',
-                            title: 'Pilih Data yang Akan Digenerate',
                             content: {
                                 template: `
+                                <h4 class="fw-bolder mb-0">Konfirmasi Generate Tagihan <small class="fst-italic mb-0">(Centang checkbox untuk memilih)</small></h4>
                                 <ul class="nested-checkbox">
                                     <li id="choice">
-                                        <input type="checkbox" class="form-check-input" id="checkbox_header" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
+                                        <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
                                     </li>
                                 </ul>
                                 `
                             },
                         },
                     },
+                    formSubmitLabel: 'Generate Tagihan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
+                    </small>`,
                     callback: function() {
-                        $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}', (data) => {
-                            console.log(data);
-                            if (Object.keys(data).length > 0) {
-                                var total_student = 0;
-                                var total_generate = 0;
-                                data.map(item => {
-                                    var id = item.studyprogram_id+"_"+item.msy_id+"_"+item.path_id+"_"+item.period_id+"_"+item.mlt_id;
-                                    _studentInvoiceDetailTableAction.choiceRow(
-                                        'choice',
-                                        'msyId',
-                                        'msyId_'+item.msy_id,
-                                        item.msy_id+'_pathId',
-                                        'Tahun '+item.year.msy_year)
-
-                                    _studentInvoiceDetailTableAction.choiceRow(
-                                        item.msy_id+'_pathId',
-                                        item.msy_id+'_pathId',
-                                        item.msy_id+'_pathId_'+item.path_id,
-                                        item.msy_id+'_'+item.path_id+'_periodId',
-                                        item.path.path_name)
-
-                                    _studentInvoiceDetailTableAction.choiceRow(
-                                        item.msy_id+'_'+item.path_id+'_periodId',
-                                        item.msy_id+'_'+item.path_id+'_periodId',
-                                        item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
-                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
-                                        item.period.period_name)
-                                        
-                                    _studentInvoiceDetailTableAction.choiceRow(
-                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
-                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
-                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
-                                        item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
-                                        item.lecture_type.mlt_name,
-                                        item.total_student,
-                                        item.total_generate)
-
-                                    // COUNTING 
-                                    // Period
-                                    let period = item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id;
-                                    let student = item.total_student;
-                                    let generate = item.total_generate;
-                                    _studentInvoiceDetailTableAction.storeToArray(period,student,generate)
-                                    
-                                    // Path
-                                    let path = item.msy_id+'_pathId_'+item.path_id;
-                                    _studentInvoiceDetailTableAction.storeToArray(path,student,generate)
-
-                                    // Year
-                                    let year = 'msyId_'+item.msy_id
-                                    _studentInvoiceDetailTableAction.storeToArray(year,student,generate)
-
-                                    // Mlt
-                                    let mlt = item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id;
-                                    _studentInvoiceDetailTableAction.storeToArray(mlt,student,generate)
-                                    
-                                    // Sum
-                                    total_student = total_student+student;
-                                    total_generate = total_generate+generate;
-                                });
-
-                                // Badges
-                                for (let x of Object.keys(store)) {
-                                    let student = store[x]['student'];
-                                    let generate = store[x]['generate'];
-                                    $('#checkbox_'+x).attr('student',student);
-                                    $('#checkbox_'+x).attr('generate',generate);
-                                    _studentInvoiceDetailTableAction.badge(x,student,generate)
-                                    console.log(store[x]);
-                                }
-
-                                // Badges for master root
-                                let student = total_student;
-                                let generate = total_generate;
-                                let x = "header";
-                                _studentInvoiceDetailTableAction.badge(x,student,generate)
-                            }
-                        });
                         feather.replace();
-                        
                     }
                 },
             });
+            var store = [];
+            $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}', (data) => {
+                console.log(data);
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    data.map(item => {
+                        var id = item.studyprogram_id+"_"+item.msy_id+"_"+item.path_id+"_"+item.period_id+"_"+item.mlt_id;
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            'choice',
+                            'msyId',
+                            'msyId_'+item.msy_id,
+                            item.msy_id+'_pathId',
+                            'Tahun '+item.year.msy_year)
+
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_pathId',
+                            item.msy_id+'_pathId',
+                            item.msy_id+'_pathId_'+item.path_id,
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.path.path_name)
+
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.period.period_name)
+                            
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
+                            item.lecture_type.mlt_name,
+                            item.total_student,
+                            item.total_generate,
+                            id)
+
+                        // COUNTING 
+                        // Period
+                        let period = item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id;
+                        let student = item.total_student;
+                        let generate = item.total_generate;
+                        _studentInvoiceDetailTableAction.storeToArray(store,period,student,generate)
+                        
+                        // Path
+                        let path = item.msy_id+'_pathId_'+item.path_id;
+                        _studentInvoiceDetailTableAction.storeToArray(store,path,student,generate)
+
+                        // Year
+                        let year = 'msyId_'+item.msy_id
+                        _studentInvoiceDetailTableAction.storeToArray(store,year,student,generate)
+
+                        // Mlt
+                        let mlt = item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id;
+                        _studentInvoiceDetailTableAction.storeToArray(store,mlt,student,generate)
+                        
+                        // Sum
+                        total_student = total_student+student;
+                        total_generate = total_generate+generate;
+                    });
+
+                    // Badges
+                    for (let x of Object.keys(store)) {
+                        let student = store[x]['student'];
+                        let generate = store[x]['generate'];
+                        $('#checkbox_'+x).attr('student',student);
+                        $('#checkbox_'+x).attr('generate',generate);
+                        _studentInvoiceDetailTableAction.badge(x,student,generate)
+                        console.log(store[x]);
+                    }
+
+                    // Badges for master root
+                    let student = total_student;
+                    let generate = total_generate;
+                    let x = "header";
+                    _studentInvoiceDetailTableAction.badge(x,student,generate)
+                }
+            });
         },
-        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0){
+        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0, value = null){
             if(!$("#choice").find("[id='" + grandparent + "']")[0]){
                 $('#'+tag).append(`
                     <ul id="${grandparent}">
@@ -793,7 +803,7 @@
             if(!$("#choice").find("[id='" + parent + "']")[0]){
                 $('#'+grandparent).append(`
                     <li id="${parent}">
-                        <input type="checkbox" class="form-check-input" id="checkbox_${parent}" student=${total_student} generate=${total_generate} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
+                        <input type="checkbox" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
                         <ul id="${child}">
                         </ul>
                     </li>
@@ -833,7 +843,7 @@
                 $('#badge_'+x).html('Sudah Digenerate ('+ generate + '/' + student + ')');
             }
         },
-        storeToArray(key,student,generate){
+        storeToArray(store,key,student,generate){
             if(store[key]){
                 store[key] = {'student' : store[key]['student']+student, 'generate' : store[key]['generate']+generate}
             }else{
