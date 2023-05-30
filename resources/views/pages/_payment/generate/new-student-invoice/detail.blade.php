@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Detail Tagihan Mahasiswa Lama')
+@section('page_title', 'Detail Tagihan Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', route('payment.generate.student-invoice'))
 
@@ -58,7 +58,7 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Nama / NIK</th>
-                <th>Jalur Masuk / Periode</th>
+                <th>Jalur / Periode Pendaftaran</th>
                 <th>Program Studi / Jenis Perkuliahan</th>
                 <th>Jenis Perkuliahan</th>
                 <th class="text-center">Status Tagihan</th>
@@ -144,6 +144,21 @@
 
 @section('js_section')
 <script>
+    DataTable.render.ellipsis = function ( cutoff ) {
+        return function ( data, type, row ) {
+            if ( type === 'display' ) {
+                var str = data.toString(); // cast numbers
+
+                return str.length < cutoff ?
+                    str :
+                    str.substr(0, cutoff-1) +'&#8230;';
+            }
+
+            // Search, order and type can use the original data
+            return data;
+        };
+    };
+
     const scope = "{{ $scope }}";
     const facultyId = "{{ $faculty ? $faculty->faculty_id : 0 }}";
     const studyprogramId = "{{ $studyprogram ? $studyprogram->studyprogram_id : 0 }}";
@@ -152,47 +167,44 @@
         _newStudentInvoiceDetailTable.init()
     })
 
-    let columnDefs = [];
-    if (scope == 'all' || scope == 'faculty') {
-        columnDefs = [{visible: false, targets: [4]}];
-    } else if (scope == 'studyprogram') {
-        columnDefs = [{visible: false, target: [3]}];
-    }
-
     const _newStudentInvoiceDetailTable = {
         ..._datatable,
         init: function() {
-            dataTable = this.instance = $('#student-invoice-detail-table').DataTable({
+            this.instance = $('#student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: `${_baseURL}/api/payment/generate/new-student-invoice/detail`
                         +`?scope=${scope}${scope == 'faculty' ? '&faculty_id='+facultyId : '&studyprogram_id='+studyprogramId}`,
                 },
                 stateSave: false,
-                columnDefs: columnDefs,
                 columns: [
                     {
                         name: 'action',
                         data: 'participant_id',
                         orderable: false,
+                        searchable: false,
                         render: (data, _, row) => {
                             return this.template.rowAction(data)
                         }
                     },
                     {
-                        name: 'student',
+                        name: 'participant_fullname',
+                        data: 'participant_fullname',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(row.participant_fullname, row.participant_nik);
                         }
                     },
                     {
-                        name: 'path_period',
+                        name: 'registration_path_name',
+                        data: 'registration_path_name',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(row.registration_path_name, row.registration_period_name);
                         }
                     },
                     {
-                        name: 'studyprogram_lecture_type',
+                        name: 'studyprogram_name',
+                        data: 'studyprogram_name',
+                        visible: scope != 'studyprogram',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(
                                 row.studyprogram_name ?? 'N/A',
@@ -201,8 +213,9 @@
                         }
                     },
                     {
-                        name: 'lecture_type',
+                        name: 'lecture_type_name',
                         data: 'lecture_type_name',
+                        visible: scope != 'all' && scope != 'faculty',
                         render: (data) => {
                             return this.template.defaultCell(data ?? 'N/A');
                         }
@@ -212,8 +225,8 @@
                         data: 'invoice_status',
                         render: (data) => {
                             return this.template.badgeCell(
-                                data == 'generated' ? 'Sudah Digenerate' : 'Belum Digenerate',
-                                data == 'generated' ? 'success' : 'secondary'
+                                data,
+                                data == 'Sudah Digenerate' ? 'success' : 'secondary'
                             );
                         }
                     },
@@ -223,7 +236,44 @@
                         render: (data) => {
                             return this.template.currencyCell(data);
                         }
-                    }
+                    },
+                    // search and export columns
+                    {
+                        title: 'Nama Mahasiswa',
+                        name: 'participant_fullname',
+                        data: 'participant_fullname',
+                        visible: false,
+                    },
+                    {
+                        title: 'NIK Mahasiswa',
+                        name: 'participant_nik',
+                        data: 'participant_nik',
+                        visible: false,
+                    },
+                    {
+                        title: 'Jalur Pendaftaran',
+                        name: 'registration_path_name',
+                        data: 'registration_path_name',
+                        visible: false,
+                    },
+                    {
+                        title: 'Periode Pendaftaran',
+                        name: 'registration_period_name',
+                        data: 'registration_period_name',
+                        visible: false,
+                    },
+                    {
+                        title: 'Program Studi',
+                        name: 'studyprogram_name',
+                        data: 'studyprogram_name',
+                        visible: false,
+                    },
+                    {
+                        title: 'Jenis Perkuliahan',
+                        name: 'lecture_type_name',
+                        data: 'lecture_type_name',
+                        visible: false,
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -249,7 +299,7 @@
                                 text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [7,8,9,10,11,12,5,6]
                                 }
                             },
                             {
@@ -257,7 +307,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [7,8,9,10,11,12,5,6]
                                 }
                             },
                             {
@@ -265,7 +315,7 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [7,8,9,10,11,12,5,6]
                                 }
                             },
                             {
@@ -273,7 +323,7 @@
                                 text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [7,8,9,10,11,12,5,6]
                                 }
                             },
                             {
@@ -281,7 +331,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [7,8,9,10,11,12,5,6]
                                 }
                             }
                         ],
@@ -295,7 +345,8 @@
                     `)
                     feather.replace()
                 }
-            })
+            });
+            this.implementSearchDelay();
         },
         template: {
             rowAction: function(participant_id) {

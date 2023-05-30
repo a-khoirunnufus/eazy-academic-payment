@@ -13,8 +13,8 @@ class InvoiceData implements NewStudentSelect
             'prr.prr_id as payment_re_register_id',
             DB::raw("
                 CASE
-                    WHEN prr.prr_id is null THEN 'not_generated'
-                    ELSE 'generated'
+                    WHEN prr.prr_id is null THEN 'Belum Digenerate'
+                    ELSE 'Sudah Digenerate'
                 END as invoice_status
             "),
             'prr.prr_total as invoice_amount',
