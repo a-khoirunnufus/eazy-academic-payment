@@ -140,6 +140,7 @@
 <script>
     var dataTable = null;
     var header = null;
+    var store = [];
     $(function(){
         $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
             $('#active').html(d.active);
@@ -253,13 +254,13 @@
                     {
                         name: 'lecture_type.mlt_name', 
                         render: (data, _, row) => {
-                            return row.period.period_name;
+                            return (row.period)? row.period.period_name : '-';
                         }
                     },
                     {
                         name: 'lecture_type.mlt_name', 
                         render: (data, _, row) => {
-                            return row.lecture_type.mlt_name;
+                            return (row.lecture_type)? row.lecture_type.mlt_name : '-';
                         }
                     },
                     {
@@ -689,7 +690,7 @@
                                 template: `
                                 <ul class="nested-checkbox">
                                     <li id="choice">
-                                        <input type="checkbox" class="form-check-input" /> ${header.study_program} <div class="badge bg-danger">Belum Digenerate</div>
+                                        <input type="checkbox" class="form-check-input" id="checkbox_header" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
                                     </li>
                                 </ul>
                                 `
@@ -700,48 +701,21 @@
                         $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}', (data) => {
                             console.log(data);
                             if (Object.keys(data).length > 0) {
-                                // data.map(item => {
-                                //     _studentInvoiceDetailTableAction.choiceRow(
-                                //         'choice',
-                                //         'msyId',
-                                //         'msyId_'+item.msy_id,
-                                //         item.msy_id+'_mltId',
-                                //         'Tahun '+item.year.msy_year)
-
-                                //     _studentInvoiceDetailTableAction.choiceRow(
-                                //         item.msy_id+'_mltId',
-                                //         item.msy_id+'_mltId',
-                                //         item.msy_id+'_mltId_'+item.mlt_id,
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
-                                //         item.lecture_type.mlt_name)
-
-                                //     _studentInvoiceDetailTableAction.choiceRow(
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId',
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id,
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
-                                //         item.path.path_name)
-                                        
-                                //     _studentInvoiceDetailTableAction.choiceRow(
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
-                                //         item.msy_id+'_'+item.mlt_id+'_pathId_'+item.path_id+'_periodId',
-                                //         item.msy_id+'_'+item.mlt_id+'_'+item.path_id+'_periodId_'+item.period_id,
-                                //         item.msy_id+'_'+item.mlt_id+'_'+item.path_id+'_periodId_'+item.period_id+'_end',
-                                //         item.period.period_name)
-                                // })
-
+                                var total_student = 0;
+                                var total_generate = 0;
                                 data.map(item => {
+                                    var id = item.studyprogram_id+"_"+item.msy_id+"_"+item.path_id+"_"+item.period_id+"_"+item.mlt_id;
                                     _studentInvoiceDetailTableAction.choiceRow(
                                         'choice',
                                         'msyId',
                                         'msyId_'+item.msy_id,
-                                        item.msy_id+'_path',
+                                        item.msy_id+'_pathId',
                                         'Tahun '+item.year.msy_year)
 
                                     _studentInvoiceDetailTableAction.choiceRow(
-                                        item.msy_id+'_path',
-                                        item.msy_id+'_path',
-                                        item.msy_id+'_path_'+item.path_id,
+                                        item.msy_id+'_pathId',
+                                        item.msy_id+'_pathId',
+                                        item.msy_id+'_pathId_'+item.path_id,
                                         item.msy_id+'_'+item.path_id+'_periodId',
                                         item.path.path_name)
 
@@ -757,8 +731,49 @@
                                         item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                                         item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
                                         item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
-                                        item.lecture_type.mlt_name)
-                                })
+                                        item.lecture_type.mlt_name,
+                                        item.total_student,
+                                        item.total_generate)
+
+                                    // COUNTING 
+                                    // Period
+                                    let period = item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id;
+                                    let student = item.total_student;
+                                    let generate = item.total_generate;
+                                    _studentInvoiceDetailTableAction.storeToArray(period,student,generate)
+                                    
+                                    // Path
+                                    let path = item.msy_id+'_pathId_'+item.path_id;
+                                    _studentInvoiceDetailTableAction.storeToArray(path,student,generate)
+
+                                    // Year
+                                    let year = 'msyId_'+item.msy_id
+                                    _studentInvoiceDetailTableAction.storeToArray(year,student,generate)
+
+                                    // Mlt
+                                    let mlt = item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id;
+                                    _studentInvoiceDetailTableAction.storeToArray(mlt,student,generate)
+                                    
+                                    // Sum
+                                    total_student = total_student+student;
+                                    total_generate = total_generate+generate;
+                                });
+
+                                // Badges
+                                for (let x of Object.keys(store)) {
+                                    let student = store[x]['student'];
+                                    let generate = store[x]['generate'];
+                                    $('#checkbox_'+x).attr('student',student);
+                                    $('#checkbox_'+x).attr('generate',generate);
+                                    _studentInvoiceDetailTableAction.badge(x,student,generate)
+                                    console.log(store[x]);
+                                }
+
+                                // Badges for master root
+                                let student = total_student;
+                                let generate = total_generate;
+                                let x = "header";
+                                _studentInvoiceDetailTableAction.badge(x,student,generate)
                             }
                         });
                         feather.replace();
@@ -767,7 +782,7 @@
                 },
             });
         },
-        choiceRow(tag,grandparent,parent,child,data){
+        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0){
             if(!$("#choice").find("[id='" + grandparent + "']")[0]){
                 $('#'+tag).append(`
                     <ul id="${grandparent}">
@@ -778,12 +793,13 @@
             if(!$("#choice").find("[id='" + parent + "']")[0]){
                 $('#'+grandparent).append(`
                     <li id="${parent}">
-                        <input type="checkbox" class="form-check-input" /> ${data} <div class="badge bg-danger">Belum Digenerate</div>
+                        <input type="checkbox" class="form-check-input" id="checkbox_${parent}" student=${total_student} generate=${total_generate} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
                         <ul id="${child}">
                         </ul>
                     </li>
                 `);
             }
+            
             $('li :checkbox').on('click', function () {
                 console.log("hey");
                 var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
@@ -804,6 +820,25 @@
                 } while ($ul.is(':not(.someclass)'));
             });
             
+        },
+        badge(x,student,generate){
+            if(generate == 0){
+                $('#badge_'+x).addClass('bg-danger');
+                $('#badge_'+x).html('Belum Digenerate ('+ generate + '/' + student + ')');
+            }else if(generate < student){
+                $('#badge_'+x).addClass('bg-warning');
+                $('#badge_'+x).html('Sebagian Telah Digenerate ('+ generate + '/' + student + ')');
+            }else{
+                $('#badge_'+x).addClass('bg-success');
+                $('#badge_'+x).html('Sudah Digenerate ('+ generate + '/' + student + ')');
+            }
+        },
+        storeToArray(key,student,generate){
+            if(store[key]){
+                store[key] = {'student' : store[key]['student']+student, 'generate' : store[key]['generate']+generate}
+            }else{
+                store[key] = {'student' : student, 'generate' : generate}
+            }
         }
     }
 

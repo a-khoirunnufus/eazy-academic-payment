@@ -17,6 +17,7 @@ use App\Models\Payment\PaymentDetail;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use DB;
 
 class StudentInvoiceController extends Controller
 {
@@ -88,6 +89,10 @@ class StudentInvoiceController extends Controller
     // MANUAL
     public function getActiveSchoolYear(){
         return "2022/2023 - Ganjil";
+    }
+
+    public function getActiveSchoolYearCode(){
+        return 22231;
     }
     
     public function header(Request $request){
@@ -161,8 +166,15 @@ class StudentInvoiceController extends Controller
     
     public function choice($f, $sp){
         // dd($f);
-
-        $student = Student::query()->with('studyProgram','lectureType','period','path','year');
+        $activeSchoolYearCode = $this->getActiveSchoolYearCode();
+        $student = Student::query()
+        ->with('studyProgram','lectureType','period','path','year')
+        ->leftJoin('finance.payment_re_register', function($join) use ($activeSchoolYearCode)
+        {
+            $join->on('finance.payment_re_register.student_number', '=', 'hr.ms_student.student_number');
+            $join->where('finance.payment_re_register.prr_school_year','=',$activeSchoolYearCode);
+        });
+        
         if($f && $f != 0){
             $sp_in_faculty = Studyprogram::where('faculty_id',$f)->pluck('studyprogram_id')->toArray();
             $student = $student->whereIn('studyprogram_id',$sp_in_faculty);
@@ -171,7 +183,7 @@ class StudentInvoiceController extends Controller
         }
         $student = $student
         ->where('student_type_id',1)
-        ->select('mlt_id','path_id','period_id','msy_id','studyprogram_id')
+        ->select('mlt_id','path_id','period_id','msy_id','studyprogram_id',DB::raw('count(*) as total_student'),DB::raw('count(prr_id) as total_generate'))
         ->groupBy('mlt_id','path_id','period_id','msy_id','studyprogram_id')
         ->get();
         
