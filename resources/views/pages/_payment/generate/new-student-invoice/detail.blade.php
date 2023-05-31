@@ -274,6 +274,12 @@
                         data: 'lecture_type_name',
                         visible: false,
                     },
+                    {
+                        title: 'Jumlah Tagihan',
+                        name: 'invoice_amount',
+                        data: 'invoice_amount',
+                        visible: false,
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -307,7 +313,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,6]
+                                    columns: [7,8,9,10,11,12,5,13]
                                 }
                             },
                             {
@@ -315,7 +321,7 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,6]
+                                    columns: [7,8,9,10,11,12,5,13]
                                 }
                             },
                             {
@@ -331,7 +337,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,6]
+                                    columns: [7,8,9,10,11,12,5,13]
                                 }
                             }
                         ],

@@ -7,6 +7,11 @@
 
 @section('css_section')
     <style>
+        .eazy-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         .rates-filter {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -18,7 +23,7 @@
             padding: 0;
         }
         .custom-list-item {
-            padding: .5rem;
+            padding: .5rem 0;
             white-space: nowrap;
         }
     </style>
@@ -807,8 +812,8 @@
                         }
                     },
                     {
-                        name: 'invoice_components',
-                        data: 'invoice_components',
+                        name: 'invoice_component',
+                        data: 'invoice_component',
                         render: (data) => {
                             let html = '<ul class="custom-list">';
                             let array = JSON.parse(unescapeHtml(data));
@@ -820,15 +825,29 @@
                         }
                     },
                     {
-                        name: 'installments',
-                        data: 'installments',
+                        name: 'installment',
+                        data: 'installment',
                         render: (data) => {
-                            let html = '<ul class="custom-list">';
-                            let array = JSON.parse(unescapeHtml(data));
-                            html += array.map((item) => {
+                            let html = '<div class="d-flex" style="gap: 2rem">';
+                            let schemas = JSON.parse(unescapeHtml(data));
+
+                            html += schemas.map((schema) => {
+                                return `
+                                    <div>
+                                        <span><strong>${schema.schema_name}</strong></span>
+                                        <ul class="custom-list">
+                                            ${
+                                                schema.schema_detail.map(item => {
+                                                    return `<li class="custom-list-item">${item.percentage}% | ${item.due_date}</li>`;
+                                                }).join('')
+                                            }
+                                        </ul>
+                                    </div>
+                                `;
                                 return `<li class="custom-list-item">${item.percentage}% | ${item.due_date}</li>`;
                             }).join('');
-                            html += '</ul>';
+
+                            html += '</div>';
                             return html;
                         }
                     },
@@ -865,7 +884,7 @@
                     feather.replace();
                 },
                 dom:
-                    't' +
+                    '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
@@ -881,6 +900,8 @@
 
     function openImportError(e) {
         let notes = _importPreviewTable.getRowData(e.currentTarget).notes;
+        // remove ';' char from start and end of string
+        notes = notes.replace(/^\;+|\;+$/g, '');
 
         Modal.show({
             type: 'detail',

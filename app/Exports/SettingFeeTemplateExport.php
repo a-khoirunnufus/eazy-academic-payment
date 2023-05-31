@@ -5,6 +5,8 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Exports\Sheets\SettingFeeTemplateSheetExport;
+use App\Models\Payment\Component as InvoiceComponent;
+use App\Models\Payment\CreditSchema;
 
 class SettingFeeTemplateExport implements WithMultipleSheets
 {
@@ -20,6 +22,42 @@ class SettingFeeTemplateExport implements WithMultipleSheets
     public function sheets(): array
     {
         $sheets = [];
+
+        // Invoice Component Data
+        $invoice_components = InvoiceComponent::where([
+                ['active_status', '=', 1],
+                ['msc_is_new_student', '=', 1],
+                ['msct_id', '=', 1],
+            ])
+            ->get()
+            ->toArray();
+        $invoice_component_data = array_map(function($item) {
+            return [
+                'NAMA_KOMPONEN_TAGIHAN' => $item['msc_name'],
+                'NOMINAL_TAGIHAN' => 0
+            ];
+        }, $invoice_components);
+
+        // Credit Schema Data
+        $credit_schemas = CreditSchema::with('creditSchemaDetail')
+            ->where('cs_valid', '=', 'yes')
+            ->get()
+            ->toArray();
+        usort($credit_schemas, function($a, $b) {
+            return count($a['credit_schema_detail']) <=> count($b['credit_schema_detail']);
+        });
+        $credit_schema_data = [];
+        foreach ($credit_schemas as $credit_schema) {
+            foreach ($credit_schema['credit_schema_detail'] as $idx => $schema_detail) {
+                $temp = [
+                    'SKEMA_CICILAN' => $credit_schema['cs_name'],
+                    'CICILAN_KE' => $idx+1,
+                    'PERSENTASE_PEMBAYARAN' => $schema_detail['csd_percentage'],
+                    'TENGGAT_PEMBAYARAN' => null,
+                ];
+                $credit_schema_data[] = $temp;
+            }
+        }
 
         foreach ($this->sheets_data['studyprogram_lecturetype_list'] as $item) {
             $identities = [
@@ -43,10 +81,7 @@ class SettingFeeTemplateExport implements WithMultipleSheets
                     'Nominal tagihan diisi dengan nilai nominal tanpa tanda koma(,).',
                 ],
                 json_encode($identities),
-                [[
-                    'NAMA_KOMPONEN_TAGIHAN' => 'Contoh Komponen Tagihan',
-                    'NOMINAL_TAGIHAN' => 100000
-                ]]
+                $invoice_component_data,
             );
 
             $identities['sheet_type'] = 'credit_schema';
@@ -64,10 +99,7 @@ class SettingFeeTemplateExport implements WithMultipleSheets
                     'Tenggat pembayaran diisi dengan tanggal dengan format DD-MM-YYYY.',
                 ],
                 json_encode($identities),
-                [[
-                    'PERSENTASE_PEMBAYARAN' => '100',
-                    'TENGGAT_PEMBAYARAN' => '01-12-2023'
-                ]]
+                $credit_schema_data,
             );
         }
 
