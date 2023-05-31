@@ -18,74 +18,15 @@
 @section('content')
 
 @include('pages._payment.generate._shortcuts', ['active' => 'student-invoice'])
-
-<div class="card">
-    <div class="card-body">
-        <div class="new-student-invoice-filter">
-            <div>
-                <label class="form-label">Periode Pendaftaran</label>
-                <select class="form-select" eazy-select2-active id="year-filter">
-                    <option value="all" selected>Semua Periode Pendaftaran</option>
-                    @foreach($year as $tahun)
-                        <option value="{{ $tahun->msy_id }}">{{ $tahun->msy_year." ".($tahun->msy_semester%2 == 0 ? "GANJIL":"GENAP") }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <!-- <div>
-                <label class="form-label">Pilih Jenjang Studi</label>
-                <select class="form-select" eazy-select2-active>
-                    <option value="all" selected>Semua Jenjang Studi</option>
-                    @foreach($static_study_levels as $study_level)
-                        <option value="{{ $study_level }}">{{ $study_level }}</option>
-                    @endforeach
-                </select>
-            </div> -->
-            <div>
-                <label class="form-label">Gelombang</label>
-                <select class="form-select" eazy-select2-active id="period-filter">
-                    <option value="all" selected>Semua Gelombang</option>
-                    @foreach($period as $item)
-                        <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="form-label">Jalur Pendaftaran</label>
-                <select class="form-select" eazy-select2-active id="path-filter">
-                    <option value="all" selected>Semua Jalur Pendaftaran</option>
-                    @foreach($static_registration_paths as $registration_path)
-                        <option value="{{ $registration_path }}">{{ $registration_path }}</option>
-                    @endforeach
-                    @foreach($path as $item)
-                        <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <!-- <div>
-                <label class="form-label">Jenis Tagihan</label>
-                <select class="form-select" eazy-select2-active>
-                    <option value="all" selected>Semua Jenis Tagihan</option>
-                    @foreach($static_invoice_types as $invoice_type)
-                        <option value="{{ $invoice_type }}">{{ $invoice_type }}</option>
-                    @endforeach
-                </select>
-            </div> -->
-            <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="filters()">
-                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="card">
     <table id="new-student-invoice-table" class="table table-striped">
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Program Studi / Fakultas</th>
-                <th>Total Pembayaran</th>
+                <th>Jumlah Mahasiswa</th>
+                <th>Total Tagihan</th>
+                <th>Status Generate</th>
                 {{-- <th rowspan="2">Jumlah Total</th> --}}
             </tr>
             
@@ -135,69 +76,74 @@
                     },
                     {
                         name: 'faculty',
-                        searchable: true,
+                        searchable: false,
+                        orderable: false,
                         render: (data, _, row) => {
+                            var sp = 0;
+                            var f = 0;
+                            if(row.study_program){
+                                sp = row.study_program.studyprogram_id;
+                            }
+                            if(row.faculty){
+                                f = row.faculty.faculty_id;
+                            }
                             return `
                                 <div class="${ row.study_program ? 'ps-2' : '' }">
-                                    <a type="button" href="${_baseURL+'/payment/generate/student-invoice/detail'}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
+                                    <a type="button" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+f+'&sp='+sp}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
                                 </div>
                             `;
                         }
                     },
-                    // {
-                    //     name: 'components', 
-                    //     searchable: true,
-                    //     render: (data, _, row) => {
-                    //         let html = '<div class="d-flex flex-wrap" style="gap:10px">';
-                    //         if(row.components){
-                    //             if(Object.keys(row.components).length > 0){
-                    //                 for (const key in row.components) {
-                    //                     // console.log(`${key}: ${row.components[key]}`);
-                    //                     var path = "Unknown";
-                    //                     var period = "Unknown";
-                    //                     var lecture_type = "Unknown";
-                    //                     if(row.components[key].path){
-                    //                         path = row.components[key].path.path_name;
-                    //                     }
-                    //                     if(row.components[key].period){
-                    //                         period = row.components[key].period.period_name;
-                    //                     }
-                    //                     if(row.components[key].lecture_type){
-                    //                         lecture_type = row.components[key].lecture_type.mlt_name;
-                    //                     }
-                    //                     html += `<span class="badge bg-primary">${lecture_type} (${path}) - ${period}: ${Rupiah.format(row.components[key].total)}</span>`;
-                    //                 }
-                    //             }else{
-                    //                 if(row.study_program){
-                    //                     html += `<a href="{!! route('payment.settings.payment-rates') !!}" target="_blank"> Atur Tagihan Disini </a>`;
-                    //                 }
-                    //             }
-                    //         }
-                    //         html += '</div>';
-                    //         return html;
-                    //     }
-                    // },
                     {
-                        name: 'total', 
-                        data: 'total',
-                        render: (data) => {
-                            return Rupiah.format(1000000000)
+                        name: 'total_student',
+                        data: 'total_student',
+                        searchable: false,
+                        orderable: false,
+                    },
+                    {
+                        name: 'total_invoice', 
+                        data: 'total_invoice',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            return Rupiah.format(row.total_invoice)
                         }
                     },
-                    // {
-                    //     name: 'discount', 
-                    //     data: 'discount',
-                    //     render: (data) => {
-                    //         return Rupiah.format(data)
-                    //     }
-                    // },
-                    // {
-                    //     name: 'total', 
-                    //     data: 'total',
-                    //     render: (data) => {
-                    //         return Rupiah.format(data)
-                    //     }
-                    // },
+                    {
+                        name: 'total_generate', 
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            let status = "Belum Digenerate";
+                            let bg = "bg-danger";
+                            if(row.total_generate === row.total_student && row.total_student != 0){
+                                status = "Sudah Digenerate";
+                                bg = "bg-success";
+                            }else if(row.total_generate < row.total_student && row.total_generate != 0){
+                                status = "Sebagian Telah Digenerate";
+                                bg = "bg-warning";
+                            }
+                            return '<div class="badge '+bg+'">'+status+' ('+row.total_generate+'/'+row.total_student+')</div>'
+                        }
+                    },
+                    {
+                        name: 'faculty.faculty_name',
+                        data: 'faculty.faculty_name',
+                        defaultContent: "",
+                        visible: false,
+                    },
+                    {
+                        name: 'study_program.studyprogram_name',
+                        data: 'study_program.studyprogram_name',
+                        defaultContent: "",
+                        visible: false,
+                    },
+                    {
+                        name: 'study_program.studyprogram_type',
+                        data: 'study_program.studyprogram_type',
+                        defaultContent: "",
+                        visible: false,
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -211,6 +157,55 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            }
+                        ],
+                    }
+                ],
                 initComplete: function() {
                     $('.new-student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -219,7 +214,8 @@
                     `)
                     feather.replace()
                 }
-            })
+            });
+            this.implementSearchDelay();
         },
         template: {
             rowAction: function(faculty_id,studyprogram_id) {

@@ -362,6 +362,8 @@
                         <div style="margin-bottom: 7px">
                             <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-primary" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
+                            <a onclick="_studentInvoiceDetailTableAction.logGenerate()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
                     feather.replace()
@@ -849,7 +851,90 @@
             }else{
                 store[key] = {'student' : student, 'generate' : generate}
             }
-        }
+        },
+        logGenerate: function(e) {
+            Modal.show({
+                type: 'detail',
+                modalTitle: 'Detail Mahasiswa',
+                modalSize: 'lg',
+                config: {
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: 'Data Mahasiswa',
+                            content: {
+                                template: `
+                                <div>
+                                    <div class="bg-white">
+                                        <div class="p-4 border-b">
+                                        <div class="flex items-center mb-1">
+                                            <h1 class="text-xl mr-4">Ini adalah contoh pesan</h1>
+                                            <span class="badge bg-success">Finished</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600">
+                                            Deployed to <b>Server</b> by
+                                            <b>Hafizh</b>
+                                        </p>
+                                        </div>
+                                        <div class="border-b">
+                                        <div class="flex justify-between items-center p-2 px-4">
+                                            <div class="flex items-center">
+                                            <span class="text-gray-700 text-sm">Test Label</span>
+                                            </div>
+
+                                            <div class="flex items-center">
+                                            <span class="text-sm mr-2 text-gray-600"
+                                                >2m 30s</span
+                                            >
+                                            <span class="badge bg-success">Finished</span>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                `
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            title: 'Detail Tagihan',
+                            content: {
+                                template: `
+                                    <table class="table table-bordered" id="paymentDetail" style="line-height: 3">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Komponen Tagihan</th>
+                                            <th class="text-center">Harga</th>
+                                        </tr>
+                                        
+                                    </table>
+                                `
+                            },
+                        },
+                        bill: {
+                            type: 'custom-field',
+                            title: 'Riwayat Transaksi',
+                            content: {
+                                template: `
+                                    <table class="table table-bordered" id="paymentBill">
+                                        <tr class="bg-light">
+                                            <th class="text-center">Invoice ID</th>
+                                            <th class="text-center">Expired Date</th>
+                                            <th class="text-center">Amount</th>
+                                            <th class="text-center">Fee</th>
+                                            <th class="text-center">Paid Date</th>
+                                            <th class="text-center">Status</th>
+                                        </tr>
+                                    </table>
+                                `
+                            },
+                        },
+                    },
+                    callback: function() {
+                        feather.replace();
+                    }
+                },
+            });
+        },
     }
 
     function filters(){

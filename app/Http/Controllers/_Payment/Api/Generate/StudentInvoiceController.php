@@ -22,34 +22,48 @@ use DB;
 class StudentInvoiceController extends Controller
 {
     public function index(Request $request){
+        $activeSchoolYearCode = $this->getActiveSchoolYearCode();
         
-        // $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
-        // $query = Faculty::with('studyProgram');
-        $student = Student::query();
-        if($request->query('year') !== "all"){
-            $student = $student->where('msy_id', '=', $request->query('year'));
-            // $query = $query->whereIn('studyprogram_id', $year);
-        }
-        if($request->query('path') !== "all"){
-            $student = $student->where('path_id', '=', $request->query('path'));
-        }
-        if($request->query('period') !== "all"){
-            $student = $student->where('period_id', '=', $request->query('period'));
-        }
-        $student = $student->get('studyprogram_id');
-        
-        $query = Faculty::whereHas('studyProgram', function(EloquentBuilder $tb) use($student){
-            $tb->whereIn('studyprogram_id', $student);
-        })->orderBy('faculty_name')->get();
+        $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
+        $student = Student::with(['payment' => function($query) use ($activeSchoolYearCode){
+            $query->where('prr_school_year',$activeSchoolYearCode);
+        }])->get();
+
 
         $result = collect();
         foreach($query as $item){
             $collection = collect();
-            $data = ['faculty' => $item,'study_program' => null,'total' => null];
+            $arrSp = [];
+            $total_invoice = 0;
+            $total_generate = 0;
+            if($item->studyProgram){
+                foreach($item->studyProgram as $sp){
+                    $arrSp[] = $sp->studyprogram_id;
+                }
+                $filter = $student->whereIn('studyprogram_id', $arrSp);
+                $total_student = $student->whereIn('studyprogram_id', $arrSp)->count();
+                foreach($filter as $t){
+                    if($t->payment){
+                        $total_invoice = $total_invoice+$t->payment->prr_total;
+                        $total_generate = $total_generate+1;
+                    }
+                }
+            }
+            $data = ['faculty' => $item,'study_program' => null,'total_student' => $total_student,'total_invoice' => $total_invoice,'total_generate' => $total_generate];
             $result->push($data);
             if($item->studyProgram){
                 foreach($item->studyProgram as $sp){
-                    $data = ['faculty' => null,'study_program' => $sp,'total' => null];
+                    $filter = $student->whereIn('studyprogram_id', $sp->studyprogram_id);
+                    $total_student = $student->whereIn('studyprogram_id', $sp->studyprogram_id)->count();
+                    $total_invoice = 0;
+                    $total_generate = 0;
+                    foreach($filter as $t){
+                        if($t->payment){
+                            $total_invoice = $total_invoice+$t->payment->prr_total;
+                            $total_generate = $total_generate+1;
+                        }
+                    }
+                    $data = ['faculty' => null,'study_program' => $sp,'total_student' => $total_student,'total_invoice' => $total_invoice,'total_generate' => $total_generate];
                     $result->push($data);
                 }
             }
