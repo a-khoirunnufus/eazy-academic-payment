@@ -76,7 +76,7 @@ class StudentInvoiceController extends Controller
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
         $query = Student::query();
-        $query = $query->with('lectureType','period','payment')
+        $query = $query->with('lectureType','period','payment','path','year','studyProgram')
         ->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')
         
         ->select('hr.ms_student.*');
@@ -157,7 +157,8 @@ class StudentInvoiceController extends Controller
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
-                    'student_number' => $student->student_number
+                    'student_number' => $student->student_number,
+                    'prr_school_year' => $this->getActiveSchoolYearCode(),
                 ]);
 
                 foreach($components as $item){

@@ -117,13 +117,17 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Nama / NIM</th>
-                <th>Jalur Masuk / Jenis Perkuliahan</th>
-                <th class="text-center">Status Mahasiswa</th>
-                <th>Total Tagihan</th>
-                <th class="text-center">Status Tagihan</th>
+                <th>Nama -<br> NIM</th>
+                <th>Tahun Masuk -<br> Jenis Perkuliahan</th>
+                <th>Periode Masuk -<br> Jalur Masuk</th>
+                <th>Total <br> Tagihan</th>
+                <th class="text-center">Status <br> Tagihan</th>
                 <th>Nama</th>
                 <th>Nim</th>
+                <th>Fakultas</th>
+                <th>Prodi</th>
+                <th>Tahun Masuk</th>
+                <th>Periode Masuk</th>
                 <th>Jalur Masuk</th>
                 <th>Jenis Perkuliahan</th>
                 <th>Status Mahasiswa</th>
@@ -149,7 +153,7 @@
             header = d;
         })
         _studentInvoiceDetailTable.init()
-        dataTable.columns([6,7,8,9,10,11,12]).visible(false)
+        dataTable.columns([6,7,8,9,10,11,12,13,14,15,16]).visible(false)
     })
 
     const _studentInvoiceDetailTable = {
@@ -171,44 +175,47 @@
                         data: 'student_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            // console.log(row);
+                            console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
                     {
                         name: 'student', 
                         render: (data, _, row) => {
+                            let html = "";
+                            if(row.student_type_id === 1) {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
+                            }
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${row.fullname}</span><br>
+                                    <span class="text-nowrap fw-bold">${row.fullname} ${html}</span><br>
                                     <small class="text-nowrap text-secondary">${row.student_id}</small>
                                 </div>
                             `;
                         }
                     },
                     {
-                        name: 'lecture_type.mlt_name', 
+                        name: 'year.msy_year', 
                         render: (data, _, row) => {
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${(row.period) ? row.period.period_name : "-"}</span><br>
+                                    <span class="text-nowrap fw-bold">${(row.year) ? ((row.year.msy_semester === 1)? row.year.msy_year + " Genap" : row.year.msy_year + " Ganjil") : "-"}</span><br>
                                     <small class="text-nowrap text-secondary">${(row.lecture_type) ? row.lecture_type.mlt_name : "-"}</small>
                                 </div>
                             `;
                         }
                     },
                     {
-                        name: 'student_status', 
-                        data: 'student_status',
-                        render: (data) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 'active') {
-                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
-                            } else {
-                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
-                            }
-                            html += '</div>'
-                            return html
+                        name: 'period.period_name', 
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${(row.period) ? row.period.period_name : "-"}</span><br>
+                                    <small class="text-nowrap text-secondary">${(row.path) ? row.path.path_name : "-"}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -240,21 +247,41 @@
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'fullname',
+                        data: 'fullname'
+                    },
+                    {
+                        name: 'student_id', 
+                        data: 'student_id'
+                    },
+                    {
+                        name: 'study_program.faculty.faculty_name', 
+                        data: 'study_program.faculty.faculty_name',
+                        defaultContent: "-",
+                    },
+                    {
+                        name: 'study_program.studyprogram_name', 
+                        data: 'study_program.studyprogram_name',
                         render: (data, _, row) => {
-                            return row.fullname;;
+                            return (row.study_program)? (row.study_program.studyprogram_type +' '+row.study_program.studyprogram_name) : '-';
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'year.msy_year', 
                         render: (data, _, row) => {
-                            return row.student_id;
+                            return (row.year) ? ((row.year.msy_semester === 1)? row.year.msy_year + " Genap" : row.year.msy_year + " Ganjil") : "-";
                         }
                     },
                     {
-                        name: 'lecture_type.mlt_name', 
+                        name: 'period.period_name', 
                         render: (data, _, row) => {
                             return (row.period)? row.period.period_name : '-';
+                        }
+                    },
+                    {
+                        name: 'path.path_name', 
+                        render: (data, _, row) => {
+                            return (row.path)? row.path.path_name : '-';
                         }
                     },
                     {
@@ -266,8 +293,8 @@
                     {
                         name: 'student_status', 
                         data: 'student_status',
-                        render: (data) => {
-                            if(data == 'active') {
+                        render: (data, _, row) => {
+                            if(row.student_type_id === 1) {
                                 return "Aktif";
                             } else {
                                 return "Tidak Aktif"
@@ -319,7 +346,7 @@
                                 text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -327,7 +354,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -335,15 +362,16 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
                                 extend: 'pdf',
                                 text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                orientation: 'landscape',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -351,7 +379,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [6,7,8,9,10,11,12]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             }
                         ],
