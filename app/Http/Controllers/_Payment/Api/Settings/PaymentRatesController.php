@@ -411,7 +411,10 @@ class PaymentRatesController extends Controller
 
         $export = new SettingFeeTemplateExport($data);
 
-        return $export->download('Import Pengaturan Tarif_'.$period['period_name'].'_'.$path['path_name'].'_'.time().'.xlsx');
+        $filename_raw = 'Import Pengaturan Tarif_'.$period['period_name'].'_'.$path['path_name'].'_'.time();
+        $filename_sanitazed = preg_replace('/[^a-zA-Z0-9_-]+/', '_', strtolower($filename_raw)).'.xlsx';
+
+        return $export->download($filename_sanitazed);
     }
 
     public function uploadFileForImport(Request $request)
