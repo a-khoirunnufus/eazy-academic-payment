@@ -157,7 +157,7 @@ class PaymentRatesController extends Controller
                             'cd_fee' => $validated['cd_fee'][$i],
                             'msy_id' => $validated['msy_id'][$i],
                             'mlt_id' => $validated['mlt_id'][$i],
-                            'ppm_id' => $validated['ppm_id'][$i]
+                            'ppm_id' => $validated['main_ppm_id']
                         ]);
                     } else {
                         $data = ComponentDetail::findorfail($validated['cd_id'][$i]);

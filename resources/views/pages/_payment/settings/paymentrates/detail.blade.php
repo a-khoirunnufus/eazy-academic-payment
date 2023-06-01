@@ -169,7 +169,6 @@
     const periodPathId = "{{ request()->route('id') }}";
 
     var dataCopy = null;
-    var idIncrement = 0;
     var skema_cicilan = [];
     let isImporting = false;
 
@@ -423,7 +422,7 @@
                                     <div>
                                     <button type="button"
                                         class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
-                                        onclick="_ratesTableActions.paste()"> Paste
+                                        onclick="_ratesTableActions.paste(${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> Paste
                                     </button>
                                     <button type="button"
                                         class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
@@ -466,11 +465,9 @@
                     },
                 },
             });
-            idIncrement = 0;
             if (Object.keys(data.component).length > 0) {
                 data.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(idIncrement, item.cd_fee, item.msc_id, null)
-                    idIncrement++;
+                    _ratesTableActions.PaymentRateInputField(item.cd_id, item.cd_fee, item.msc_id, null)
                 })
             }
             // Skema
@@ -566,11 +563,16 @@
         copy: function(e) {
             dataCopy = _ratesTable.getRowData(e);
         },
-        paste: function() {
+        paste: function(mma_id,period_id,path_id,msy_id,mlt_id,ppm_id) {
             if (Object.keys(dataCopy.component).length > 0) {
                 dataCopy.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(idIncrement, item.cd_fee, item.msc_id, null)
-                    idIncrement++;
+                    _ratesTableActions.PaymentRateInputField(0, item.cd_fee, item.msc_id, 1,
+                    mma_id, 
+                    period_id, 
+                    path_id, 
+                    msy_id, 
+                    mlt_id, 
+                    ppm_id)
                 })
             }
             skema_cicilan = [];
