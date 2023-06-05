@@ -6,61 +6,38 @@ use App\Models\Payment\Component as InvoiceComponent;
 use App\Models\Payment\ComponentType as InvoiceComponentType;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
+use DB;
 
-class InvoiceComponentsImport
-implements
-    ToModel,
-    SkipsEmptyRows,
-    WithHeadingRow,
-    WithValidation,
-    SkipsOnFailure
+class InvoiceComponentsImport implements ToCollection, WithHeadingRow
 {
-    use Importable, SkipsFailures;
+    use Importable;
 
-    public $imported_rows = 0;
+    private $import_id;
+    private $validation_rules;
+    private $attr_values;
+    private $row = 9;
 
-    /**
-     * Kolom 0: NAMA_KOMPONEN
-     * Kolom 1: DITAGIHKAN_KEPADA
-     * Kolom 2: TIPE_KOMPONEN
-     * Kolom 3: STATUS_AKTIF
-     * Kolom 4: DESKRIPSI
-     */
-
-    public function model(array $row)
+    public function __construct($import_id)
     {
-        $row_processed = $this->preprocessingRow($row);
+        $this->import_id = $import_id;
 
-        $this->imported_rows++;
-
-        return new InvoiceComponent([
-            'msc_name' => $row_processed['msc_name'],
-            'msc_is_participant' => $row_processed['msc_is_participant'],
-            'msc_is_new_student' => $row_processed['msc_is_new_student'],
-            'msc_is_student' => $row_processed['msc_is_student'],
-            'msct_id' => $row_processed['msct_id'],
-            'active_status' => $row_processed['active_status'],
-            'msc_description' => $row_processed['msc_description'],
-        ]);
-    }
-
-    public function headingRow(): int
-    {
-        return 9;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'nama_komponen' => 'required|string|min:1|unique:App\Models\Payment\Component,msc_name',
+        $this->validation_rules = [
+            'nama_komponen' => [
+                'required',
+                'string',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    if(InvoiceComponent::where('msc_name', '=', $value)->first()) {
+                        $fail('Komponen dengan nama ini sudah ada pada sistem.');
+                    }
+                }
+            ],
             'ditagihkan_kepada' => [
                 'required',
                 'string',
@@ -70,7 +47,7 @@ implements
                     foreach ($temp as $payer) {
                         $payer = strtolower(trim($payer));
                         if (!in_array($payer, ['pendaftar', 'mahasiswa lama', 'mahasiswa baru'])) {
-                            $fail($attribute." invalid.");
+                            $fail(ucfirst(str_replace('_', ' ', $attribute))." invalid.");
                             break;
                         }
                     }
@@ -94,7 +71,7 @@ implements
                             }
                         }
 
-                        if(!$valid_type) $fail($attribute." invalid.");
+                        if(!$valid_type) $fail(ucfirst(str_replace('_', ' ', $attribute))." invalid.");
                     }
                 }
             ],
@@ -105,17 +82,14 @@ implements
                 function ($attribute, $value, $fail) {
                     $value = strtolower($value);
                     if (!in_array($value, ['aktif', 'tidak aktif'])) {
-                        $fail($attribute." invalid.");
+                        $fail(ucfirst(str_replace('_', ' ', $attribute))." invalid.");
                     }
                 }
             ],
             'deskripsi' => 'nullable',
         ];
-    }
 
-    public function customValidationAttributes()
-    {
-        return [
+        $this->attr_values = [
             'nama_komponen' => 'Nama Komponen',
             'ditagihkan_kepada' => 'Ditagihkan Kepada',
             'tipe_komponen' => 'Tipe Komponen',
@@ -124,43 +98,36 @@ implements
         ];
     }
 
-    private function preprocessingRow($row)
+    public function collection(Collection $rows)
     {
-        $row_processed['msc_name'] = $row['nama_komponen'];
+        foreach ($rows as $idx => $row)
+        {
+            $validator = $this->validateRow($row->toArray());
 
-        $row_processed['msc_is_participant'] = 0;
-        $row_processed['msc_is_new_student'] = 0;
-        $row_processed['msc_is_student'] = 0;
-        $temp = explode(',', $row['ditagihkan_kepada']);
-        foreach ($temp as $payer) {
-            $payer = strtolower(trim($payer));
-            if ($payer == 'pendaftar') {
-                $row_processed['msc_is_participant'] = 1;
-            } elseif ($payer == 'mahasiswa baru') {
-                $row_processed['msc_is_new_student'] = 1;
-            } elseif ($payer == 'mahasiswa lama') {
-                $row_processed['msc_is_student'] = 1;
+            $data = $this->preprocessingRow($row->toArray());
+
+            $errors = [];
+            if ($validator->fails()) {
+                $data['status'] = 'invalid';
+                $errors = $validator->errors()->toArray();
+                $errors = Arr::flatten($errors);
             }
-        }
-
-        $invoice_component_types = $this->getInvoiceComponentType();
-        foreach ($invoice_component_types as $type) {
-            if (strtolower($type['msct_name']) == strtolower($row['tipe_komponen'])) {
-                $row_processed['msct_id'] = intval($type['msct_id']);
-                break;
+            if (count($errors) > 0) {
+                $data['notes'] = implode(';', $errors);
             }
+
+            DB::table('temp.finance_import_component')->insert($data);
         }
-
-        if (strtolower($row['status_aktif']) == 'tidak aktif') {
-            $row_processed['active_status'] = 0;
-        } elseif (strtolower($row['status_aktif']) == 'aktif') {
-            $row_processed['active_status'] = 0;
-        }
-
-        $row_processed['msc_description'] = $row['deskripsi'];
-
-        return $row_processed;
     }
+
+    public function headingRow(): int
+    {
+        return $this->row;
+    }
+
+    /**
+     * HELPERS
+     */
 
     private function getInvoiceComponentType()
     {
@@ -171,5 +138,56 @@ implements
             Cache::put('ms_invoice_component_types', $value, 30*60 );
             return $value;
         }
+    }
+
+    private function validateRow($row)
+    {
+        $this->row += 1;
+
+        $msg_prefix = 'Pada baris '.$this->row.', ';
+        $messages = [
+            'required' => $msg_prefix.':attribute tidak boleh kosong.',
+            'nama_komponen.exists' => $msg_prefix.':attribute dengan nilai :input sudah ada pada sistem.',
+        ];
+
+        return Validator::make($row, $this->validation_rules, $messages, $this->attr_values);
+    }
+
+    private function preprocessingRow($row)
+    {
+        $row_processed['import_id'] = $this->import_id;
+
+        $row_processed['component_name'] = $row['nama_komponen'];
+
+        $row_processed['is_participant'] = 0;
+        $row_processed['is_new_student'] = 0;
+        $row_processed['is_student'] = 0;
+        $temp = explode(',', $row['ditagihkan_kepada']);
+        foreach ($temp as $payer) {
+            $payer = strtolower(trim($payer));
+            if ($payer == 'pendaftar') {
+                $row_processed['is_participant'] = 1;
+            } elseif ($payer == 'mahasiswa baru') {
+                $row_processed['is_new_student'] = 1;
+            } elseif ($payer == 'mahasiswa lama') {
+                $row_processed['is_student'] = 1;
+            }
+        }
+
+        $row_processed['component_type'] = $row['tipe_komponen'];
+
+        if (strtolower($row['status_aktif']) == 'aktif') {
+            $row_processed['component_active_status'] = 1;
+        } else {
+            $row_processed['component_active_status'] = 0;
+        }
+
+        $row_processed['component_description'] = $row['deskripsi'];
+
+        $row_processed['status'] = 'valid';
+
+        $row_processed['notes'] = null;
+
+        return $row_processed;
     }
 }

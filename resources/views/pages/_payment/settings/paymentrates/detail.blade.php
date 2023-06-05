@@ -567,11 +567,11 @@
             if (Object.keys(dataCopy.component).length > 0) {
                 dataCopy.component.map(item => {
                     _ratesTableActions.PaymentRateInputField(0, item.cd_fee, item.msc_id, 1,
-                    mma_id, 
-                    period_id, 
-                    path_id, 
-                    msy_id, 
-                    mlt_id, 
+                    mma_id,
+                    period_id,
+                    path_id,
+                    msy_id,
+                    mlt_id,
                     ppm_id)
                 })
             }
@@ -956,7 +956,7 @@
                 }
             },
             error: function(jqXHR) {
-                _responseHandler.formFailResponse(jqXHR);
+                _responseHandler.generalFailResponse(jqXHR);
             }
         });
     }

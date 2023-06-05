@@ -5,6 +5,15 @@
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
+@section('css_section')
+    <style>
+        .eazy-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+@endsection
+
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'component'])
@@ -25,32 +34,71 @@
     </table>
 </div>
 
-<!-- Import Invoice Component Modal -->
-<div class="modal fade" id="importInvoiceComponentModal" tabindex="-1" data-bs-backdrop="static" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+<!-- Modal Import Komponen Tagihan -->
+<div class="modal fade" id="importComponentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
-                <h4 class="modal-title fw-bolder" id="importInvoiceComponentModalLabel">Import Komponen Tagihan</h4>
+            <div class="modal-header border-bottom">
+                <h4 class="modal-title fw-bolder" id="importComponentModalLabel">Import Komponen Tagihan</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3 pt-0">
-                <form id="form-import-invoice-component">
-                    <div class="form-group mb-2">
-                        <label class="form-label-md">Template Komponen Tagihan</label>
-                        <a onclick="importInvoiceComponentForm.downloadTemplate()" class="btn btn-primary">
-                            <i data-feather="layout" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                            Download Template
-                        </a>
+            <div class="modal-body p-2">
+                <div class="d-flex flex-column" style="gap: 1.5rem">
+                    <div>
+                        <button onclick="downloadTemplate()" class="btn btn-link px-0"><i data-feather="download"></i>&nbsp;&nbsp;Download Template</button>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label-md">File Import Komponen Tagihan</label>
-                        <input type="file" name="excel_file" class="form-control" />
+                    <div>
+                        <form id="form-upload-file">
+                            <div class="form-group">
+                                <label class="form-label">File Import</label>
+                                <div class="input-group" style="width: 500px">
+                                    <input name="file" type="file" class="form-control">
+                                    <a onclick="_uploadFileForm.submit()" class="btn btn-primary" type="button">
+                                        <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+                <hr style="margin: 2rem 0" />
+                <div>
+                    <h4>Preview Import</h4>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Preview akan muncul setelah file diupload.<span>
+                    </small>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Tekan tombol Import Komponen untuk memproses Data(hanya Data Valid) untuk diimport.<span>
+                    </small>
+                </div>
+                <div class="mt-2">
+                    <div class="my-1">
+                        <span class="d-inline-block me-1">Data Valid: <span id="valid-import-data-count"></span></span>
+                        <span class="d-inline-block">Data Tidak Valid: <span id="invalid-import-data-count"></span></span>
+                    </div>
+                    <table id="table-import-preview" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nama Komponen</th>
+                                <th>Ditagihkan Kepada</th>
+                                <th>Tipe Komponen</th>
+                                <th>Status Aktif</th>
+                                <th>Deskripsi Komponen</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
-                <button onclick="_invoiceComponentTableActions.import()" class="btn btn-success me-1">Import Komponen</button>
-                <button data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
+                    <button onclick="importComponent()" class="btn btn-primary">Import Komponen</button>
+                </div>
             </div>
         </div>
     </div>
@@ -60,8 +108,16 @@
 
 @section('js_section')
 <script>
+    // enabling multiple modal open
+    $(document).on('show.bs.modal', '.modal', function() {
+        const zIndex = 1040 + 10 * $('.modal:visible').length;
+        $(this).css('z-index', zIndex);
+        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    });
+
     $(function(){
-        _invoiceComponentTable.init()
+        _invoiceComponentTable.init();
+        _importPreviewTable.init();
     })
 
     const _invoiceComponentTable = {
@@ -150,7 +206,7 @@
                             </button>
                         </div>
                         <div class="ms-1" style="margin-bottom: 7px">
-                            <button onclick="_invoiceComponentTableActions.openImport()" class="btn btn-primary">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importComponentModal">
                                 <span style="vertical-align: middle">
                                     <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Import Komponen Tagihan
@@ -201,8 +257,6 @@
             data.msc_is_participant == 1 ? $('[name=msc_is_participant]').prop('checked', true) : '';
         }
     }
-
-    const importInvoiceComponentModal = new bootstrap.Modal(document.getElementById('importInvoiceComponentModal'));
 
     const _invoiceComponentTableActions = {
         add: function() {
@@ -389,30 +443,38 @@
                 }
             })
         },
-        openImport: function() {
-            importInvoiceComponentForm.clearForm();
-            importInvoiceComponentModal.show();
+    }
+
+    function downloadTemplate() {
+        window.location.href = _baseURL+'/api/download?storage=local&type=excel-template&filename=import-invoice-component-template-1683776326.xlsx';
+    }
+
+    const _uploadFileForm = {
+        clearInput: () => {
+            $('#form-upload-file input[name="file"]').val('');
         },
-        import: function() {
-            let formData = new FormData(document.getElementById('form-import-invoice-component'));
+        submit: () => {
+            _toastr.info('Sedang memproses file, mungkin membutukan beberapa waktu.', 'Memproses');
+
+            let formData = new FormData(document.getElementById('form-upload-file'));
 
             $.ajax({
-                url: _baseURL+'/api/payment/settings/component/import',
+                url: _baseURL+'/api/payment/settings/component/upload-file-for-import',
                 type: 'POST',
                 data: formData,
                 contentType: false,
                 cache: false,
                 processData: false,
                 success: function(data) {
+                    _uploadFileForm.clearInput();
                     if(data.success){
-                        importInvoiceComponentModal.hide();
-                        _toastr.success(data.message, 'Success');
-                        _invoiceComponentTable.reload();
-                        if (data.error_url) {
-                            window.location.href = data.error_url;
-                        }
+                        const import_id = data.payload.import_id ?? 0;
+                        setLocalStorageWithExpiry('eazy-academic-payment.settings.component.import_id', import_id, 24*60*60*1000);
+
+                        _toastr.success(data.message, 'Selesai');
+                        _importPreviewTable.reload();
                     } else {
-                        _toastr.error(data.message, 'Failed');
+                        _toastr.error(data.message, 'Failed')
                     }
                 },
                 error: function(jqXHR) {
@@ -422,13 +484,176 @@
         }
     }
 
-    const importInvoiceComponentForm = {
-        downloadTemplate: () => {
-            window.location.href = _baseURL+'/api/download?storage=local&type=excel-template&filename=import-invoice-component-template-1683776326.xlsx';
+    const _importPreviewTable = {
+        ..._datatable,
+        init: function() {
+            this.instance = $('#table-import-preview').DataTable({
+                serverSide: true,
+                ajax: {
+                    url: _baseURL+'/api/payment/settings/component/dt-import-preview',
+                    data: function(d) {
+                        d.custom_payload = {
+                            import_id: getLocalStorageWithExpiry('eazy-academic-payment.settings.component.import_id') ?? 0,
+                        };
+                    },
+                    dataSrc: function (e){
+                        const data = e.data;
+                        let validCount = 0;
+                        let invalidCount = 0;
+                        data.forEach(item => {
+                            if (item.status == "invalid") {
+                                invalidCount++;
+                            } else if (item.status == "valid") {
+                                validCount++;
+                            }
+                        });
+                        // console.log(validCount,invalidCount);
+                        $('#valid-import-data-count').text(validCount);
+                        $('#invalid-import-data-count').text(invalidCount);
+                        return e.data;
+                    },
+                },
+                columns: [
+                    {
+                        name: 'component_name',
+                        data: 'component_name',
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        name: 'payer_type',
+                        render: (data, _, row) => {
+                            let payer_type_arr = [];
+                            row.is_participant == 1 && payer_type_arr.push('Mahasiswa Pendaftar');
+                            row.is_new_student == 1 && payer_type_arr.push('Mahasiswa Baru');
+                            row.is_student == 1 && payer_type_arr.push('Mahasiswa Lama');
+                            return this.template.defaultCell(payer_type_arr.join(', '));
+                        }
+                    },
+                    {
+                        name: 'component_type',
+                        data: 'component_type',
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        name: 'component_active_status',
+                        data: 'component_active_status',
+                        render: (data) => {
+                            return this.template.defaultCell(data == 1 ? 'Aktif' : 'Tidak Aktif');
+                        }
+                    },
+                    {
+                        name: 'component_description',
+                        data: 'component_description',
+                        render: (data) => {
+                            return this.template.defaultCell(data ?? '', {nowrap: false});
+                        }
+                    },
+                    {
+                        name: 'status',
+                        data: 'status',
+                        render: (data) => {
+                            return this.template.badgeCell(
+                                data == 'valid' ? 'Valid' : 'Invalid',
+                                data == 'valid' ? 'success' : 'danger'
+                            );
+                        }
+                    },
+                    {
+                        name: 'notes',
+                        data: 'notes',
+                        render: (data, _, row) => {
+                            if (row.status == 'valid') {
+                                return '';
+                            } else {
+                                return `
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <button onclick="openImportError(event)" class="btn btn-secondary btn-sm btn-icon round"><i data-feather="info"></i></button>
+                                    </div>
+                                `;
+                            }
+                        }
+                    },
+                ],
+                drawCallback: function(settings) {
+                    feather.replace();
+                },
+                dom:
+                    '<"eazy-table-wrapper" t>' +
+                    '<"d-flex justify-content-between row"' +
+                    '<"col-sm-12 col-md-6"i>' +
+                    '<"col-sm-12 col-md-6"p>' +
+                    '>',
+                buttons: [],
+                initComplete: function() {}
+            })
         },
-        clearForm: () => {
-            $('form#form-import-invoice-component input[name="excel_file"]').val('');
-        },
+        template: {
+            ..._datatableTemplates,
+        }
+    }
+
+    function openImportError(e) {
+        let notes = _importPreviewTable.getRowData(e.currentTarget).notes;
+        // remove ';' char from start and end of string
+        notes = notes.replace(/^\;+|\;+$/g, '');
+
+        Modal.show({
+            type: 'detail',
+            modalTitle: 'Detail Error',
+            modalSize: 'lg',
+            config: {
+                fields: {
+                    errors: {
+                        title: 'Daftar Error',
+                        content: {
+                            template: `
+                                <ul>
+                                    ${notes.split(';').map((item) => {
+                                        return `<li>${item}</li>`;
+                                    }).join('')}
+                                </ul>
+                            `,
+                        },
+                    },
+                },
+                callback: function() {
+                    feather.replace();
+                }
+            },
+        });
+    }
+
+    var ImportComponentModal = new bootstrap.Modal(document.getElementById('importComponentModal'));
+
+    function importComponent() {
+        _toastr.info('Sedang mengimport data, mungkin membutukan beberapa waktu.', 'Mengimport');
+
+        $.ajax({
+            url: _baseURL+'/api/payment/settings/component/import',
+            type: 'POST',
+            data: {
+                import_id: getLocalStorageWithExpiry('eazy-academic-payment.settings.component.import_id') ?? 0,
+            },
+            success: function(data) {
+                if(data.success){
+                    localStorage.removeItem('eazy-academic-payment.settings.component.import_id');
+
+                    ImportComponentModal.hide();
+                    _toastr.success(data.message, 'Success');
+                    _importPreviewTable.reload();
+                    _invoiceComponentTable.reload();
+                } else {
+                    _toastr.error(data.message, 'Failed')
+                }
+            },
+            error: function(jqXHR) {
+                _responseHandler.generalFailResponse(jqXHR);
+            }
+        });
     }
 </script>
 @endsection

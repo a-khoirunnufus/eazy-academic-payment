@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\_Payment\Api\Settings;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\Settings\ComponentRequest;
@@ -75,46 +76,102 @@ class ComponentInvoiceController extends Controller
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen tagihan"));
     }
 
-    public function import(Request $request)
+    public function uploadFileForImport(Request $request)
     {
-        $request->validate([
-            'excel_file' => 'required|mimes:xlsx',
+        $validated = $request->validate([
+            'file' => 'required|mimes:xlsx'
         ]);
 
-        $import = new InvoiceComponentsImport();
-        $import->import($request->file('excel_file'));
+        // define import_id
+        $import_id = DB::select("select nextval('temp.finance_import_component_import_id_num_seq')")[0]->nextval;
 
-        $failures = $import->failures();
-        $is_failures = $failures->count() > 0;
-        $error_url = '';
-        if ($is_failures) {
-            $failures_processed = [];
-            foreach ($failures as $failure) {
-                $row = $failure->row(); // row that went wrong
-                // $attribute = $failure->attribute(); // either heading key (if using heading row concern) or column index
-                $errors = $failure->errors(); // Actual error messages from Laravel validator
-                // $values = $failure->values(); // The values of the row that has failed.
-                $failures_processed[] = [
-                    'nomor_baris' => $row,
-                    'keterangan' => implode(', ', Arr::flatten($errors)),
-                ];
-            }
-            $exportFailures = new ArrayExport($failures_processed);
-            $filename = 'excel-import-errors-'.time().'.xlsx';
-            $path_arr = ['app', 'public', 'excel-logs', $filename];
-            $path = join(DIRECTORY_SEPARATOR, $path_arr);
-            $exportFailures->store($path);
-            $error_url = url('api/download?storage=local&type=excel-log&filename='.$filename);
+        try {
+            $import = new InvoiceComponentsImport($import_id);
+            $import->import($request->file('file'));
+        } catch (\Throwable $th) {
+            Log::debug($th->getMessage());
+            return response()->json([
+                'success' => false,
+                // 'message' => 'Terjadi Kesalahan!',
+                'message' => $th->getMessage(),
+            ], 500);
         }
 
-        $res = [
+        // send import id
+        return response()->json([
             'success' => true,
-            'message' => 'Berhasil import '.$import->imported_rows.' komponen tagihan.'
-                .($is_failures ? ' Terdapat beberapa error, keterangan error akan otomatis didownload.' : ''),
-        ];
+            'message' => 'Selesai memproses file.',
+            'payload' => [
+                'import_id' => $import_id,
+            ],
+        ], 200);
+    }
 
-        if ($is_failures) $res['error_url'] = $error_url;
+    public function dtImportPreview(Request $request)
+    {
+        $import_id = $request->input('custom_payload')['import_id'];
 
-        return response()->json($res, 200);
+        $data = DB::table('temp.finance_import_component')
+            ->where('import_id', '=', $import_id)
+            ->get();
+
+        return datatables($data)->toJson();
+    }
+
+    public function import(Request $request)
+    {
+        $validated = $request->validate([
+            'import_id' => 'required',
+        ]);
+
+        $data = DB::table('temp.finance_import_component as fic')
+            ->leftJoin('finance.ms_component_type as msct', 'msct.msct_name', '=', 'fic.component_type')
+            ->select(
+                'fic.component_name',
+                'fic.component_description',
+                'msct.msct_id',
+                'fic.is_student',
+                'fic.is_new_student',
+                'fic.is_participant',
+                'fic.component_active_status'
+            )
+            ->where('fic.import_id', '=', $validated['import_id'])
+            ->where('fic.status', '=', 'valid')
+            ->get();
+
+        try{
+            DB::beginTransaction();
+
+            foreach ($data as $item) {
+                Component::create([
+                    'msc_name' => $item->component_name,
+                    'msc_description' => $item->component_description,
+                    'msct_id' => $item->msct_id,
+                    'msc_is_student' => $item->is_student,
+                    'msc_is_new_student' => $item->is_new_student,
+                    'msc_is_participant' => $item->is_participant,
+                    'active_status' => $item->component_active_status
+                ]);
+            }
+
+            // clear temp import data
+            DB::table('temp.finance_import_component')
+                ->where('import_id', '=', $validated['import_id'])
+                ->delete();
+
+            DB::commit();
+        }catch(\Exception $e){
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                // 'message' => 'Gagal import komponen tagihan.',
+                'message' => $e->getMessage(),
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil import komponen tagihan.',
+        ], 200);
     }
 }
