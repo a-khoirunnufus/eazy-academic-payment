@@ -12,6 +12,7 @@ use App\Models\Faculty;
 use DB;
 use Exception;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class CourseRatesController extends Controller
@@ -238,16 +239,32 @@ class CourseRatesController extends Controller
         // var_dump($listStudyProgram);
 
         $spreadsheet = new Spreadsheet();
+        $sheet_info = new Worksheet($spreadsheet, 'Info');
         $sheet = $spreadsheet->getActiveSheet();
+        
         $sheet->setCellValue('A1', 'Program Studi');
+        $sheet_info->setCellValue('A1', 'Program Studi');
         $sheet->mergeCells('A1:A2');
         $sheet->setCellValue('B1', 'Mata Kuliah');
+        $sheet_info->setCellValue('B1', 'Mata Kuliah');
         $sheet->mergeCells('B1:B2');
         $sheet->setCellValue('C1', 'Tarif per Tingkat');
         $sheet->mergeCells('C1:E1');
         $sheet->setCellValue('C2', "Tingkat");
         $sheet->setCellValue('D2', 'Tarif');
         $sheet->setCellValue('E2', 'Paket');
+
+        $start_row = 2;
+        foreach(Course::all(['course_id', 'subject_name']) as $item){
+            $sheet_info->setCellValue('B'.$start_row, $item->course_id."-".$item->subject_name);
+            $start_row++;
+        }
+
+        $start_row = 2;
+        foreach(Studyprogram::all(['studyprogram_id','studyprogram_name']) as $item){
+            $sheet_info->setCellValue('A'.$start_row, $item->studyprogram_id."-".$item->studyprogram_name);
+            $start_row++;
+        }
 
         for($i = 3; $i < 100; $i++){
             $validation1 = $sheet->getCell('A'.$i)->getDataValidation();
@@ -304,6 +321,7 @@ class CourseRatesController extends Controller
         }
         // $writer = new Xlsx($spreadsheet);
         //     $writer->save('php://output');
+        $spreadsheet->addSheet($sheet_info, 1);
 
         $response = response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);

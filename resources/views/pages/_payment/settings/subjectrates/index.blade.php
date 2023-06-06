@@ -34,7 +34,7 @@
         top: -18px;
     }
 
-    #MyFile {
+    /* #MyFile {
         content: "";
         display: block;
         width: 100%;
@@ -48,7 +48,7 @@
 
     #MyFile::-webkit-file-upload-button {
         visibility: hidden;
-    }
+    } */
 
     .preview {
         width: 100%;
@@ -67,7 +67,7 @@
 @section('content')
 
 @include('pages._payment.settings._shortcuts', ['active' => 'subject-rates'])
-<div id="myModalContainer" class="d-flex justify-content-center align-items-center">
+<!-- <div id="myModalContainer" class="d-flex justify-content-center align-items-center">
     <div class="w-75 h-75 bg-white position-relative mdl-container p-1">
         <button type="button" class="cls-btn btn bg-danger rounded text-white" onclick="closeImport()">X</button>
         <input type="file" name="" id="MyFile" onchange="myImport('preview')">
@@ -90,12 +90,11 @@
         </div>
         <div class="actions d-flex justify-content-end">
             <button class="btn bg-primary text-white mx-1" type="button" onclick="downloadTemplate()">Download</button>
-            <button class="btn bg-success text-white" type="button">Import</button>
+            <button class="btn bg-success text-white" type="button" onclick="myImport('import')">Import</button>
         </div>
     </div>
-</div>
+</div> -->
 
-<input type="file" name="import" id="myFiles" style="display:none;" onchange="myImport()">
 <div class="card">
     <div class="card-body">
         <div class="rates-per-course-filter">
@@ -143,57 +142,83 @@
         <tbody></tbody>
     </table>
 </div>
-{{-- <div class="modal fade" id="mainModal" tabindex="-1" aria-labelledby="frmbox-title" style="display: none;"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg justify-content-center">
-        <div class="modal-content" style="">
-            <div class="modal-header bg-transparent">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body px-sm-5 mx-50 pb-3">
-                <h1 class=" fw-bolder h3 mb-1" id="frmbox-title">Tambah Tarif Matakuliah</h1>
-                <form id="coureRateForm" method="post">
-                    <div class="mb-2">
-                        <div class="row">
-                            <div class="col-lg-6 col-md-6">
-                                <label class="form-label">Program Studi</label>
-                                <select class="form-select select2" eazy-select2-active id="programStudy">
-                                    <option value="all" selected>Semua Program Studi</option>
-                                    @foreach($studyProgram as $item)
-                                        <option value="{{ $item->studyprogram_id }}">{{ $item->studyprogram_name }}</option>
-@endforeach
-</select>
-</div>
-<div class="col-lg-6 col-md-6">
-    <label class="form-label">Mata Kuliah</label>
-    <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
-    </select>
-</div>
-</div>
-</div>
-<!-- form -->
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
-    <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
-    <button type="button" class="btn btn-primary text-white edit-component waves-effect waves-float waves-light" onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
-    </button>
-</div>
-<div id="courseRateInput">
-</div>
-<div class="d-flex align-items-center flex-wrap justify-content-between mt-3" style="gap:10px">
-    <small style="color:#163485">
-        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
-    </small>
-    <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button" onclick="_ratesPerCourseTableActions.courseRateStore()">
-        Simpan
-    </button>
-    <button type="reset">Reset</button>
-</div>
-</form>
-</div>
-</div>
-</div>
-</div> --}}
 
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom d-flex flex-column align-items-start">
+                <div class="d-flex justify-content-between w-100 mb-1">
+                    <h4 class="modal-title fw-bolder" id="importModalLabel">Import Tarif Matakuliah</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-2">
+                <div class="d-flex flex-column" style="gap: 1.5rem">
+                    <div>
+                        <button onclick="downloadTemplate()" class="btn btn-link px-0"><i data-feather="download"></i>&nbsp;&nbsp;Download Template</button>
+                        <small class="d-flex align-items-center">
+                            <i data-feather="info" style="margin-right: .5rem"></i>
+                            <span>File template khusus untuk tarif matakuliah<span>
+                        </small>
+                        <small class="d-flex align-items-center">
+                            <i data-feather="info" style="margin-right: .5rem"></i>
+                            <span>informasi untuk program studi dan matakuliah terdapat pada sheet info<span>
+                        </small>
+                    </div>
+                    <div>
+                        <form id="form-upload-file">
+                            <div class="form-group">
+                                <label class="form-label">File Import</label>
+                                <div class="input-group" style="width: 500px">
+                                    <!-- <input name="file" type="file" class="form-control"> -->
+                                    <input type="file" name="file" id="MyFile" class="form-control">
+                                    <a onclick="myImport('preview')" class="btn btn-primary" type="button">
+                                        <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <hr style="margin: 2rem 0" />
+                <div>
+                    <h4>Preview Import</h4>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Preview akan muncul setelah file diupload.<span>
+                    </small>
+                    <small class="d-flex align-items-center">
+                        <i data-feather="info" style="margin-right: .5rem"></i>
+                        <span>Tekan tombol Import Komponen untuk memproses Data(hanya Data Valid) untuk diimport.<span>
+                    </small>
+                </div>
+                <div class="mt-2">
+                    <table id="prevTable" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="text-center align-middle">Program Study</th>
+                                <th rowspan="2" class="text-center align-middle">Mata Kuliah</th>
+                                <th colspan="3" class="text-center align-middle">Tarif per Tingkat</th>
+                            </tr>
+                            <tr>
+                                <th>Tngkat</th>
+                                <th>Tarif</th>
+                                <th>Paket</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
+                    <button onclick="myImport('import')" class="btn btn-primary">Import Komponen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 
@@ -342,7 +367,7 @@
                                     Tambah Tarif Matakuliah
                                 </span>
                             </button>
-                            <button type="button" class="btn btn-success" onclick="importBtn()">Import</button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">Import</button>
                         </div>
                     `)
                     feather.replace()
@@ -768,7 +793,9 @@
     }
 
     function myImport(type) {
+        console.log('import actions');
         var x = document.getElementById("MyFile");
+        console.log(x.files);
         var txt = "";
         if ('files' in x) {
             if (x.files.length > 0) {
