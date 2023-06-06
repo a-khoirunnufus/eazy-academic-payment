@@ -737,6 +737,7 @@
                         *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
                     </small>`,
                     callback: function() {
+                        _studentInvoiceDetailTable.reload();
                         feather.replace();
                     }
                 },

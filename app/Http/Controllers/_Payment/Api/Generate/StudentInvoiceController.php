@@ -238,16 +238,27 @@ class StudentInvoiceController extends Controller
                             foreach($components as $item){
                                 $prr_total = $prr_total+$item->cd_fee;
                             }
+                            $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
+                            
                             DB::beginTransaction();
                             try{
-                                $payment = Payment::create([
-                                    'prr_status' => 'belum lunas',
-                                    'prr_total' => $prr_total,
-                                    'prr_paid_net' => $prr_total,
-                                    'student_number' => $student->student_number,
-                                    'prr_school_year' => $this->getActiveSchoolYearCode(),
-                                ]);
-    
+                                if($payment){
+                                    $payment->prr_status = 'belum lunas';
+                                    $payment->prr_total = $prr_total;
+                                    $payment->prr_paid_net = $prr_total;
+                                    $payment->save();
+                                    PaymentDetail::where('prr_id', $payment->prr_id)->delete();
+                                }else{
+                                    $payment = Payment::create([
+                                        'prr_status' => 'belum lunas',
+                                        'prr_total' => $prr_total,
+                                        'prr_paid_net' => $prr_total,
+                                        'student_number' => $student->student_number,
+                                        'prr_school_year' => $this->getActiveSchoolYearCode(),
+                                    ]);
+        
+                                }
+                                
                                 foreach($components as $item){
                                     PaymentDetail::create([
                                         'prr_id' => $payment->prr_id,
@@ -255,6 +266,7 @@ class StudentInvoiceController extends Controller
                                         'prrd_amount' => $item->cd_fee
                                     ]);
                                 }
+
                                 DB::commit();
                             }catch(\Exception $e){
                                 DB::rollback();
