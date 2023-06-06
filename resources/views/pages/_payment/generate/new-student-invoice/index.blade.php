@@ -17,7 +17,7 @@
                 <th>Program Studi / Fakultas</th>
                 <th>Jumlah Mahasiswa</th>
                 <th>Total Tagihan</th>
-                <th>Tagihan Tergenerate</th>
+                <th>Status Generate</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -79,11 +79,20 @@
                         }
                     },
                     {
-                        name: 'generated_invoice',
-                        data: 'generated_invoice',
-                        searchable: false,
-                        render: (data) => {
-                            return this.template.defaultCell(data);
+                        name: 'generated_msg',
+                        data: 'generated_msg',
+                        searchable: true,
+                        render: (data, _, row) => {
+                            let bsColor = 'secondary';
+                            if (row.generated_status == 'not_yet') {
+                                bsColor = 'danger';
+                            } else if (row.generated_status == 'partial') {
+                                bsColor = 'warning';
+                            } else if (row.generated_status == 'done') {
+                                bsColor = 'success';
+                            }
+
+                            return this.template.badgeCell(data, bsColor, {centered: false});
                         }
                     },
                     {
@@ -91,15 +100,6 @@
                         name: 'invoice_total_amount',
                         data: 'invoice_total_amount',
                         visible: false,
-                    },
-                    {
-                        title: 'Tagihan Tergenerate',
-                        name: 'generated_invoice',
-                        data: 'generated_invoice',
-                        visible: false,
-                        render: (data) => {
-                            return data.replace('/', 'dari') + ' Tagihan';
-                        }
                     },
                 ],
                 drawCallback: function(settings) {
@@ -133,7 +133,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,5,6]
+                                    columns: [1,2,5,4]
                                 }
                             },
                             {
@@ -141,7 +141,7 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,5,6]
+                                    columns: [1,2,5,4]
                                 }
                             },
                             {
@@ -157,7 +157,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [1,2,5,6]
+                                    columns: [1,2,5,4]
                                 }
                             }
                         ],
@@ -192,6 +192,7 @@
             defaultCell: _datatableTemplates.defaultCell,
             buttonLinkCell: _datatableTemplates.buttonLinkCell,
             currencyCell: _datatableTemplates.currencyCell,
+            badgeCell: _datatableTemplates.badgeCell,
         }
     }
 
