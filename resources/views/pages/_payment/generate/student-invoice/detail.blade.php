@@ -724,7 +724,7 @@
                                 <h4 class="fw-bolder mb-0">Konfirmasi Generate Tagihan <small class="fst-italic mb-0">(Centang checkbox untuk memilih)</small></h4>
                                 <ul class="nested-checkbox">
                                     <li id="choice">
-                                        <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
+                                        <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
                                     </li>
                                 </ul>
                                 `
@@ -779,7 +779,9 @@
                             item.lecture_type.mlt_name,
                             item.total_student,
                             item.total_generate,
-                            id)
+                            id,
+                            item.component_filter,
+                            'last')
 
                         // COUNTING 
                         // Period
@@ -823,7 +825,18 @@
                 }
             });
         },
-        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0, value = null){
+        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+            let status_component = "";
+            let status_disabled = "";
+            let type = "checkbox"
+            if(position === 'last'){
+                if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                }
+            }
+            
             if(!$("#choice").find("[id='" + grandparent + "']")[0]){
                 $('#'+tag).append(`
                     <ul id="${grandparent}">
@@ -834,7 +847,7 @@
             if(!$("#choice").find("[id='" + parent + "']")[0]){
                 $('#'+grandparent).append(`
                     <li id="${parent}">
-                        <input type="checkbox" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
+                        <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div> ${status_component}
                         <ul id="${child}">
                         </ul>
                     </li>

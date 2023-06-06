@@ -183,7 +183,7 @@ class StudentInvoiceController extends Controller
         // dd($f);
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
         $student = Student::query()
-        ->with('studyProgram','lectureType','period','path','year')
+        ->with('studyProgram','lectureType','period','path','year','getComponent')
         ->leftJoin('finance.payment_re_register', function($join) use ($activeSchoolYearCode)
         {
             $join->on('finance.payment_re_register.student_number', '=', 'hr.ms_student.student_number');
@@ -199,14 +199,25 @@ class StudentInvoiceController extends Controller
         }
         $student = $student
         ->where('student_type_id',1)
-        ->select('mlt_id','path_id','period_id','msy_id','studyprogram_id',DB::raw('count(*) as total_student'),DB::raw('count(prr_id) as total_generate'))
-        ->groupBy('mlt_id','path_id','period_id','msy_id','studyprogram_id')
+        ->select('hr.ms_student.mlt_id','hr.ms_student.path_id','hr.ms_student.period_id','hr.ms_student.msy_id','hr.ms_student.studyprogram_id',DB::raw('count(hr.ms_student.*) as total_student'),DB::raw('count(prr_id) as total_generate'))
+        ->groupBy('hr.ms_student.mlt_id','hr.ms_student.path_id','hr.ms_student.period_id','hr.ms_student.msy_id','hr.ms_student.studyprogram_id')
         ->get();
+
+        foreach($student as $key => $s){
+            $getComponent = $s->getComponent()
+            ->where('path_id',$s->path_id)
+            ->where('period_id',$s->period_id)
+            ->where('msy_id',$s->msy_id)
+            ->where('mlt_id',$s->mlt_id)
+            ->get();
+            $student[$key]->setRelation('component_filter', $getComponent->values());
+        }
         
         return $student;
     }
 
     public function studentBulkGenerate(Request $request){
+        // dd($request);
         if($request->generate_checkbox){
             foreach($request->generate_checkbox as $item){
                 if($item != "null"){
