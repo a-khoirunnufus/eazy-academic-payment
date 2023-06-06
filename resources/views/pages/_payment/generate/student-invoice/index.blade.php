@@ -12,6 +12,28 @@
             grid-template-columns: 1fr 1fr 1fr;
             grid-gap: 1rem;
         }
+         .nested-checkbox {
+            list-style-type: none;
+            padding-top: 2px;
+            padding-left: 0px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+        
+        .nested-checkbox ul {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .nested-checkbox ul li {
+            list-style-type: none;
+            padding-top: 3px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
     </style>
 @endsection
 
@@ -19,7 +41,7 @@
 
 @include('pages._payment.generate._shortcuts', ['active' => 'student-invoice'])
 <div class="card">
-    <table id="new-student-invoice-table" class="table table-striped">
+    <table id="student-invoice-table" class="table table-striped">
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
@@ -40,14 +62,18 @@
 @section('js_section')
 <script>
     var dataTable = null;
+    var header = null;
     $(function(){
-        _newStudentInvoiceTable.init()
+        _studentInvoiceTable.init()
+        $.get(_baseURL + '/api/payment/generate/student-invoice/headerall', (d) => {
+            header = d;
+        })
     })
 
-    const _newStudentInvoiceTable = {
+    const _studentInvoiceTable = {
         ..._datatable,
         init: function() {
-            dataTable = this.instance = $('#new-student-invoice-table').DataTable({
+            dataTable = this.instance = $('#student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/generate/student-invoice/index',
@@ -150,7 +176,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-actions d-flex align-items-end">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"student-invoice-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -207,9 +233,12 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.new-student-invoice-actions').html(`
+                    $('.student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <h5>Daftar Tagihan</h5>
+                            <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-primary" href="javascript:void(0);">
+                                <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
+                            <a onclick="_studentInvoiceTableActions.logGenerate()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
                     feather.replace()
@@ -226,8 +255,8 @@
                         </button>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>
                     </div>
                 `
@@ -235,8 +264,8 @@
         }
     }
 
-    const _newStudentInvoiceTableActions = {
-        tableRef: _newStudentInvoiceTable,
+    const _studentInvoiceTableActions = {
+        tableRef: _studentInvoiceTable,
         generate: function() {
             Swal.fire({
                 title: 'Konfirmasi',
@@ -277,11 +306,217 @@
                 }
             })
         },
+        generateForm: function() {
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Generate Tagihan Mahasiswa',
+                modalSize: 'lg',
+                config: {
+                    formId: 'generateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/student-invoice/bulk',
+                    formType: 'add',
+                    data: $("#generateForm").serialize(),
+                    isTwoColumn: false,
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Universitas</h6>
+                                            <h1 class="h6 fw-bolder">${header.university}</h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <h4 class="fw-bolder mb-0">Konfirmasi Generate Tagihan <small class="fst-italic mb-0">(Centang checkbox untuk memilih)</small></h4>
+                                <ul class="nested-checkbox">
+                                    <li id="choice">
+                                        <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.university} <div class="badge" id="badge_header">Belum Digenerate</div>
+                                        <input type="hidden" name="from" value="index">    
+                                    </li>
+                                </ul>
+                                `
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Generate Tagihan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
+                    </small>`,
+                    callback: function() {
+                        _studentInvoiceDetailTable.reload();
+                        feather.replace();
+                    }
+                },
+            });
+            var store = [];
+            $.get(_baseURL + '/api/payment/generate/student-invoice/choiceall', (data) => {
+                console.log(data);
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    data.map(item => {
+                        var id = item.faculty_id+"_"+item.studyprogram_id;
+                        _studentInvoiceTableActions.choiceRow(
+                            'choice',
+                            'facultyId',
+                            'facultyId_'+item.faculty_id,
+                            item.faculty_id+'_spId',
+                            'Fakultas '+item.study_program.faculty.faculty_name)
+
+                        _studentInvoiceTableActions.choiceRow(
+                            item.faculty_id+'_spId',
+                            item.faculty_id+'_spId',
+                            item.faculty_id+'_spId_'+item.studyprogram_id,
+                            item.faculty_id+'_'+item.studyprogram_id+'_end',
+                            item.study_program.studyprogram_name,
+                            item.total_student,
+                            item.total_generate,
+                            id,
+                            item.component_filter,
+                            'last')
+
+                        // _studentInvoiceTableActions.choiceRow(
+                        //     item.msy_id+'_'+item.path_id+'_periodId',
+                        //     item.msy_id+'_'+item.path_id+'_periodId',
+                        //     item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.period.period_name)
+                            
+                        // _studentInvoiceTableActions.choiceRow(
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
+                        //     item.lecture_type.mlt_name,
+                        //     item.total_student,
+                        //     item.total_generate,
+                        //     id,
+                        //     item.component_filter,
+                        //     'last')
+
+                        // COUNTING 
+                        // Study Program
+                        let sp = item.faculty_id+'_spId_'+item.studyprogram_id;
+                        let student = item.total_student;
+                        let generate = item.total_generate;
+                        _studentInvoiceTableActions.storeToArray(store,sp,student,generate)
+                        
+                        // Faculty
+                        let faculty = 'facultyId_'+item.faculty_id;
+                        _studentInvoiceTableActions.storeToArray(store,faculty,student,generate)
+
+                        // Sum
+                        total_student = total_student+student;
+                        total_generate = total_generate+generate;
+                    });
+
+                    // Badges
+                    for (let x of Object.keys(store)) {
+                        let student = store[x]['student'];
+                        let generate = store[x]['generate'];
+                        $('#checkbox_'+x).attr('student',student);
+                        $('#checkbox_'+x).attr('generate',generate);
+                        _studentInvoiceTableActions.badge(x,student,generate)
+                        console.log(store[x]);
+                    }
+
+                    // Badges for master root
+                    let student = total_student;
+                    let generate = total_generate;
+                    let x = "header";
+                    _studentInvoiceTableActions.badge(x,student,generate)
+                }
+            });
+        },
+        choiceRow(tag,grandparent,parent,child,data,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+            let status_component = "";
+            let status_disabled = "";
+            let type = "checkbox"
+            if(position === 'last'){
+                if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                }
+            }
+            
+            if(!$("#choice").find("[id='" + grandparent + "']")[0]){
+                $('#'+tag).append(`
+                    <ul id="${grandparent}">
+                    </ul>
+                `);
+            }
+
+            if(!$("#choice").find("[id='" + parent + "']")[0]){
+                $('#'+grandparent).append(`
+                    <li id="${parent}">
+                        <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} /> ${data} <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div> ${status_component}
+                        <ul id="${child}">
+                        </ul>
+                    </li>
+                `);
+            }
+            
+            $('li :checkbox').on('click', function () {
+                console.log("hey");
+                var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
+                console.log($li);
+                if ($li.has('ul')) {
+                    $li.find(':checkbox').not(this).prop('checked', this.checked)
+                }
+                do {
+                    $ul = $li.parent();
+                    $parent = $ul.siblings(':checkbox');
+                    if ($chk.is(':checked')) {
+                        $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
+                    } else {
+                        $parent.prop('checked', false)
+                    }
+                    $chk = $parent;
+                    $li = $chk.closest('li');
+                } while ($ul.is(':not(.someclass)'));
+            });
+            
+        },
+        badge(x,student,generate){
+            if(generate == 0){
+                $('#badge_'+x).addClass('bg-danger');
+                $('#badge_'+x).html('Belum Digenerate ('+ generate + '/' + student + ')');
+            }else if(generate < student){
+                $('#badge_'+x).addClass('bg-warning');
+                $('#badge_'+x).html('Sebagian Telah Digenerate ('+ generate + '/' + student + ')');
+            }else{
+                $('#badge_'+x).addClass('bg-success');
+                $('#badge_'+x).html('Sudah Digenerate ('+ generate + '/' + student + ')');
+            }
+        },
+        storeToArray(store,key,student,generate){
+            if(store[key]){
+                store[key] = {'student' : store[key]['student']+student, 'generate' : store[key]['generate']+generate}
+            }else{
+                store[key] = {'student' : student, 'generate' : generate}
+            }
+        },
     }
 
     function filters(){
         dataTable.destroy();
-        _newStudentInvoiceTable.init();
+        _studentInvoiceTable.init();
     }
 </script>
 @endsection

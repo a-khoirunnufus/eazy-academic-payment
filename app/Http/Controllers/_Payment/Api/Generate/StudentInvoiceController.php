@@ -135,6 +135,15 @@ class StudentInvoiceController extends Controller
         // dd($query->get());
         return $header;
     }
+    
+    public function headerAll(){
+        $activeSchoolYear = $this->getActiveSchoolYear();
+        
+        $header['university'] = "Universitas Telkom";
+        $header['active'] = $activeSchoolYear;
+
+        return $header;
+    }
 
     public function studentGenerate(Request $request){
         $student = Student::with('getComponent')->findorfail($request['student_number']);
@@ -215,80 +224,182 @@ class StudentInvoiceController extends Controller
         
         return $student;
     }
+    
+    public function choiceAll(){
+        // dd($f);
+        $activeSchoolYearCode = $this->getActiveSchoolYearCode();
+        $student = Student::query()
+        ->with('studyProgram','getComponent')
+        ->join('masterdata.ms_studyprogram','masterdata.ms_studyprogram.studyprogram_id','hr.ms_student.studyprogram_id')
+        ->join('masterdata.ms_faculties','masterdata.ms_faculties.faculty_id','masterdata.ms_studyprogram.faculty_id')
+        ->leftJoin('finance.payment_re_register', function($join) use ($activeSchoolYearCode)
+        {
+            $join->on('finance.payment_re_register.student_number', '=', 'hr.ms_student.student_number');
+            $join->where('finance.payment_re_register.prr_school_year','=',$activeSchoolYearCode);
+            $join->where('finance.payment_re_register.deleted_at','=',null);
+        });
+        
+        $student = $student
+        ->where('student_type_id',1)
+        ->select('hr.ms_student.studyprogram_id','masterdata.ms_faculties.faculty_id',DB::raw('count(hr.ms_student.*) as total_student'),DB::raw('count(prr_id) as total_generate'))
+        ->groupBy('hr.ms_student.studyprogram_id','masterdata.ms_faculties.faculty_id')
+        ->get();
+
+        foreach($student as $key => $s){
+            $getComponent = $s->getComponent()
+            ->where('path_id',$s->path_id)
+            ->where('period_id',$s->period_id)
+            ->where('msy_id',$s->msy_id)
+            ->where('mlt_id',$s->mlt_id)
+            ->get();
+            $student[$key]->setRelation('component_filter', $getComponent->values());
+        }
+        
+        return $student;
+    }
+
 
     public function studentBulkGenerate(Request $request){
         // dd($request);
-        if($request->generate_checkbox){
-            foreach($request->generate_checkbox as $item){
-                if($item != "null"){
-                    $store = explode("_",$item);
-                    $studyprogram_id = ($store[0]) ? $store[0] : 0;
-                    $msy_id = ($store[1]) ? $store[1] : 0;
-                    $path_id = ($store[2]) ? $store[2] : 0;
-                    $period_id = ($store[3]) ? $store[3] : 0;
-                    $mlt_id = ($store[4]) ? $store[4] : 0;
-                    // dd($mlt_id);
-                    $students = Student::with('getComponent')
-                    ->where('studyprogram_id',$studyprogram_id)
-                    ->where('msy_id',$msy_id)
-                    ->where('path_id',$path_id)
-                    ->where('period_id',$period_id)
-                    ->where('mlt_id',$mlt_id)
-                    ->get();
-
-                    foreach($students as $student){
-                        $components = $student->getComponent()
-                        ->where('path_id',$student->path_id)
-                        ->where('period_id',$student->period_id)
-                        ->where('msy_id',$student->msy_id)
-                        ->where('mlt_id',$student->mlt_id)
+        if($request->from == 'detail'){
+            if($request->generate_checkbox){
+                foreach($request->generate_checkbox as $item){
+                    if($item != "null"){
+                        $store = explode("_",$item);
+                        $studyprogram_id = ($store[0]) ? $store[0] : 0;
+                        $msy_id = ($store[1]) ? $store[1] : 0;
+                        $path_id = ($store[2]) ? $store[2] : 0;
+                        $period_id = ($store[3]) ? $store[3] : 0;
+                        $mlt_id = ($store[4]) ? $store[4] : 0;
+                        // dd($mlt_id);
+                        $students = Student::with('getComponent')
+                        ->where('studyprogram_id',$studyprogram_id)
+                        ->where('msy_id',$msy_id)
+                        ->where('path_id',$path_id)
+                        ->where('period_id',$period_id)
+                        ->where('mlt_id',$mlt_id)
                         ->get();
     
-                        if($components){
-                            $prr_total = 0;
-                            foreach($components as $item){
-                                $prr_total = $prr_total+$item->cd_fee;
-                            }
-                            $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
-                            
-                            DB::beginTransaction();
-                            try{
-                                if($payment){
-                                    $payment->prr_status = 'belum lunas';
-                                    $payment->prr_total = $prr_total;
-                                    $payment->prr_paid_net = $prr_total;
-                                    $payment->save();
-                                    PaymentDetail::where('prr_id', $payment->prr_id)->delete();
-                                }else{
-                                    $payment = Payment::create([
-                                        'prr_status' => 'belum lunas',
-                                        'prr_total' => $prr_total,
-                                        'prr_paid_net' => $prr_total,
-                                        'student_number' => $student->student_number,
-                                        'prr_school_year' => $this->getActiveSchoolYearCode(),
-                                    ]);
+                        foreach($students as $student){
+                            $components = $student->getComponent()
+                            ->where('path_id',$student->path_id)
+                            ->where('period_id',$student->period_id)
+                            ->where('msy_id',$student->msy_id)
+                            ->where('mlt_id',$student->mlt_id)
+                            ->get();
         
-                                }
-                                
+                            if($components){
+                                $prr_total = 0;
                                 foreach($components as $item){
-                                    PaymentDetail::create([
-                                        'prr_id' => $payment->prr_id,
-                                        'prrd_component' => $item->component->msc_name,
-                                        'prrd_amount' => $item->cd_fee
-                                    ]);
+                                    $prr_total = $prr_total+$item->cd_fee;
                                 }
-
-                                DB::commit();
-                            }catch(\Exception $e){
-                                DB::rollback();
-                                return response()->json($e->getMessage());
+                                $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
+                                
+                                DB::beginTransaction();
+                                try{
+                                    if($payment){
+                                        $payment->prr_status = 'belum lunas';
+                                        $payment->prr_total = $prr_total;
+                                        $payment->prr_paid_net = $prr_total;
+                                        $payment->save();
+                                        PaymentDetail::where('prr_id', $payment->prr_id)->delete();
+                                    }else{
+                                        $payment = Payment::create([
+                                            'prr_status' => 'belum lunas',
+                                            'prr_total' => $prr_total,
+                                            'prr_paid_net' => $prr_total,
+                                            'student_number' => $student->student_number,
+                                            'prr_school_year' => $this->getActiveSchoolYearCode(),
+                                        ]);
+            
+                                    }
+                                    
+                                    foreach($components as $item){
+                                        PaymentDetail::create([
+                                            'prr_id' => $payment->prr_id,
+                                            'prrd_component' => $item->component->msc_name,
+                                            'prrd_amount' => $item->cd_fee
+                                        ]);
+                                    }
+    
+                                    DB::commit();
+                                }catch(\Exception $e){
+                                    DB::rollback();
+                                    return response()->json($e->getMessage());
+                                }
                             }
                         }
                     }
                 }
+                $text = "Berhasil generate tagihan mahasiswa ";
+                return json_encode(array('success' => true, 'message' => $text));
             }
-            $text = "Berhasil generate tagihan mahasiswa ";
-            return json_encode(array('success' => true, 'message' => $text));
+        }else{
+            if($request->generate_checkbox){
+                foreach($request->generate_checkbox as $item){
+                    if($item != "null"){
+                        $store = explode("_",$item);
+                        $faculty_id = ($store[0]) ? $store[0] : 0;
+                        $studyprogram_id = ($store[1]) ? $store[1] : 0;
+                        // dd($mlt_id);
+                        $students = Student::with('getComponent')
+                        ->where('studyprogram_id',$studyprogram_id)
+                        ->get();
+    
+                        foreach($students as $student){
+                            $components = $student->getComponent()
+                            ->where('path_id',$student->path_id)
+                            ->where('period_id',$student->period_id)
+                            ->where('msy_id',$student->msy_id)
+                            ->where('mlt_id',$student->mlt_id)
+                            ->get();
+        
+                            if($components){
+                                $prr_total = 0;
+                                foreach($components as $item){
+                                    $prr_total = $prr_total+$item->cd_fee;
+                                }
+                                $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
+                                
+                                DB::beginTransaction();
+                                try{
+                                    if($payment){
+                                        $payment->prr_status = 'belum lunas';
+                                        $payment->prr_total = $prr_total;
+                                        $payment->prr_paid_net = $prr_total;
+                                        $payment->save();
+                                        PaymentDetail::where('prr_id', $payment->prr_id)->delete();
+                                    }else{
+                                        $payment = Payment::create([
+                                            'prr_status' => 'belum lunas',
+                                            'prr_total' => $prr_total,
+                                            'prr_paid_net' => $prr_total,
+                                            'student_number' => $student->student_number,
+                                            'prr_school_year' => $this->getActiveSchoolYearCode(),
+                                        ]);
+            
+                                    }
+                                    
+                                    foreach($components as $item){
+                                        PaymentDetail::create([
+                                            'prr_id' => $payment->prr_id,
+                                            'prrd_component' => $item->component->msc_name,
+                                            'prrd_amount' => $item->cd_fee
+                                        ]);
+                                    }
+    
+                                    DB::commit();
+                                }catch(\Exception $e){
+                                    DB::rollback();
+                                    return response()->json($e->getMessage());
+                                }
+                            }
+                        }
+                    }
+                }
+                $text = "Berhasil generate tagihan mahasiswa ";
+                return json_encode(array('success' => true, 'message' => $text));
+            }
         }
     }
     

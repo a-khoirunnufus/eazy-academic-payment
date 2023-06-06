@@ -725,6 +725,7 @@
                                 <ul class="nested-checkbox">
                                     <li id="choice">
                                         <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.study_program} <div class="badge" id="badge_header">Belum Digenerate</div>
+                                        <input type="hidden" name="from" value="detail">    
                                     </li>
                                 </ul>
                                 `
