@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * OLD CODE, WILL BE DELETE
+ */
+
 namespace App\Services\Queries\NewStudent;
 
 use Illuminate\Support\Facades\DB;
@@ -16,6 +20,8 @@ class NewStudent implements INewStudent {
     {
         $query = DB::table('pmb.participant as p')
             ->leftJoin('pmb.register as r', 'p.par_id', '=', 'r.par_id')
+
+            ->leftJoin('masterdata.ms_school_year as school_year', 'school_year.msy_id', '=', 'r.ms_school_year_id')
 
             // period and path in masterdata(schema) is outdated
             // ->leftJoin('masterdata.ms_period as period', 'period.period_id', '=', 'r.ms_period_id')
