@@ -14,12 +14,19 @@ use App\Models\Payment\ComponentDetail;
 use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
 use App\Models\PMB\Setting;
-use App\Services\Queries\NewStudent\NewStudent;
-use App\Services\Queries\NewStudent\Selects\DefaultSelect;
-use App\Services\Queries\NewStudent\Selects\InvoiceData;
-use App\Services\Queries\NewStudent\Filters\ByFaculty;
-use App\Services\Queries\NewStudent\Filters\ByStudyprogram;
-use App\Services\Queries\NewStudent\Filters\RegPassed;
+use App\Exceptions\GenerateInvoiceException;
+use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\FacultyScope;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\StudyprogramScope;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\PathScope;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\PeriodScope;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\LectureTypeScope;
+use App\Services\ReRegistInvoice\GenerateOne as GenerateOneInvoice;
+use App\Services\ReRegistInvoice\GenerateByScope as GenerateInvoiceByScope;
+use App\Services\ReRegistInvoice\GenerateAll as GenerateAllInvoice;
+use App\Services\ReRegistInvoice\DeleteOne as DeleteOneInvoice;
+use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
+use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
 
 class NewStudentInvoiceController extends Controller
 {
@@ -35,11 +42,7 @@ class NewStudentInvoiceController extends Controller
             ->orderBy('faculty_name', 'asc')
             ->get();
 
-        $students = (new NewStudent())
-            ->selects(new DefaultSelect(), new InvoiceData())
-            ->filters(new RegPassed(true))
-            ->result()
-            ->toArray();
+        $students = (new ReRegistrationInvoice())->query->get()->toArray();
 
         $data = [];
         foreach($faculty_w_studyprogram as $faculty){
@@ -51,8 +54,8 @@ class NewStudentInvoiceController extends Controller
                     foreach ($students as $student) {
                         if ($student->faculty_id == $faculty->faculty_id) {
                             $student_count++;
-                            $invoice_amount += intval($student->invoice_amount);
-                            if ($student->invoice_status == 'Sudah Digenerate') $generated_invoice++;
+                            $invoice_amount += intval($student->payment_reregist_invoice_amount);
+                            if ($student->payment_reregist_invoice_status == 'Sudah Digenerate') $generated_invoice++;
                         }
                     }
 
@@ -88,8 +91,8 @@ class NewStudentInvoiceController extends Controller
                         foreach ($students as $student) {
                             if ($student->studyprogram_id == $studyprogram->studyprogram_id) {
                                 $student_count++;
-                                $invoice_amount += intval($student->invoice_amount);
-                                if ($student->invoice_status == 'Sudah Digenerate') $generated_invoice++;
+                                $invoice_amount += intval($student->payment_reregist_invoice_amount);
+                                if ($student->payment_reregist_invoice_status == 'Sudah Digenerate') $generated_invoice++;
                             }
                         }
 
@@ -131,19 +134,14 @@ class NewStudentInvoiceController extends Controller
             'studyprogram_id' => 'required_if:scope,studyprogram',
         ]);
 
-        $selects = [new DefaultSelect(), new InvoiceData()];
-
-        $filters = [new RegPassed(true)];
+        $filters = [];
         if ($validated['scope'] == 'faculty') {
-            $filters[] = new ByFaculty(intval($validated['faculty_id']));
+            $filters[] = ['faculty.faculty_id', '=', $validated['faculty_id']];
         } elseif ($validated['scope'] == 'studyprogram') {
-            $filters[] = new ByStudyprogram(intval($validated['studyprogram_id']));
+            $filters[] = ['studyprogram.studyprogram_id', '=', $validated['studyprogram_id']];
         }
 
-        $data = (new NewStudent())
-            ->selects(...$selects)
-            ->filters(...$filters)
-            ->result();
+        $data = (new ReRegistrationInvoice())->query->where($filters)->get();
 
         return datatables($data)->toJSON();
     }
@@ -180,106 +178,24 @@ class NewStudentInvoiceController extends Controller
     public function generateOne(Request $request)
     {
         $validated = $request->validate([
-            'period_id' => 'required',
-            'path_id' => 'required',
-            'studyprogram_id' => 'required',
-            'lecture_type_id' => 'required',
-            'participant_id' => 'required',
+            'invoice_period_code' => 'required',
+            'register_id' => 'required',
         ]);
 
-        // get participant (pmb.participant)
-        $participant = Participant::find($validated['participant_id']);
-
-        if($participant == null) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Mahasiswa tidak ditemukan.'
-            ], 404);
-        }
-
-        // get invoice component related
-        // filter by finance.ms_component.is_new_student
-        $invoice_components = ComponentDetail::with('component')
-            ->whereHas('component', function ($q) {
-                $q->where('msc_is_new_student', '=', 1);
-            })
-            ->where([
-                ['period_id', '=', $validated['period_id']],
-                ['path_id', '=', $validated['path_id']],
-                ['mma_id', '=', $validated['studyprogram_id']],
-                ['mlt_id', '=', $validated['lecture_type_id']],
-            ])
-            ->get();
-
-        $eazy_service_cost = Setting::where('setting_key', 'biaya_service_eazy')->first()->setting_value;
-        // fix this later
-        $invoice_period = 22231;
-        // fix this later
-        $school_year_id = 1;
-
-
-        // total invoice
-        $invoice_total = 0;
-        foreach($invoice_components as $item){
-            $invoice_total = $invoice_total + $item->cd_fee;
-        }
-
-        // partner's net income
-        $partner_net_income = $invoice_total - intval($eazy_service_cost);
-
-        $register = Register::where([
-            ['par_id', '=', $participant->par_id],
-            ['ms_period_id', '=', $validated['period_id']],
-            ['ms_path_id', '=', $validated['path_id']],
-            ['ms_school_year_id', '=', $school_year_id],
-            ['reg_major_pass', '=', $validated['studyprogram_id']],
-            ['reg_major_lecture_type_pass', '=', $validated['lecture_type_id']],
-            ['reg_status_pass', '=', 1]
-        ])->first();
-
-        if ($register == null) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan pada sistem, silahkan hubungi administrator.',
-            ], 500);
-        }
-
         try {
-            DB::beginTransaction();
-
-            // insert payment_re_register record
-            $payment = Payment::create([
-                'reg_id' => $register->reg_id,
-                'prr_status' => 'belum lunas',
-                'prr_total' => $invoice_total,
-                'prr_paid_net' => $partner_net_income,
-                'prr_school_year' => $invoice_period,
-                'par_id' => $participant->par_id,
-            ]);
-
-            // insert payment_re_register_detail records
-            foreach($invoice_components as $item){
-                PaymentDetail::create([
-                    'prr_id' => $payment->prr_id,
-                    'prrd_component' => $item->component->msc_name,
-                    'prrd_amount' => $item->cd_fee,
-                ]);
-            }
-
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollback();
+            GenerateOneInvoice::generate($validated['invoice_period_code'], $validated['register_id']);
+        } catch (GenerateInvoiceException $ex) {
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?
-                    $th->getMessage()
+                    $ex->getMessage()
                     : 'Terjadi kesalahan pada sistem, silahkan hubungi administrator.',
             ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Berhasil generate tagihan mahasiswa dengan nama '.$participant->par_fullname.'.',
+            'message' => 'Berhasil generate tagihan mahasiswa.',
         ], 200);
     }
 
@@ -289,22 +205,16 @@ class NewStudentInvoiceController extends Controller
     public function deleteOne(Request $request)
     {
         $validated = $request->validate([
-            'payment_re_register_id' => 'required',
+            'payment_reregist_id' => 'required',
         ]);
 
         try {
-            DB::beginTransaction();
-
-            PaymentDetail::where('prr_id', '=', $validated['payment_re_register_id'])->delete();
-            Payment::destroy($validated['payment_re_register_id']);
-
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollback();
+            DeleteOneInvoice::delete($validated['payment_reregist_id']);
+        } catch (DeleteInvoiceException $ex) {
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?
-                    $th->getMessage()
+                    $ex->getMessage()
                     : 'Terjadi kesalahan pada sistem, silahkan hubungi administrator.',
             ], 500);
         }
@@ -313,5 +223,177 @@ class NewStudentInvoiceController extends Controller
             'success' => true,
             'message' => 'Berhasil menghapus tagihan mahasiswa.',
         ], 200);
+    }
+
+    public function generateAll(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+        ]);
+
+        $generated_count = GenerateAllInvoice::generate($validated['invoice_period_code'], true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate '.$generated_count.' tagihan mahasiswa.',
+        ], 200);
+    }
+
+    public function deleteAll(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+        ]);
+
+        $deleted_count = DeleteAllInvoice::delete($validated['invoice_period_code'], true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil menghapus '.$deleted_count.' tagihan mahasiswa.',
+        ], 200);
+    }
+
+    public function generateByScope(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+            'scope' => 'required|in:faculty,studyprogram,path,period,lecture_type',
+            'faculty_id' => 'required_if:scope,faculty|required_if:scope,studyprogram|required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'studyprogram_id' => 'required_if:scope,studyprogram|required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'path_id' => 'required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'period_id' => 'required_if:scope,period|required_if:scope,lecture_type',
+            'lecture_type_id' => 'required_if:scope,lecture_type',
+        ]);
+
+        $scope = null;
+        $generated_count = 0;
+
+        switch ($validated['scope']) {
+            case 'faculty':
+                $scope = new FacultyScope($validated['faculty_id']);
+                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'studyprogram':
+                $scope = new StudyprogramScope($validated['faculty_id'], $validated['studyprogram_id']);
+                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'path':
+                $scope = new PathScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id']);
+                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'period':
+                $scope = new PeriodScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id']);
+                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'lecture_type':
+                $scope = new LectureTypeScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id'], $validated['lecture_type_id']);
+                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+                break;
+
+            default:
+                break;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate '.$generated_count.' tagihan mahasiswa.',
+        ], 200);
+    }
+
+    public function deleteByScope(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+            'scope' => 'required|in:faculty,studyprogram,path,period,lecture_type',
+            'faculty_id' => 'required_if:scope,faculty|required_if:scope,studyprogram|required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'studyprogram_id' => 'required_if:scope,studyprogram|required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'path_id' => 'required_if:scope,path|required_if:scope,period|required_if:scope,lecture_type',
+            'period_id' => 'required_if:scope,period|required_if:scope,lecture_type',
+            'lecture_type_id' => 'required_if:scope,lecture_type',
+        ]);
+
+        $scope = null;
+        $deleted_count = 0;
+
+        switch ($validated['scope']) {
+            case 'faculty':
+                $scope = new FacultyScope($validated['faculty_id']);
+                $deleted_count = DeleteInvoiceByScope::delete($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'studyprogram':
+                $scope = new StudyprogramScope($validated['faculty_id'], $validated['studyprogram_id']);
+                $deleted_count = DeleteInvoiceByScope::delete($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'path':
+                $scope = new PathScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id']);
+                $deleted_count = DeleteInvoiceByScope::delete($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'period':
+                $scope = new PeriodScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id']);
+                $deleted_count = DeleteInvoiceByScope::delete($validated['invoice_period_code'], $scope, true);
+                break;
+
+            case 'lecture_type':
+                $scope = new LectureTypeScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id'], $validated['lecture_type_id']);
+                $deleted_count = DeleteInvoiceByScope::delete($validated['invoice_period_code'], $scope, true);
+                break;
+
+            default:
+                break;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil hapus '.$deleted_count.' tagihan mahasiswa.',
+        ], 200);
+    }
+
+
+    public function generatePerStudyprogram(Request $request)
+    {
+        // Hierarchy:
+        // 1. studyprogram
+        // 2. school_year
+        // 3. registration_path
+        // 4. registration_period
+        // 5. lecture_type
+
+        // masterdata is student
+
+        // Filter by:
+        // - school year
+        // - studyprogram
+        $validated = $request->validate([
+            'studyprogram_id' => 'required',
+            'school_year_id' => 'required',
+        ]);
+
+        // get periods(@var periods) based on school_year_id
+        $periods = Period::where('msy_id', '=', $validated['school_year_id'])->get();
+
+        // get pmb.register records(@var regs) by school_year_id, period_id(s), studyprogram_id
+        $registers = Register::where([
+            'ms_school_year_id' => $validated['school_year_id'],
+            'reg_major_pass' => $validated['studyprogram_id'],
+        ]);
+
+        // group participant by studyprogram
+        // then generate per participant
+
+        // from @var regs get participants(@var pars) related
+        // condition where multiple register from same participant
+        $participants = array();
+        foreach ($registers as $register) {
+            $participants[] = Participant::find($register->par_id);
+        }
+
+        // generate all invoice from @var pars
     }
 }

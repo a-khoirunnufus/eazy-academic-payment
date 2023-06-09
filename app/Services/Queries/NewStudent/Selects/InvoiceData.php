@@ -10,6 +10,7 @@ class InvoiceData implements NewStudentSelect
     public function expressions(): array
     {
         return [
+            // add invoice period
             'prr.prr_id as payment_re_register_id',
             DB::raw("
                 CASE

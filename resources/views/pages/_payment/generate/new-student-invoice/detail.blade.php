@@ -67,7 +67,8 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Nama / NIK</th>
+                <th>Tahun Ajaran</th>
+                <th>Nama / Nomor Pendaftar</th>
                 <th>Jalur / Periode Pendaftaran</th>
                 <th>Program Studi / Jenis Perkuliahan</th>
                 <th>Jenis Perkuliahan</th>
@@ -223,14 +224,21 @@
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
-                            return this.template.rowAction(row.invoice_status);
+                            return this.template.rowAction(row.payment_reregist_invoice_status);
+                        }
+                    },
+                    {
+                        name: 'school_year_year',
+                        data: 'school_year_year',
+                        render: (data, _, row) => {
+                            return this.template.defaultCell(data);
                         }
                     },
                     {
                         name: 'participant_fullname',
                         data: 'participant_fullname',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.participant_fullname, row.participant_nik);
+                            return this.template.titleWithSubtitleCell(row.participant_fullname, row.participant_number);
                         }
                     },
                     {
@@ -260,8 +268,8 @@
                         }
                     },
                     {
-                        name: 'invoice_status',
-                        data: 'invoice_status',
+                        name: 'payment_reregist_invoice_status',
+                        data: 'payment_reregist_invoice_status',
                         render: (data) => {
                             return this.template.badgeCell(
                                 data,
@@ -270,8 +278,8 @@
                         }
                     },
                     {
-                        name: 'invoice_amount',
-                        data: 'invoice_amount',
+                        name: 'payment_reregist_invoice_amount',
+                        data: 'payment_reregist_invoice_amount',
                         render: (data) => {
                             return this.template.currencyCell(data ?? 0);
                         }
@@ -279,44 +287,37 @@
                     // search and export columns
                     {
                         title: 'Nama Mahasiswa',
-                        name: 'participant_fullname',
                         data: 'participant_fullname',
                         visible: false,
                     },
                     {
-                        title: 'NIK Mahasiswa',
-                        name: 'participant_nik',
-                        data: 'participant_nik',
+                        title: 'Nomor Pendaftar',
+                        data: 'participant_number',
                         visible: false,
                     },
                     {
                         title: 'Jalur Pendaftaran',
-                        name: 'registration_path_name',
                         data: 'registration_path_name',
                         visible: false,
                     },
                     {
                         title: 'Periode Pendaftaran',
-                        name: 'registration_period_name',
                         data: 'registration_period_name',
                         visible: false,
                     },
                     {
                         title: 'Program Studi',
-                        name: 'studyprogram_name',
                         data: 'studyprogram_name',
                         visible: false,
                     },
                     {
                         title: 'Jenis Perkuliahan',
-                        name: 'lecture_type_name',
                         data: 'lecture_type_name',
                         visible: false,
                     },
                     {
                         title: 'Jumlah Tagihan',
-                        name: 'invoice_amount',
-                        data: 'invoice_amount',
+                        data: 'payment_reregist_invoice_amount',
                         visible: false,
                     },
                 ],
@@ -344,7 +345,7 @@
                                 text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,6]
+                                    columns: [8,9,10,11,12,13,6,7]
                                 }
                             },
                             {
@@ -352,7 +353,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,13]
+                                    columns: [8,9,10,11,12,13,6,14]
                                 }
                             },
                             {
@@ -360,7 +361,7 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,13]
+                                    columns: [8,9,10,11,12,13,6,14]
                                 }
                             },
                             {
@@ -368,7 +369,7 @@
                                 text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,6]
+                                    columns: [8,9,10,11,12,13,6,7]
                                 }
                             },
                             {
@@ -376,7 +377,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,5,13]
+                                    columns: [8,9,10,11,12,13,6,14]
                                 }
                             }
                         ],
@@ -385,7 +386,7 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <h5>Detail Daftar Tagihan Mahasiswa Lama</h5>
+                            <h5>Detail Daftar Tagihan Mahasiswa Baru</h5>
                         </div>
                     `)
                     feather.replace()
@@ -425,6 +426,9 @@
         }
     }
 
+    // change this to dynamic later
+    const invoicePeriodCode = 20231;
+
     const _newStudentInvoiceDetailTableAction = {
         tableRef: _newStudentInvoiceDetailTable,
         generateInvoice: function(e) {
@@ -445,11 +449,8 @@
                         _baseURL + '/api/payment/generate/new-student-invoice/generate-one',
                         // data send
                         {
-                            period_id: data.registration_period_id,
-                            path_id: data.registration_path_id,
-                            studyprogram_id: data.studyprogram_id,
-                            lecture_type_id: parseInt(data.lecture_type_id),
-                            participant_id: data.participant_id,
+                            invoice_period_code: invoicePeriodCode,
+                            register_id: data.registration_id,
                         },
                         // data receive
                         (data) => {
@@ -484,7 +485,7 @@
                         _baseURL + '/api/payment/generate/new-student-invoice/delete-one',
                         // data send
                         {
-                            payment_re_register_id: data.payment_re_register_id,
+                            payment_reregist_id: data.payment_reregist_id,
                         },
                         // data receive
                         (data) => {
@@ -520,15 +521,15 @@
             $('#detail-lecture-type').text(studentData.lecture_type_name);
 
             // invoice already generated
-            if (studentData.payment_re_register_id) {
+            if (studentData.payment_reregist_id) {
                 const {data: invoiceData} = await $.ajax({
                     async: true,
-                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice/'+studentData.payment_re_register_id,
+                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice/'+studentData.payment_reregist_id,
                     type: 'get',
                 });
                 const {data: invoiceComponentData} = await $.ajax({
                     async: true,
-                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice-component/'+studentData.payment_re_register_id,
+                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice-component/'+studentData.payment_reregist_id,
                     type: 'get',
                 });
                 // TODO: get total terbayar dan total diterima
@@ -539,7 +540,7 @@
 
                 // Invoice Data
                 $('#detail-invoice-number').text(invoiceData.prr_id);
-                $('#detail-invoice-created').text(moment(invoiceData.created_at).format('DD-MM-YYYY'));
+                $('#detail-invoice-created').text(moment(invoiceData.created_at).format('DD MMMM YYYY, HH:mm'));
                 $('#detail-invoice-status').html(
                     invoiceData.prr_status == 'lunas' ?
                         '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
@@ -557,7 +558,7 @@
                 detailInvoiceComponentHtml += `
                     <tr class="bg-light">
                         <td class="text-center fw-bolder">Total Tagihan Mahasiswa</td>
-                        <td class="text-center fw-bolder">${Rupiah.format(studentData.invoice_amount)}</td>
+                        <td class="text-center fw-bolder">${Rupiah.format(studentData.payment_reregist_invoice_amount)}</td>
                     </tr>
                     <tr class="bg-light">
                         <td class="text-center fw-bolder">Jumlah Terbayar</td>
