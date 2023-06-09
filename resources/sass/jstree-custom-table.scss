@@ -1,0 +1,82 @@
+.jstree-table-wrapper {
+    width: -webkit-fill-available;
+    overflow-x: auto;
+}
+
+.jstree {
+    overflow-x: hidden;
+    width: 1185px;
+}
+
+.jstree-wholerow {
+    border: 1px solid gainsboro;
+    box-sizing: content-box;
+    border-bottom: unset;
+    height: 40px !important;
+    width: 1185px !important;
+}
+
+.jstree > ul > li.jstree-last {
+    border-bottom: 1px solid gainsboro;
+}
+
+.jstree-node {
+    .jstree-icon,
+    .jstree-anchor {
+        height: 40px !important;
+    }
+}
+
+.jstree-default .jstree-node,
+.jstree-default .jstree-icon {
+    background-image: unset !important;
+}
+
+.jstree-icon.jstree-ocl {
+    width: 40px !important;
+    background-image: url(../images/chevron-right.svg) !important;
+    background-position: 8px 8px !important;
+    background-repeat: no-repeat;
+}
+.jstree-open > .jstree-icon.jstree-ocl {
+    background-image: url(../images/chevron-down.svg) !important;
+}
+.jstree-leaf > .jstree-icon.jstree-ocl {
+    background-image: unset !important;
+}
+
+.jstree-icon.jstree-checkbox {
+    width: 40px !important;
+    background-image: url(../images/square.svg) !important;
+    background-position: 0px 8px !important;
+    background-repeat: no-repeat;
+}
+.jstree-clicked > .jstree-icon.jstree-checkbox {
+    background-image: url(../images/check-square.svg) !important;
+}
+.jstree-disabled > .jstree-icon.jstree-checkbox {
+    background-image: unset !important;
+}
+
+.jstree-anchor {
+    line-height: 40px !important;
+    vertical-align: middle !important;
+    width: -webkit-fill-available;
+    padding-right: 24px;
+    display: inline-flex;
+}
+
+.jstree-anchor > .text {
+    display: flex;
+    align-items: center;
+    padding-right: 1rem;
+}
+.jstree-anchor > .text > span {
+    white-space: break-spaces;
+    line-height: 1.3rem;
+}
+.jstree-node[aria-level="1"] > .jstree-anchor > .text { width: 619px }
+.jstree-node[aria-level="2"] > .jstree-anchor > .text { width: 595px }
+.jstree-node[aria-level="3"] > .jstree-anchor > .text { width: 571px }
+.jstree-node[aria-level="4"] > .jstree-anchor > .text { width: 547px }
+.jstree-node[aria-level="5"] > .jstree-anchor > .text { width: 523px }

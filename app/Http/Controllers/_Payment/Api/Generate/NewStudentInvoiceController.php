@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Masterdata\MsInstitution as Institution;
 use App\Models\Studyprogram;
 use App\Models\Faculty;
+use App\Models\Year;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\ComponentDetail;
@@ -27,11 +28,17 @@ use App\Services\ReRegistInvoice\GenerateAll as GenerateAllInvoice;
 use App\Services\ReRegistInvoice\DeleteOne as DeleteOneInvoice;
 use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
 use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
+use App\Services\ReRegistInvoice\GenerateTreeComplete;
 
 class NewStudentInvoiceController extends Controller
 {
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+        ]);
+        $school_year_id = Year::where('msy_code', '=', $validated['invoice_period_code'])->first()?->msy_id ?? 0;
+
         $faculty_w_studyprogram = Faculty::with(['studyProgram' => function ($query) {
                 // $query->select('studyprogram_id', 'studyprogram_name');
                 $query->orderBy('studyprogram_type', 'asc');
@@ -42,7 +49,10 @@ class NewStudentInvoiceController extends Controller
             ->orderBy('faculty_name', 'asc')
             ->get();
 
-        $students = (new ReRegistrationInvoice())->query->get()->toArray();
+        $students = (new ReRegistrationInvoice())->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->get()
+            ->toArray();
 
         $data = [];
         foreach($faculty_w_studyprogram as $faculty){
@@ -129,12 +139,16 @@ class NewStudentInvoiceController extends Controller
     public function detail(Request $request)
     {
         $validated = $request->validate([
+            'invoice_period_code' => 'required',
             'scope' => 'required|in:all,faculty,studyprogram',
             'faculty_id' => 'required_if:scope,faculty',
             'studyprogram_id' => 'required_if:scope,studyprogram',
         ]);
+        $school_year_id = Year::where('msy_code', '=', $validated['invoice_period_code'])->first()?->msy_id ?? 0;
 
-        $filters = [];
+        $filters = [
+            ['register.ms_school_year_id', '=', $school_year_id],
+        ];
         if ($validated['scope'] == 'faculty') {
             $filters[] = ['faculty.faculty_id', '=', $validated['faculty_id']];
         } elseif ($validated['scope'] == 'studyprogram') {
@@ -355,45 +369,193 @@ class NewStudentInvoiceController extends Controller
         ], 200);
     }
 
-
-    public function generatePerStudyprogram(Request $request)
+    public function getTreeGenerate(Request $request)
     {
-        // Hierarchy:
-        // 1. studyprogram
-        // 2. school_year
-        // 3. registration_path
-        // 4. registration_period
-        // 5. lecture_type
+        $invoice_period_code = $request->input('invoice_period_code');
+        $school_year_id = Year::where('msy_code', '=', $invoice_period_code)->first()?->msy_id ?? 0;
 
-        // masterdata is student
+        $path_base = (new ReRegistrationInvoice(true))->query;
 
-        // Filter by:
-        // - school year
-        // - studyprogram
-        $validated = $request->validate([
-            'studyprogram_id' => 'required',
-            'school_year_id' => 'required',
-        ]);
-
-        // get periods(@var periods) based on school_year_id
-        $periods = Period::where('msy_id', '=', $validated['school_year_id'])->get();
-
-        // get pmb.register records(@var regs) by school_year_id, period_id(s), studyprogram_id
-        $registers = Register::where([
-            'ms_school_year_id' => $validated['school_year_id'],
-            'reg_major_pass' => $validated['studyprogram_id'],
-        ]);
-
-        // group participant by studyprogram
-        // then generate per participant
-
-        // from @var regs get participants(@var pars) related
-        // condition where multiple register from same participant
-        $participants = array();
-        foreach ($registers as $register) {
-            $participants[] = Participant::find($register->par_id);
+        if($invoice_period_code != null) {
+            $path_base = $path_base->where('register.ms_school_year_id', '=', $school_year_id);
         }
 
-        // generate all invoice from @var pars
+        $path_base = $path_base->select(
+                DB::raw("'faculty_' || faculty.faculty_id as faculty_id"),
+                DB::raw("'studyprogram_' || studyprogram.studyprogram_id as studyprogram_id"),
+                DB::raw("'path_' || path.path_id as path_id"),
+                DB::raw("'period_' || period.period_id as period_id"),
+                DB::raw("'lecturetype_' || lecture_type.mlt_id as lecturetype_id"),
+            )
+            ->distinct()
+            ->groupBy(
+                'faculty.faculty_id',
+                'studyprogram.studyprogram_id',
+                'path.path_id',
+                'period.period_id',
+                'lecture_type.mlt_id'
+            )
+            ->get()
+            ->toArray();
+
+        $paths = array_map(function($item) {
+            return $item->faculty_id.'/'.$item->studyprogram_id.'/'.$item->path_id.'/'.$item->period_id.'/'.$item->lecturetype_id;
+        }, $path_base);
+
+        $registrants = (new ReRegistrationInvoice())->query;
+
+        if($invoice_period_code != null) {
+            $registrants = $registrants->where('register.ms_school_year_id', '=', $school_year_id);
+        }
+
+        $registrants = $registrants->get()->toArray();
+
+        $tree = (new GenerateTreeComplete($paths, $registrants))->generate();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate tree stucture.',
+            'data' => [
+                'tree' => $tree,
+            ],
+        ], 200);
+    }
+
+    public function getTreeGenerateAll(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+        ]);
+        $school_year_id = Year::where('msy_code', '=', $validated['invoice_period_code'])->first()?->msy_id ?? 0;
+
+        $path_base = (new ReRegistrationInvoice(true))->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->select(
+                DB::raw("'faculty_' || faculty.faculty_id as faculty_id"),
+                DB::raw("'studyprogram_' || studyprogram.studyprogram_id as studyprogram_id"),
+            )
+            ->distinct()
+            ->groupBy(
+                'faculty.faculty_id',
+                'studyprogram.studyprogram_id',
+            )
+            ->get()
+            ->toArray();
+
+        $paths = array_map(function($item) {
+            return $item->faculty_id.'/'.$item->studyprogram_id;
+        }, $path_base);
+
+        $registrants = (new ReRegistrationInvoice())->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->get()
+            ->toArray();
+
+        $tree = (new GenerateTreeComplete($paths, $registrants))->generate();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate tree stucture.',
+            'data' => [
+                'tree' => $tree,
+            ],
+        ], 200);
+    }
+
+    public function getTreeGenerateFaculty(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+            'faculty_id' => 'required',
+        ]);
+        $school_year_id = Year::where('msy_code', '=', $validated['invoice_period_code'])->first()?->msy_id ?? 0;
+
+        $path_base = (new ReRegistrationInvoice(true))->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->where('faculty.faculty_id', '=', $validated['faculty_id'])
+            ->select(
+                DB::raw("'studyprogram_' || studyprogram.studyprogram_id as studyprogram_id"),
+                DB::raw("'path_' || path.path_id as path_id"),
+                DB::raw("'period_' || period.period_id as period_id"),
+                DB::raw("'lecturetype_' || lecture_type.mlt_id as lecturetype_id"),
+            )
+            ->distinct()
+            ->groupBy(
+                'studyprogram.studyprogram_id',
+                'path.path_id',
+                'period.period_id',
+                'lecture_type.mlt_id'
+            )
+            ->get()
+            ->toArray();
+
+        $paths = array_map(function($item) {
+            return $item->studyprogram_id.'/'.$item->path_id.'/'.$item->period_id.'/'.$item->lecturetype_id;
+        }, $path_base);
+
+        $registrants = (new ReRegistrationInvoice())->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->where('faculty.faculty_id', '=', $validated['faculty_id'])
+            ->get()
+            ->toArray();
+
+        $tree = (new GenerateTreeComplete($paths, $registrants))->generateByFaculty();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate tree stucture.',
+            'data' => [
+                'tree' => $tree,
+            ],
+        ], 200);
+    }
+
+    public function getTreeGenerateStudyprogram(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+            'faculty_id' => 'required',
+            'studyprogram_id' => 'required',
+        ]);
+        $school_year_id = Year::where('msy_code', '=', $validated['invoice_period_code'])->first()?->msy_id ?? 0;
+
+        $path_base = (new ReRegistrationInvoice(true))->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->where('faculty.faculty_id', '=', $validated['faculty_id'])
+            ->where('studyprogram.studyprogram_id', '=', $validated['studyprogram_id'])
+            ->select(
+                DB::raw("'path_' || path.path_id as path_id"),
+                DB::raw("'period_' || period.period_id as period_id"),
+                DB::raw("'lecturetype_' || lecture_type.mlt_id as lecturetype_id"),
+            )
+            ->distinct()
+            ->groupBy(
+                'path.path_id',
+                'period.period_id',
+                'lecture_type.mlt_id'
+            )
+            ->get()
+            ->toArray();
+
+        $paths = array_map(function($item) {
+            return $item->path_id.'/'.$item->period_id.'/'.$item->lecturetype_id;
+        }, $path_base);
+
+        $registrants = (new ReRegistrationInvoice())->query
+            ->where('register.ms_school_year_id', '=', $school_year_id)
+            ->where('faculty.faculty_id', '=', $validated['faculty_id'])
+            ->where('studyprogram.studyprogram_id', '=', $validated['studyprogram_id'])
+            ->get()
+            ->toArray();
+
+        $tree = (new GenerateTreeComplete($paths, $registrants, 'studyprogram'))->generateByStudyprogram();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate tree stucture.',
+            'data' => [
+                'tree' => $tree,
+            ],
+        ], 200);
     }
 }

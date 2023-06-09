@@ -20,11 +20,13 @@ class ReRegistration {
      * masterdata.ms_faculties -> faculty
      */
 
-    public function __construct()
+    public function __construct(bool $custom_select = false)
     {
         $this->queryBase();
         $this->queryFilter();
-        $this->query->select($this->getSelectColumns())->distinct();
+        if (!$custom_select) {
+            $this->query->select($this->getSelectColumns())->distinct();
+        }
     }
 
     protected function queryBase()

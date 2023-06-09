@@ -6,6 +6,9 @@
 @section('url_back', route('payment.generate.student-invoice'))
 
 @section('css_section')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
+
     <style>
         .eazy-table-wrapper {
             min-height: 300px;
@@ -40,7 +43,9 @@
         <div class="d-flex" style="gap: 2rem">
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Tagihan</span>
-                <h5 class="fw-bolder" id="info-invoice-period">N/A</h5>
+                <h5 class="fw-bolder" id="info-invoice-period">
+                    {{ $invoice_period->msy_year}} Semester {{ $invoice_period->msy_semester }}
+                </h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Fakultas</span>
@@ -68,7 +73,7 @@
             <tr>
                 <th class="text-center">Aksi</th>
                 <th>Tahun Ajaran</th>
-                <th>Nama / Nomor Pendaftar</th>
+                <th>Nama / Nomor Pendaftaran</th>
                 <th>Jalur / Periode Pendaftaran</th>
                 <th>Program Studi / Jenis Perkuliahan</th>
                 <th>Jenis Perkuliahan</th>
@@ -78,6 +83,53 @@
         </thead>
         <tbody></tbody>
     </table>
+</div>
+
+<!-- Modal Generate Tagihan -->
+<div class="modal fade" id="generateInvoiceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white" style="padding: 2rem 3rem">
+                <h4 class="modal-title fw-bolder" id="generateInvoiceModalLabel">Generate Tagihan Mahasiswa Baru</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 pt-0">
+                <div class="d-flex flex-row" style="gap: 3rem">
+                    <div class="d-flex flex-column mb-2" style="gap: 5px">
+                        <small class="d-block">Periode Tagihan</small>
+                        <span class="fw-bolder" id="info-invoice-period">N/A</span>
+                    </div>
+                    @if($faculty)
+                        <div class="d-flex flex-column mb-2" style="gap: 5px">
+                            <small class="d-block">Fakultas</small>
+                            <span class="fw-bolder">{{ $faculty->faculty_name }}</span>
+                        </div>
+                    @endif
+                    @if($studyprogram)
+                        <div class="d-flex flex-column mb-2" style="gap: 5px">
+                            <small class="d-block">Program Studi</small>
+                            <span class="fw-bolder">{{ $studyprogram->studyprogram_name }}</span>
+                        </div>
+                    @endif
+                </div>
+                <div class="jstree-table-wrapper">
+                    <div style="width: 1185px; margin: 0 auto;">
+                        <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
+                            <div style="width: 80px"></div>
+                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 619px">Scope</div>
+                            <div class="fw-bolder text-uppercase" style="width: 200px">Status Generate</div>
+                            <div class="fw-bolder text-uppercase" style="width: 284px">Status Komponen Tagihan</div>
+                        </div>
+                        <div id="tree-generate-invoice"></div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
+                    <button onclick="" class="btn btn-primary">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Invoice Detail Modal -->
@@ -93,9 +145,9 @@
                     <h4 class="fw-bolder mb-1">Data Mahasiwa</h4>
                     <div class="d-flex flex-row justify-content-between mb-4" style="gap: 2rem">
                         <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Nama Lengkap dan NIK</small>
+                            <small class="d-block">Nama Lengkap dan Nomor Pendaftaran</small>
                             <span class="fw-bolder" id="detail-student-fullname">...</span>
-                            <span class="text-secondary d-block" id="detail-student-nik">...</span>
+                            <span class="text-secondary d-block" id="detail-registration-number">...</span>
                         </div>
                         <div class="d-flex flex-column" style="gap: 5px">
                             <small class="d-block">Jalur dan Periode Pendaftaran</small>
@@ -183,6 +235,8 @@
 
 
 @section('js_section')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+
 <script>
     DataTable.render.ellipsis = function ( cutoff ) {
         return function ( data, type, row ) {
@@ -199,6 +253,7 @@
         };
     };
 
+    const invoicePeriodCode = "{{ $invoice_period->msy_code }}";
     const scope = "{{ $scope }}";
     const facultyId = "{{ $faculty ? $faculty->faculty_id : 0 }}";
     const studyprogramId = "{{ $studyprogram ? $studyprogram->studyprogram_id : 0 }}";
@@ -214,7 +269,8 @@
                 serverSide: true,
                 ajax: {
                     url: `${_baseURL}/api/payment/generate/new-student-invoice/detail`
-                        +`?scope=${scope}${scope == 'faculty' ? '&faculty_id='+facultyId : '&studyprogram_id='+studyprogramId}`,
+                        +`?invoice_period_code=${invoicePeriodCode}`
+                        +`&scope=${scope}${scope == 'faculty' ? '&faculty_id='+facultyId : '&studyprogram_id='+studyprogramId}`,
                 },
                 stateSave: false,
                 columns: [
@@ -238,7 +294,7 @@
                         name: 'participant_fullname',
                         data: 'participant_fullname',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.participant_fullname, row.participant_number);
+                            return this.template.titleWithSubtitleCell(row.participant_fullname, row.registration_number);
                         }
                     },
                     {
@@ -291,8 +347,8 @@
                         visible: false,
                     },
                     {
-                        title: 'Nomor Pendaftar',
-                        data: 'participant_number',
+                        title: 'Nomor Pendaftaran',
+                        data: 'registration_number',
                         visible: false,
                     },
                     {
@@ -386,7 +442,9 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <h5>Detail Daftar Tagihan Mahasiswa Baru</h5>
+                            <button onclick="TreeGenerate.openModal()" class="btn btn-primary">
+                                Generate Tagihan
+                            </button>
                         </div>
                     `)
                     feather.replace()
@@ -425,9 +483,6 @@
             currencyCell: _datatableTemplates.currencyCell,
         }
     }
-
-    // change this to dynamic later
-    const invoicePeriodCode = 20231;
 
     const _newStudentInvoiceDetailTableAction = {
         tableRef: _newStudentInvoiceDetailTable,
@@ -504,6 +559,70 @@
         },
     }
 
+    const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));
+
+    const TreeGenerate = {
+        selector: '#tree-generate-invoice',
+        openModal: function() {
+            $('#generateInvoiceModal #info-invoice-period').text("{{ $invoice_period->msy_year.' Semester '.$invoice_period->msy_semester }}");
+            this.initTree();
+            $(this.selector).on("loaded.jstree", () => { this.appendColumn(this.selector) });
+            $(this.selector).on("before_open.jstree", () => { this.appendColumn(this.selector) });
+            GenerateInvoiceModal.show();
+        },
+        initTree: async function() {
+            const {data} = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/generate/new-student-invoice/get-tree-generate-${scope}`
+                    +`?invoice_period_code=${invoicePeriodCode}`
+                    +`${
+                        scope == 'faculty' ?
+                            `&scope=faculty&faculty_id=${facultyId}`
+                            : scope == 'studyprogram' ?
+                                `&scope=studyprogram&faculty_id=${facultyId}&studyprogram_id=${studyprogramId}`
+                                : ''
+                    }`,
+                type: 'get',
+            });
+
+            return $(this.selector).jstree({
+                'core' : {
+                    'data' : data.tree,
+                    "themes":{
+                        "icons":false
+                    }
+                },
+                "checkbox" : {
+                    "keep_selected_style" : false
+                },
+                "plugins" : [ "checkbox", "wholerow" ],
+            });
+        },
+        appendColumn: function(selector) {
+            $(selector+' .jstree-anchor').each(function() {
+                if ($(this).children().length <= 2) {
+                    const nodeId = $(this).parents('li').attr('id');
+                    const node = $(selector).jstree('get_node', nodeId);
+                    const children = $(this).children();
+                    console.log(node);
+                    $(this).empty();
+                    $(this).append(children.get(0));
+                    $(this).append(children.get(1));
+                    $(this).append(`<div class="text"><span>${node.text}</span></div>`);
+                    $(this).append(`<div style="display: flex; justify-content: flex-end;">
+                        <div style="width: 200px">${node.data.status_generated.text}</div>
+                        <div style="width: 280px">
+                            ${
+                                node.data.status_invoice_component == "not_defined"
+                                    ? 'Komponen Tagihan Belum Diset!' : ''
+                            }
+                        </div>
+                    </div>`);
+                }
+            });
+        }
+    }
+
     const InvoiceDetailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
 
     const _invoiceDetailModalActions = {
@@ -514,7 +633,7 @@
 
             // Student Data
             $('#detail-student-fullname').text(studentData.participant_fullname);
-            $('#detail-student-nik').text(studentData.participant_nik);
+            $('#detail-registration-number').text(studentData.registration_number);
             $('#detail-path').text(studentData.registration_path_name);
             $('#detail-period').text(studentData.registration_period_name);
             $('#detail-studyprogram').text(studentData.studyprogram_name);

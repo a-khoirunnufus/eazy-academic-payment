@@ -58,6 +58,7 @@ Route::group(['prefix' => 'payment'], function(){
 
 });
 
+// HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
 Route::get('test', function() {
     return view('test');
 });

@@ -78,6 +78,9 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('new-student-invoice/delete-one', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteOne');
         Route::post('new-student-invoice/delete-by-scope', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteByScope');
         Route::post('new-student-invoice/delete-all', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteAll');
+        Route::get('new-student-invoice/get-tree-generate-all', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateAll');
+        Route::get('new-student-invoice/get-tree-generate-faculty', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateFaculty');
+        Route::get('new-student-invoice/get-tree-generate-studyprogram', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateStudyprogram');
 
         Route::get('student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@index');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@detail');
@@ -109,11 +112,4 @@ Route::get('download', function(Request $request) {
             }
         }
     }
-});
-
-Route::get('test', function(Request $request) {
-    $filter = App\Services\Queries\ReRegistration\Scopes\StudyprogramScope::getFilter(40);
-    $re_registrations = new App\Services\Queries\ReRegistration\ReRegistInvWithFilter($filter);
-    $data = $re_registrations->query->get();
-    dd($data);
 });

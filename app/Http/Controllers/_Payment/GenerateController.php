@@ -9,22 +9,37 @@ use App\Models\Year;
 use App\Models\Faculty;
 use App\Models\Studyprogram;
 use Illuminate\Http\Request;
+use DB;
 
 class GenerateController extends Controller
 {
     public function newStudentInvoice()
     {
-        return view('pages._payment.generate.new-student-invoice.index');
+        $invoice_periods = DB::table('pmb.register as reg')
+            ->leftJoin('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'reg.ms_school_year_id')
+            ->groupBy('msy.msy_id', 'msy.msy_year', 'msy.msy_code')
+            ->select(
+                'msy.msy_id as school_year_id',
+                'msy.msy_year as school_year_year',
+                'msy.msy_semester as school_year_semester',
+                'msy.msy_code as school_year_code',
+            )
+            ->get();
+        $current_period_code = 20221;
+
+        return view('pages._payment.generate.new-student-invoice.index', compact('invoice_periods', 'current_period_code'));
     }
 
     public function newStudentInvoiceDetail(Request $request)
     {
         $validated = $request->validate([
+            'invoice_period_code' => 'required',
             'scope' => 'required|in:all,faculty,studyprogram',
             'faculty_id' => 'required_if:scope,faculty',
             'studyprogram_id' => 'required_if:scope,studyprogram',
         ]);
 
+        $invoice_period = Year::where('msy_code', '=', $validated['invoice_period_code'])->first();
         $scope = $validated['scope'];
         $faculty = null;
         $studyprogram = null;
@@ -36,7 +51,7 @@ class GenerateController extends Controller
             $faculty = Faculty::find($studyprogram->faculty_id);
         }
 
-        return view('pages._payment.generate.new-student-invoice.detail', compact('scope', 'faculty', 'studyprogram'));
+        return view('pages._payment.generate.new-student-invoice.detail', compact('invoice_period', 'scope', 'faculty', 'studyprogram'));
     }
 
     public function StudentInvoice()
