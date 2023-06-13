@@ -112,6 +112,10 @@
                         </div>
                     @endif
                 </div>
+                <div class="d-flex flex-row mb-2" style="gap: 1rem">
+                    <button onclick="TreeGenerate.checkAll()" class="btn btn-outline-primary btn-sm"><i data-feather="check-square"></i>&nbsp;&nbsp;Check Semua</button>
+                    <button onclick="TreeGenerate.uncheckAll()" class="btn btn-outline-primary btn-sm"><i data-feather="square"></i>&nbsp;&nbsp;Uncheck Semua</button>
+                </div>
                 <div class="jstree-table-wrapper">
                     <div style="width: 1185px; margin: 0 auto;">
                         <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
@@ -125,7 +129,7 @@
                 </div>
                 <div class="d-flex justify-content-end mt-3">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="" class="btn btn-primary">Generate</button>
+                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-primary">Generate</button>
                 </div>
             </div>
         </div>
@@ -568,6 +572,8 @@
             this.initTree();
             $(this.selector).on("loaded.jstree", () => { this.appendColumn(this.selector) });
             $(this.selector).on("before_open.jstree", () => { this.appendColumn(this.selector) });
+            $(this.selector).on("check_all.jstree", () => { this.appendColumn(this.selector) });
+            $(this.selector).on("uncheck_all.jstree", () => { this.appendColumn(this.selector) });
             GenerateInvoiceModal.show();
         },
         initTree: async function() {
@@ -585,7 +591,11 @@
                 type: 'get',
             });
 
-            return $(this.selector).jstree({
+            if ($(this.selector).jstree(true)) {
+                $(this.selector).jstree(true).destroy();
+            }
+
+            $(this.selector).jstree({
                 'core' : {
                     'data' : data.tree,
                     "themes":{
@@ -604,7 +614,6 @@
                     const nodeId = $(this).parents('li').attr('id');
                     const node = $(selector).jstree('get_node', nodeId);
                     const children = $(this).children();
-                    console.log(node);
                     $(this).empty();
                     $(this).append(children.get(0));
                     $(this).append(children.get(1));
@@ -620,7 +629,197 @@
                     </div>`);
                 }
             });
-        }
+        },
+        checkAll: function() {
+            $(this.selector).jstree(true).check_all();
+            this.appendColumn(this.selector);
+        },
+        uncheckAll: function() {
+            $(this.selector).jstree(true).uncheck_all();
+            this.appendColumn(this.selector);
+        },
+    }
+
+    // generate new id from this variable
+    let idGlobal = 0;
+
+    const GenerateInvoiceAction = {
+        getPaths: () => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+            // get selected nodes
+            const selected = treeApi.get_selected();
+            // foreach selected node, select only leaf node
+            const leafs = selected.filter(nodeId => treeApi.is_leaf(nodeId));
+            // foreach leaf, get path
+            const paths = leafs.map(nodeId => {
+                return {
+                    id: ++idGlobal,
+                    pathString: treeApi.get_path(nodeId, '/', true),
+                };
+            });
+            return paths;
+        },
+        getOptimizedPaths: (paths) => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+
+            let finalPaths = [...paths];
+
+            let previousOptimizedPaths = [...paths];
+            let optimizedPaths = [...paths];
+
+            let limit = 10;
+            while (true && limit > 0) {
+                // Get parents of each leaf at each path.
+                // Ex: ['1', '2', '3']
+                const leafsParents = [];
+                optimizedPaths.forEach(path => {
+                    const pathArr = path.pathString.split('/');
+                    if (pathArr.length > 1) {
+                        const leafParentId = pathArr[pathArr.length-2];
+                        if (!leafsParents.includes(leafParentId)) {
+                            leafsParents.push(leafParentId);
+                        }
+                    }
+                });
+                if(leafsParents.length == 0) break;
+
+                /**
+                 * Add childrenCount and hasPaths property for each parent.
+                 * Ex: [
+                 *  {id: '1', childrenCount: 2, hasPaths: [...] },
+                 *  {id: '2', childrenCount: 1, hasPaths: [...] },
+                 *  {id: '3', childrenCount: 3, hasPaths: [...] },
+                 * ]
+                 */
+                const leafsParentsExt = leafsParents.map(id => {
+                    const filteredPaths = optimizedPaths.filter(path => {
+                        const pathArr = path.pathString.split('/');
+                        const leafParentId = pathArr[pathArr.length-2];
+                        return leafParentId == id
+                    });
+                    const childrenCount = treeApi.get_node(id).children.length;
+                    return { id, childrenCount, hasPaths: filteredPaths };
+                });
+
+                /**
+                 * If parent childrenCount = hasPaths.length, then delete all path
+                 * belong this parent and replace with new path(one path).
+                 * Example: from ['1/2/3', '1/2/4', '1/2/5'] to ['1/2']
+                 */
+                leafsParentsExt.forEach(parent => {
+                    if (parent.hasPaths.length == parent.childrenCount) {
+                        parent.hasPaths.forEach(path => {
+                            optimizedPaths = optimizedPaths.filter(optPath => optPath.id != path.id);
+                        });
+                        const newPathArr = parent.hasPaths[0].pathString.split('/');
+                        newPathArr.pop();
+                        const newPath = newPathArr.join('/');
+                        optimizedPaths.push({
+                            id: ++idGlobal,
+                            pathString: newPath,
+                        });
+                    }
+                });
+
+                const array1 = previousOptimizedPaths.map(item => item.pathString);
+                const array2 = optimizedPaths.map(item => item.pathString);
+                if (areArrayEqual(array1, array2)) {
+                    finalPaths = optimizedPaths;
+                    break;
+                } else {
+                    previousOptimizedPaths = optimizedPaths;
+                    limit--;
+                }
+            }
+
+            return finalPaths;
+        },
+        getProcessScope: (optimizedPaths) => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+
+            // Add scope, faculty_id and studyprogram_id property for each optimized path.
+            return optimizedPaths.map(path => {
+                const pathArr = path.pathString.split('/');
+                const globalScope = scope;
+                let localScope = 'n/a';
+                let ids = {};
+
+                if (globalScope == 'faculty') {
+                    if(pathArr.length == 1) localScope = 'studyprogram';
+                    if(pathArr.length == 2) localScope = 'path';
+                    if(pathArr.length == 3) localScope = 'period';
+                    if(pathArr.length == 4) localScope = 'lecture_type';
+                    ids = {
+                        studyprogram_id: treeApi.get_node(pathArr[0]).data.obj_id,
+                        path_id: treeApi.get_node(pathArr[1]).data?.obj_id,
+                        period_id: treeApi.get_node(pathArr[2]).data?.obj_id,
+                        lecture_type_id: treeApi.get_node(pathArr[3]).data?.obj_id,
+                    };
+                } else if (globalScope == 'studyprogram') {
+                    if(pathArr.length == 1) localScope = 'path';
+                    if(pathArr.length == 2) localScope = 'period';
+                    if(pathArr.length == 3) localScope = 'lecture_type';
+                    ids = {
+                        studyprogram_id: studyprogramId,
+                        path_id: treeApi.get_node(pathArr[0]).data.obj_id,
+                        period_id: treeApi.get_node(pathArr[1]).data?.obj_id,
+                        lecture_type_id: treeApi.get_node(pathArr[2]).data?.obj_id,
+                    };
+                }
+
+                return {
+                    ...path,
+                    scope: localScope,
+                    ...ids,
+                };
+            });
+        },
+        /**
+         * Main method for generate invoice, used in generate invoice in modal.
+         */
+        main: async function() {
+            // check if there are selected items
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+            if (treeApi.get_selected().length == 0) {
+                _toastr.error('Silahkan pilih item yang ingin digenerate.', 'Belum Memilih!');
+                return;
+            }
+
+            const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin generate tagihan?',
+            });
+            if(!confirmed) return;
+
+            const paths = this.getPaths();
+            const optimizedPaths = this.getOptimizedPaths(paths);
+            const processScope = this.getProcessScope(optimizedPaths);
+
+            const generateData = processScope.map(item => {
+                return {
+                    scope: item.scope,
+                    faculty_id: facultyId,
+                    studyprogram_id: item.studyprogram_id,
+                    path_id: item.path_id,
+                    period_id: item.period_id,
+                    lecture_type_id: item.lecture_type_id,
+                }
+            });
+
+            $.ajax({
+                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scopes',
+                type: 'post',
+                data: {
+                    invoice_period_code: invoicePeriodCode,
+                    generate_data: generateData,
+                },
+                success: (res) => {
+                    GenerateInvoiceModal.hide();
+                    _toastr.success(res.message, 'Success');
+                    _newStudentInvoiceDetailTable.reload();
+                }
+            });
+        },
     }
 
     const InvoiceDetailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
@@ -716,6 +915,18 @@
             $('#invoice-detail').addClass('hide');
             $('#transaction-history').addClass('hide');
         }
+    }
+
+    function areArrayEqual(array1, array2) {
+        if (array1.length === array2.length) {
+            return array1.every((element, index) => {
+                if (element === array2[index]) {
+                    return true;
+                }
+                return false;
+            });
+        }
+        return false;
     }
 
 </script>
