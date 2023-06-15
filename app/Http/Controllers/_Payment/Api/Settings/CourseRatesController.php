@@ -26,19 +26,58 @@ class CourseRatesController extends Controller
         });
 
         // $query = CourseRate::query();
-        $query = CourseRate::with('course');
+        $query = CourseRate::whereNotNull('mcr_studyprogram_id')->with('course', 'studyProgram');
         // $query = $query->with('course')->orderBy('mcr_id');
         // $query = $query->with('course');
         if (isset($filters['faculty_id'])) {
-            $query->whereHas('course.studyProgram', function ($q) use ($filters) {
+            $query->whereHas('studyProgram', function ($q) use ($filters) {
                 $q->where('faculty_id', '=', $filters['faculty_id']);
             });
         }
         if (isset($filters['studyprogram_id'])) {
-            $query->whereHas('course', function ($q) use ($filters) {
+            $query->whereHas('course', function ($q) use ($filters, $query) {
                 $q->where('studyprogram_id', '=', $filters['studyprogram_id']);
             });
         }
+        if (isset($filters['filtering'])){
+            $data = $query->orderBy('mcr_id')->get();
+            $filter_data = [];
+            foreach($data as $item){
+                $isInserted = false;
+                if(!$isInserted && strpos(strtolower($item['course']['subject_name']), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+                if(!$isInserted && strpos(strtolower($item['course']['subject_code']), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+                if(!$isInserted && strpos(strtolower($item['study_program']['studyprogram_type'].' '.$item['study_program']['studyprogram_name']), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+                if(!$isInserted && strpos(strtolower($item['course']['credit'].' sks'), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+                if(!$isInserted && strpos(strtolower('Tingkat '.$item['mcr_tingkat']), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+                if(!$isInserted && strpos(strtolower('Rp '.$item['mcr_rate']), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+
+                $mandatory = $item['course']['mandatory_status'] == 'WAJIB_PRODI' ? 'Wajib' : 'Tidak Wajib';
+                if(!$isInserted && strpos(strtolower($mandatory), strtolower($filters['filtering'])) !== NULL){
+                    array_push($filter_data, $item);
+                    $isInserted = true;
+                }
+            }
+            return datatables($filter_data)->toJson();
+        }
+        // $query->whereNotNull('mcr_studyprogram_id');
         $query = $query->orderBy('mcr_id');
         // $query = $this->loadRelation($query, $request, ['faculty']);
         // $query = $this->applyFilter($query, $request, [
@@ -167,6 +206,7 @@ class CourseRatesController extends Controller
                         'mcr_rate' => $item['tarif'],
                         'mcr_active_status' => 1,
                         'mcr_is_package' => $item['paket'],
+                        'mcr_studyprogram_id' => $row['program_studi_id']
                     ]);
                 }
             }

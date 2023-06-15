@@ -227,6 +227,8 @@
     var dataCopy = null;
     var spIdCopy = null;
     var cIdCopy = null;
+    var searchInput = '#ALL';
+    var dt;
 
     $('#myModalContainer').addClass("d-none").removeClass("d-flex");
     $(document).on('keydown', function(e) {
@@ -255,7 +257,7 @@
     const _ratesPerCourseTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#rates-per-course-table').DataTable({
+            dt = this.instance = $('#rates-per-course-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/payment/settings/courserates/index',
@@ -263,10 +265,12 @@
                         d.custom_filter = {
                             'studyprogram_id': $('select[name="studyprogram-filter"]').val(),
                             'faculty_id': $('select[name="faculty-filter"]').val(),
+                            'filtering': searchInput,
                         };
                     }
                 },
-                columns: [{
+                columns: [
+                    {
                         name: 'action',
                         data: 'mcr_id',
                         orderable: false,
@@ -290,8 +294,8 @@
                         render: (data, _, row) => {
                             return `
                                 <div>
-                                    <span class="fw-bold">${row.course.study_program.studyprogram_name}</span><br>
-                                    <small class="text-secondary">${row.course.study_program.studyprogram_type}</small>
+                                    <span class="fw-bold">${row.study_program.studyprogram_name}</span><br>
+                                    <small class="text-secondary">${row.study_program.studyprogram_type}</small>
                                 </div>
                             `;
                         }
@@ -319,7 +323,7 @@
                     },
                     {
                         name: 'mandatory_status',
-                        data: 'mandatory_status',
+                        data: 'course.mandatory_status',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
                             if (data.toUpperCase() == 'WAJIB_PRODI') {
@@ -345,14 +349,13 @@
                             return html
                         }
                     },
-
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
                 dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"rate-per-course-actions d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"myFilter">lB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
@@ -370,6 +373,12 @@
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">Import</button>
                         </div>
                     `)
+                    $('.myFilter').html(`
+                        <div id="rates-per-course-table_filter" class="dataTables_filter">
+                            <label><input type="text" class="form-control" placeholder="Cari Data" id="searchInput" onkeypress="keyListener(event)"></label>
+                        </div>
+                    `)
+                    searchInput = '#ALL';
                     feather.replace()
                 }
             })
@@ -382,8 +391,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_ratesPerCourseTableActions.edit(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerCourseTableActions.copy(${row.course.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
+                            <a onclick="_ratesPerCourseTableActions.edit(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_ratesPerCourseTableActions.copy(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
                             <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
@@ -834,7 +843,9 @@
                     } else {
                         console.log(response)
                         if (response.status) {
+                            $('#importModal').modal('hide')
                             Swal.fire(response.message, '', 'success');
+                            _ratesPerCourseTable.init()
                         }
                     }
                 }
@@ -878,6 +889,15 @@
 
     function downloadTemplate() {
         window.open(_baseURL + "/payment/settings/courserates/template");
+    }
+
+    function keyListener(event){
+        if(event.which == 13){ //ENTER
+            searchInput = $('#searchInput').val();
+            $('#searchInput').val('');
+            // dt.ajax.reload();
+            _ratesPerCourseTable.reload();
+        }
     }
 </script>
 @endsection
