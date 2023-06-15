@@ -55,6 +55,10 @@
                     <small class="d-block">Periode Tagihan</small>
                     <span class="fw-bolder" id="info-invoice-period">N/A</span>
                 </div>
+                <div class="d-flex flex-row mb-2" style="gap: 1rem">
+                    <button onclick="TreeGenerate.checkAll()" class="btn btn-outline-primary btn-sm"><i data-feather="check-square"></i>&nbsp;&nbsp;Check Semua</button>
+                    <button onclick="TreeGenerate.uncheckAll()" class="btn btn-outline-primary btn-sm"><i data-feather="square"></i>&nbsp;&nbsp;Uncheck Semua</button>
+                </div>
                 <div class="jstree-table-wrapper">
                     <div style="width: 1185px; margin: 0 auto;">
                         <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
@@ -68,7 +72,7 @@
                 </div>
                 <div class="d-flex justify-content-end mt-3">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="" class="btn btn-primary">Generate</button>
+                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-primary">Generate</button>
                 </div>
             </div>
         </div>
@@ -108,7 +112,7 @@
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
-                            return this.template.rowAction(row.unit_type, row.unit_id);
+                            return this.template.rowAction(row.unit_type, row.unit_id, row.generated_status);
                         }
                     },
                     {
@@ -238,7 +242,7 @@
             this.implementSearchDelay();
         },
         template: {
-            rowAction: function(unit_type, unit_id) {
+            rowAction: function(unit_type, unit_id, generated_status) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
@@ -246,8 +250,8 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_newStudentInvoiceTableActions.openDetail('${unit_type}', ${unit_id})" class="dropdown-item"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.generate()" class="dropdown-item disabled" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.delete()" class="dropdown-item disabled" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="GenerateInvoiceAction.generateOneScope(event)" class="dropdown-item ${generated_status == 'done' ? 'disabled' : ''}" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
+                            <a onclick="GenerateInvoiceAction.deleteOneScope(event)" class="dropdown-item ${generated_status == 'done' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>
                     </div>
                 `
@@ -327,7 +331,11 @@
                 type: 'get',
             });
 
-            return $(this.selector).jstree({
+            if ($(this.selector).jstree(true)) {
+                $(this.selector).jstree(true).destroy();
+            }
+
+            $(this.selector).jstree({
                 'core' : {
                     'data' : data.tree,
                     "themes":{
@@ -354,6 +362,217 @@
                         <div style="width: 200px">${node.data.status_generated.text}</div>
                         <div style="width: 280px">${node.data.status_invoice_component == 'defined' ? 'Komponen Tagihan Belum Diset!' : ''}</div>
                     </div>`);
+                }
+            });
+        },
+        checkAll: function() {
+            $(this.selector).jstree(true).check_all();
+            this.appendColumn(this.selector);
+        },
+        uncheckAll: function() {
+            $(this.selector).jstree(true).uncheck_all();
+            this.appendColumn(this.selector);
+        },
+    }
+
+    // generate new id from this variable
+    let idGlobal = 0;
+
+    const GenerateInvoiceAction = {
+        getPaths: () => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+            // get selected nodes
+            const selected = treeApi.get_selected();
+            // foreach selected node, select only leaf node
+            const leafs = selected.filter(nodeId => treeApi.is_leaf(nodeId));
+            // foreach leaf, get path
+            const paths = leafs.map(nodeId => {
+                return {
+                    id: ++idGlobal,
+                    pathString: treeApi.get_path(nodeId, '/', true),
+                };
+            });
+            return paths;
+        },
+        getOptimizedPaths: (paths) => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+
+            let optimizedPaths = [...paths];
+
+            // Get parents of each leaf at each path.
+            // Ex: ['1', '2', '3']
+            const leafsParents = [];
+            paths.forEach(path => {
+                const pathArr = path.pathString.split('/');
+                const leafParentId = pathArr[pathArr.length-2];
+                if (!leafsParents.includes(leafParentId)) {
+                    leafsParents.push(leafParentId);
+                }
+            });
+
+            /**
+             * Add childrenCount and hasPaths property for each parent.
+             * Ex: [
+             *  {id: '1', childrenCount: 2, hasPaths: [...] },
+             *  {id: '2', childrenCount: 1, hasPaths: [...] },
+             *  {id: '3', childrenCount: 3, hasPaths: [...] },
+             * ]
+             */
+            const leafsParentsExt = leafsParents.map(id => {
+                const filteredPaths = paths.filter(path => {
+                    const pathArr = path.pathString.split('/');
+                    const leafParentId = pathArr[pathArr.length-2];
+                    return leafParentId == id
+                });
+                const childrenCount = treeApi.get_node(id).children.length;
+                return { id, childrenCount, hasPaths: filteredPaths };
+            });
+
+            /**
+             * If parent childrenCount = hasPaths.length, then delete all path
+             * belong this parent and replace with new path(one path).
+             * Example: from ['1/2/3', '1/2/4', '1/2/5'] to ['1/2']
+             */
+            leafsParentsExt.forEach(parent => {
+                if (parent.hasPaths.length == parent.childrenCount) {
+                    parent.hasPaths.forEach(path => {
+                        optimizedPaths = optimizedPaths.filter(optPath => optPath.id != path.id);
+                    });
+                    const newPathArr = parent.hasPaths[0].pathString.split('/');
+                    newPathArr.pop();
+                    const newPath = newPathArr.join('/');
+                    optimizedPaths.push({
+                        id: ++idGlobal,
+                        pathString: newPath,
+                    });
+                }
+            });
+
+            return optimizedPaths;
+        },
+        getProcessScope: (optimizedPaths) => {
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+
+            // Add scope, faculty_id and studyprogram_id property for each optimized path.
+            return optimizedPaths.map(path => {
+                const pathArr = path.pathString.split('/');
+                let scope = 'n/a';
+                if(pathArr.length == 1) scope = 'faculty';
+                if(pathArr.length == 2) scope = 'studyprogram';
+                return {
+                    ...path,
+                    scope,
+                    faculty_id: treeApi.get_node(pathArr[0]).data.obj_id,
+                    studyprogram_id: treeApi.get_node(pathArr[1]).data?.obj_id,
+                };
+            });
+        },
+        /**
+         * Main method for generate invoice, used in generate invoice in modal.
+         */
+        main: async function() {
+            // check if there are selected items
+            const treeApi = $(TreeGenerate.selector).jstree(true);
+            if (treeApi.get_selected().length == 0) {
+                _toastr.error('Silahkan pilih item yang ingin digenerate.', 'Belum Memilih!');
+                return;
+            }
+
+            const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin generate tagihan?',
+            });
+            if(!confirmed) return;
+
+            const paths = this.getPaths();
+            const optimizedPaths = this.getOptimizedPaths(paths);
+            const processScope = this.getProcessScope(optimizedPaths);
+
+            const generateData = processScope.map(item => {
+                return {
+                    scope: item.scope,
+                    faculty_id: item.faculty_id,
+                    studyprogram_id: item.studyprogram_id,
+                }
+            });
+
+            $.ajax({
+                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scopes',
+                type: 'post',
+                data: {
+                    invoice_period_code: $('#select-invoice-period').val(),
+                    generate_data: generateData,
+                },
+                success: (res) => {
+                    GenerateInvoiceModal.hide();
+                    _toastr.success(res.message, 'Success');
+                    _newStudentInvoiceTable.reload();
+                }
+            });
+        },
+        /**
+         * Method for generate invoice by clicking on action column.
+         */
+        generateOneScope: async (e) => {
+            const data = _newStudentInvoiceTable.getRowData(e.currentTarget);
+
+            const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin generate tagihan?',
+            });
+            if(!confirmed) return;
+
+            let requestData = { invoice_period_code: $('#select-invoice-period').val() };
+
+            if(data.unit_type == 'faculty') {
+                requestData.scope = 'faculty';
+                requestData.faculty_id = data.unit_id;
+            } else if(data.unit_type == 'studyprogram') {
+                requestData.scope = 'studyprogram';
+                requestData.faculty_id = data.faculty_id;
+                requestData.studyprogram_id = data.unit_id;
+            }
+
+            $.ajax({
+                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scope',
+                type: 'post',
+                data: requestData,
+                success: (res) => {
+                    _toastr.success(res.message, 'Success');
+                    _newStudentInvoiceTable.reload();
+                }
+            });
+        },
+        /**
+         * Method for delete invoice by clicking on action column.
+         */
+        deleteOneScope: async (e) => {
+            const data = _newStudentInvoiceTable.getRowData(e.currentTarget);
+
+            const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus tagihan?',
+            });
+            if(!confirmed) return;
+
+            let requestData = { invoice_period_code: $('#select-invoice-period').val() };
+
+            if(data.unit_type == 'faculty') {
+                requestData.scope = 'faculty';
+                requestData.faculty_id = data.unit_id;
+            } else if(data.unit_type == 'studyprogram') {
+                requestData.scope = 'studyprogram';
+                requestData.faculty_id = data.faculty_id;
+                requestData.studyprogram_id = data.unit_id;
+            }
+
+            $.ajax({
+                url: _baseURL+'/api/payment/generate/new-student-invoice/delete-by-scope',
+                type: 'post',
+                data: requestData,
+                success: (res) => {
+                    _toastr.success(res.message, 'Success');
+                    _newStudentInvoiceTable.reload();
                 }
             });
         }

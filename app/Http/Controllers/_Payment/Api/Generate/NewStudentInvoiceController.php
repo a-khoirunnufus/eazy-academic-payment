@@ -127,6 +127,7 @@ class NewStudentInvoiceController extends Controller
                             'invoice_total_amount' => $invoice_amount,
                             'generated_status' => $generated_status,
                             'generated_msg' => $generated_msg,
+                            'faculty_id' => $faculty->faculty_id,
                         ];
                     }
                 }
@@ -280,36 +281,60 @@ class NewStudentInvoiceController extends Controller
         ]);
 
         $scope = null;
+
+        if ($validated['scope'] == 'faculty') {
+            $scope = new FacultyScope($validated['faculty_id']);
+        }
+        elseif ($validated['scope'] == 'studyprogram') {
+            $scope = new StudyprogramScope($validated['faculty_id'], $validated['studyprogram_id']);
+        }
+        elseif ($validated['scope'] == 'path') {
+            $scope = new PathScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id']);
+        }
+        elseif ($validated['scope'] == 'period') {
+            $scope = new PeriodScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id']);
+        }
+        elseif ($validated['scope'] == 'lecture_type') {
+            $scope = new LectureTypeScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id'], $validated['lecture_type_id']);
+        }
+
+        $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil generate '.$generated_count.' tagihan mahasiswa.',
+        ], 200);
+    }
+
+    public function generateByScopes(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_period_code' => 'required',
+            'generate_data' => 'required|array',
+        ]);
+
         $generated_count = 0;
 
-        switch ($validated['scope']) {
-            case 'faculty':
-                $scope = new FacultyScope($validated['faculty_id']);
-                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
-                break;
+        foreach($validated['generate_data'] as $data) {
+            $scopeObj = null;
 
-            case 'studyprogram':
-                $scope = new StudyprogramScope($validated['faculty_id'], $validated['studyprogram_id']);
-                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
-                break;
+            if ($data['scope'] == 'faculty') {
+                $scopeObj = new FacultyScope($data['faculty_id']);
+            }
+            elseif ($data['scope'] == 'studyprogram') {
+                $scopeObj = new StudyprogramScope($data['faculty_id'], $data['studyprogram_id']);
+            }
+            elseif ($data['scope'] == 'path') {
+                $scopeObj = new PathScope($data['faculty_id'], $data['studyprogram_id'], $data['path_id']);
+            }
+            elseif ($data['scope'] == 'period') {
+                $scopeObj = new PeriodScope($data['faculty_id'], $data['studyprogram_id'], $data['path_id'], $data['period_id']);
+            }
+            elseif ($data['scope'] == 'lecture_type') {
+                $scopeObj = new LectureTypeScope($data['faculty_id'], $data['studyprogram_id'], $data['path_id'], $data['period_id'], $data['lecture_type_id']);
+            }
 
-            case 'path':
-                $scope = new PathScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id']);
-                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
-                break;
-
-            case 'period':
-                $scope = new PeriodScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id']);
-                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
-                break;
-
-            case 'lecture_type':
-                $scope = new LectureTypeScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id'], $validated['lecture_type_id']);
-                $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
-                break;
-
-            default:
-                break;
+            $generated_count += GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scopeObj, true);
         }
 
         return response()->json([
