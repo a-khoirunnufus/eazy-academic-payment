@@ -49,7 +49,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student-invoice', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoice')->name('payment.generate.student-invoice');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
     });
-        
+
     // Student
     Route::group(['prefix' => 'student'], function(){
         // Payment
@@ -59,6 +59,6 @@ Route::group(['prefix' => 'payment'], function(){
 });
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
-Route::get('test', function() {
-    return view('test');
+Route::get('queue-log-example', function() {
+    return view('queue-log-example');
 });

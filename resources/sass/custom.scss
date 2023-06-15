@@ -16,7 +16,7 @@ $putih: #FFF;
 
         .navbar-brand {
             margin-top: 0;
-    
+
             .brand-logo {
                 display: inline-block;
                 width: 40px;
@@ -35,7 +35,7 @@ $putih: #FFF;
         width: 120px;
         // background-image: url("../images/logo-eazy-small.png");
         background-image: url("/images/logo-eazy-small.png");
-        
+
     }
 
     &.menu-light .navigation {
@@ -78,7 +78,7 @@ $putih: #FFF;
             }
         }
 
-        
+
     }
 }
 
@@ -88,12 +88,12 @@ $putih: #FFF;
     width: 100%;
     overflow-x: auto;
     padding-bottom: .5rem;
-    
+
     .eazy-shortcut-item {
         display: flex;
         align-items: center;
         cursor: pointer;
-        
+
         .eazy-shortcut-icon {
             display: flex;
             align-items: center;
@@ -129,14 +129,14 @@ $putih: #FFF;
                 svg {
                     color: white;
                 }
-            }    
+            }
             .eazy-shortcut-label {
                 color: $eazy-blue;
             }
         }
     }
 
-    
+
 }
 
 .eazy-badge {
@@ -144,19 +144,19 @@ $putih: #FFF;
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-    height: 32px; 
+    height: 32px;
     width: 32px;
     svg {
         height: 20px;
         width: 20px;
     }
 
-    &.blue { 
-        background-color: #F0F4FF; 
+    &.blue {
+        background-color: #F0F4FF;
         svg { color: #356CFF }
     }
-    &.red { 
-        background-color: #FFF5F5; 
+    &.red {
+        background-color: #FFF5F5;
         svg { color: #FF4949 }
     }
 }
@@ -165,7 +165,7 @@ $putih: #FFF;
     &.one-row {
         display: flex;
         gap: 1rem;
-        
+
         > div:not(:last-child) {
             flex-grow: 1;
             max-width: 309.84px;
@@ -182,6 +182,32 @@ $putih: #FFF;
 .eazy-table-wrapper {
     width: 100%;
     overflow-x: auto;
+}
+
+.eazy-queue-list.list-group {
+    border-radius: 0;
+
+    .list-group-item {
+        border-right: unset;
+        border-left: unset;
+        &:last-child {
+            border-bottom: unset;
+        }
+
+        .queue-item {
+            .queue-item__detail {
+                display: none;
+            }
+            &.show-detail .queue-item__detail {
+                display: block;
+            }
+        }
+    }
+}
+
+.accordion > .accordion-item > .accordion-collapse {
+    max-height: calc(100vh - 125px);
+    overflow: auto;
 }
 
 .w-10 { width: 10% !important }
@@ -216,7 +242,7 @@ $putih: #FFF;
 }
 .form-check-input:checked[type="radio"] {
     background-image: url("data:image/svg+xml;charset=utf8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9.5 7.5'%3e%3cpolyline points='0.75 4.35 4.18 6.75 8.75 0.75' style='fill:none;stroke:%23fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5px'/%3e%3c/svg%3e") !important;
-    background-size: 10px;   
+    background-size: 10px;
 }
 .table th, .table td {
     color: $eazy-text !important;

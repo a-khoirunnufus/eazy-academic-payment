@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.0.96/css/materialdesignicons.min.css" integrity="sha512-fXnjLwoVZ01NUqS/7G5kAnhXNXat6v7e3M9PhoMHOTARUMCaf5qNO84r5x9AFf5HDzm3rEZD8sb/n6dZ19SzFA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- plugins -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/forms/select/select2.min.css') }}">    
+    <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/forms/select/select2.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/tables/datatable/responsive.bootstrap5.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/tables/datatable/buttons.bootstrap5.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/tables/datatable/rowGroup.bootstrap5.min.css') }}">
@@ -37,10 +37,10 @@
     <!-- plugins (must below template) -->
     <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/vendors/css/extensions/toastr.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('themes/vuexy/css/plugins/extensions/ext-component-toastr.css') }}">
-    
+
     <link rel="stylesheet" type="text/css" href="{{ url('css/style.css') }}?version={{ config('version.css_style') }}">
-    
-    {{--@vite(['resources/sass/custom.scss']) --}}
+
+    {{-- @vite(['resources/sass/custom.scss']) --}}
     <link rel="stylesheet" type="text/css" href="{{ url('css/custom.css') }}?version={{ config('version.css_style') }}">
 
     @yield('css_section')
@@ -129,7 +129,7 @@
           <span class="float-md-end d-none d-md-block">Hand-crafted &amp; Made from Bandung Techno Park, Telkom University</span>
         </p>
     </footer>
-    
+
     <!-- TEMPLATE VENDOR -->
     <script src="{{ asset('themes/vuexy/vendors/js/vendors.min.js') }}"></script>
 
@@ -177,7 +177,7 @@
             @stack('elm_setup')
         });
     </script>
-    
+
     @yield('js_section')
 </body>
 
