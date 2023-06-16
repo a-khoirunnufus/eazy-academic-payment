@@ -341,7 +341,7 @@ const _datatableTemplates = {
 
         html += '<div class="d-flex flex-row" style="gap: 1rem">';
 
-        const minItemPerColumn = 2;
+        const minItemPerColumn = 99;
         const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
         let firstCol = invoiceItems.slice(0, half);
         firstCol = firstCol.map(item => {
