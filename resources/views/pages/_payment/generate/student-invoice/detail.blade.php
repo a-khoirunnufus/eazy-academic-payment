@@ -652,13 +652,21 @@
                     };
                     $.post(_baseURL + '/api/payment/generate/student-invoice/student', requestData, (data) => {
                         console.log(data);
-                        data = JSON.parse(data)
-                        Swal.fire({
-                            icon: 'success',
-                            text: data.message,
-                        }).then(() => {
-                            _studentInvoiceDetailTable.reload()
-                        });
+                        data = JSON.parse(data);
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                        
                     }).fail((error) => {
                         _responseHandler.generalFailResponse(error)
                     })
@@ -962,79 +970,90 @@
         logGenerate: function(e) {
             Modal.show({
                 type: 'detail',
-                modalTitle: 'Detail Mahasiswa',
+                modalTitle: 'Log Generate',
                 modalSize: 'lg',
                 config: {
                     fields: {
                         header: {
                             type: 'custom-field',
-                            title: 'Data Mahasiswa',
+                            title: 'Log Generate',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Fakultas</h6>
+                                            <h1 class="h6 fw-bolder">${header.faculty}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Program Studi</h6>
+                                            <h1 class="h6 fw-bolder">${header.study_program}</h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            title: '',
                             content: {
                                 template: `
-                                <div>
-                                    <div class="bg-white">
-                                        <div class="p-4 border-b">
-                                        <div class="flex items-center mb-1">
-                                            <h1 class="text-xl mr-4">Ini adalah contoh pesan</h1>
-                                            <span class="badge bg-success">Finished</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">
-                                            Deployed to <b>Server</b> by
-                                            <b>Hafizh</b>
-                                        </p>
-                                        </div>
-                                        <div class="border-b">
-                                        <div class="flex justify-between items-center p-2 px-4">
-                                            <div class="flex items-center">
-                                            <span class="text-gray-700 text-sm">Test Label</span>
+                                <div class="accordion border" id="accordionExample">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                                <div class="d-flex flex-column" style="gap: 1rem">
+                                                    <div>Generate Tagihan (24/01/2022 10:45:21 AM) <small class="fst-italic">by Admin</small></div>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body p-0">
+                                                <ul class="list-group eazy-queue-list">
+                                                    <li class="list-group-item">
+                                                        <div class="queue-item d-flex justify-content-between">
+                                                            <div>
+                                                                <div class="d-flex flex-row">
+                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
+                                                                </div>
+                                                            </div>
+                                                            <div><span class="badge bg-success">Selesai</span></div>
+                                                        </div>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <div class="queue-item d-flex justify-content-between">
+                                                            <div>
+                                                                <div class="d-flex flex-row">
+                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
+                                                                </div>
+                                                            </div>
+                                                            <div><small class="fst-italic fs-6">24/04/2023 12:41:12 PM</small> <span class="badge bg-success">Selesai</span></div>
+                                                        </div>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <div class="queue-item d-flex justify-content-between">
+                                                            <div>
+                                                                <div class="d-flex flex-row">
+                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
+                                                                </div>
+                                                            </div>
+                                                            <div><span class="badge bg-success">Selesai</span></div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
                                             </div>
-
-                                            <div class="flex items-center">
-                                            <span class="text-sm mr-2 text-gray-600"
-                                                >2m 30s</span
-                                            >
-                                            <span class="badge bg-success">Finished</span>
-                                            </div>
-                                        </div>
                                         </div>
                                     </div>
                                 </div>
                                 `
                             },
                         },
-                        tagihan: {
-                            type: 'custom-field',
-                            title: 'Detail Tagihan',
-                            content: {
-                                template: `
-                                    <table class="table table-bordered" id="paymentDetail" style="line-height: 3">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Komponen Tagihan</th>
-                                            <th class="text-center">Harga</th>
-                                        </tr>
-                                        
-                                    </table>
-                                `
-                            },
-                        },
-                        bill: {
-                            type: 'custom-field',
-                            title: 'Riwayat Transaksi',
-                            content: {
-                                template: `
-                                    <table class="table table-bordered" id="paymentBill">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Invoice ID</th>
-                                            <th class="text-center">Expired Date</th>
-                                            <th class="text-center">Amount</th>
-                                            <th class="text-center">Fee</th>
-                                            <th class="text-center">Paid Date</th>
-                                            <th class="text-center">Status</th>
-                                        </tr>
-                                    </table>
-                                `
-                            },
-                        },
+                        
                     },
                     callback: function() {
                         feather.replace();
