@@ -403,4 +403,14 @@ class StudentInvoiceController extends Controller
         }
     }
     
+    public function delete($prr_id)
+    {
+        PaymentDetail::where('prr_id', $prr_id)->delete();
+        PaymentBill::where('prr_id', $prr_id)->delete();
+        $data = Payment::findorfail($prr_id);
+        $data->delete();
+
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
+    }
+    
 }

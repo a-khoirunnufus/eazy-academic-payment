@@ -411,7 +411,7 @@
                         <div class="dropdown-menu">
                             <a onclick="_studentInvoiceDetailTableAction.detail(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
                             <a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>
-                            <a onclick="_studentInvoiceDetailTableAction.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
+                            <a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
                         </div>
                     </div>
                 `
@@ -665,7 +665,8 @@
                 }
             })
         },
-        delete: function() {
+        delete: function(e) {
+            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus tagihan mahasiswa ini?',
@@ -678,10 +679,31 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tagihan',
-                    })
+                    if(data.payment){
+                        console.log(data);
+                        $.post(_baseURL + '/api/payment/generate/student-invoice/delete/' + data.payment.prr_id, {
+                            _method: 'DELETE'
+                        }, function(data){
+                            data = JSON.parse(data)
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }).fail((error) => {
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            });
+                            _responseHandler.generalFailResponse(error)
+                        })
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            text: 'Data Tagihan Tidak Ditemukan',
+                        })
+                    }
                 }
             })
         },
