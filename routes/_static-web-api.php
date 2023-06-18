@@ -51,7 +51,7 @@ Route::get('dt/student-invoice-detail', 'App\Http\Controllers\Api\TempResourceCo
 Route::get('dt/other-invoice', 'App\Http\Controllers\Api\TempResourceController@otherInvoice');
 Route::get('dt/other-invoice-detail', 'App\Http\Controllers\Api\TempResourceController@otherInvoiceDetail');
 // Menu Report
-Route::get('dt/report-old-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentInvoicePerStudyProgram');
+// Route::get('dt/report-old-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentInvoicePerStudyProgram');
 Route::get('dt/report-old-student-invoice-per-student', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentInvoicePerStudent');
 Route::get('dt/report-old-student-payment-history', 'App\Http\Controllers\Api\TempResourceController@reportOldStudentPaymentHistory');
 Route::get('dt/report-new-student-invoice-per-study-program', 'App\Http\Controllers\Api\TempResourceController@reportNewStudentInvoicePerStudyProgram');

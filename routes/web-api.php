@@ -94,6 +94,12 @@ Route::group(['prefix' => 'payment'], function(){
     });
 });
 
+Route::group(['prefix' => 'report'], function(){
+    Route::group(['prefix' => 'old-student-invoice'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudent');
+    });
+});
+
 Route::get('download', function(Request $request) {
     $storage = $request->query('storage');
     $type = $request->query('type');

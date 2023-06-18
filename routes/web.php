@@ -6,15 +6,15 @@ use Illuminate\Http\Request;
 
 Auth::routes();
 
-Route::get('/', fn() => redirect('/login'));
+Route::get('/', fn () => redirect('/login'));
 
-Route::group(['middleware' => ['auth', 'access']], function(){
+Route::group(['middleware' => ['auth', 'access']], function () {
 
-    Route::get('/studyprogram', fn() => view('pages.studyprogram.index'));
-    Route::get('/curriculum', fn() => view('pages.curriculum.index'));
+    Route::get('/studyprogram', fn () => view('pages.studyprogram.index'));
+    Route::get('/curriculum', fn () => view('pages.curriculum.index'));
 
-    Route::get('/subjects', fn() => '-');
-    Route::get('/learning-methods', fn() => '-');
+    Route::get('/subjects', fn () => '-');
+    Route::get('/learning-methods', fn () => '-');
 
     // Route::group([
     //     'prefix' => 'subjects',
@@ -26,12 +26,12 @@ Route::group(['middleware' => ['auth', 'access']], function(){
 });
 
 // Static Routes
-include __DIR__.DIRECTORY_SEPARATOR.'_static-web.php';
+include __DIR__ . DIRECTORY_SEPARATOR . '_static-web.php';
 
 // Payment
-Route::group(['prefix' => 'payment'], function(){
+Route::group(['prefix' => 'payment'], function () {
     // Settings
-    Route::group(['prefix' => 'settings'], function(){
+    Route::group(['prefix' => 'settings'], function () {
         // Component Invoices
         Route::get('component', 'App\Http\Controllers\_Payment\SettingsController@component')->name('payment.settings.component');
         Route::get('payment-rates', 'App\Http\Controllers\_Payment\SettingsController@paymentrates')->name('payment.settings.payment-rates');
@@ -42,23 +42,29 @@ Route::group(['prefix' => 'payment'], function(){
     });
 
     // Generate
-    Route::group(['prefix' => 'generate'], function(){
+    Route::group(['prefix' => 'generate'], function () {
         Route::get('new-student-invoice', 'App\Http\Controllers\_Payment\GenerateController@newStudentInvoice')->name('payment.generate.new-student-invoice');
         Route::get('new-student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@newStudentInvoiceDetail')->name('payment.generate.new-student-invoice-detail');
 
         Route::get('student-invoice', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoice')->name('payment.generate.student-invoice');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
     });
-        
+
     // Student
-    Route::group(['prefix' => 'student'], function(){
+    Route::group(['prefix' => 'student'], function () {
         // Payment
         Route::get('index', 'App\Http\Controllers\_Student\StudentController@index')->name('payment.student.index');
     });
+});
 
+Route::group(['prefix' => 'report'], function () {
+    Route::group(['prefix' => 'old-student-invoice'], function () {
+        Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
+        Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
+    });
 });
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
-Route::get('test', function() {
+Route::get('test', function () {
     return view('test');
 });

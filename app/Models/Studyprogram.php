@@ -21,5 +21,10 @@ class Studyprogram extends Model
     {
         return $this->belongsTo(Faculty::class, 'faculty_id','faculty_id');
     }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'studyprogram_id', 'studyprogram_id')->with('payment');
+    }
     
 }
