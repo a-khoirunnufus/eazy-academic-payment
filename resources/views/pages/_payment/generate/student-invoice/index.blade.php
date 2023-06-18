@@ -258,15 +258,14 @@
                         </button>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
-                            <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="_studentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.delete(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>
                     </div>
                 `
             }
         }
     }
-
+    // <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
     const _studentInvoiceTableActions = {
         tableRef: _studentInvoiceTable,
         generate: function() {
@@ -289,7 +288,7 @@
                 }
             })
         },
-        delete: function() {
+        delete: function(faculty_id,studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus tagihan pada unit ini?',
@@ -302,10 +301,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tagihan',
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/deleteBulk/' + faculty_id+'/'+studyprogram_id, {
+                        _method: 'DELETE'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _studentInvoiceTable.reload()
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
                     })
+                    
                 }
             })
         },

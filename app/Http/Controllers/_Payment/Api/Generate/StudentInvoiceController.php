@@ -328,6 +328,25 @@ class StudentInvoiceController extends Controller
         return $data;
     }
     
+    public function deleteBulk($f,$sp)
+    {
+        // dd($sp);
+        $activeSchoolYearCode = $this->getActiveSchoolYearCode();
+        $invoice = Payment::query()
+        ->join('hr.ms_student','hr.ms_student.student_number','finance.payment_re_register.student_number')
+        ->where('finance.payment_re_register.prr_school_year','=',$activeSchoolYearCode)
+        ->where('finance.payment_re_register.deleted_at','=',null);
+
+        if($f && $f != 0){
+            $sp_in_faculty = Studyprogram::where('faculty_id',$f)->pluck('studyprogram_id')->toArray();
+            $invoice = $invoice->whereIn('studyprogram_id',$sp_in_faculty);
+        }else{
+            $invoice = $invoice->where('studyprogram_id',$sp);
+        }
+        $invoice = $invoice->delete();
+
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
+    }
 }
 
 // OLD CODE, MAYBE USEFULL SOMEDAY
