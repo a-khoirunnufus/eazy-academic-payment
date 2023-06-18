@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\MasterJob;
 use DB;
 
 class GenerateBulkInvoice implements ShouldQueue
@@ -35,7 +36,16 @@ class GenerateBulkInvoice implements ShouldQueue
      */
     public function handle(): void
     {
+        $log = MasterJob::create([
+            'queue' => 'Generate Tagihan',
+            'user_id' => 1,
+            'status' => 2,
+        ]);
         $test = new StudentInvoiceController;
-        $test->storeBulkStudentGenerate($this->data, $this->from);
+        $result = $test->storeBulkStudentGenerate($this->data, $this->from,$log->mj_id);
+        if($result == true){
+            $log->status = 1;
+            $log->update();
+        }
     }
 }

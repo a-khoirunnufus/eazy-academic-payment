@@ -1003,52 +1003,7 @@
                             title: '',
                             content: {
                                 template: `
-                                <div class="accordion border" id="accordionExample">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                                <div class="d-flex flex-column" style="gap: 1rem">
-                                                    <div>Generate Tagihan (24/01/2022 10:45:21 AM) <small class="fst-italic">by Admin</small></div>
-                                                </div>
-                                            </button>
-                                        </h2>
-                                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                            <div class="accordion-body p-0">
-                                                <ul class="list-group eazy-queue-list">
-                                                    <li class="list-group-item">
-                                                        <div class="queue-item d-flex justify-content-between">
-                                                            <div>
-                                                                <div class="d-flex flex-row">
-                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
-                                                                </div>
-                                                            </div>
-                                                            <div><span class="badge bg-success">Selesai</span></div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="queue-item d-flex justify-content-between">
-                                                            <div>
-                                                                <div class="d-flex flex-row">
-                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
-                                                                </div>
-                                                            </div>
-                                                            <div><small class="fst-italic fs-6">24/04/2023 12:41:12 PM</small> <span class="badge bg-success">Selesai</span></div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item">
-                                                        <div class="queue-item d-flex justify-content-between">
-                                                            <div>
-                                                                <div class="d-flex flex-row">
-                                                                    <span class="d-inline-block me-1">Jusuf Kalla - 483192</span>
-                                                                </div>
-                                                            </div>
-                                                            <div><span class="badge bg-success">Selesai</span></div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div id="logGenerate">
                                 </div>
                                 `
                             },
@@ -1059,6 +1014,61 @@
                         feather.replace();
                     }
                 },
+            });
+            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice', (data) => {
+                console.log(data);
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    data.map(item => {
+                        var timestamp = (new Date(item.created_at)).toLocaleString("id-ID");
+                        $('#logGenerate').append(`
+                            <div class="accordion border" id="accordionBody${item.mj_id}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.mj_id}" aria-expanded="false" aria-controls="collapse${item.mj_id}">
+                                            <div class="d-flex flex-column" style="gap: 1rem">
+                                                <div>${item.queue} (${timestamp}) <small class="fst-italic">by ${item.user.user_fullname}</small></div>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse${item.mj_id}" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionBody${item.mj_id}">
+                                        <div class="accordion-body p-0">
+                                            <ul class="list-group eazy-queue-list" id="list${item.mj_id}">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        item.detail.map(d => {
+                            var timestamp = (new Date(d.updated_at)).toLocaleString("id-ID");
+                            var status = "";
+                            if(d.status === 1){
+                                status = "<small class='fst-italic fs-6'>"+timestamp+"</small> <span class='badge bg-success'>Selesai</span>";
+                            }else if(d.status === 0){
+                                status = "<span class='badge bg-danger'>Gagal</span>";
+                            }else{
+                                status = "<span class='badge bg-primary'>Dalam Proses</span>";
+                            }
+                            
+                            $('#list'+item.mj_id).append(`
+                                <li class="list-group-item">
+                                    <div class="queue-item d-flex justify-content-between">
+                                        <div>
+                                            <div class="d-flex flex-row">
+                                                <span class="d-inline-block me-1">${d.title}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            ${status}
+                                        </div>
+                                    </div>
+                                </li>
+                            `);
+                        });
+                    });
+                }
             });
         },
     }

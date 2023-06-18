@@ -8,9 +8,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Payment\MasterJob;
 use App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController;
 use App\Models\Payment\Payment;
+use App\Models\Payment\MasterJobDetail;
 use App\Models\Payment\PaymentDetail;
 use DB;
 
@@ -22,10 +22,12 @@ class GenerateInvoice implements ShouldQueue
      * Create a new job instance.
      */
     protected $student;
+    protected $mj_id;
 
-    public function __construct($student)
+    public function __construct($student,$mj_id)
     {
         $this->student = $student;
+        $this->mj_id = $mj_id;
     }
 
     /**
@@ -33,8 +35,16 @@ class GenerateInvoice implements ShouldQueue
      */
     public function handle(): void
     {
+        $log = MasterJobDetail::create([
+            'title' => $this->student->fullname.' - '.$this->student->student_id,
+            'mj_id' => $this->mj_id,
+            'status' => 2,
+        ]);
         $test = new StudentInvoiceController;
-        $test->storeStudentGenerate($this->student);
+        $result = $test->storeStudentGenerate($this->student);
+
+        $log->status = 1;
+        $log->update();
     }
 
     

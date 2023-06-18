@@ -14,6 +14,7 @@ use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\MasterJob;
 use App\Jobs\GenerateInvoice;
 use App\Jobs\GenerateBulkInvoice;
 use Carbon\Carbon;
@@ -266,7 +267,7 @@ class StudentInvoiceController extends Controller
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public function storeBulkStudentGenerate($generate_checkbox, $from){
+    public function storeBulkStudentGenerate($generate_checkbox, $from,$mj_id){
         foreach($generate_checkbox as $item){
             if($item != "null"){
                 // Parsing the key from string
@@ -296,13 +297,12 @@ class StudentInvoiceController extends Controller
                 foreach($students as $student){
                     $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
                     if(!$payment){
-                        GenerateInvoice::dispatch($student)->onQueue('invoice');
+                        GenerateInvoice::dispatch($student,$mj_id)->onQueue('invoice');
                     }
                 }
             }
         }
-        $text = "Berhasil generate tagihan mahasiswa ";
-        return json_encode(array('success' => true, 'message' => $text));
+        return true;
     }
 
     public function studentBulkGenerate(Request $request){
@@ -320,6 +320,12 @@ class StudentInvoiceController extends Controller
         $data->delete();
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
+    }
+    
+    public function logGenerate()
+    {
+        $data = MasterJob::with('detail','user')->get();
+        return $data;
     }
     
 }
