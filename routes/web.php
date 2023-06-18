@@ -65,6 +65,11 @@ Route::group(['prefix' => 'report'], function () {
 });
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
-Route::get('test', function () {
+Route::get('test', function() {
     return view('test');
+});
+
+// HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
+Route::get('queue-log-example', function() {
+    return view('queue-log-example');
 });

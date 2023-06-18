@@ -17,10 +17,10 @@
         }
 
         .nav-tabs.custom .nav-item {
-            flex-grow: 1;
+            /* flex-grow: 1; */
         }
         .nav-tabs.custom .nav-link {
-            width: -webkit-fill-available !important;
+            /* width: -webkit-fill-available !important; */
             height: 50px !important;
         }
         .nav-tabs.custom .nav-link.active {
@@ -38,18 +38,18 @@
 
 <div id="student-info" class="card mb-3">
     <div class="card-body" style="width: 100%">
-        <div class="d-flex flex-row mb-3" style="gap: 2rem; flex-wrap: wrap">
-            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+        <div class="d-flex flex-row" style="gap: 4rem; flex-wrap: wrap">
+            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
                 <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
                     <i style="width: 35px; height: 35px" data-feather="user"></i>
                 </div>
                 <div class="d-flex flex-column" style="gap: 5px">
                     <small class="d-block">Nama</small>
                     <span class="fw-bolder" style="font-size: 16px">Armansyah Adhikara</span>
-                    <span class="text-secondary d-block">NIM : 1231023929 | TAK : 70</span>
+                    <span class="text-secondary d-block">NIM : 1231023929</span>
                 </div>
             </div>
-            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
                 <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
                     <i style="width: 35px; height: 35px" data-feather="book-open"></i>
                 </div>
@@ -59,7 +59,7 @@
                     <span class="text-secondary d-block">Tahun Kurikulum 2013</span>
                 </div>
             </div>
-            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
+            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
                 <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
                     <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
                 </div>
@@ -69,41 +69,6 @@
                     <span class="text-secondary d-block">Angkatan 2023</span>
                 </div>
             </div>
-            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
-                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
-                    <i style="width: 35px; height: 35px" data-feather="award"></i>
-                </div>
-                <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Informasi Studi</small>
-                    <span class="fw-bolder" style="font-size: 16px">IPK : 3.44</span>
-                    <span class="text-secondary d-block">SKS Total : 138</span>
-                </div>
-            </div>
-            <div class="d-flex flex-row align-items-center flex-grow-1" style="gap: 1rem">
-                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
-                    <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
-                </div>
-                <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Pembimbing</small>
-                    <span class="fw-bolder" style="font-size: 16px">Dr. Achmad Maulana M.Kom</span>
-                    <span class="text-secondary d-block">NIP : 131241214</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="d-flex flex-row" style="gap: 1rem">
-            <button class="btn btn-primary">
-                <i data-feather="activity"></i>&nbsp;&nbsp;Generate VA
-            </button>
-            <button class="btn btn-success">
-                <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
-            </button>
-            <button class="btn btn-outline-warning">
-                <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
-            </button>
-            <button class="btn btn-outline-primary">
-                <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
-            </button>
         </div>
     </div>
 </div>
@@ -112,10 +77,10 @@
     <div class="nav-tabs-shadow nav-align-top">
         <ul class="nav nav-tabs custom border-bottom" role="tablist">
             <li class="nav-item">
-                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice_n_va" aria-controls="navs-invoice_n_va" aria-selected="true">Tagihan dan Virtual Account</button>
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice_n_va" aria-controls="navs-invoice_n_va" aria-selected="true">Tagihan Belum Lunas</button>
             </li>
             <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment" aria-controls="navs-payment" aria-selected="false">Pembayaran</button>
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment" aria-controls="navs-payment" aria-selected="false">Tagihan Lunas</button>
             </li>
         </ul>
         <div class="tab-content">
@@ -123,6 +88,7 @@
                 <table id="invoice-table" class="table table-striped">
                     <thead>
                         <tr>
+                            <th>Aksi</th>
                             <th>Periode Masuk</th>
                             <th>Kode Tagihan</th>
                             <th>Bulan</th>
@@ -216,7 +182,7 @@
                         <tr>
                             <td>Tenggat Pembayaran</td>
                             <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;20-03-2023 / 00:00 WIB</span>    
+                                <span class="fw-bold">:&nbsp;&nbsp;20-03-2023 / 00:00 WIB</span>
                             </td>
                         </tr>
                         <tr>
@@ -277,7 +243,7 @@
                 </div>
 
                 <div class="d-flex justify-content-start" style="gap: 1rem">
-                    <a type="button" href="{{ url('_student/proceed-payment') }}" class="btn btn-success d-inline-block">
+                    <a type="button" href="{{ url('student/proceed-payment') }}" class="btn btn-success d-inline-block">
                         <i data-feather="check-circle"></i>&nbsp;&nbsp;Bayar
                     </a>
                     <button type="button" class="btn btn-danger d-inline-block" data-bs-dismiss="modal">
@@ -304,100 +270,7 @@
             this.instance = $('#invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/_student/api/dt/invoice',
-                },
-                columns: [
-                    {
-                        name: 'entry_period', 
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.period, row.semester);
-                        }
-                    },
-                    {
-                        name: 'invoice_code', 
-                        data: 'invoice_code',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'month', 
-                        data: 'month',
-                        render: (data) => {
-                            return this.template.defaultCell(data);
-                        }
-                    },
-                    {
-                        name: 'nth_installment', 
-                        data: 'nth_installment',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {prefix: 'Cicilan Ke-'});
-                        }
-                    },
-                    {
-                        name: 'invoice', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
-                        }    
-                    },
-                    {
-                        name: 'discount', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.discount_detail, row.discount_total);
-                        }    
-                    },
-                    {
-                        name: 'scholarship', 
-                        render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.scholarship_detail, row.scholarship_total);
-                        }    
-                    },
-                    {
-                        name: 'all_invoice_total', 
-                        data: 'all_invoice_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'payment_total', 
-                        data: 'payment_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
-                        }
-                    },
-                ],
-                drawCallback: function(settings) {
-                    feather.replace();
-                },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                    '>' +
-                    '<"eazy-table-wrapper" t>' +
-                    '<"d-flex justify-content-between mx-2 row"' +
-                    '<"col-sm-12 col-md-6"i>' +
-                    '<"col-sm-12 col-md-6"p>' +
-                    '>',
-                initComplete: function() {
-                    $('.invoice-actions').html(`
-                        <h5 class="mb-0">Tagihan Lunas</h5>
-                    `)
-                    feather.replace()
-                }
-            })
-        },
-        template: { ..._datatableTemplates }
-    }
-
-    const _paymentTable = {
-        ..._datatable,
-        init: function() {
-            this.instance = $('#payment-table').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: _baseURL+'/_student/api/dt/payment',
+                    url: _baseURL+'/student/api/dt/invoice',
                 },
                 columns: [
                     {
@@ -409,58 +282,184 @@
                         }
                     },
                     {
-                        name: 'entry_period', 
+                        name: 'entry_period',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(row.period, row.semester);
                         }
                     },
                     {
-                        name: 'invoice_code', 
+                        name: 'invoice_code',
                         data: 'invoice_code',
                         render: (data) => {
-                            return this.template.buttonLinkCell(data, {onclickFunc: 'paymentDetailModal.show()'});
+                            return this.template.defaultCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'month', 
+                        name: 'month',
                         data: 'month',
                         render: (data) => {
                             return this.template.defaultCell(data);
                         }
                     },
                     {
-                        name: 'nth_installment', 
+                        name: 'nth_installment',
                         data: 'nth_installment',
                         render: (data) => {
                             return this.template.defaultCell(data, {prefix: 'Cicilan Ke-'});
                         }
                     },
                     {
-                        name: 'payment', 
+                        name: 'invoice',
                         render: (data, _, row) => {
-                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
-                        }    
+                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
+                        }
                     },
                     {
-                        name: 'invoice_total', 
+                        name: 'discount',
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.discount_detail, row.discount_total);
+                        }
+                    },
+                    {
+                        name: 'scholarship',
+                        render: (data, _, row) => {
+                            return this.template.invoiceDetailCell(row.scholarship_detail, row.scholarship_total);
+                        }
+                    },
+                    {
+                        name: 'all_invoice_total',
+                        data: 'all_invoice_total',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true});
+                        }
+                    },
+                    {
+                        name: 'payment_total',
+                        data: 'payment_total',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
+                        }
+                    },
+                ],
+                drawCallback: function(settings) {
+                    feather.replace();
+                },
+                dom:
+                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-actions">>' +
+                    '>' +
+                    '<"eazy-table-wrapper" t>' +
+                    '<"d-flex justify-content-between mx-2 row"' +
+                    '<"col-sm-12 col-md-6"i>' +
+                    '<"col-sm-12 col-md-6"p>' +
+                    '>',
+                initComplete: function() {
+                    $('.invoice-actions').html(`
+                        <div class="d-flex flex-row px-1 justify-content-end" style="gap: 1rem">
+                            <button class="btn btn-success">
+                                <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
+                            </button>
+                            <button class="btn btn-outline-warning">
+                                <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
+                            </button>
+                            <button class="btn btn-outline-primary">
+                                <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
+                            </button>
+                        </div>
+                    `)
+                    feather.replace()
+                }
+            })
+        },
+        template: {
+            ..._datatableTemplates,
+            rowAction: function(id) {
+                return `
+                    <div class="dropdown d-flex justify-content-center">
+                        <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                            <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentDetailModal"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
+                            <a class="dropdown-item" href="${_baseURL+'/student/proceed-payment'}"><i data-feather="credit-card"></i>&nbsp;&nbsp;Lanjutkan Pembayaran</a>
+                        </div>
+                    </div>
+                `
+            },
+        }
+    }
+
+    const _paymentTable = {
+        ..._datatable,
+        init: function() {
+            this.instance = $('#payment-table').DataTable({
+                serverSide: true,
+                ajax: {
+                    url: _baseURL+'/student/api/dt/payment',
+                },
+                columns: [
+                    {
+                        name: 'action',
+                        data: 'id',
+                        orderable: false,
+                        render: (data, _, row) => {
+                            return this.template.rowAction(data)
+                        }
+                    },
+                    {
+                        name: 'entry_period',
+                        render: (data, _, row) => {
+                            return this.template.titleWithSubtitleCell(row.period, row.semester);
+                        }
+                    },
+                    {
+                        name: 'invoice_code',
+                        data: 'invoice_code',
+                        render: (data) => {
+                            return this.template.buttonLinkCell(data, {onclickFunc: 'paymentDetailModal.show()'});
+                        }
+                    },
+                    {
+                        name: 'month',
+                        data: 'month',
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        name: 'nth_installment',
+                        data: 'nth_installment',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {prefix: 'Cicilan Ke-'});
+                        }
+                    },
+                    {
+                        name: 'payment',
+                        render: (data, _, row) => {
+                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
+                        }
+                    },
+                    {
+                        name: 'invoice_total',
                         data: 'invoice_total',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'payment_total', 
+                        name: 'payment_total',
                         data: 'payment_total',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
                         }
                     },
                     {
-                        name: 'is_paid_off', 
+                        name: 'is_paid_off',
                         data: 'is_paid_off',
                         render: (data) => {
                             return this.template.badgeCell(
-                                data ? 'Lunas' : 'Tidak Lunas', 
+                                data ? 'Lunas' : 'Tidak Lunas',
                                 data ? 'success' : 'danger',
                             );
                         }
@@ -480,7 +479,7 @@
                     '>',
                 initComplete: function() {
                     $('.payment-actions').html(`
-                        <h5 class="mb-0">Daftar Transaksi dan Pembayaran</h5>
+                        <h5 class="mb-0"></h5>
                     `)
                     feather.replace()
                 }
@@ -496,14 +495,13 @@
                         </button>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentDetailModal"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
-                            <a class="dropdown-item" href="${_baseURL+'/_student/proceed-payment'}"><i data-feather="credit-card"></i>&nbsp;&nbsp;Lanjutkan Pembayaran</a>
                         </div>
                     </div>
                 `
             },
         }
     }
-    
+
     const paymentDetailModal = new bootstrap.Modal(document.getElementById('paymentDetailModal'));
 </script>
 @endsection

@@ -14,7 +14,7 @@ class TempResourceController extends Controller
                 'period' => '2022/2023',
                 'semester' => 'Semester Genap',
                 'invoice_code' => 'INV/20192/2010210',
-                'month' => 'Januari - Pebruari',
+                'month' => 'Januari - Februari',
                 'nth_installment' => 1,
                 'invoice_detail' => [
                     ['name' => 'BPP', 'nominal' => 7500000],
@@ -50,7 +50,7 @@ class TempResourceController extends Controller
                 'period' => '2022/2023',
                 'semester' => 'Semester Genap',
                 'invoice_code' => 'INV/20192/2010210',
-                'month' => 'Januari - Pebruari',
+                'month' => 'Januari - Februari',
                 'nth_installment' => 1,
                 'payment_method_name' => 'VA BNI',
                 'payment_method_detail' => [
