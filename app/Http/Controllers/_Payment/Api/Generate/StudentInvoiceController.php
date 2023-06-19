@@ -252,7 +252,9 @@ class StudentInvoiceController extends Controller
                     PaymentDetail::create([
                         'prr_id' => $payment->prr_id,
                         'prrd_component' => $item->component->msc_name,
-                        'prrd_amount' => $item->cd_fee
+                        'prrd_amount' => $item->cd_fee,
+                        'is_plus' => 1,
+                        'type' => 'component',
                     ]);
                 }
                 DB::commit();
