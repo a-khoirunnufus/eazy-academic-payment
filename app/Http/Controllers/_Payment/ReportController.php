@@ -5,6 +5,7 @@ namespace App\Http\Controllers\_Payment;
 use App\Http\Controllers\Controller;
 use App\Models\Year;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -17,6 +18,7 @@ class ReportController extends Controller
 
     function oldStudentDetail($programStudy)
     {
-        return view('pages.report.old-student-invoice.per-student', compact('programStudy'));
+        $angkatan = Year::select(DB::raw("SUBSTR(msy_code, 1, 4) as Tahun"))->distinct()->get();
+        return view('pages.report.old-student-invoice.per-student', compact('programStudy','angkatan'));
     }
 }

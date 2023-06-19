@@ -5,23 +5,30 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .nav-tabs.custom .nav-item {
-            flex-grow: 1;
-        }
-        .nav-tabs.custom .nav-link {
-            width: -webkit-fill-available !important;
-            height: 50px !important;
-        }
-        .nav-tabs.custom .nav-link.active {
-            background-color: #f2f2f2 !important;
-        }
-        .toHistory:hover, .toHistory:hover small {
-            cursor: pointer;
-            color: #5399f5 !important;
-        }
+<style>
+    .nav-tabs.custom .nav-item {
+        flex-grow: 1;
+    }
 
-    </style>
+    .nav-tabs.custom .nav-link {
+        width: -webkit-fill-available !important;
+        height: 50px !important;
+    }
+
+    .nav-tabs.custom .nav-link.active {
+        background-color: #f2f2f2 !important;
+    }
+
+    .toHistory:hover,
+    .toHistory:hover small {
+        cursor: pointer;
+        color: #5399f5 !important;
+    }
+
+    .select-filtering {
+        min-width: 150px !important;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -43,40 +50,22 @@
             <!-- OLD STUDENT INVOICE DETAIL -->
             <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
                 <div class="px-1 py-2 border-bottom">
-                    <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
-                        <x-datatable-select-filter
-                            title="Tahun Akademik dan Semester"
-                            elementId="filter-school-year"
-                            resourceName="school-year"
-                            value="code"
-                            labelTemplate=":year Semester :semester"
-                            :labelTemplateItems="array('year', 'semester')"
-                        />
-                        <x-datatable-select-filter
-                            title="Angkatan"
-                            elementId="filter-class-year"
-                            resourceName="class-year"
-                            value="code"
-                            labelTemplate=":name"
-                            :labelTemplateItems="array('name')"
-                        />
-                        <x-datatable-select-filter
-                            title="Fakultas"
-                            elementId="filter-faculty"
-                            resourceName="faculty"
-                            value="id"
-                            labelTemplate=":name"
-                            :labelTemplateItems="array('name')"
-                        />
-                        <x-datatable-select-filter
-                            title="Program Studi"
-                            elementId="filter-study-program"
-                            resourceName="study-program"
-                            value="id"
-                            labelTemplate=":type :name"
-                            :labelTemplateItems="array('type', 'name')"
-                        />
-                    </x-datatable-filter-wrapper>
+                    <div class="d-flex">
+                        <div class="select-filtering">
+                            <label class="form-label">Angkatan</label>
+                            <select class="form-select select2 select-filter" id="filterData">
+                                <option value="#ALL">Semua Tahun</option>
+                                @foreach($angkatan as $item)
+                                <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="m-1 mb-0 align-self-end">
+                            <button class="btn btn-primary" onclick="filter()">
+                                <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <table id="old-student-invoice-detail-table" class="table table-striped">
                     <thead>
@@ -106,7 +95,7 @@
 
             <!-- OLD STUDENT PAYMENT HISTORY -->
             <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
-                <table id="old-student-payment-history-table" class="table table-striped" >
+                <table id="old-student-payment-history-table" class="table table-striped">
                     <thead>
                         <tr>
                             <th>Nomor Tagihan</th>
@@ -127,12 +116,12 @@
 
 @section('js_section')
 <script>
-    var dtDetail, dtHistory = null;
-    $(document).ready(function () {
+    var dtDetail, dtHistory, student = null;
+    $(document).ready(function() {
         select2Replace();
     });
 
-    $(function(){
+    $(function() {
         _oldStudentInvoiceDetailTable.init();
         // _oldStudentPaymentHistoryTable.init()
     })
@@ -145,13 +134,12 @@
                 ajax: {
                     url: _baseURL + '/api/report/old-student-invoice',
                     data: {
-                        data_filter: byFilter,
-                        search_filter: searchData,
+                        prodi_filter_angkatan: byFilter,
+                        prodi_search_filter: searchData,
                         prodi: '{{$programStudy}}'
                     },
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'study_program_n_faculty',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(row.studyprogram.studyprogram_name, row.studyprogram.faculty[0].faculty_name);
@@ -171,7 +159,7 @@
                         render: (data, _, row) => {
                             var listData = []
                             var payment = row.payment.payment_detail;
-                            for(var i = 0; i < payment.length; i++){
+                            for (var i = 0; i < payment.length; i++) {
                                 listData.push({
                                     name: payment[i].prrd_component,
                                     nominal: payment[i].prrd_amount
@@ -185,7 +173,7 @@
                         render: (data, _, row) => {
                             var listData = []
                             var payment = row.payment.payment_detail;
-                            for(var i = 0; i < payment.length; i++){
+                            for (var i = 0; i < payment.length; i++) {
                                 listData.push({
                                     name: payment[i].prrd_component,
                                     nominal: payment[i].prrd_amount
@@ -219,21 +207,31 @@
                         name: 'total_must_be_paid',
                         data: 'payment.prr_total',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
+                            return this.template.currencyCell(data, {
+                                bold: true,
+                                additionalClass: 'text-danger'
+                            });
                         }
                     },
                     {
                         name: 'paid_off_total',
                         data: 'payment.prr_paid',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
+                            return this.template.currencyCell(data, {
+                                bold: true,
+                                additionalClass: 'text-success'
+                            });
                         }
                     },
                     {
                         name: 'receivables_total',
                         render: (data, _, row) => {
                             var total = row.payment.prr_total - row.payment.prr_paid;
-                            return this.template.currencyCell(total, {bold: true, minus: true, additionalClass: 'text-warning'});
+                            return this.template.currencyCell(total, {
+                                bold: true,
+                                minus: true,
+                                additionalClass: 'text-warning'
+                            });
                         }
                     },
                     {
@@ -248,10 +246,9 @@
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-detail-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter">lB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -262,6 +259,11 @@
                     $('.old-student-invoice-detail-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
                     `)
+                    $('.search_filter').html(`
+                    <div class="dataTables_filter">
+                        <label><input type="text" id="searchFilterDetail" class="form-control" placeholder="Cari Data" onkeydown="searchDataDetail(event)"></label>
+                    </div>
+                    `)
                     feather.replace();
                 }
             })
@@ -271,63 +273,76 @@
 
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
-        init: function(student_number) {
+        init: function(student_number, search = '#ALL') {
             dtHistory = this.instance = $('#old-student-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/report/old-student-invoice/student-history/'+student_number,
+                    url: _baseURL + '/api/report/old-student-invoice/student-history/' + student_number,
+                    data: {
+                        search_filter: search
+                    }
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'payment_date',
                         data: 'prrb_invoice_num',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'invoice_component',
                         data: 'prrb_admin_cost',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'payment_nominal',
                         data: 'prrb_amount',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'payment_expired_date',
                         data: 'prrb_expired_date',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'payment_paid_date',
                         data: 'prrb_paid_date',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'payment_status',
                         data: 'prrb_status',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     }
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-payment-history-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter_history">lB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -338,6 +353,11 @@
                     $('.old-student-payment-history-actions').html(`
                         <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
                     `)
+                    $('.search_filter_history').html(`
+                    <div class="dataTables_filter">
+                        <label><input type="text" id="searchFilterHistory" class="form-control" placeholder="Cari Data" onkeydown="searchDataHistory(event)"></label>
+                    </div>
+                    `)
                     feather.replace();
                 }
             })
@@ -345,14 +365,38 @@
         template: _datatableTemplates,
     }
 
-    function toHistory(student_number){
-        if(dtHistory == null){
+    function toHistory(student_number) {
+        student = student_number;
+        if (dtHistory == null) {
             _oldStudentPaymentHistoryTable.init(student_number);
-        }else {
+        } else {
             dtHistory.clear().destroy()
             _oldStudentPaymentHistoryTable.init(student_number);
         }
         $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+    }
+
+    function filter(){
+        dtDetail.clear().destroy()
+        _oldStudentInvoiceDetailTable.init($('select[id="filterData"]').val())
+    }
+
+    function searchDataDetail(event){
+        if(event.key == 'Enter'){
+            var find = $('#searchFilterDetail').val();
+            $('#searchFilterDetail').val('');
+            dtDetail.clear().destroy();
+            _oldStudentInvoiceDetailTable.init($('select[id="filterData"]').val(), find);
+        }
+    }
+
+    function searchDataHistory(event){
+        if(event.key == 'Enter'){
+            var find = $('#searchFilterHistory').val();
+            $('#searchFilterHistory').val('');
+            dtHistory.clear().destroy();
+            _oldStudentPaymentHistoryTable.init(student, find);
+        }
     }
 </script>
 @endsection

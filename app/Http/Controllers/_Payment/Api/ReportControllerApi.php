@@ -26,6 +26,8 @@ class ReportControllerApi extends Controller
 
         $dataStudent = [];
         $spesifikProdi = $request->get('prodi');
+        $prodi_filter_angkatan = $request->get('prodi_filter_angkatan');
+        $prodi_search_filter = $request->get('prodi_search_filter');
 
         foreach ($year as $tahun) {
             $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
@@ -37,6 +39,9 @@ class ReportControllerApi extends Controller
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
                 $listStudent = $this->getColomns('ms2.*');
+                if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
+                    $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
+                }
                 $listStudent->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
                 
                 $studyProgram->student = $listStudent->get();
@@ -93,6 +98,16 @@ class ReportControllerApi extends Controller
         }
 
         if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+            if($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL){
+                $data_filter = [];
+                foreach($dataStudent as $list){
+                    $row = json_encode($list);
+                    if(strpos($row, $prodi_search_filter)){
+                        array_push($data_filter, $list);
+                    }
+                }
+                return DataTables($data_filter)->toJson();
+            }
             return DataTables($dataStudent)->toJson();
         }
 
@@ -112,11 +127,24 @@ class ReportControllerApi extends Controller
         return DataTables($data)->toJson();
     }
 
-    function oldStudentHistory($student_number){
+    function oldStudentHistory($student_number, Request $request){
+        $search = $request->get('search_filter');
         $data = $this->getColomns('prrb.*')->where('ms2.student_number', '=', $student_number)->distinct()->get();
         foreach($data as $items){
             $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
         }
+
+        if($search !== '#ALL' && $search !== NULL){
+            $data_filter = [];
+            foreach($data as $list){
+                $row = json_encode($list);
+                if(strpos($row, $search)){
+                    array_push($data_filter, $list);
+                }
+            }
+            return DataTables($data_filter)->toJson();
+        }
+        
         return DataTables($data)->toJson();
     }
 
