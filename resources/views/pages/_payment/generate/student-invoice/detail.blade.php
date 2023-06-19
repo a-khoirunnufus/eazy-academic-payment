@@ -411,7 +411,7 @@
                         <div class="dropdown-menu">
                             <a onclick="_studentInvoiceDetailTableAction.detail(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
                             <a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>
-                            <a onclick="_studentInvoiceDetailTableAction.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
+                            <a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
                         </div>
                     </div>
                 `
@@ -652,20 +652,29 @@
                     };
                     $.post(_baseURL + '/api/payment/generate/student-invoice/student', requestData, (data) => {
                         console.log(data);
-                        data = JSON.parse(data)
-                        Swal.fire({
-                            icon: 'success',
-                            text: data.message,
-                        }).then(() => {
-                            _studentInvoiceDetailTable.reload()
-                        });
+                        data = JSON.parse(data);
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                        
                     }).fail((error) => {
                         _responseHandler.generalFailResponse(error)
                     })
                 }
             })
         },
-        delete: function() {
+        delete: function(e) {
+            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus tagihan mahasiswa ini?',
@@ -678,10 +687,31 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tagihan',
-                    })
+                    if(data.payment){
+                        console.log(data);
+                        $.post(_baseURL + '/api/payment/generate/student-invoice/delete/' + data.payment.prr_id, {
+                            _method: 'DELETE'
+                        }, function(data){
+                            data = JSON.parse(data)
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }).fail((error) => {
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            });
+                            _responseHandler.generalFailResponse(error)
+                        })
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            text: 'Data Tagihan Tidak Ditemukan',
+                        })
+                    }
                 }
             })
         },
@@ -940,84 +970,105 @@
         logGenerate: function(e) {
             Modal.show({
                 type: 'detail',
-                modalTitle: 'Detail Mahasiswa',
+                modalTitle: 'Log Generate',
                 modalSize: 'lg',
                 config: {
                     fields: {
                         header: {
                             type: 'custom-field',
-                            title: 'Data Mahasiswa',
+                            title: 'Log Generate',
                             content: {
-                                template: `
-                                <div>
-                                    <div class="bg-white">
-                                        <div class="p-4 border-b">
-                                        <div class="flex items-center mb-1">
-                                            <h1 class="text-xl mr-4">Ini adalah contoh pesan</h1>
-                                            <span class="badge bg-success">Finished</span>
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
                                         </div>
-                                        <p class="text-sm text-gray-600">
-                                            Deployed to <b>Server</b> by
-                                            <b>Hafizh</b>
-                                        </p>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Fakultas</h6>
+                                            <h1 class="h6 fw-bolder">${header.faculty}</h1>
                                         </div>
-                                        <div class="border-b">
-                                        <div class="flex justify-between items-center p-2 px-4">
-                                            <div class="flex items-center">
-                                            <span class="text-gray-700 text-sm">Test Label</span>
-                                            </div>
-
-                                            <div class="flex items-center">
-                                            <span class="text-sm mr-2 text-gray-600"
-                                                >2m 30s</span
-                                            >
-                                            <span class="badge bg-success">Finished</span>
-                                            </div>
-                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Program Studi</h6>
+                                            <h1 class="h6 fw-bolder">${header.study_program}</h1>
                                         </div>
                                     </div>
-                                </div>
-                                `
+                                    <hr>
+                                </div>`
                             },
                         },
                         tagihan: {
                             type: 'custom-field',
-                            title: 'Detail Tagihan',
+                            title: '',
                             content: {
                                 template: `
-                                    <table class="table table-bordered" id="paymentDetail" style="line-height: 3">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Komponen Tagihan</th>
-                                            <th class="text-center">Harga</th>
-                                        </tr>
-                                        
-                                    </table>
+                                <div id="logGenerate">
+                                </div>
                                 `
                             },
                         },
-                        bill: {
-                            type: 'custom-field',
-                            title: 'Riwayat Transaksi',
-                            content: {
-                                template: `
-                                    <table class="table table-bordered" id="paymentBill">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Invoice ID</th>
-                                            <th class="text-center">Expired Date</th>
-                                            <th class="text-center">Amount</th>
-                                            <th class="text-center">Fee</th>
-                                            <th class="text-center">Paid Date</th>
-                                            <th class="text-center">Status</th>
-                                        </tr>
-                                    </table>
-                                `
-                            },
-                        },
+                        
                     },
                     callback: function() {
                         feather.replace();
                     }
                 },
+            });
+            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice', (data) => {
+                console.log(data);
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    data.map(item => {
+                        var timestamp = (new Date(item.created_at)).toLocaleString("id-ID");
+                        $('#logGenerate').append(`
+                            <div class="accordion border" id="accordionBody${item.mj_id}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.mj_id}" aria-expanded="false" aria-controls="collapse${item.mj_id}">
+                                            <div class="d-flex flex-column" style="gap: 1rem">
+                                                <div>${item.queue} (${timestamp}) <small class="fst-italic">by ${item.user.user_fullname}</small></div>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse${item.mj_id}" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionBody${item.mj_id}">
+                                        <div class="accordion-body p-0">
+                                            <ul class="list-group eazy-queue-list" id="list${item.mj_id}">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        item.detail.map(d => {
+                            var timestamp = (new Date(d.updated_at)).toLocaleString("id-ID");
+                            var status = "";
+                            if(d.status === 1){
+                                status = "<small class='fst-italic fs-6'>"+timestamp+"</small> <span class='badge bg-success'>Selesai</span>";
+                            }else if(d.status === 0){
+                                status = "<span class='badge bg-danger'>Gagal</span>";
+                            }else{
+                                status = "<span class='badge bg-primary'>Dalam Proses</span>";
+                            }
+                            
+                            $('#list'+item.mj_id).append(`
+                                <li class="list-group-item">
+                                    <div class="queue-item d-flex justify-content-between">
+                                        <div>
+                                            <div class="d-flex flex-row">
+                                                <span class="d-inline-block me-1">${d.title}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            ${status}
+                                        </div>
+                                    </div>
+                                </li>
+                            `);
+                        });
+                    });
+                }
             });
         },
     }

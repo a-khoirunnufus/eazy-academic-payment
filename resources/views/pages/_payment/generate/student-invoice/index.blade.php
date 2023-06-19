@@ -258,15 +258,14 @@
                         </button>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
-                            <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="_studentInvoiceTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.delete(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>
                     </div>
                 `
             }
         }
     }
-
+    // <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
     const _studentInvoiceTableActions = {
         tableRef: _studentInvoiceTable,
         generate: function() {
@@ -289,7 +288,7 @@
                 }
             })
         },
-        delete: function() {
+        delete: function(faculty_id,studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus tagihan pada unit ini?',
@@ -302,10 +301,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tagihan',
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/deleteBulk/' + faculty_id+'/'+studyprogram_id, {
+                        _method: 'DELETE'
+                    }, function(data){
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _studentInvoiceTable.reload()
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
                     })
+                    
                 }
             })
         },
@@ -551,6 +564,105 @@
             }else{
                 store[key] = {'student' : student, 'generate' : generate}
             }
+        },
+        logGenerate: function(e) {
+            Modal.show({
+                type: 'detail',
+                modalTitle: 'Log Generate',
+                modalSize: 'lg',
+                config: {
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: '',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Universitas</h6>
+                                            <h1 class="h6 fw-bolder">${header.university}</h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            title: '',
+                            content: {
+                                template: `
+                                <div id="logGenerate">
+                                </div>
+                                `
+                            },
+                        },
+                        
+                    },
+                    callback: function() {
+                        feather.replace();
+                    }
+                },
+            });
+            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice', (data) => {
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    data.map(item => {
+                        var timestamp = (new Date(item.created_at)).toLocaleString("id-ID");
+                        $('#logGenerate').append(`
+                            <div class="accordion border" id="accordionBody${item.mj_id}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.mj_id}" aria-expanded="false" aria-controls="collapse${item.mj_id}">
+                                            <div class="d-flex flex-column" style="gap: 1rem">
+                                                <div>${item.queue} (${timestamp}) <small class="fst-italic">by ${item.user.user_fullname}</small></div>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse${item.mj_id}" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionBody${item.mj_id}">
+                                        <div class="accordion-body p-0">
+                                            <ul class="list-group eazy-queue-list" id="list${item.mj_id}">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        item.detail.map(d => {
+                            var timestamp = (new Date(d.updated_at)).toLocaleString("id-ID");
+                            var status = "";
+                            if(d.status === 1){
+                                status = "<small class='fst-italic fs-6'>"+timestamp+"</small> <span class='badge bg-success'>Selesai</span>";
+                            }else if(d.status === 0){
+                                status = "<span class='badge bg-danger'>Gagal</span>";
+                            }else{
+                                status = "<span class='badge bg-primary'>Dalam Proses</span>";
+                            }
+                            
+                            $('#list'+item.mj_id).append(`
+                                <li class="list-group-item">
+                                    <div class="queue-item d-flex justify-content-between">
+                                        <div>
+                                            <div class="d-flex flex-row">
+                                                <span class="d-inline-block me-1">${d.title}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            ${status}
+                                        </div>
+                                    </div>
+                                </li>
+                            `);
+                        });
+                    });
+                }
+            });
         },
     }
 
