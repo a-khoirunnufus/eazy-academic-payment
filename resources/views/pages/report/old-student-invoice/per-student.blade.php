@@ -16,6 +16,11 @@
         .nav-tabs.custom .nav-link.active {
             background-color: #f2f2f2 !important;
         }
+        .toHistory:hover, .toHistory:hover small {
+            cursor: pointer;
+            color: #5399f5 !important;
+        }
+
     </style>
 @endsection
 
@@ -30,7 +35,7 @@
                 <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
             </li>
             <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history">Riwayat Pembayaran</button>
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history" disabled>Riwayat Pembayaran</button>
             </li>
         </ul>
         <div class="tab-content">
@@ -104,10 +109,12 @@
                 <table id="old-student-payment-history-table" class="table table-striped" >
                     <thead>
                         <tr>
+                            <th>Nomor Tagihan</th>
+                            <th>Biaya Admin</th>
+                            <th>Jumlah</th>
+                            <th>Batas Pembayaran</th>
                             <th>Tanggal Pembayaran</th>
-                            <th>Komponen Tagihan</th>
-                            <th>Nominal Pembayaran</th>
-                            <th>Metode Pembayaran</th>
+                            <th>status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -120,92 +127,121 @@
 
 @section('js_section')
 <script>
+    var dtDetail, dtHistory = null;
     $(document).ready(function () {
         select2Replace();
     });
 
     $(function(){
         _oldStudentInvoiceDetailTable.init();
-        _oldStudentPaymentHistoryTable.init()
+        // _oldStudentPaymentHistoryTable.init()
     })
 
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#old-student-invoice-detail-table').DataTable({
+        init: function(byFilter = '#ALL', searchData = '#ALL') {
+            dtDetail = this.instance = $('#old-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-invoice-per-student',
+                    url: _baseURL + '/api/report/old-student-invoice',
+                    data: {
+                        data_filter: byFilter,
+                        search_filter: searchData,
+                        prodi: '{{$programStudy}}'
+                    },
                 },
                 columns: [
                     {
                         name: 'study_program_n_faculty',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.study_program, row.faculty);
+                            return this.template.titleWithSubtitleCell(row.studyprogram.studyprogram_name, row.studyprogram.faculty[0].faculty_name);
                         }
                     },
                     {
                         name: 'student_name_n_id',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.student_name, row.student_id);
+                            var elm = `<div class="toHistory" onclick="toHistory('${row.student_number}')">`;
+                            elm += this.template.titleWithSubtitleCell(row.fullname, row.student_id);
+                            elm += `</div>`;
+                            return elm;
                         }
                     },
                     {
                         name: 'invoice',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            for(var i = 0; i < payment.length; i++){
+                                listData.push({
+                                    name: payment[i].prrd_component,
+                                    nominal: payment[i].prrd_amount
+                                });
+                            }
+                            return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
                         }
                     },
                     {
                         name: 'invoice_a',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_a_detail, row.invoice_a_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            for(var i = 0; i < payment.length; i++){
+                                listData.push({
+                                    name: payment[i].prrd_component,
+                                    nominal: payment[i].prrd_amount
+                                });
+                            }
+                            return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
                         }
                     },
                     {
                         name: 'invoice_b',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_b_detail, row.invoice_b_total);
+                            var listData = [];
+                            return this.template.invoiceDetailCell(listData, '0');
                         }
                     },
                     {
                         name: 'invoice_c',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_c_detail, row.invoice_c_total);
+                            var listData = [];
+                            return this.template.invoiceDetailCell(listData, '0');
                         }
                     },
                     {
                         name: 'invoice_d',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_d_detail, row.invoice_d_total);
+                            var listData = [];
+                            return this.template.invoiceDetailCell(listData, '0');
                         }
                     },
                     {
                         name: 'total_must_be_paid',
-                        data: 'total_must_be_paid',
+                        data: 'payment.prr_total',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
                         }
                     },
                     {
                         name: 'paid_off_total',
-                        data: 'paid_off_total',
+                        data: 'payment.prr_paid',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
                         }
                     },
                     {
                         name: 'receivables_total',
-                        data: 'receivables_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, minus: true, additionalClass: 'text-warning'});
+                        render: (data, _, row) => {
+                            var total = row.payment.prr_total - row.payment.prr_paid;
+                            return this.template.currencyCell(total, {bold: true, minus: true, additionalClass: 'text-warning'});
                         }
                     },
                     {
                         name: 'status',
-                        data: 'status',
-                        render: (data) => {
-                            return this.template.badgeCell(data, 'primary');
+                        render: (data, _, row) => {
+                            var total = row.payment.prr_total - row.payment.prr_paid;
+                            var status = total > 0 ? "Belum Lunas" : "Lunas"
+                            return this.template.badgeCell(status, 'primary');
                         }
                     },
                 ],
@@ -235,40 +271,55 @@
 
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#old-student-payment-history-table').DataTable({
+        init: function(student_number) {
+            dtHistory = this.instance = $('#old-student-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-payment-history',
+                    url: _baseURL+'/api/report/old-student-invoice/student-history/'+student_number,
                 },
                 columns: [
                     {
                         name: 'payment_date',
-                        data: 'payment_date',
-                        render: (data) => {
-                            return this.template.dateCell(data);
-                        }
-                    },
-                    {
-                        name: 'invoice_component',
-                        data: 'invoice_component',
+                        data: 'prrb_invoice_num',
                         render: (data) => {
                             return this.template.defaultCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'payment_nominal',
-                        data: 'payment_nominal',
+                        name: 'invoice_component',
+                        data: 'prrb_admin_cost',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
                         }
                     },
                     {
-                        name: 'payment',
-                        render: (data, _, row) => {
-                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
+                        name: 'payment_nominal',
+                        data: 'prrb_amount',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true});
                         }
                     },
+                    {
+                        name: 'payment_expired_date',
+                        data: 'prrb_expired_date',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {bold: true});
+                        }
+                    },
+                    {
+                        name: 'payment_paid_date',
+                        data: 'prrb_paid_date',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {bold: true});
+                        }
+                    },
+                    {
+                        name: 'payment_status',
+                        data: 'prrb_status',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {bold: true});
+                        }
+                    }
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -292,6 +343,16 @@
             })
         },
         template: _datatableTemplates,
+    }
+
+    function toHistory(student_number){
+        if(dtHistory == null){
+            _oldStudentPaymentHistoryTable.init(student_number);
+        }else {
+            dtHistory.clear().destroy()
+            _oldStudentPaymentHistoryTable.init(student_number);
+        }
+        $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
     }
 </script>
 @endsection

@@ -17,6 +17,6 @@ class ReportController extends Controller
 
     function oldStudentDetail($programStudy)
     {
-        return view('pages.report.old-student-invoice.per-student');
+        return view('pages.report.old-student-invoice.per-student', compact('programStudy'));
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\_Payment\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Faculty;
+use App\Models\Payment\Payment;
 use App\Models\Studyprogram;
 use App\Models\Year;
 use Illuminate\Http\Request;
@@ -22,15 +24,24 @@ class ReportControllerApi extends Controller
         $year = $year->get();
         $data = [];
 
+        $dataStudent = [];
+        $spesifikProdi = $request->get('prodi');
+
         foreach ($year as $tahun) {
-            $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id)->distinct()->get();
+            $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
+            if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
+            }
+            $list_studyProgram = $list_studyProgram->distinct()->get();
 
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
                 $listStudent = $this->getColomns('ms2.*');
                 $listStudent->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
+                
                 $studyProgram->student = $listStudent->get();
                 $studyProgram->year = $tahun;
+                $studyProgram->faculty = Faculty::where('faculty_id', '=', $studyProgram->faculty_id)->get();
     
                 foreach ($studyProgram->student as $list_student) {
                     $listPayment = $this->getColomns('prr.*')
@@ -68,11 +79,21 @@ class ReportControllerApi extends Controller
                         $list_payment->schoolarsip = $beasiswa;
                         $list_payment->discount = $potongan;
                         $list_student->payment = $list_payment;
-                        // $studyProgram->student = $list_student;
+                    }
+
+                    if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+                        $detail_prodi = $studyProgram;
+                        unset($detail_prodi->student);
+                        $list_student->studyprogram = $detail_prodi;
+                        array_push($dataStudent, $list_student);
                     }
                 }
                 array_push($data, $studyProgram);
             }
+        }
+
+        if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+            return DataTables($dataStudent)->toJson();
         }
 
         if($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL){
@@ -88,6 +109,14 @@ class ReportControllerApi extends Controller
         }
         
         // return json_encode($data);
+        return DataTables($data)->toJson();
+    }
+
+    function oldStudentHistory($student_number){
+        $data = $this->getColomns('prrb.*')->where('ms2.student_number', '=', $student_number)->distinct()->get();
+        foreach($data as $items){
+            $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
+        }
         return DataTables($data)->toJson();
     }
 

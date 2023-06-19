@@ -283,6 +283,7 @@
             var find = $('#searchFilter').val()
             $('#searchFilter').val('')
             
+            find = find == '' ? '#ALL': find;
             dt.clear().destroy()
             _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), find);
         }
