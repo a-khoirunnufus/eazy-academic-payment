@@ -1,4 +1,4 @@
-@extends('_student.layout-master')
+@extends('layouts.student.layout-master')
 
 @section('page_title', 'Pembayaran Mahasiswa')
 @section('sidebar-size', 'collapsed')
@@ -6,13 +6,13 @@
 
 @section('css_section')
     <style>
-        .table-info {
+        .eazy-table-info {
             display: inline-block;
         }
-        .table-info td {
+        .eazy-table-info td {
             padding: 10px 0;
         }
-        .table-info td:first-child {
+        .eazy-table-info td:first-child {
             padding-right: 1rem;
         }
 
@@ -31,6 +31,15 @@
             width: 100%;
             overflow-x: auto;
         }
+
+        #payment-method-not-selected,
+        #payment-method-selected {
+            display: none;
+        }
+        #payment-method-not-selected.show,
+        #payment-method-selected.show {
+            display: block;
+        }
     </style>
 @endsection
 
@@ -44,9 +53,9 @@
                     <i style="width: 35px; height: 35px" data-feather="user"></i>
                 </div>
                 <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Nama</small>
-                    <span class="fw-bolder" style="font-size: 16px">Armansyah Adhikara</span>
-                    <span class="text-secondary d-block">NIM : 1231023929</span>
+                    <small class="d-block">Nama dan No Partisipan</small>
+                    <span class="fw-bolder" style="font-size: 16px">{{ $user->fullname }}</span>
+                    <span class="text-secondary d-block">{{ $user->participant_number }}</span>
                 </div>
             </div>
             <div class="d-flex flex-row align-items-center" style="gap: 1rem">
@@ -54,9 +63,8 @@
                     <i style="width: 35px; height: 35px" data-feather="book-open"></i>
                 </div>
                 <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Informasi Studi</small>
-                    <span class="fw-bolder" style="font-size: 16px">Fakultas Informatika</span>
-                    <span class="text-secondary d-block">Tahun Kurikulum 2013</span>
+                    <small class="d-block">Fakultas</small>
+                    <span class="fw-bolder" style="font-size: 16px">N/A</span>
                 </div>
             </div>
             <div class="d-flex flex-row align-items-center" style="gap: 1rem">
@@ -64,9 +72,8 @@
                     <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
                 </div>
                 <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Informasi Studi</small>
-                    <span class="fw-bolder" style="font-size: 16px">S1 Informatika</span>
-                    <span class="text-secondary d-block">Angkatan 2023</span>
+                    <small class="d-block">Program Studi</small>
+                    <span class="fw-bolder" style="font-size: 16px">N/A</span>
                 </div>
             </div>
         </div>
@@ -85,19 +92,18 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="navs-invoice_n_va" role="tabpanel">
-                <table id="invoice-table" class="table table-striped">
+                <table id="table-unpaid-payment" class="table table-striped">
                     <thead>
                         <tr>
                             <th>Aksi</th>
-                            <th>Periode Masuk</th>
+                            <th>Tahun Akademik Tagihan</th>
                             <th>Kode Tagihan</th>
                             <th>Bulan</th>
-                            <th>Cicilan</th>
                             <th>Total / Rincian Tagihan</th>
                             <th>Total / Rincian Potongan</th>
                             <th>Total / Rincian Beasiswa</th>
-                            <th>Nominal</th>
-                            <th>Total Bayar</th>
+                            <th>Total / Rincian Denda</th>
+                            <th>Jumlah Total</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -126,11 +132,11 @@
 </div>
 
 <!-- Payment Detail Modal -->
-<div class="modal fade" id="paymentDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="unpaidPaymentDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
-                <h4 class="modal-title fw-bolder" id="paymentDetailModalLabel">Detail Pembayaran Tagihan</h4>
+                <h4 class="modal-title fw-bolder" id="unpaidPaymentDetailModalLabel">Tagihan Mahasiswa</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3 pt-0">
@@ -139,8 +145,8 @@
                         <img src="{{ url('images/logo-eazy-small.png') }}" style="height: 40px" alt="eazy logo">
                     </div>
                     <div>
-                        <span class="d-block fw-bold text-end" style="font-size: 12px">19/01/2023, 22:00</span>
-                        <span class="text-end" style="font-size: 10px">Invoice Pembayaran: <span class="fw-bold">INV/20192/2010210</span> | Telkom University</span>
+                        <span class="invoice-issue-date d-block fw-bold text-end" style="font-size: 12px">...</span>
+                        <span class="text-end" style="font-size: 10px">No Tagihan: <span class="invoice-number fw-bold">...</span> | Telkom University</span>
                     </div>
                 </div>
 
@@ -149,105 +155,37 @@
                     <div class="d-flex flex-row justify-content-between mb-4" style="gap: 2rem">
                         <div class="d-flex flex-column" style="gap: 5px">
                             <small class="d-block">Nama</small>
-                            <span class="fw-bolder">Armansyah Adhikara</span>
-                            <span class="text-secondary d-block">NIM : 1231023929 | TAK : 70</span>
+                            <span class="fw-bolder">{{ $user->fullname }}</span>
+                            <span class="text-secondary d-block">No Partisipan: {{ $user->participant_number }}</span>
                         </div>
                         <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Informasi Studi</small>
-                            <span class="fw-bolder">Fakultas Informatika</span>
-                            <span class="text-secondary d-block">Tahun Kurikulum 2013</span>
+                            <small class="d-block">Fakultas</small>
+                            <span class="fw-bolder">N/A</span>
                         </div>
                         <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Informasi Studi</small>
-                            <span class="fw-bolder">S1 Informatika</span>
-                            <span class="text-secondary d-block">Angkatan 2023</span>
-                        </div>
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Informasi Studi</small>
-                            <span class="fw-bolder text-success">LULUS</span>
-                            <span class="text-secondary d-block">IPK : 3.44</span>
+                            <small class="d-block">Program Studi</small>
+                            <span class="fw-bolder">N/A</span>
                         </div>
                     </div>
                 </div>
 
-                <div id="payment-data" class="mb-4">
-                    <h4 class="fw-bolder mb-1">Data Pembayaran</h4>
-                    <table class="table-info">
-                        <tr>
-                            <td>Nomor Invoice</td>
-                            <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;INV/20192/2010210<span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tenggat Pembayaran</td>
-                            <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;20-03-2023 / 00:00 WIB</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Status Pembayaran</td>
-                            <td>
-                                :&nbsp;&nbsp;<span class="badge bg-warning">Menunggu Pembayaran</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div id="invoice-detail" class="mb-3">
-                    <h4 class="fw-bolder mb-2">Rincian Tagihan</h4>
-                    <table class="table table-bordered">
+                <div id="invoice-detail" class="mb-4">
+                    <h4 class="fw-bolder mb-1">Detail Tagihan</h4>
+                    <table id="table-invoice-detail" class="table table-bordered">
                         <thead>
                             <tr>
                                 <th>Komponen Tagihan</th>
                                 <th>Biaya Bayar</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>BPP</td>
-                                <td>Rp 500,000,00</td>
-                            </tr>
-                            <tr>
-                                <td>Praktikum</td>
-                                <td>Rp 200,000,00</td>
-                            </tr>
-                            <tr>
-                                <td>SKS</td>
-                                <td>Rp 20,000,00</td>
-                            </tr>
-                            <tr>
-                                <td>Seragam</td>
-                                <td>Rp 100,000,00</td>
-                            </tr>
-                            <tr>
-                                <td>Denda</td>
-                                <td>Rp 0,00</td>
-                            </tr>
-                            <tr>
-                                <td>Beasiswa</td>
-                                <td>Rp 0,00</td>
-                            </tr>
-                            <tr>
-                                <td>Potongan</td>
-                                <td>- Rp 200,000,00</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th>Total Tagihan</th>
-                                <th>Rp 700,000,00</th>
-                            </tr>
-                        </tfoot>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
                     </table>
                 </div>
 
                 <div class="d-flex justify-content-start" style="gap: 1rem">
-                    <a type="button" href="{{ url('student/proceed-payment') }}" class="btn btn-success d-inline-block">
-                        <i data-feather="check-circle"></i>&nbsp;&nbsp;Bayar
-                    </a>
-                    <button type="button" class="btn btn-danger d-inline-block" data-bs-dismiss="modal">
-                    <i data-feather="x"></i>&nbsp;&nbsp;Batal
+                    <a type="button" id="btn-proceed-payment" data-eazy-prr-id="" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
+                        Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
                     </a>
                 </div>
             </div>
@@ -256,40 +194,47 @@
 </div>
 @endsection
 
-
 @section('js_section')
 <script>
     $(function(){
-        _invoiceTable.init();
-        _paymentTable.init();
-    })
+        _unpaidPaymentTable.init();
+        // _paidPaymentTable.init();
+    });
 
-    const _invoiceTable = {
+    const userMaster = JSON.parse(`{!! json_encode($user) !!}`);
+
+    const _unpaidPaymentTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#invoice-table').DataTable({
+            this.instance = $('#table-unpaid-payment').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/student/api/dt/invoice',
+                    url: _baseURL+'/api/student/payment/unpaid-payment',
+                    data: function(d) {
+                        d.participant_id = userMaster.participant_id;
+                    }
                 },
                 columns: [
                     {
                         name: 'action',
-                        data: 'id',
+                        data: 'prr_id',
                         orderable: false,
                         render: (data, _, row) => {
                             return this.template.rowAction(data)
                         }
                     },
                     {
-                        name: 'entry_period',
+                        name: 'school_year_invoice',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.period, row.semester);
+                            return this.template.titleWithSubtitleCell(
+                                row.invoice_school_year_year,
+                                'Semester '+row.invoice_school_year_semester
+                            );
                         }
                     },
                     {
-                        name: 'invoice_code',
-                        data: 'invoice_code',
+                        name: 'invoice_number',
+                        data: 'invoice_number',
                         render: (data) => {
                             return this.template.defaultCell(data, {bold: true});
                         }
@@ -298,46 +243,56 @@
                         name: 'month',
                         data: 'month',
                         render: (data) => {
-                            return this.template.defaultCell(data);
-                        }
-                    },
-                    {
-                        name: 'nth_installment',
-                        data: 'nth_installment',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {prefix: 'Cicilan Ke-'});
+                            return this.template.defaultCell(data ?? '-');
                         }
                     },
                     {
                         name: 'invoice',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
+                            const invoiceDetailJson = row.invoice_detail;
+                            const invoiceDetail = JSON.parse(unescapeHtml(invoiceDetailJson));
+                            const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+                            return this.template.invoiceDetailCell(invoiceDetail, invoiceTotal);
                         }
                     },
                     {
                         name: 'discount',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.discount_detail, row.discount_total);
+                            const discountDetailJson = row.discount_detail;
+                            const discountDetail = JSON.parse(unescapeHtml(discountDetailJson));
+                            const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+                            return discountDetail.length > 0 ?
+                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal)
+                                : '-';
                         }
                     },
                     {
                         name: 'scholarship',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.scholarship_detail, row.scholarship_total);
+                            const scholarshipDetailJson = row.scholarship_detail;
+                            const scholarshipDetail = JSON.parse(unescapeHtml(scholarshipDetailJson));
+                            const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+                            return scholarshipDetail.length > 0 ?
+                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal)
+                                : '-';
                         }
                     },
                     {
-                        name: 'all_invoice_total',
-                        data: 'all_invoice_total',
+                        name: 'penalty',
+                        render: (data, _, row) => {
+                            const penaltyDetailJson = row.penalty_detail;
+                            const penaltyDetail = JSON.parse(unescapeHtml(penaltyDetailJson));
+                            const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+                            return penaltyDetail.length > 0 ?
+                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal)
+                                : '-';
+                        }
+                    },
+                    {
+                        name: 'total_amount',
+                        data: 'total_amount',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'payment_total',
-                        data: 'payment_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
                         }
                     },
                 ],
@@ -381,8 +336,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentDetailModal"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
-                            <a class="dropdown-item" href="${_baseURL+'/student/proceed-payment'}"><i data-feather="credit-card"></i>&nbsp;&nbsp;Lanjutkan Pembayaran</a>
+                            <a class="dropdown-item" onclick="_unpaidPaymentTableAction.detail(event)"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
                         </div>
                     </div>
                 `
@@ -390,13 +344,83 @@
         }
     }
 
-    const _paymentTable = {
+    const unpaidPaymentDetailModal = new bootstrap.Modal(document.getElementById('unpaidPaymentDetailModal'));
+
+    const _unpaidPaymentTableAction = {
+        detail: function(e) {
+            const data = _unpaidPaymentTable.getRowData(e.currentTarget);
+
+            $('#unpaidPaymentDetailModal #invoice-header .invoice-issue-date').text(moment(data.invoice_issued_date).format('DD MMMM YYYY, HH:mm'));
+            $('#unpaidPaymentDetailModal #invoice-header .invoice-number').text(data.invoice_number);
+
+            const invoiceDetail = JSON.parse(unescapeHtml(data.invoice_detail));
+            const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+            const discountDetail = JSON.parse(unescapeHtml(data.discount_detail));
+            const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+            const scholarshipDetail = JSON.parse(unescapeHtml(data.scholarship_detail));
+            const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+            const penaltyDetail = JSON.parse(unescapeHtml(data.penalty_detail));
+            const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
+            const totalAmount = (invoiceTotal + penaltyTotal) - (discountTotal + scholarshipTotal);
+            $('#unpaidPaymentDetailModal #invoice-detail #table-invoice-detail tbody').html(`
+                ${invoiceDetail.map(item => {
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${Rupiah.format(item.nominal)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+                ${discountDetail.map(item => {
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${Rupiah.format(item.nominal)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+                ${scholarshipDetail.map(item => {
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${Rupiah.format(item.nominal)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+                ${penaltyDetail.map(item => {
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${Rupiah.format(item.nominal)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            `);
+            $('#unpaidPaymentDetailModal #invoice-detail #table-invoice-detail tfoot').html(`
+                <tr>
+                    <th>Total Tagihan</th>
+                    <th>${Rupiah.format(totalAmount)}</th>
+                </tr>
+            `);
+
+            $('#unpaidPaymentDetailModal #btn-proceed-payment').attr('data-eazy-prr-id', data.prr_id);
+
+            unpaidPaymentDetailModal.show();
+        }
+    }
+
+    function proceedPayment(e) {
+        const prrId = $(e.currentTarget).attr('data-eazy-prr-id');
+        window.location.href = _baseURL+'/student/payment/proceed-payment/'+prrId;
+    }
+
+    const _paidPaymentTable = {
         ..._datatable,
         init: function() {
             this.instance = $('#payment-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/student/api/dt/payment',
+                    url: _baseURL+'/api/student/paid-payment',
                 },
                 columns: [
                     {
@@ -502,6 +526,6 @@
         }
     }
 
-    const paymentDetailModal = new bootstrap.Modal(document.getElementById('paymentDetailModal'));
+
 </script>
 @endsection

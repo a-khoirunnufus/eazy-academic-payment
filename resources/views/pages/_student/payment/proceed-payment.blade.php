@@ -1,8 +1,8 @@
-@extends('_student.layout-master')
+@extends('layouts.student.layout-master')
 
 @section('page_title', 'Proses Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', url('_student/payment'))
+@section('url_back', url('student/payment'))
 
 @section('css_section')
     <style>
@@ -171,6 +171,6 @@
 
 @section('js_section')
 <script>
-    
+
 </script>
 @endsection
