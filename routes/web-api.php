@@ -110,6 +110,7 @@ Route::group(['prefix' => 'report'], function(){
 Route::group(['prefix' => 'student'], function(){
     Route::get('payment/unpaid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@unpaidPayment');
     Route::get('payment/paid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@paidPayment');
+    Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
 });
 
 // Note: untuk mendownload file, baru lokal file yang diimplementasikan.

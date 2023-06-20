@@ -6,7 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\Authentication\StaticStudentUser;
 use App\Models\Payment\Payment;
+use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\PaymentBill;
+use App\Models\Masterdata\MsPaymentMethod;
+use App\Models\PMB\Setting;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -114,5 +119,58 @@ class PaymentController extends Controller
         $datatable = datatables($data);
 
         return $datatable->toJSON();
+    }
+
+    public function selectMethod(Request $request) {
+        $validated = $request->validate([
+            'prr_id' => 'required',
+            'method' => 'required|in:bca,mandiri,bni',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $payment_method = MsPaymentMethod::where('mpm_key', $validated['method'])->first();
+            $eazy_service_cost = Setting::where('setting_key', 'biaya_service_eazy')->first()->setting_value;
+
+            $invoice_total_net = 0;
+            $payment_detail = PaymentDetail::where('prr_id', '=', $validated['prr_id'])->get();
+            foreach($payment_detail as $payment_item) {
+                if ($payment_item->is_plus == 1) {
+                    $invoice_total_net += $payment_item->prrd_amount;
+                } else {
+                    $invoice_total_net -= $payment_item->prrd_amount;
+                }
+            }
+
+            $invoice_total = $invoice_total_net + intval($payment_method->mpm_fee);
+            $partner_net_income = $invoice_total_net - intval($eazy_service_cost);
+
+            $payment = Payment::find($validated['prr_id']);
+            $payment->prr_method = $validated['method'];
+            $payment->prr_total = $invoice_total;
+            $payment->prr_paid_net = $partner_net_income;
+            $payment->save();
+
+            PaymentBill::where('prr_id', '=', $payment->prr_id)->update([
+                'prrb_invoice_num' => $payment_method->mpm_account_number,
+                'prrb_expired_date' => Carbon::now()->addHours(24)->format('Y-m-d'),
+                'prrb_admin_cost' => $payment_method->mpm_fee,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasl memilih metode pembayaran',
+        ], 200);
     }
 }
