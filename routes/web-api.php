@@ -95,7 +95,16 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('student-invoice/deleteBulk/{faculty}/{studyProgram}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteBulk');
         Route::get('student-invoice/log-invoice', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@logGenerate');
     });
+
+    Route::group(['prefix' => 'discount'], function(){
+        Route::get('index', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@index');
+        Route::get('period', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@period');
+        Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@store');
+        Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@delete');
+    });
 });
+
+
 
 Route::group(['prefix' => 'report'], function(){
     Route::group(['prefix' => 'old-student-invoice'], function(){
