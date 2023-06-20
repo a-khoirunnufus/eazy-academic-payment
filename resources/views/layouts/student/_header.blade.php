@@ -15,14 +15,14 @@
             <ul class="nav navbar-nav bookmark-icons align-items-center">
                 <li class="nav-item d-none d-lg-block">
                     <div class="ms-1">
-                        <h4 class="h5 mb-0 fw-bolder text-eazy">Universitas Pembangunan Nasional Veteran Yogyakarta</h4>
-                        <small class="mb-0 text-dark fw-bold">EAZY - Educational Smart System</small>
+                        <h4 class="h5 mb-0 fw-bolder text-eazy">Universitas Eazy</h4>
+                        <small class="mb-0 text-dark fw-bold">EAZY - Academic</small>
                     </div>
                 </li>
             </ul>
         </div>
         <ul class="nav navbar-nav align-items-center ms-auto">
-            <li class="nav-item dropdown dropdown-notification me-1"><a class="nav-link" href="#"
+            <li class="nav-item dropdown dropdown-notification"><a class="nav-link" href="#"
                     data-bs-toggle="dropdown"><i class="ficon" data-feather="bell"></i><span
                         class="badge rounded-pill bg-danger badge-up">5</span></a>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-end">
@@ -51,7 +51,7 @@
                 </ul>
             </li>
 
-            <li class="nav-item dropdown dropdown-notification me-1">
+            {{-- <li class="nav-item dropdown dropdown-notification me-1">
                 <button class="btn dropdown-toggle" data-bs-toggle="dropdown">
                     <span class="fw-bolder"><i data-feather="users" class="ficon me-1"></i>Mahasiswa</span>
                 </button>
@@ -63,8 +63,8 @@
                         </div>
                     </li>
                     <li class="scrollable-container media-list">
-                        {{-- @foreach (auth()->getAvailableRoles() as $role)  
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}"> 
+                        @foreach (auth()->getAvailableRoles() as $role)
+                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}">
                             <div class="list-item d-flex align-items-start">
                                 <div class="me-1">
                                     <div class="avatar bg-light-danger">
@@ -77,8 +77,8 @@
                                 </div>
                             </div>
                         </a>
-                        @endforeach --}}
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . 'test') }}"> 
+                        @endforeach
+                        <a class="d-flex" href="{{ url('switchrole' . '/' . 'test') }}">
                             <div class="list-item d-flex align-items-start">
                                 <div class="me-1">
                                     <div class="avatar bg-light-danger">
@@ -93,8 +93,8 @@
                         </a>
                     </li>
                 </ul>
-            </li>            
-            
+            </li> --}}
+
             <!-- <li class="nav-item nav-search"><a class="nav-link nav-link-search"><i class="ficon"
                         data-feather="search"></i></a>
                 <div class="search-input">
@@ -108,17 +108,16 @@
             <!-- <li class="nav-item d-none d-lg-block"><a class="nav-link nav-link-style"><i class="ficon" data-feather="moon"></i></a></li> -->
 
 
-            <li class="nav-item dropdown dropdown-user ps-1 border-start"><a class="nav-link dropdown-toggle dropdown-user-link"
-                    id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
-                    <span class="avatar me-1">
+            <li class="nav-item dropdown dropdown-user ps-1">
+                <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <div class="user-nav d-sm-flex d-none m-0">
+                        <span class="user-name fw-bolder" style="margin-bottom: .5rem">{{ $user->fullname }}</span>
+                        <span class="user-status">Mahasiswa</span>
+                    </div>
+                    <span class="avatar ms-1">
                         <img class="round" src="{{ asset('images/defaultavatar.jpg') }}" style="height: 40px; width: 40px">
                         <span class="avatar-status-online"></span>
                     </span>
-                    <div class="user-nav d-sm-flex d-none m-0">
-                        <span class="user-name fw-bolder m-0">Armansyah Adhikara</span>
-                        <!-- <span class="user-status">Admin Keuangan</span> -->
-                    </div>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user"><a class="dropdown-item"
                         href="page-profile.html"><i class="me-50" data-feather="user"></i> Profile</a><a

@@ -34,8 +34,8 @@ class ReRegistration {
         $query = DB::table('pmb.register as register')
             ->leftjoin('pmb.participant as participant', 'participant.par_id', '=', 'register.par_id')
             ->leftJoin('masterdata.ms_school_year as school_year', 'school_year.msy_id', '=', 'register.ms_school_year_id')
-            ->leftJoin('pmb.ms_period as period', 'period.period_id', '=', 'register.ms_period_id')
-            ->leftJoin('pmb.ms_path as path', 'path.path_id', '=', 'register.ms_path_id')
+            ->leftJoin('masterdata.ms_period as period', 'period.period_id', '=', 'register.ms_period_id')
+            ->leftJoin('masterdata.ms_path as path', 'path.path_id', '=', 'register.ms_path_id')
             ->leftJoin('masterdata.ms_studyprogram as studyprogram', 'studyprogram.studyprogram_id', '=', 'register.reg_major_pass')
             ->leftJoin('masterdata.ms_lecture_type as lecture_type', 'lecture_type.mlt_id', '=', DB::raw('register.reg_major_lecture_type_pass::INTEGER'))
             ->leftJoin('masterdata.ms_faculties as faculty', 'faculty.faculty_id', '=', 'studyprogram.faculty_id');

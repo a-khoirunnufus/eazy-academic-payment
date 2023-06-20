@@ -9,10 +9,11 @@ use App\Models\PMB\Setting;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\PaymentBill;
 
 class GenerateOne {
 
-    private static $force_generate = true;
+    private static $force_generate = false;
 
     public static function generate(int $invoice_period_code, int $register_id)
     {
@@ -64,7 +65,8 @@ class GenerateOne {
                 'prr_status' => 'belum lunas',
                 'prr_total' => $invoice_total,
                 'prr_paid_net' => $partner_net_income,
-                'prr_school_year' => $invoice_period_code
+                'prr_school_year' => $invoice_period_code,
+                'par_id' => $register->par_id,
             ]);
 
             // insert payment_re_register_detail records
@@ -73,8 +75,17 @@ class GenerateOne {
                     'prr_id' => $payment->prr_id,
                     'prrd_component' => $item->component->msc_name,
                     'prrd_amount' => $item->cd_fee,
+                    'is_plus' => 1,
+                    'type' => 'component',
                 ]);
             }
+
+            // insert payment_re_register_bill record
+            PaymentBill::create([
+                'prr_id' => $payment->prr_id,
+                'prrb_status' => 'belum lunas',
+                'prrb_amount' => $invoice_total,
+            ]);
 
             DB::commit();
         } catch (\Throwable $th) {
