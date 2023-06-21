@@ -15,7 +15,8 @@ class ReportController extends Controller
     function oldStudent()
     {
         $year = Year::all();
-        return view('pages.report.old-student-invoice.per-study-program', compact('year'));
+        $faculty = Faculty::all();
+        return view('pages.report.old-student-invoice.per-study-program', compact('year', 'faculty'));
     }
 
     function oldStudentDetail($programStudy)
@@ -24,9 +25,15 @@ class ReportController extends Controller
         return view('pages.report.old-student-invoice.per-student', compact('programStudy','angkatan'));
     }
 
+    function newStudentDetail($programStudy)
+    {
+        $angkatan = Year::all();
+        return view('pages.report.new-student-invoice.per-student', compact('programStudy','angkatan'));
+    }
+
     function newStudent(){
         $year = Year::all();
-        $prodi = Faculty::all();
-        return view('pages.report.new-student-invoice.per-study-program', compact('year', 'prodi'));
+        $faculty = Faculty::all();
+        return view('pages.report.new-student-invoice.per-study-program', compact('year', 'faculty'));
     }
 }

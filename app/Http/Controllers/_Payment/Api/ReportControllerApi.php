@@ -23,6 +23,8 @@ class ReportControllerApi extends Controller
         }
         $year = $year->get();
         $data = [];
+        $id_faculty = $request->get('id_faculty');
+        $id_prodi = $request->get('id_prodi');
 
         $dataStudent = [];
         $spesifikProdi = $request->get('prodi');
@@ -33,6 +35,12 @@ class ReportControllerApi extends Controller
             $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
             if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
                 $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
+            }
+            if($id_faculty !== '#ALL' && $id_faculty !== NULL){
+                $list_studyProgram = $list_studyProgram->where('ms.faculty_id', '=', $id_faculty);
+            }
+            if($id_prodi !== '#ALL' && $id_prodi !== NULL){
+                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $id_prodi);
             }
             $list_studyProgram = $list_studyProgram->distinct()->get();
 
@@ -171,9 +179,12 @@ class ReportControllerApi extends Controller
 
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
-                $listStudent = $this->getNew('p.*');
+                $listStudent = $this->getNew(
+                    'p.par_id', 'p.par_fullname', 'p.par_nik', 'p.par_phone', 'p.par_birthday', 'p.par_gender', 'p.par_religion', 
+                    'r.reg_id', 'r.ms_period_id', 'r.ms_path_id'
+                );
                 if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
-                    $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
+                    // $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
                 }
                 $listStudent->where('ms.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
                 
@@ -183,7 +194,7 @@ class ReportControllerApi extends Controller
     
                 foreach ($studyProgram->student as $list_student) {
                     $listPayment = $this->getNew('prr.*')
-                        ->where('prr.student_number', '=', $list_student->student_number)
+                        ->where('prr.reg_id', '=', $list_student->reg_id)
                         ->distinct()->get();
     
                     $denda = 0;
@@ -272,9 +283,31 @@ class ReportControllerApi extends Controller
         // return json_encode($data);
         return DataTables($data)->toJson();
     }
+    
     function oldStudentHistory($student_number, Request $request){
         $search = $request->get('search_filter');
         $data = $this->getColomns('prrb.*')->where('ms2.student_number', '=', $student_number)->distinct()->get();
+        foreach($data as $items){
+            $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
+        }
+
+        if($search !== '#ALL' && $search !== NULL){
+            $data_filter = [];
+            foreach($data as $list){
+                $row = json_encode($list);
+                if(strpos($row, $search)){
+                    array_push($data_filter, $list);
+                }
+            }
+            return DataTables($data_filter)->toJson();
+        }
+        
+        return DataTables($data)->toJson();
+    }
+
+    function newStudentHistory($student_number, Request $request){
+        $search = $request->get('search_filter');
+        $data = $this->getNew('prrb.*')->where('p.par_id', '=', $student_number)->distinct()->get();
         foreach($data as $items){
             $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
         }
@@ -310,10 +343,16 @@ class ReportControllerApi extends Controller
         return DB::table('masterdata.ms_studyprogram as ms')
             ->select($list_colomns)
             ->join('pmb.register as r', 'r.reg_major_pass', '=', 'ms.studyprogram_id')
-            ->join('pmb.participant as p', 'r.par_id = p.par_id')
+            ->join('pmb.participant as p', 'r.par_id', '=', 'p.par_id')
             ->join('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'r.ms_school_year_id')
             ->join('finance.payment_re_register as prr', 'prr.reg_id', '=', 'r.reg_id')
             ->join('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
             ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id');
+    }
+
+    function getProdi($faculty){
+        $data = Studyprogram::where('faculty_id', '=', $faculty)->get();
+        
+        return $data;
     }
 }

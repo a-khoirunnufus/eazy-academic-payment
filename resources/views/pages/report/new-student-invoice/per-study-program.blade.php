@@ -1,5 +1,16 @@
 @extends('layouts.static_master')
 
+@section('css_section')
+<style>
+    .space {
+        margin-left: 10px;
+    }
+    .filter-container {
+        min-width: 200px !important;
+    }
+</style>
+@endsection
+
 @section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
@@ -11,7 +22,7 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex">
-            <div>
+            <div class="filter-container">
                 <label class="form-label">Tahun Akademik dan Semester</label>
                 <select class="form-select select2" id="filterData">
                     <option value="#ALL">Semua Tahun Akademik dan Semester</option>
@@ -20,7 +31,22 @@
                     @endforeach
                 </select>
             </div>
-            <div class="m-1 mb-0 align-self-end">
+            <div class="space filter-container">
+                <label class="form-label">Fakultas</label>
+                <select class="form-select select2" id="facultyFilter" onchange="getProdi()">
+                    <option value="#ALL">Semua Fakultas</option>
+                    @foreach($faculty as $item)
+                    <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="space filter-container">
+                <label class="form-label">Program Study</label>
+                <select class="form-select select2" id="prodiFilter">
+                    <option value="#ALL">Semua Program Study</option>
+                </select>
+            </div>
+            <div class="align-self-end space">
                 <button class="btn btn-primary" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
@@ -70,106 +96,189 @@
 
 @section('js_section')
 <script>
-    $(document).ready(function () {
+    var total_tagihan = 0;
+    var total_denda = 0;
+    var total_beasiswa = 0;
+    var total_potongan = 0;
+    var total_terbayar = 0;
+    var total_harus_bayar = 0;
+    var total_piutang = 0;
+    var all_total_tagihan = 0;
+    var all_total_denda = 0;
+    var all_total_beasiswa = 0;
+    var all_total_potongan = 0;
+    var all_total_terbayar = 0;
+    var all_total_harus_bayar = 0;
+    var all_total_piutang = 0;
+    var total_mahasiswa = 0;
+    var total_mahasiswa_lunas = 0;
+    var total_mahasiswa_belum_lunas = 0;
+
+    var dt;
+
+    $(document).ready(function() {
         select2Replace();
     });
 
-    $(function(){
+    $(function() {
         _oldStudentInvoiceTable.init()
     })
 
     const _oldStudentInvoiceTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#new-student-invoice-table').DataTable({
+        init: function(byFilter = '#ALL', faculty = '#ALL', prodi = '#ALL', searchData = '#ALL') {
+            all_total_tagihan = 0;
+            all_total_denda = 0;
+            all_total_beasiswa = 0;
+            all_total_potongan = 0;
+            all_total_terbayar = 0;
+            all_total_harus_bayar = 0;
+            all_total_piutang = 0;
+            var colsfoot = $($($('tfoot').children('tr')[0]).children('th'))
+
+            dt = this.instance = $('#new-student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-new-student-invoice-per-study-program',
+                    url: _baseURL + '/api/report/new-student-invoice',
+                    data: {
+                        data_filter: byFilter,
+                        search_filter: searchData,
+                        id_faculty: faculty,
+                        id_prodi: prodi
+                    },
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'academic_year',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.school_year, row.semester);
+                            return this.template.titleWithSubtitleCell(row.year.msy_year, row.year.msy_semester);
                         }
                     },
                     {
                         name: 'study_program_name',
-                        data: 'study_program_name',
-                        render: (data) => {
-                            return this.template.buttonLinkCell(data, {link: _baseURL+'/report/new-student-invoice?type=student'});
+                        data: 'studyprogram_name',
+                        render: (data, _, row) => {
+                            return this.template.buttonLinkCell(data, {
+                                link: _baseURL + '/report/new-student-invoice/program-study/' + row.studyprogram_id
+                            });
                         }
                     },
                     {
                         name: 'student',
                         render: (data, _, row) => {
-                            const listHeader = [
-                                {label: 'Lunas', value: row.paid_off_count},
-                                {label: 'Belum Lunas', value: row.not_paid_off_count}
+                            total_tagihan = 0;
+                            total_denda = 0;
+                            total_beasiswa = 0;
+                            total_potongan = 0;
+                            total_terbayar = 0;
+                            total_harus_bayar = 0;
+                            total_piutang = 0;
+                            total_mahasiswa = 0;
+                            total_mahasiswa_lunas = 0;
+                            total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang += total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
+
+                            all_total_tagihan += total_tagihan;
+                            colsfoot[1].innerHTML = this.template.currencyCell(all_total_tagihan);
+                            all_total_denda += total_denda;
+                            colsfoot[2].innerHTML = this.template.currencyCell(all_total_denda);
+                            all_total_beasiswa += total_beasiswa;
+                            colsfoot[3].innerHTML = this.template.currencyCell(all_total_beasiswa);
+                            all_total_potongan += total_potongan;
+                            colsfoot[4].innerHTML = this.template.currencyCell(all_total_potongan);
+                            all_total_harus_bayar += total_harus_bayar;
+                            colsfoot[5].innerHTML = this.template.currencyCell(all_total_harus_bayar);
+                            all_total_terbayar += total_terbayar;
+                            colsfoot[6].innerHTML = this.template.currencyCell(all_total_terbayar);
+                            all_total_piutang += total_piutang;
+                            colsfoot[7].innerHTML = this.template.currencyCell(all_total_piutang);
+
+                            const listHeader = [{
+                                    label: 'Lunas',
+                                    value: total_mahasiswa_lunas
+                                },
+                                {
+                                    label: 'Belum Lunas',
+                                    value: total_mahasiswa_belum_lunas
+                                }
                             ];
-                            const listItem = [
-                                {label: 'Jumlah Mahasiswa', value: row.student_count}
-                            ];
+                            const listItem = [{
+                                label: 'Jumlah Mahasiswa',
+                                value: total_mahasiswa
+                            }];
                             return this.template.listDetailCellV2(listItem, listHeader);
                         }
                     },
                     {
                         name: 'invoice_a',
-                        data: 'invoice_a',
-                        render: (data) => {
-                            return this.template.currencyCell(data);
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_tagihan);
                         }
                     },
                     {
                         name: 'invoice_b',
-                        data: 'invoice_b',
-                        render: (data) => {
-                            return this.template.currencyCell(data);
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_denda);
                         }
                     },
                     {
                         name: 'invoice_c',
-                        data: 'invoice_c',
-                        render: (data) => {
-                            return this.template.currencyCell(data);
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_beasiswa);
                         }
                     },
                     {
                         name: 'invoice_d',
-                        data: 'invoice_d',
-                        render: (data) => {
-                            return this.template.currencyCell(data);
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_potongan);
                         }
                     },
                     {
                         name: 'invoice_total',
-                        data: 'invoice_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_harus_bayar, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'paid_off_total',
-                        data: 'paid_off_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_terbayar, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'receivables_total',
-                        data: 'receivables_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                        render: (data, _, row) => {
+                            return this.template.currencyCell(total_piutang, {
+                                bold: true
+                            });
                         }
                     }
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter">lB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -177,14 +286,61 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.new-student-invoice-actions').html(`
+                    $('.old-student-invoice-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
+                    `)
+                    $('.search_filter').html(`
+                    <div class="dataTables_filter">
+                        <label><input type="text" id="searchFilter" class="form-control" placeholder="Cari Data" onkeydown="searchData(event)"></label>
+                    </div>
                     `)
                     feather.replace();
                 }
             })
         },
         template: _datatableTemplates,
+    }
+
+    function filter() {
+        var faculty = $('select[id="facultyFilter"]').val()
+        var prodi = $('select[id="prodiFilter"]').val()
+        dt.clear().destroy()
+        _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), faculty, prodi);
+    }
+
+    function getProdi() {
+        $('#prodiFilter').html(`
+                <option value="#ALL">Semua Program Study</option>
+            `)
+
+        var faculty = $('select[id="facultyFilter"]').val()
+        if (faculty != '#ALL') {
+            var xhr = new XMLHttpRequest()
+            xhr.onload = function() {
+                var data = JSON.parse(this.responseText);
+                for (var i = 0; i < data.length; i++) {
+                    $('#prodiFilter').append(`
+                        <option value="${data[i].studyprogram_id}">${data[i].studyprogram_name}</option>
+                    `)
+                }
+            }
+            xhr.open('GET', _baseURL + '/api/report/getProdi/' + faculty);
+            xhr.send()
+        }
+    }
+
+    function searchData(event) {
+        if (event.key == 'Enter') {
+            var find = $('#searchFilter').val()
+            $('#searchFilter').val('')
+
+            find = find == '' ? '#ALL' : find;
+            var faculty = $('select[id="facultyFilter"]').val()
+            var prodi = $('select[id="prodiFilter"]').val()
+
+            dt.clear().destroy()
+            _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), faculty, prodi, find);
+        }
     }
 </script>
 @endsection

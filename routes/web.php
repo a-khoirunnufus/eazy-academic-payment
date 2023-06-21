@@ -69,6 +69,7 @@ Route::group(['prefix' => 'report'], function () {
     });
     Route::group(['prefix' => 'new-student-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudent');
+        Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
     });
 });
 
