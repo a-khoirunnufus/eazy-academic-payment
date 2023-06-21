@@ -45,7 +45,7 @@ class NewStudentInvoiceController extends Controller
                 $query->orderBy('studyprogram_name', 'asc');
             }])
             // ->select('faculty_id', 'faculty_name')
-            ->where('institution_id', '=', Institution::$defaultInstitutionId)
+            // ->where('institution_id', '=', Institution::$defaultInstitutionId)
             ->orderBy('faculty_name', 'asc')
             ->get();
 

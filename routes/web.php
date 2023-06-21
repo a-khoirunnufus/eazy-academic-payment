@@ -55,6 +55,11 @@ Route::group(['prefix' => 'payment'], function () {
         // Payment
         Route::get('index', 'App\Http\Controllers\_Student\StudentController@index')->name('payment.student.index');
     });
+    
+    Route::group(['prefix' => 'discount'], function () {
+        Route::get('index', 'App\Http\Controllers\_Payment\DiscountController@index')->name('payment.discount.index');
+        
+    });
 });
 
 Route::group(['prefix' => 'report'], function () {
@@ -67,7 +72,10 @@ Route::group(['prefix' => 'report'], function () {
     });
 });
 
-
+Route::group(['prefix' => 'student'], function () {
+    Route::get('/payment', 'App\Http\Controllers\_Student\PaymentController@index');
+    Route::get('/payment/proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment');
+});
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
 Route::get('test', function() {

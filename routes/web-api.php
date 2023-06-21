@@ -95,8 +95,16 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('student-invoice/deleteBulk/{faculty}/{studyProgram}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteBulk');
         Route::get('student-invoice/log-invoice', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@logGenerate');
     });
+
+    Route::group(['prefix' => 'discount'], function(){
+        Route::get('index', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@index');
+        Route::get('period', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@period');
+        Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@store');
+        Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@delete');
+    });
 });
 
+// REPORT GROUP ROUTE
 Route::group(['prefix' => 'report'], function(){
     Route::group(['prefix' => 'old-student-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudent');
@@ -105,6 +113,14 @@ Route::group(['prefix' => 'report'], function(){
     });
 });
 
+// STUDENT GROUP ROUTE
+Route::group(['prefix' => 'student'], function(){
+    Route::get('payment/unpaid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@unpaidPayment');
+    Route::get('payment/paid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@paidPayment');
+    Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
+});
+
+// Note: untuk mendownload file, baru lokal file yang diimplementasikan.
 Route::get('download', function(Request $request) {
     $storage = $request->query('storage');
     $type = $request->query('type');

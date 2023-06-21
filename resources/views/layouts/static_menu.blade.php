@@ -142,12 +142,33 @@
                 </ul>
             </li>
 
-            <!-- <li class="nav-item mb-50">
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
+                    <i data-feather="mail"></i>
+                    <span class="menu-title text-truncate">Potongan</span>
+                </a>
+                <ul class="menu-content">
+                    <li class="menu__item nav-item {{ 'payment.discount.index' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.discount.index') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Data Potongan</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'payment.discount.index' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.discount.index') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Penerima Potongan</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            {{-- <li class="nav-item mb-50">
                 <a class="d-flex align-items-center fw-bold" href="/cicilan">
                     <i data-feather="file-text"></i>
-                    <span class="menu-title text-truncate">Cicilan</span>
+                    <span class="menu-title text-truncate">Potongan</span>
                 </a>
-            </li> -->
+            </li> --}}
 
             <!-- <li class="nav-item mb-50">
                 <a class="d-flex align-items-center fw-bold" href="/dispensasi">
