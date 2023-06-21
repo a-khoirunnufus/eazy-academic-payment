@@ -10,16 +10,22 @@
 
 <div class="card">
     <div class="card-body">
-        <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
-            <x-datatable-select-filter
-                title="Tahun Akademik dan Semester"
-                elementId="filter-school-year"
-                resourceName="school-year"
-                value="code"
-                labelTemplate=":year Semester :semester"
-                :labelTemplateItems="array('year', 'semester')"
-            />
-        </x-datatable-filter-wrapper>
+        <div class="d-flex">
+            <div>
+                <label class="form-label">Tahun Akademik dan Semester</label>
+                <select class="form-select select2" id="filterData">
+                    <option value="#ALL">Semua Tahun Akademik dan Semester</option>
+                    @foreach($year as $item)
+                    <option value="{{ $item->msy_id }}">{{ $item->msy_year }} Semester {{$item->msy_semester}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="m-1 mb-0 align-self-end">
+                <button class="btn btn-primary" onclick="filter()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
