@@ -13,4 +13,10 @@ class DiscountController extends Controller
         $period = Year::all();
         return view('pages._payment.discount.index',compact('period'));
     }
+
+    public function receiver()
+    {
+        $period = Year::all();
+        return view('pages._payment.discount.receiver',compact('period'));
+    }
 }

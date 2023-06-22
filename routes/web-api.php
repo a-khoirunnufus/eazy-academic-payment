@@ -102,6 +102,15 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@delete');
     });
+
+    Route::group(['prefix' => 'discount-receiver'], function(){
+        Route::get('index', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@index');
+        Route::get('discount', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@discount');
+        Route::get('student', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@student');
+        Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@period');
+        Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@store');
+        Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@delete');
+    });
 });
 
 // REPORT GROUP ROUTE
