@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Data Potongan')
+@section('page_title', 'Mahasiswa Penerima Potongan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -16,7 +16,7 @@
 
 @section('content')
 
-@include('pages._payment.discount._shortcuts', ['active' => 'index'])
+@include('pages._payment.discount._shortcuts', ['active' => 'receiver'])
 
 <div class="card">
     <div class="card-body">
@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_discountReceiverTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -53,12 +53,11 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Nama Potongan</th>
-                <th>Periode Awal</th>
-                <th>Periode Akhir</th>
+                <th>Mahasiswa</th>
+                <th>Fakultas - Prodi</th>
+                <th>Potongan</th>
+                <th>Periode </th>
                 <th>Nominal</th>
-                <th>Anggaran</th>
-                <th>Realisasi</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -72,16 +71,16 @@
 @section('js_section')
 <script>
     $(function(){
-        _discountTable.init();
+        _discountReceiverTable.init();
     })
 
-    const _discountTable = {
+    const _discountReceiverTable = {
         ..._datatable,
         init: function() {
             this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/discount/index',
+                    url: _baseURL+'/api/payment/discount-receiver/index',
                     data: function(d) {
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
@@ -100,52 +99,69 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'md_name', data: 'md_name'},
                     {
-                        name: 'md_period_start',
-                        data: 'md_period_start',
+                        name: 'student_number',
+                        data: 'student_number',
                         searchable: false,
                         render: (data, _, row) => {
-                            return row.period_start.msy_year + _helper.semester(row.period_start.msy_semester)
+                            let html = "";
+                            if(row.student.student_type_id === 1) {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
+                            }
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.student.fullname} ${html}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.student.student_id}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'md_period_end',
-                        data: 'md_period_end',
+                        name: 'student_number',
+                        data: 'student_number',
                         searchable: false,
                         render: (data, _, row) => {
-                            return row.period_end.msy_year + _helper.semester(row.period_end.msy_semester)
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.student.study_program.faculty.faculty_name}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'md_nominal',
-                        data: 'md_nominal',
+                        name: 'md_id',
+                        data: 'md_id',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.discount.md_name
+                        }
+                    },
+                    {
+                        name: 'mdr_period',
+                        data: 'mdr_period',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.period.msy_year + _helper.semester(row.period.msy_semester)
+                        }
+                    },
+                    {
+                        name: 'mdr_nominal',
+                        data: 'mdr_nominal',
                         render: (data, _, row) => {
                             return Rupiah.format(data)
                         }
                     },
                     {
-                        name: 'md_budget',
-                        data: 'md_budget',
-                        render: (data, _, row) => {
-                            return Rupiah.format(data)
-                        }
-                    },
-                    {
-                        name: 'md_realization',
-                        data: 'md_realization',
-                        render: (data, _, row) => {
-                            return Rupiah.format(data)
-                        }
-                    },
-                    {
-                        name: 'md_status',
-                        data: 'md_status',
+                        name: 'mdr_status',
+                        data: 'mdr_status',
                         searchable: false,
                         render: (data, _, row) => {
                             let status = "Tidak Aktif";
                             let bg = "bg-danger";
-                            if(row.md_status === 1){
+                            if(row.mdr_status === 1){
                                 status = "Aktif";
                                 bg = "bg-success";
                             }
@@ -168,10 +184,10 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_discountTableActions.add()" class="btn btn-primary">
+                            <button onclick="_discountReceiverTableActions.add()" class="btn btn-primary">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Potongan
+                                    Tambah Penerima
                                 </span>
                             </button>
                         </div>
@@ -189,8 +205,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_discountTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_discountTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_discountReceiverTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_discountReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -204,28 +220,50 @@
             $("#form-edit-discount .select2").trigger('change')
             $(".form-alert").remove()
         },
-        setData: function(data){
-            $("[name=md_name]").val(data.md_name);
-            $.get(_baseURL + '/api/payment/discount/period', (d) => {
-                if (Object.keys(d).length > 0) {
-                    d.map(item => {
-                        $('#md_period_start').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
-                        `);
-                        $('#md_period_end').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+        setData: function(d){
+            $.get(_baseURL + '/api/payment/discount-receiver/discount', (data) => {
+                if (Object.keys(data).length > 0) {
+                    data.map(item => {
+                        $('#md_id').append(`
+                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`</option>
                         `);
                     });
-                    $('#md_period_start').val(data.md_period_start);
-                    $('#md_period_start').trigger('change');
-                    $('#md_period_end').val(data.md_period_end);
-                    $('#md_period_end').trigger('change');
+                    $('#md_id').val(d.md_id);
+                    $('#md_id').trigger('change');
                     selectRefresh();
                 }
             });
-            $("[name=md_nominal]").val(data.md_nominal);
-            $("[name=md_budget]").val(data.md_budget);
-            data.md_status == 1 ? $('#md_status_1').prop('checked', true) : $('#md_status_0').prop('checked', true);
+            $.get(_baseURL + '/api/payment/discount-receiver/student', (data) => {
+                if (Object.keys(data).length > 0) {
+                    data.map(item => {
+                        $('#student_number').append(`
+                            <option value="`+item.student_number+`">`+item.fullname+` - `+item.student_id+`</option>
+                        `);
+                    });
+                    $('#student_number').val(d.student_number);
+                    $('#student_number').trigger('change');
+                    selectRefresh();
+                }
+            });
+            $("#md_id").change(function() {
+                md_id = $(this).val();
+                $.get(_baseURL + '/api/payment/discount-receiver/period/'+md_id, (data) => {
+                    console.log(data);
+                    if (Object.keys(data).length > 0) {
+                        $("#mdr_period").empty();
+                        data.map(item => {
+                            $('#mdr_period').append(`
+                                <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                            `);
+                        });
+                        $('#mdr_period').val(d.mdr_period);
+                        $('#mdr_period').trigger('change');
+                        selectRefresh();
+                    }
+                });
+            });
+            $("[name=mdr_nominal]").val(d.mdr_nominal);
+            d.mdr_status == 1 ? $('#mdr_status_1').prop('checked', true) : $('#mdr_status_0').prop('checked', true);
         }
     }
 
@@ -239,167 +277,171 @@
         }
     }
 
-    const _discountTableActions = {
+    const _discountReceiverTableActions = {
         add: function() {
             Modal.show({
                 type: 'form',
-                modalTitle: 'Tambah Potongan',
+                modalTitle: 'Tambah Penerima',
                 modalSize: 'md',
                 config: {
-                    formId: 'form-add-discount',
-                    formActionUrl: _baseURL + '/api/payment/discount/store',
+                    formId: 'form-add-discount-receiver',
+                    formActionUrl: _baseURL + '/api/payment/discount-receiver/store',
                     formType: 'add',
                     fields: {
-                        md_name: {
-                            title: 'Nama Potongan',
+                        md_id: {
+                            title: 'Potongan',
                             content: {
                                 template:
-                                    `<input
-                                        type="text"
-                                        name="md_name"
-                                        class="form-control"
-                                    >`,
+                                    `<select name="md_id" id="md_id" class="form-control select2">
+                                        <option value="">Pilih Potongan</option>
+                                    </select>`,
                             },
                         },
-                        md_period_start: {
-                            title: 'Periode Awal',
+                        student_number: {
+                            title: 'Mahasiswa',
                             content: {
                                 template:
-                                    `<select name="md_period_start" id="md_period_start" class="form-control select2">
+                                    `<select name="student_number" id="student_number" class="form-control select2">
+                                        <option value="">Pilih Mahasiswa</option>
+                                    </select>`,
+                            },
+                        },
+                        mdr_period: {
+                            title: 'Periode',
+                            content: {
+                                template:
+                                    `<select name="mdr_period" id="mdr_period" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
                         },
-                        md_period_end: {
-                            title: 'Periode Akhir',
-                            content: {
-                                template:
-                                    `<select name="md_period_end" id="md_period_end" class="form-control select2">
-                                        <option value="">Pilih Periode</option>
-                                    </select>`,
-                            },
-                        },
-                        md_nominal: {
+                        mdr_nominal: {
                             title: 'Nominal',
                             content: {
                                 template:
-                                    `<input type="number" name="md_nominal" class="form-control">`,
-                            },
-                        },
-                        md_budget: {
-                            title: 'Anggaran',
-                            content: {
-                                template:
-                                    `<input type="number" name="md_budget" class="form-control">`,
+                                    `<input type="number" name="mdr_nominal" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
                                 template:
-                                    `<br><input type="radio" name="md_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
+                                    `<br><input type="radio" name="mdr_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
-                    formSubmitLabel: 'Tambah Potongan',
+                    formSubmitLabel: 'Tambah Penerima',
                     callback: function(e) {
-                        _discountTable.reload()
+                        _discountReceiverTable.reload()
                     },
                 },
             });
-            $.get(_baseURL + '/api/payment/discount/period', (data) => {
+            $.get(_baseURL + '/api/payment/discount-receiver/discount', (data) => {
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
-                        $('#md_period_start').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                        $('#md_id').append(`
+                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`</option>
                         `);
-                        $('#md_period_end').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
-                        `);
-                        
                     });
                     selectRefresh();
                 }
             });
+            $.get(_baseURL + '/api/payment/discount-receiver/student', (data) => {
+                if (Object.keys(data).length > 0) {
+                    data.map(item => {
+                        $('#student_number').append(`
+                            <option value="`+item.student_number+`">`+item.fullname+` - `+item.student_id+`</option>
+                        `);
+                    });
+                    selectRefresh();
+                }
+            });
+            $("#md_id").change(function() {
+                nominal = $(this).find(":selected").data("nominal");
+                md_id = $(this).val();
+                $('[name="mdr_nominal"]').val(nominal);
+                $.get(_baseURL + '/api/payment/discount-receiver/period/'+md_id, (data) => {
+                if (Object.keys(data).length > 0) {
+                    $("#mdr_period").empty();
+                    data.map(item => {
+                        $('#mdr_period').append(`
+                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                        `);
+                    });
+                    selectRefresh();
+                }
+            });
+            })
         },
         edit: function(e) {
-            let data = _discountTable.getRowData(e);
+            let data = _discountReceiverTable.getRowData(e);
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Potongan',
+                modalTitle: 'Edit Penerima Potongan',
                 modalSize: 'md',
                 config: {
-                    formId: 'form-edit-discount',
-                    formActionUrl: _baseURL + '/api/payment/discount/store',
+                    formId: 'form-edit-discount-receiver',
+                    formActionUrl: _baseURL + '/api/payment/discount-receiver/store',
                     formType: 'edit',
-                    rowId: data.md_id,
+                    rowId: data.mdr_id,
                     fields: {
-                        md_name: {
-                            title: 'Nama Potongan',
+                        md_id: {
+                            title: 'Potongan',
                             content: {
                                 template:
-                                    `<input
-                                        type="text"
-                                        name="md_name"
-                                        class="form-control"
-                                    >`,
+                                    `<select name="md_id" id="md_id" class="form-control select2">
+                                        <option value="">Pilih Potongan</option>
+                                    </select>`,
                             },
                         },
-                        md_period_start: {
-                            title: 'Periode Awal',
+                        student_number: {
+                            title: 'Mahasiswa',
                             content: {
                                 template:
-                                    `<select name="md_period_start" id="md_period_start" class="form-control select2">
+                                    `<select name="student_number" id="student_number" class="form-control select2">
+                                        <option value="">Pilih Mahasiswa</option>
+                                    </select>`,
+                            },
+                        },
+                        mdr_period: {
+                            title: 'Periode',
+                            content: {
+                                template:
+                                    `<select name="mdr_period" id="mdr_period" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
                         },
-                        md_period_end: {
-                            title: 'Periode Akhir',
-                            content: {
-                                template:
-                                    `<select name="md_period_end" id="md_period_end" class="form-control select2">
-                                        <option value="">Pilih Periode</option>
-                                    </select>`,
-                            },
-                        },
-                        md_nominal: {
+                        mdr_nominal: {
                             title: 'Nominal',
                             content: {
                                 template:
-                                    `<input type="number" name="md_nominal" class="form-control">`,
-                            },
-                        },
-                        md_budget: {
-                            title: 'Anggaran',
-                            content: {
-                                template:
-                                    `<input type="number" name="md_budget" class="form-control">`,
+                                    `<input type="number" name="mdr_nominal" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
                                 template:
-                                    `<br><input type="radio" name="md_status" value="1" id="md_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" id="md_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
+                                    `<br><input type="radio" name="mdr_status" value="1" id="mdr_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="mdr_status" id="mdr_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
                     formSubmitLabel: 'Edit Potongan',
                     callback: function() {
-                        _discountTable.reload()
+                        _discountReceiverTable.reload()
                     },
                 },
             });
             _componentForm.clearData()
             _componentForm.setData(data)
-            _discountTable.selected = data
+            _discountReceiverTable.selected = data
         },
         delete: function(e) {
-            let data = _discountTable.getRowData(e);
+            let data = _discountReceiverTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus potongan ini?',
+                text: 'Apakah anda yakin ingin menghapus penerima potongan ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -408,7 +450,7 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/discount/delete/' + data.md_id, {
+                    $.post(_baseURL + '/api/payment/discount-receiver/delete/' + data.mdr_id, {
                         _method: 'DELETE'
                     }, function(data){
                         data = JSON.parse(data)
@@ -416,7 +458,7 @@
                             icon: 'success',
                             text: data.message,
                         }).then(() => {
-                            _discountTable.reload()
+                            _discountReceiverTable.reload()
                         });
                     }).fail((error) => {
                         Swal.fire({

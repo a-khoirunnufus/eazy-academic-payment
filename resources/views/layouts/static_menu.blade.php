@@ -154,8 +154,8 @@
                             <span class="menu-title text-truncate">Data Potongan</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'payment.discount.index' == request()->route()->getName() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.discount.index') }}">
+                    <li class="menu__item nav-item {{ 'payment.discount.receiver' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.discount.receiver') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Penerima Potongan</span>
                         </a>

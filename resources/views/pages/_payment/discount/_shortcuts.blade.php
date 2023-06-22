@@ -7,12 +7,12 @@
             <span>Data Potongan</span>
         </div>
     </a>
-    <a href="{{ route('payment.settings.credit-schema') }}" class="eazy-shortcut-item {{ $active == 'credit-schema' ? 'active' : '' }}">
+    <a href="{{ route('payment.discount.receiver') }}" class="eazy-shortcut-item {{ $active == 'receiver' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="archive"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Penerima Potongan</span>
+            <span>Mahasiswa <br>Penerima Potongan</span>
         </div>
     </a>
 </div>
