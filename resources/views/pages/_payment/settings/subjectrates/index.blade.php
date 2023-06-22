@@ -845,6 +845,7 @@
                         if (response.status) {
                             $('#importModal').modal('hide')
                             Swal.fire(response.message, '', 'success');
+                            dt.clear().destroy();
                             _ratesPerCourseTable.init()
                         }
                     }
