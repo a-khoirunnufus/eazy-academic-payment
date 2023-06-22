@@ -9,6 +9,8 @@ use App\Models\Studyprogram;
 use App\Models\Year;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Yajra\DataTables\DataTables;
 
 class ReportControllerApi extends Controller
@@ -18,7 +20,7 @@ class ReportControllerApi extends Controller
     {
         // $list_studyProgram = $this->getColomns('ms.studyprogram_id', 'ms.studyprogram_type', 'ms.studyprogram_name')->distinct()->get();
         $year = Year::query();
-        if($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL){
+        if ($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL) {
             $year = $year->where('msy_id', '=', $request->get('data_filter'));
         }
         $year = $year->get();
@@ -35,13 +37,13 @@ class ReportControllerApi extends Controller
 
         foreach ($year as $tahun) {
             $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
-            if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+            if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
             }
-            if($id_faculty !== '#ALL' && $id_faculty !== NULL){
+            if ($id_faculty !== '#ALL' && $id_faculty !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.faculty_id', '=', $id_faculty);
             }
-            if($id_prodi !== '#ALL' && $id_prodi !== NULL){
+            if ($id_prodi !== '#ALL' && $id_prodi !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $id_prodi);
             }
             $list_studyProgram = $list_studyProgram->distinct()->get();
@@ -49,26 +51,26 @@ class ReportControllerApi extends Controller
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
                 $listStudent = $this->getColomns('ms2.*');
-                if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
+                if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
                     $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
                 }
-                if($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL){
+                if ($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL) {
                     $listStudent->where('ms2.path_id', '=', $prodi_path_filter);
                 }
-                if($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL){
+                if ($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL) {
                     $listStudent->where('ms2.period_id', '=', $prodi_period_filter);
                 }
                 $listStudent->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
-                
+
                 $studyProgram->student = $listStudent->get();
                 $studyProgram->year = $tahun;
                 $studyProgram->faculty = Faculty::where('faculty_id', '=', $studyProgram->faculty_id)->get();
-    
+
                 foreach ($studyProgram->student as $list_student) {
                     $listPayment = $this->getColomns('prr.*')
                         ->where('prr.student_number', '=', $list_student->student_number)
                         ->distinct()->get();
-    
+
                     $denda = 0;
                     $beasiswa = 0;
                     $potongan = 0;
@@ -79,7 +81,7 @@ class ReportControllerApi extends Controller
                             ->get();
                         $total_prrd_amount = 0;
                         foreach ($listPaymentDetail as $pd) {
-                            switch($pd->type){
+                            switch ($pd->type) {
                                 case "component":
                                     $total_prrd_amount += $pd->prrd_amount;
                                     break;
@@ -94,7 +96,7 @@ class ReportControllerApi extends Controller
                                     break;
                             }
                         }
-    
+
                         $listPaymentBill = $this->getColomns('prrb.*')
                             ->where('prrb.prr_id', '=', $list_payment->prr_id)
                             ->distinct()
@@ -103,7 +105,7 @@ class ReportControllerApi extends Controller
                         foreach ($listPaymentBill as $pb) {
                             $total_paid += $pb->prrb_amount;
                         }
-    
+
                         $list_payment->payment_detail = $listPaymentDetail;
                         $list_payment->payment_bill = $listPaymentBill;
                         $list_payment->prr_total = ($total_prrd_amount + $denda) - ($beasiswa + $potongan);
@@ -115,7 +117,7 @@ class ReportControllerApi extends Controller
                         $list_student->payment = $list_payment;
                     }
 
-                    if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+                    if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
                         $detail_prodi = $studyProgram;
                         unset($detail_prodi->student);
                         $list_student->studyprogram = $detail_prodi;
@@ -126,12 +128,12 @@ class ReportControllerApi extends Controller
             }
         }
 
-        if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
-            if($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL){
+        if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
+            if ($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL) {
                 $data_filter = [];
-                foreach($dataStudent as $list){
+                foreach ($dataStudent as $list) {
                     $row = json_encode($list);
-                    if(strpos($row, $prodi_search_filter)){
+                    if (strpos($row, $prodi_search_filter)) {
                         array_push($data_filter, $list);
                     }
                 }
@@ -140,26 +142,27 @@ class ReportControllerApi extends Controller
             return DataTables($dataStudent)->toJson();
         }
 
-        if($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL){
+        if ($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL) {
             $data_filter = [];
-            foreach($data as $list){
+            foreach ($data as $list) {
                 $row = json_encode($list);
                 $find = $request->get('search_filter');
-                if(strpos($row, $find)){
+                if (strpos($row, $find)) {
                     array_push($data_filter, $list);
                 }
             }
             return DataTables($data_filter)->toJson();
         }
-        
+
         // return json_encode($data);
         return DataTables($data)->toJson();
     }
 
-    function newStudent(Request $request){
+    function newStudent(Request $request)
+    {
         // $list_studyProgram = $this->getColomns('ms.studyprogram_id', 'ms.studyprogram_type', 'ms.studyprogram_name')->distinct()->get();
         $year = Year::query();
-        if($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL){
+        if ($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL) {
             $year = $year->where('msy_id', '=', $request->get('data_filter'));
         }
         $year = $year->get();
@@ -176,13 +179,13 @@ class ReportControllerApi extends Controller
 
         foreach ($year as $tahun) {
             $list_studyProgram = $this->getNew('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
-            if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+            if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
             }
-            if($id_faculty !== '#ALL' && $id_faculty !== NULL){
+            if ($id_faculty !== '#ALL' && $id_faculty !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.faculty_id', '=', $id_faculty);
             }
-            if($id_prodi !== '#ALL' && $id_prodi !== NULL){
+            if ($id_prodi !== '#ALL' && $id_prodi !== NULL) {
                 $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $id_prodi);
             }
             $list_studyProgram = $list_studyProgram->distinct()->get();
@@ -190,29 +193,37 @@ class ReportControllerApi extends Controller
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
                 $listStudent = $this->getNew(
-                    'p.par_id', 'p.par_fullname', 'p.par_nik', 'p.par_phone', 'p.par_birthday', 'p.par_gender', 'p.par_religion', 
-                    'r.reg_id', 'r.ms_period_id', 'r.ms_path_id'
+                    'p.par_id',
+                    'p.par_fullname',
+                    'p.par_nik',
+                    'p.par_phone',
+                    'p.par_birthday',
+                    'p.par_gender',
+                    'p.par_religion',
+                    'r.reg_id',
+                    'r.ms_period_id',
+                    'r.ms_path_id'
                 );
-                if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
+                if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
                     $listStudent->where(DB::raw('SUBSTR(r.reg_major_pass_date, 1, 4)'), '=', $prodi_filter_angkatan);
                 }
-                if($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL){
+                if ($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL) {
                     $listStudent->where('r.ms_path_id', '=', $prodi_path_filter);
                 }
-                if($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL){
+                if ($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL) {
                     $listStudent->where('r.ms_period_id', '=', $prodi_period_filter);
                 }
                 $listStudent->where('ms.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
-                
+
                 $studyProgram->student = $listStudent->get();
                 $studyProgram->year = $tahun;
                 $studyProgram->faculty = Faculty::where('faculty_id', '=', $studyProgram->faculty_id)->get();
-    
+
                 foreach ($studyProgram->student as $list_student) {
                     $listPayment = $this->getNew('prr.*')
                         ->where('prr.reg_id', '=', $list_student->reg_id)
                         ->distinct()->get();
-    
+
                     $denda = 0;
                     $beasiswa = 0;
                     $potongan = 0;
@@ -223,7 +234,7 @@ class ReportControllerApi extends Controller
                             ->get();
                         $total_prrd_amount = 0;
                         foreach ($listPaymentDetail as $pd) {
-                            switch($pd->type){
+                            switch ($pd->type) {
                                 case "component":
                                     $total_prrd_amount += $pd->prrd_amount;
                                     break;
@@ -238,7 +249,7 @@ class ReportControllerApi extends Controller
                                     break;
                             }
                         }
-    
+
                         $listPaymentBill = $this->getNew('prrb.*')
                             ->where('prrb.prr_id', '=', $list_payment->prr_id)
                             ->distinct()
@@ -247,7 +258,7 @@ class ReportControllerApi extends Controller
                         foreach ($listPaymentBill as $pb) {
                             $total_paid += $pb->prrb_amount;
                         }
-    
+
                         $list_payment->payment_detail = $listPaymentDetail;
                         $list_payment->payment_bill = $listPaymentBill;
                         $list_payment->prr_total = ($total_prrd_amount + $denda) - ($beasiswa + $potongan);
@@ -259,7 +270,7 @@ class ReportControllerApi extends Controller
                         $list_student->payment = $list_payment;
                     }
 
-                    if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
+                    if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
                         $detail_prodi = $studyProgram;
                         unset($detail_prodi->student);
                         $list_student->studyprogram = $detail_prodi;
@@ -270,12 +281,12 @@ class ReportControllerApi extends Controller
             }
         }
 
-        if($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL){
-            if($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL){
+        if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
+            if ($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL) {
                 $data_filter = [];
-                foreach($dataStudent as $list){
+                foreach ($dataStudent as $list) {
                     $row = json_encode($list);
-                    if(strpos($row, $prodi_search_filter)){
+                    if (strpos($row, $prodi_search_filter)) {
                         array_push($data_filter, $list);
                     }
                 }
@@ -284,61 +295,596 @@ class ReportControllerApi extends Controller
             return DataTables($dataStudent)->toJson();
         }
 
-        if($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL){
+        if ($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL) {
             $data_filter = [];
-            foreach($data as $list){
+            foreach ($data as $list) {
                 $row = json_encode($list);
                 $find = $request->get('search_filter');
-                if(strpos($row, $find)){
+                if (strpos($row, $find)) {
                     array_push($data_filter, $list);
                 }
             }
             return DataTables($data_filter)->toJson();
         }
-        
+
         // return json_encode($data);
         return DataTables($data)->toJson();
     }
-    
-    function oldStudentHistory($student_number, Request $request){
+
+    function studentExport(Request $request)
+    {
+        $type = $request->get('student_export');
+        if ($type == NULL) {
+            return 'Error type export tidak ada';
+        }
+        $data = NULL;
+        if ($type == 'new') {
+            $data = $this->newStudent($request)->getData()->data;
+        } else {
+            $data = $this->oldStudent($request)->getData()->data;
+        }
+
+        // return json_encode($data);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        //header table
+        $sheet->setCellValue('A1', 'Fakultas');
+        $sheet->mergeCells('A1:A3');
+        $sheet->setCellValue('B1', 'Program Studi');
+        $sheet->mergeCells('B1:B3');
+        $sheet->setCellValue('C1', 'Nama Lengkap');
+        $sheet->mergeCells('C1:C3');
+        $sheet->setCellValue('D1', $type == 'new' ? 'NIK' : 'NIM');
+        $sheet->mergeCells('D1:D3');
+
+        $sheet->setCellValue('E1', 'Jenis Tagihan');
+        $sheet->mergeCells('E1:P1');
+
+        $sheet->setCellValue('E2', 'Tagihan');
+        $sheet->mergeCells('E2:G2');
+        $sheet->setCellValue('E3', 'Komponen');
+        $sheet->setCellValue('F3', 'Nominal');
+        $sheet->setCellValue('G3', 'Total');
+
+        $sheet->setCellValue('H2', 'Denda');
+        $sheet->mergeCells('H2:J2');
+        $sheet->setCellValue('H3', 'Komponen');
+        $sheet->setCellValue('I3', 'Nominal');
+        $sheet->setCellValue('J3', 'Total');
+
+        $sheet->setCellValue('K2', 'Beasiswa');
+        $sheet->mergeCells('K2:M2');
+        $sheet->setCellValue('K3', 'Komponen');
+        $sheet->setCellValue('L3', 'Nominal');
+        $sheet->setCellValue('M3', 'Total');
+
+        $sheet->setCellValue('N2', 'Potongan');
+        $sheet->mergeCells('N2:P2');
+        $sheet->setCellValue('N3', 'Komponen');
+        $sheet->setCellValue('O3', 'Nominal');
+        $sheet->setCellValue('P3', 'Total');
+
+        $sheet->setCellValue('Q1', 'Total Harus Bayar');
+        $sheet->mergeCells('Q1:Q3');
+
+        $sheet->setCellValue('R1', 'Pembayaran');
+        $sheet->mergeCells('R1:U1');
+        $sheet->setCellValue('R2', 'Nomor Tagihan');
+        $sheet->mergeCells('R2:R3');
+        $sheet->setCellValue('S2', 'Nominal');
+        $sheet->mergeCells('S2:S3');
+        $sheet->setCellValue('T2', 'Tanggal Pembayaran');
+        $sheet->mergeCells('T2:T3');
+        $sheet->setCellValue('U2', 'Total');
+        $sheet->mergeCells('U2:U3');
+
+        $sheet->setCellValue('V1', 'Sisa Tagihan');
+        $sheet->mergeCells('V1:V3');
+        $sheet->setCellValue('W1', 'Status');
+        $sheet->mergeCells('W1:W3');
+
+        $row = 4;
+        foreach ($data as $items) {
+            $total_tagihan = 0;
+            $total_denda = 0;
+            $total_beasiswa = 0;
+            $total_potongan = 0;
+            $total_bayar = 0;
+
+            $row_tagihan = 0;
+            $row_denda = 0;
+            $row_beasiswa = 0;
+            $row_potongan = 0;
+            $row_bayar = 0;
+
+            if ($type == 'new') {
+                $sheet->setCellValue('A' . $row, $items->studyprogram->faculty[0]->faculty_name);
+                $sheet->setCellValue('B' . $row, $items->studyprogram->studyprogram_type . ' ' . $items->studyprogram->studyprogram_name);
+                $sheet->setCellValue('C' . $row, $items->par_fullname);
+                $sheet->setCellValue('D' . $row, $items->par_nik);
+            }else {
+                $sheet->setCellValue('A' . $row, $items->studyprogram->faculty[0]->faculty_name);
+                $sheet->setCellValue('B' . $row, $items->studyprogram->studyprogram_type . ' ' . $items->studyprogram->studyprogram_name);
+                $sheet->setCellValue('C' . $row, $items->fullname);
+                $sheet->setCellValue('D' . $row, $items->student_id);
+            }
+
+            foreach ($items->payment->payment_detail as $tagihan) {
+                switch ($tagihan->type) {
+                    case "component":
+                        $sheet->setCellValue('E' . ($row + $row_tagihan), $tagihan->prrd_component);
+                        $sheet->setCellValue('F' . ($row + $row_tagihan), $tagihan->prrd_amount);
+                        $total_tagihan += $tagihan->prrd_amount;
+                        $sheet->setCellValue('G' . $row, $total_tagihan);
+
+                        $row_tagihan++;
+                        break;
+
+                    case "denda":
+                        $sheet->setCellValue('H' . ($row + $row_denda), $tagihan->prrd_component);
+                        $sheet->setCellValue('I' . ($row + $row_denda), $tagihan->prrd_amount);
+                        $total_denda += $tagihan->prrd_amount;
+                        $sheet->setCellValue('J' . $row, $total_denda);
+
+                        $row_denda++;
+                        break;
+
+                    case "beasiswa":
+                        $sheet->setCellValue('K' . ($row + $row_beasiswa), $tagihan->prrd_component);
+                        $sheet->setCellValue('L' . ($row + $row_beasiswa), $tagihan->prrd_amount);
+                        $total_beasiswa += $tagihan->prrd_amount;
+                        $sheet->setCellValue('M' . $row, $total_beasiswa);
+
+                        $row_beasiswa++;
+                        break;
+
+                    case "potongan":
+                        $sheet->setCellValue('N' . ($row + $row_potongan), $tagihan->prrd_component);
+                        $sheet->setCellValue('O' . ($row + $row_potongan), $tagihan->prrd_amount);
+                        $total_potongan += $tagihan->prrd_amount;
+                        $sheet->setCellValue('P' . $row, $total_potongan);
+
+                        $row_potongan++;
+                        break;
+                }
+            }
+
+            $sheet->setCellValue('Q' . $row, ($total_tagihan + $total_denda) - ($total_beasiswa + $total_potongan));
+
+            foreach ($items->payment->payment_bill as $pembayaran) {
+                $sheet->setCellValue('R' . ($row + $row_bayar), $pembayaran->prrb_invoice_num);
+                $sheet->setCellValue('S' . ($row + $row_bayar), $pembayaran->prrb_amount);
+                $sheet->setCellValue('T' . ($row + $row_bayar), $pembayaran->prrb_paid_date);
+                $total_bayar += $pembayaran->prrb_amount;
+                $sheet->setCellValue('U' . $row, $total_bayar);
+                $row_bayar++;
+            }
+
+            $sheet->setCellValue('V' . $row, (($total_tagihan + $total_denda) - ($total_beasiswa + $total_potongan)) - $total_bayar);
+            $sheet->setCellValue('W' . $row, (($total_tagihan + $total_denda) - ($total_beasiswa + $total_potongan)) - $total_bayar > 0 ? 'Belum Lunas' : 'Lunas');
+
+            if (
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan > $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan > $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan == $row_denda &&
+                    $row_tagihan > $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan == $row_bayar
+                ) ||
+                ($row_tagihan > $row_denda &&
+                    $row_tagihan == $row_beasiswa &&
+                    $row_tagihan == $row_potongan &&
+                    $row_tagihan == $row_bayar
+                )
+            ) {
+                $sheet->mergeCells('A' . $row . ':A' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('B' . $row . ':B' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('C' . $row . ':C' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('D' . $row . ':D' . ($row + $row_tagihan - 1));
+
+                //H,I,J
+                if ($row_denda == 0) {
+                    $sheet->mergeCells('H' . $row . ':H' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('I' . $row . ':I' . ($row + $row_tagihan - 1));
+                } else {
+                    $sheet->mergeCells('H' . ($row + $row_denda - 1) . ':H' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('I' . ($row + $row_denda - 1) . ':I' . ($row + $row_tagihan - 1));
+                }
+                $sheet->mergeCells('J' . $row . ':J' . ($row + $row_tagihan - 1));
+                //K,L,M
+                if ($row_beasiswa == 0) {
+                    $sheet->mergeCells('K' . $row . ':K' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('L' . $row . ':L' . ($row + $row_tagihan - 1));
+                } else {
+                    $sheet->mergeCells('K' . ($row + $row_beasiswa - 1) . ':K' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('L' . ($row + $row_beasiswa - 1) . ':L' . ($row + $row_tagihan - 1));
+                }
+                $sheet->mergeCells('M' . $row . ':M' . ($row + $row_tagihan - 1));
+                //N,O,P
+                if ($row_potongan == 0) {
+                    $sheet->mergeCells('N' . $row . ':N' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('O' . $row . ':O' . ($row + $row_tagihan - 1));
+                } else {
+                    $sheet->mergeCells('N' . ($row + $row_potongan - 1) . ':N' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('O' . ($row + $row_potongan - 1) . ':O' . ($row + $row_tagihan - 1));
+                }
+                $sheet->mergeCells('P' . $row . ':P' . ($row + $row_tagihan - 1));
+
+                $sheet->mergeCells('Q' . $row . ':Q' . ($row + $row_tagihan - 1));
+
+                //R,S,T,U
+                if ($row_bayar == 0) {
+                    $sheet->mergeCells('R' . $row . ':R' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('S' . $row . ':S' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('T' . $row . ':T' . ($row + $row_tagihan - 1));
+                } else {
+                    $sheet->mergeCells('R' . ($row + $row_bayar - 1) . ':R' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_tagihan - 1));
+                    $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_tagihan - 1));
+                }
+                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_tagihan - 1));
+
+                $sheet->mergeCells('V' . $row . ':V' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('W' . $row . ':W' . ($row + $row_tagihan - 1));
+
+                $row += $row_tagihan;
+            }
+
+            if (
+                $row_denda > $row_tagihan &&
+                $row_denda > $row_beasiswa &&
+                $row_denda > $row_potongan &&
+                $row_denda > $row_bayar
+            ) {
+                $sheet->mergeCells('A' . $row . ':A' . ($row + $row_denda - 1));
+                $sheet->mergeCells('B' . $row . ':B' . ($row + $row_denda - 1));
+                $sheet->mergeCells('C' . $row . ':C' . ($row + $row_denda - 1));
+                $sheet->mergeCells('D' . $row . ':D' . ($row + $row_denda - 1));
+
+                //E,F,G TAGIHAN
+                if ($row_tagihan == 0) {
+                    $sheet->mergeCells('E' . $row . ':E' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('F' . $row . ':F' . ($row + $row_denda - 1));
+                } else {
+                    $sheet->mergeCells('E' . ($row + $row_tagihan - 1) . ':E' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('F' . ($row + $row_tagihan - 1) . ':F' . ($row + $row_denda - 1));
+                }
+                $sheet->mergeCells('G' . $row . ':G' . ($row + $row_denda - 1));
+                //K,L,M BEASISWA
+                if ($row_beasiswa == 0) {
+                    $sheet->mergeCells('K' . $row . ':K' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('L' . $row . ':L' . ($row + $row_denda - 1));
+                } else {
+                    $sheet->mergeCells('K' . ($row + $row_beasiswa - 1) . ':K' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('L' . ($row + $row_beasiswa - 1) . ':L' . ($row + $row_denda - 1));
+                }
+                $sheet->mergeCells('M' . $row . ':M' . ($row + $row_denda - 1));
+                //N,O,P POTONGAN
+                if ($row_potongan == 0) {
+                    $sheet->mergeCells('N' . $row . ':N' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('O' . $row . ':O' . ($row + $row_denda - 1));
+                } else {
+                    $sheet->mergeCells('N' . ($row + $row_potongan - 1) . ':N' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('O' . ($row + $row_potongan - 1) . ':O' . ($row + $row_denda - 1));
+                }
+                $sheet->mergeCells('P' . $row . ':P' . ($row + $row_denda - 1));
+
+                $sheet->mergeCells('Q' . $row . ':Q' . ($row + $row_denda - 1));
+
+                //R,S,T,U
+                if ($row_bayar == 0) {
+                    $sheet->mergeCells('R' . $row . ':R' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('S' . $row . ':S' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('T' . $row . ':T' . ($row + $row_denda - 1));
+                } else {
+                    $sheet->mergeCells('R' . ($row + $row_bayar - 1) . ':R' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_denda - 1));
+                    $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_denda - 1));
+                }
+                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_denda - 1));
+
+                $sheet->mergeCells('V' . $row . ':V' . ($row + $row_denda - 1));
+                $sheet->mergeCells('W' . $row . ':W' . ($row + $row_denda - 1));
+
+                $row += $row_denda;
+            }
+
+            if (
+                $row_beasiswa > $row_tagihan &&
+                $row_beasiswa > $row_denda &&
+                $row_beasiswa > $row_potongan &&
+                $row_beasiswa > $row_bayar
+            ) {
+                $sheet->mergeCells('A' . $row . ':A' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('B' . $row . ':B' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('C' . $row . ':C' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('D' . $row . ':D' . ($row + $row_beasiswa - 1));
+
+                //E,F,G TAGIHAN
+                if ($row_tagihan == 0) {
+                    $sheet->mergeCells('E' . $row . ':E' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('F' . $row . ':F' . ($row + $row_beasiswa - 1));
+                } else {
+                    $sheet->mergeCells('E' . ($row + $row_tagihan - 1) . ':E' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('F' . ($row + $row_tagihan - 1) . ':F' . ($row + $row_beasiswa - 1));
+                }
+                $sheet->mergeCells('G' . $row . ':G' . ($row + $row_beasiswa - 1));
+                //H,I,J DENDA
+                if ($row_denda == 0) {
+                    $sheet->mergeCells('H' . $row . ':H' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('I' . $row . ':I' . ($row + $row_beasiswa - 1));
+                } else {
+                    $sheet->mergeCells('H' . ($row + $row_denda - 1) . ':H' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('I' . ($row + $row_denda - 1) . ':I' . ($row + $row_beasiswa - 1));
+                }
+                $sheet->mergeCells('J' . $row . ':J' . ($row + $row_beasiswa - 1));
+                //N,O,P POTONGAN
+                if ($row_potongan == 0) {
+                    $sheet->mergeCells('N' . $row . ':N' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('O' . $row . ':O' . ($row + $row_beasiswa - 1));
+                } else {
+                    $sheet->mergeCells('N' . ($row + $row_potongan - 1) . ':N' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('O' . ($row + $row_potongan - 1) . ':O' . ($row + $row_beasiswa - 1));
+                }
+                $sheet->mergeCells('P' . $row . ':P' . ($row + $row_beasiswa - 1));
+
+                $sheet->mergeCells('Q' . $row . ':Q' . ($row + $row_beasiswa - 1));
+
+                //R,S,T,U
+                if ($row_bayar == 0) {
+                    $sheet->mergeCells('R' . $row . ':R' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('S' . $row . ':S' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('T' . $row . ':T' . ($row + $row_beasiswa - 1));
+                } else {
+                    $sheet->mergeCells('R' . ($row + $row_bayar - 1) . ':R' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_beasiswa - 1));
+                    $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_beasiswa - 1));
+                }
+                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_beasiswa - 1));
+
+                $sheet->mergeCells('V' . $row . ':V' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('W' . $row . ':W' . ($row + $row_beasiswa - 1));
+
+                $row += $row_beasiswa;
+            }
+
+            if (
+                $row_potongan > $row_tagihan &&
+                $row_potongan > $row_denda &&
+                $row_potongan > $row_beasiswa &&
+                $row_potongan > $row_bayar
+            ) {
+                $sheet->mergeCells('A' . $row . ':A' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('B' . $row . ':B' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('C' . $row . ':C' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('D' . $row . ':D' . ($row + $row_potongan - 1));
+
+                //E,F,G TAGIHAN
+                if ($row_tagihan == 0) {
+                    $sheet->mergeCells('E' . $row . ':E' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('F' . $row . ':F' . ($row + $row_potongan - 1));
+                } else {
+                    $sheet->mergeCells('E' . ($row + $row_tagihan - 1) . ':E' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('F' . ($row + $row_tagihan - 1) . ':F' . ($row + $row_potongan - 1));
+                }
+                $sheet->mergeCells('G' . $row . ':G' . ($row + $row_potongan - 1));
+                //H,I,J DENDA
+                if ($row_denda == 0) {
+                    $sheet->mergeCells('H' . $row . ':H' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('I' . $row . ':I' . ($row + $row_potongan - 1));
+                } else {
+                    $sheet->mergeCells('H' . ($row + $row_denda - 1) . ':H' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('I' . ($row + $row_denda - 1) . ':I' . ($row + $row_potongan - 1));
+                }
+                $sheet->mergeCells('J' . $row . ':J' . ($row + $row_potongan - 1));
+                //K,L,M BEASISWA
+                if ($row_beasiswa == 0) {
+                    $sheet->mergeCells('K' . $row . ':K' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('L' . $row . ':L' . ($row + $row_potongan - 1));
+                } else {
+                    $sheet->mergeCells('K' . ($row + $row_beasiswa - 1) . ':K' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('L' . ($row + $row_beasiswa - 1) . ':L' . ($row + $row_potongan - 1));
+                }
+                $sheet->mergeCells('M' . $row . ':M' . ($row + $row_potongan - 1));
+
+                $sheet->mergeCells('Q' . $row . ':Q' . ($row + $row_potongan - 1));
+
+                //R,S,T,U
+                if ($row_bayar == 0) {
+                    $sheet->mergeCells('R' . $row . ':R' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('S' . $row . ':S' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('T' . $row . ':T' . ($row + $row_potongan - 1));
+                } else {
+                    $sheet->mergeCells('R' . ($row + $row_bayar - 1) . ':R' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_potongan - 1));
+                    $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_potongan - 1));
+                }
+                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_potongan - 1));
+
+                $sheet->mergeCells('V' . $row . ':V' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('W' . $row . ':W' . ($row + $row_potongan - 1));
+
+                $row += $row_potongan;
+            }
+
+            if (
+                $row_bayar > $row_tagihan &&
+                $row_bayar > $row_denda &&
+                $row_bayar > $row_beasiswa &&
+                $row_bayar > $row_potongan
+            ) {
+                $sheet->mergeCells('A' . $row . ':A' . ($row + $row_bayar - 1));
+                $sheet->mergeCells('B' . $row . ':B' . ($row + $row_bayar - 1));
+                $sheet->mergeCells('C' . $row . ':C' . ($row + $row_bayar - 1));
+                $sheet->mergeCells('D' . $row . ':D' . ($row + $row_bayar - 1));
+
+                //E,F,G TAGIHAN
+                if ($row_tagihan == 0) {
+                    $sheet->mergeCells('E' . $row . ':E' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('F' . $row . ':F' . ($row + $row_bayar - 1));
+                } else {
+                    $sheet->mergeCells('E' . ($row + $row_tagihan - 1) . ':E' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('F' . ($row + $row_tagihan - 1) . ':F' . ($row + $row_bayar - 1));
+                }
+                $sheet->mergeCells('G' . $row . ':G' . ($row + $row_bayar - 1));
+                //H,I,J DENDA
+                if ($row_denda == 0) {
+                    $sheet->mergeCells('H' . $row . ':H' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('I' . $row . ':I' . ($row + $row_bayar - 1));
+                } else {
+                    $sheet->mergeCells('H' . ($row + $row_denda - 1) . ':H' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('I' . ($row + $row_denda - 1) . ':I' . ($row + $row_bayar - 1));
+                }
+                $sheet->mergeCells('J' . $row . ':J' . ($row + $row_bayar - 1));
+                //K,L,M BEASISWA
+                if ($row_beasiswa == 0) {
+                    $sheet->mergeCells('K' . $row . ':K' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('L' . $row . ':L' . ($row + $row_bayar - 1));
+                } else {
+                    $sheet->mergeCells('K' . ($row + $row_beasiswa - 1) . ':K' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('L' . ($row + $row_beasiswa - 1) . ':L' . ($row + $row_bayar - 1));
+                }
+                $sheet->mergeCells('M' . $row . ':M' . ($row + $row_bayar - 1));
+                //N,O,P POTONGAN
+                if ($row_potongan == 0) {
+                    $sheet->mergeCells('N' . $row . ':N' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('O' . $row . ':O' . ($row + $row_bayar - 1));
+                } else {
+                    $sheet->mergeCells('N' . ($row + $row_potongan - 1) . ':N' . ($row + $row_bayar - 1));
+                    $sheet->mergeCells('O' . ($row + $row_potongan - 1) . ':O' . ($row + $row_bayar - 1));
+                }
+                $sheet->mergeCells('P' . $row . ':P' . ($row + $row_bayar - 1));
+
+                $sheet->mergeCells('Q' . $row . ':Q' . ($row + $row_bayar - 1));
+
+                $sheet->mergeCells('V' . $row . ':V' . ($row + $row_bayar - 1));
+                $sheet->mergeCells('W' . $row . ':W' . ($row + $row_bayar - 1));
+
+                $row += $row_bayar;
+            }
+        }
+
+        $response = response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        });
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $nameFile = $type == 'new' ? 'Mahasiswa Baru':'Mahasiswa Lama';
+        $response->headers->set('Content-Disposition', 'attachment; filename="Laporan Tagihan '.$nameFile.'.xlsx"');
+        $response->send();
+    }
+
+    function oldStudentHistory($student_number, Request $request)
+    {
         $search = $request->get('search_filter');
         $data = $this->getColomns('prrb.*')->where('ms2.student_number', '=', $student_number)->distinct()->get();
-        foreach($data as $items){
+        foreach ($data as $items) {
             $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
         }
 
-        if($search !== '#ALL' && $search !== NULL){
+        if ($search !== '#ALL' && $search !== NULL) {
             $data_filter = [];
-            foreach($data as $list){
+            foreach ($data as $list) {
                 $row = json_encode($list);
-                if(strpos($row, $search)){
+                if (strpos($row, $search)) {
                     array_push($data_filter, $list);
                 }
             }
             return DataTables($data_filter)->toJson();
         }
-        
+
         return DataTables($data)->toJson();
     }
 
-    function newStudentHistory($student_number, Request $request){
+    function newStudentHistory($student_number, Request $request)
+    {
         $search = $request->get('search_filter');
         $data = $this->getNew('prrb.*')->where('p.par_id', '=', $student_number)->distinct()->get();
-        foreach($data as $items){
+        foreach ($data as $items) {
             $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
         }
 
-        if($search !== '#ALL' && $search !== NULL){
+        if ($search !== '#ALL' && $search !== NULL) {
             $data_filter = [];
-            foreach($data as $list){
+            foreach ($data as $list) {
                 $row = json_encode($list);
-                if(strpos($row, $search)){
+                if (strpos($row, $search)) {
                     array_push($data_filter, $list);
                 }
             }
             return DataTables($data_filter)->toJson();
         }
-        
+
         return DataTables($data)->toJson();
     }
 
@@ -354,7 +900,8 @@ class ReportControllerApi extends Controller
             ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id');
     }
 
-    function getNew(){
+    function getNew()
+    {
         $list_colomns = func_get_args();
         return DB::table('masterdata.ms_studyprogram as ms')
             ->select($list_colomns)
@@ -366,9 +913,10 @@ class ReportControllerApi extends Controller
             ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id');
     }
 
-    function getProdi($faculty){
+    function getProdi($faculty)
+    {
         $data = Studyprogram::where('faculty_id', '=', $faculty)->get();
-        
+
         return $data;
     }
 }

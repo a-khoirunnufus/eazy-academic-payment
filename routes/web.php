@@ -65,10 +65,12 @@ Route::group(['prefix' => 'payment'], function () {
 Route::group(['prefix' => 'report'], function () {
     Route::group(['prefix' => 'old-student-invoice'], function () {
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
+        Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
     });
     Route::group(['prefix' => 'new-student-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudent');
+        Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
     });
 });
