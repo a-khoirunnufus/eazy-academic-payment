@@ -68,15 +68,16 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
     });
+    Route::group(['prefix' => 'new-student-invoice'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudent');
+        Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
+    });
 });
 
 Route::group(['prefix' => 'student'], function () {
     Route::get('/payment', 'App\Http\Controllers\_Student\PaymentController@index');
     Route::get('/payment/proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment');
 });
-
-
-
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
 Route::get('test', function() {

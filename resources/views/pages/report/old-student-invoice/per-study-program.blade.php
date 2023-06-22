@@ -1,5 +1,16 @@
 @extends('layouts.static_master')
 
+@section('css_section')
+<style>
+    .space {
+        margin-left: 10px;
+    }
+    .filter-container {
+        min-width: 200px !important;
+    }
+</style>
+@endsection
+
 @section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
@@ -11,7 +22,7 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex">
-            <div>
+            <div class="filter-container">
                 <label class="form-label">Tahun Akademik dan Semester</label>
                 <select class="form-select select2" id="filterData">
                     <option value="#ALL">Semua Tahun Akademik dan Semester</option>
@@ -20,7 +31,22 @@
                     @endforeach
                 </select>
             </div>
-            <div class="m-1 mb-0 align-self-end">
+            <div class="space filter-container">
+                <label class="form-label">Fakultas</label>
+                <select class="form-select select2" id="facultyFilter" onchange="getProdi()">
+                    <option value="#ALL">Semua Fakultas</option>
+                    @foreach($faculty as $item)
+                    <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="space filter-container">
+                <label class="form-label">Program Study</label>
+                <select class="form-select select2" id="prodiFilter">
+                    <option value="#ALL">Semua Program Study</option>
+                </select>
+            </div>
+            <div class="align-self-end space">
                 <button class="btn btn-primary" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
@@ -100,7 +126,7 @@
 
     const _oldStudentInvoiceTable = {
         ..._datatable,
-        init: function(byFilter = '#ALL', searchData = '#ALL') {
+        init: function(byFilter = '#ALL', faculty = '#ALL', prodi = '#ALL', searchData = '#ALL') {
             all_total_tagihan = 0;
             all_total_denda = 0;
             all_total_beasiswa = 0;
@@ -117,6 +143,8 @@
                     data: {
                         data_filter: byFilter,
                         search_filter: searchData,
+                        id_faculty: faculty,
+                        id_prodi: prodi
                     },
                 },
                 columns: [{
@@ -130,7 +158,7 @@
                         data: 'studyprogram_name',
                         render: (data, _, row) => {
                             return this.template.buttonLinkCell(data, {
-                                link: _baseURL + '/report/old-student-invoice/program-study/'+row.studyprogram_id
+                                link: _baseURL + '/report/old-student-invoice/program-study/' + row.studyprogram_id
                             });
                         }
                     },
@@ -274,18 +302,44 @@
     }
 
     function filter() {
+        var faculty = $('select[id="facultyFilter"]').val()
+        var prodi = $('select[id="prodiFilter"]').val()
         dt.clear().destroy()
-        _oldStudentInvoiceTable.init($('select[id="filterData"]').val())
+        _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), faculty, prodi);
     }
 
-    function searchData(event){
-        if(event.key == 'Enter'){
+    function getProdi() {
+        $('#prodiFilter').html(`
+                <option value="#ALL">Semua Program Study</option>
+            `)
+
+        var faculty = $('select[id="facultyFilter"]').val()
+        if (faculty != '#ALL') {
+            var xhr = new XMLHttpRequest()
+            xhr.onload = function() {
+                var data = JSON.parse(this.responseText);
+                for (var i = 0; i < data.length; i++) {
+                    $('#prodiFilter').append(`
+                        <option value="${data[i].studyprogram_id}">${data[i].studyprogram_name}</option>
+                    `)
+                }
+            }
+            xhr.open('GET', _baseURL + '/api/report/getProdi/' + faculty);
+            xhr.send()
+        }
+    }
+
+    function searchData(event) {
+        if (event.key == 'Enter') {
             var find = $('#searchFilter').val()
             $('#searchFilter').val('')
-            
-            find = find == '' ? '#ALL': find;
+
+            find = find == '' ? '#ALL' : find;
+            var faculty = $('select[id="facultyFilter"]').val()
+            var prodi = $('select[id="prodiFilter"]').val()
+
             dt.clear().destroy()
-            _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), find);
+            _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), faculty, prodi, find);
         }
     }
 </script>

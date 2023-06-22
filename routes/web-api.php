@@ -120,6 +120,12 @@ Route::group(['prefix' => 'report'], function(){
         Route::get('/program-study/{prodi}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentProgramStudy');
         Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentHistory');
     });
+    Route::group(['prefix' => 'new-student-invoice'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudent');
+        Route::get('/program-study/{prodi}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentProgramStudy');
+        Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudentHistory');
+    });
+    Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@getProdi');
 });
 
 // STUDENT GROUP ROUTE

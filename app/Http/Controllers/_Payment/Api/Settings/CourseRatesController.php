@@ -43,36 +43,9 @@ class CourseRatesController extends Controller
             $data = $query->orderBy('mcr_id')->get();
             $filter_data = [];
             foreach($data as $item){
-                $isInserted = false;
-                if(!$isInserted && strpos(strtolower($item['course']['subject_name']), strtolower($filters['filtering'])) !== NULL){
+                $row = json_encode($item);
+                if(strpos(strtolower($row), strtolower($filters['filtering']))){
                     array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-                if(!$isInserted && strpos(strtolower($item['course']['subject_code']), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-                if(!$isInserted && strpos(strtolower($item['study_program']['studyprogram_type'].' '.$item['study_program']['studyprogram_name']), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-                if(!$isInserted && strpos(strtolower($item['course']['credit'].' sks'), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-                if(!$isInserted && strpos(strtolower('Tingkat '.$item['mcr_tingkat']), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-                if(!$isInserted && strpos(strtolower('Rp '.$item['mcr_rate']), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
-                }
-
-                $mandatory = $item['course']['mandatory_status'] == 'WAJIB_PRODI' ? 'Wajib' : 'Tidak Wajib';
-                if(!$isInserted && strpos(strtolower($mandatory), strtolower($filters['filtering'])) !== NULL){
-                    array_push($filter_data, $item);
-                    $isInserted = true;
                 }
             }
             return datatables($filter_data)->toJson();
@@ -262,7 +235,7 @@ class CourseRatesController extends Controller
 
     public function template()
     {
-        $course = Course::limit(5)->get();
+        $course = Course::limit(200)->get();
         $listCourse = array();
         foreach($course as $item){
             array_push($listCourse, $item->course_id."-".$item->subject_name);
@@ -270,7 +243,7 @@ class CourseRatesController extends Controller
         $listCourse = '"'.implode(",", $listCourse).'"';
         // var_dump($listCourse);
 
-        $studyprogram = Studyprogram::limit(5)->get();
+        $studyprogram = Studyprogram::limit(200)->get();
         $listStudyProgram = array();
         foreach($studyprogram as $item){
             array_push($listStudyProgram, $item->studyprogram_id."-".$item->studyprogram_name);
@@ -299,17 +272,20 @@ class CourseRatesController extends Controller
             $sheet_info->setCellValue('B'.$start_row, $item->course_id."-".$item->subject_name);
             $start_row++;
         }
+        $mata_kuliah = $start_row;
 
         $start_row = 2;
         foreach(Studyprogram::all(['studyprogram_id','studyprogram_name']) as $item){
             $sheet_info->setCellValue('A'.$start_row, $item->studyprogram_id."-".$item->studyprogram_name);
             $start_row++;
         }
+        $programstudy = $start_row;
 
         for($i = 3; $i < 100; $i++){
             $validation1 = $sheet->getCell('A'.$i)->getDataValidation();
             $validation1->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-            $validation1->setFormula1(''.$listStudyProgram);
+            // $validation1->setFormula1(''.$listStudyProgram);
+            $validation1->setFormula1('Info!$A$2:$A$'.$programstudy);
             $validation1->setAllowBlank(false);
             $validation1->setShowDropDown(true);
             $validation1->setShowInputMessage(true);
@@ -322,7 +298,8 @@ class CourseRatesController extends Controller
 
             $validation2 = $sheet->getCell('B'.$i)->getDataValidation();
             $validation2->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-            $validation2->setFormula1(''.$listCourse);
+            // $validation2->setFormula1(''.$listCourse);
+            $validation2->setFormula1('Info!$B$2:$B$'.$mata_kuliah);
             $validation2->setAllowBlank(false);
             $validation2->setShowDropDown(true);
             $validation2->setShowInputMessage(true);
