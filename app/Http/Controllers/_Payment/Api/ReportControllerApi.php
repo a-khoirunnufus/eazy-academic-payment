@@ -30,6 +30,8 @@ class ReportControllerApi extends Controller
         $spesifikProdi = $request->get('prodi');
         $prodi_filter_angkatan = $request->get('prodi_filter_angkatan');
         $prodi_search_filter = $request->get('prodi_search_filter');
+        $prodi_path_filter = $request->get('prodi_path_filter');
+        $prodi_period_filter = $request->get('prodi_period_filter');
 
         foreach ($year as $tahun) {
             $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
@@ -49,6 +51,12 @@ class ReportControllerApi extends Controller
                 $listStudent = $this->getColomns('ms2.*');
                 if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
                     $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
+                }
+                if($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL){
+                    $listStudent->where('ms2.path_id', '=', $prodi_path_filter);
+                }
+                if($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL){
+                    $listStudent->where('ms2.period_id', '=', $prodi_period_filter);
                 }
                 $listStudent->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
                 
@@ -163,6 +171,8 @@ class ReportControllerApi extends Controller
         $spesifikProdi = $request->get('prodi');
         $prodi_filter_angkatan = $request->get('prodi_filter_angkatan');
         $prodi_search_filter = $request->get('prodi_search_filter');
+        $prodi_path_filter = $request->get('prodi_path_filter');
+        $prodi_period_filter = $request->get('prodi_period_filter');
 
         foreach ($year as $tahun) {
             $list_studyProgram = $this->getNew('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
@@ -184,7 +194,13 @@ class ReportControllerApi extends Controller
                     'r.reg_id', 'r.ms_period_id', 'r.ms_path_id'
                 );
                 if($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL){
-                    // $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
+                    $listStudent->where(DB::raw('SUBSTR(r.reg_major_pass_date, 1, 4)'), '=', $prodi_filter_angkatan);
+                }
+                if($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL){
+                    $listStudent->where('r.ms_path_id', '=', $prodi_path_filter);
+                }
+                if($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL){
+                    $listStudent->where('r.ms_period_id', '=', $prodi_period_filter);
                 }
                 $listStudent->where('ms.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
                 

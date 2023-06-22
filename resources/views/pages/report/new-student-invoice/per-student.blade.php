@@ -28,6 +28,10 @@
     .select-filtering {
         min-width: 150px !important;
     }
+    
+    .space {
+        margin-left: 10px;
+    }
 </style>
 @endsection
 
@@ -60,7 +64,25 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="m-1 mb-0 align-self-end">
+                        <div class="space select-filtering">
+                            <label class="form-label">Jalur Masuk</label>
+                            <select class="form-select select2 select-filter" id="pathData">
+                                <option value="#ALL">Semua Jalur Masuk</option>
+                                @foreach($jalur as $item)
+                                <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space select-filtering">
+                            <label class="form-label">Periode Masuk</label>
+                            <select class="form-select select2 select-filter" id="periodData">
+                                <option value="#ALL">Semua Periode Masuk</option>
+                                @foreach($periode as $item)
+                                <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space align-self-end">
                             <button class="btn btn-primary" onclick="filter()">
                                 <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                             </button>
@@ -126,7 +148,7 @@
 
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
-        init: function(byFilter = '#ALL', searchData = '#ALL') {
+        init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
             dtDetail = this.instance = $('#new-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
@@ -134,7 +156,9 @@
                     data: {
                         prodi_filter_angkatan: byFilter,
                         prodi_search_filter: searchData,
-                        prodi: '{{$programStudy}}'
+                        prodi: '{{$programStudy}}',
+                        prodi_path_filter: path,
+                        prodi_period_filter: period,
                     },
                 },
                 columns: [{
@@ -375,16 +399,22 @@
     }
 
     function filter() {
+        var angkatan = $('select[id="filterData"]').val();
+        var jalur = $('select[id="pathData"]').val();
+        var periode = $('select[id="periodData"]').val();
         dtDetail.clear().destroy()
-        _oldStudentInvoiceDetailTable.init($('select[id="filterData"]').val())
+        _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode)
     }
 
     function searchDataDetail(event) {
         if (event.key == 'Enter') {
+            var angkatan = $('select[id="filterData"]').val();
+            var jalur = $('select[id="pathData"]').val();
+            var periode = $('select[id="periodData"]').val();
             var find = $('#searchFilterDetail').val();
             $('#searchFilterDetail').val('');
             dtDetail.clear().destroy();
-            _oldStudentInvoiceDetailTable.init($('select[id="filterData"]').val(), find);
+            _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode, find)
         }
     }
 
