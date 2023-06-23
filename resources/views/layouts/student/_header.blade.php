@@ -111,8 +111,8 @@
             <li class="nav-item dropdown dropdown-user ps-1">
                 <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <div class="user-nav d-sm-flex d-none m-0">
-                        <span class="user-name fw-bolder" style="margin-bottom: .5rem">{{ $user->fullname }}</span>
-                        <span class="user-status">Mahasiswa</span>
+                        <span class="user-name fw-bolder" style="margin-bottom: .5rem">{{ $user->participant?->par_fullname ?? $user->student->fullname }}</span>
+                        <span class="user-status">Mahasiswa {{ $user->participant ? 'Baru' : 'Lama' }}</span>
                     </div>
                     <span class="avatar ms-1">
                         <img class="round" src="{{ asset('images/defaultavatar.jpg') }}" style="height: 40px; width: 40px">

@@ -55,7 +55,7 @@ Route::group(['prefix' => 'payment'], function () {
         // Payment
         Route::get('index', 'App\Http\Controllers\_Student\StudentController@index')->name('payment.student.index');
     });
-    
+
     Route::group(['prefix' => 'discount'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\DiscountController@index')->name('payment.discount.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\DiscountController@receiver')->name('payment.discount.receiver');

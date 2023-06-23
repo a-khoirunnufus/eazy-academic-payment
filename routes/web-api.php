@@ -128,10 +128,18 @@ Route::group(['prefix' => 'report'], function(){
 
 // STUDENT GROUP ROUTE
 Route::group(['prefix' => 'student'], function(){
+    Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@show');
+    Route::get('payment/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@show');
+    Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
+    Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
+    Route::get('credit-schema/{prr_id}', 'App\Http\Controllers\_Student\Api\CreditSchemaController@detail');
+
     Route::get('payment/unpaid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@unpaidPayment');
     Route::get('payment/paid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@paidPayment');
     Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
+
 });
+
 
 // Note: untuk mendownload file, baru lokal file yang diimplementasikan.
 Route::get('download', function(Request $request) {

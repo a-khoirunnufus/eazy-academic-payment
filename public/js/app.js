@@ -1005,3 +1005,68 @@ function unescapeHtml(text) {
         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'");
 }
+
+/**
+ * Cache Helper
+ */
+
+function getRequestCache(url) {
+    const disableCache = true;
+
+    return new Promise((resolve, reject) => {
+        caches.open('eazy-cache').then(cache => {
+            cache.match(url).then(async (response) => {
+                let data = null;
+
+                try {
+                    if(!response || disableCache) {
+                        console.log(`${url} cache not found, get data and store to cache.`);
+                        data = await $.ajax({
+                            async: true,
+                            url: url,
+                            method: 'GET',
+                            dataType: 'json',
+                        });
+                        cache.put(
+                            url,
+                            new Response(JSON.stringify(data), {
+                                headers: {
+                                    Date: new Date().toUTCString(),
+                                },
+                            })
+                        );
+                    } else {
+                        const date = new Date(response.headers.get('date'))
+                        // if cached file is older than 6 hours
+                        if ( Date.now() > date.getTime() + parseInt("{{ config('app.api_resource_cache_expiration') }}") ){
+
+                            console.log(`${url} cache expired, get data and update cache.`);
+                            data = await $.ajax({
+                                async: true,
+                                url: url,
+                                method: 'GET',
+                                dataType: 'json',
+                            });
+                            cache.put(
+                                url,
+                                new Response(JSON.stringify(data), {
+                                    headers: {
+                                        Date: new Date().toUTCString(),
+                                    },
+                                })
+                            );
+                        } else {
+                            console.log(`${url} cache found.`);
+                            data = await response.json();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error Happen', error);
+                    reject(error);
+                }
+
+                resolve(data);
+            })
+        });
+    })
+}

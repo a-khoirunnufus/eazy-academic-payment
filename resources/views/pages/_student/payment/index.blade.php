@@ -1,6 +1,6 @@
 @extends('layouts.student.layout-master')
 
-@section('page_title', 'Pembayaran Mahasiswa')
+@section('page_title', 'Tagihan Mahasiswa')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -10,10 +10,14 @@
             display: inline-block;
         }
         .eazy-table-info td {
-            padding: 10px 0;
+            padding: 5px 10px 5px 0;
+        }
+        .eazy-table-info.lg td {
+            padding: 10px 10px 10px 0;
         }
         .eazy-table-info td:first-child {
             padding-right: 1rem;
+            font-weight: 500;
         }
 
         .nav-tabs.custom .nav-item {
@@ -32,13 +36,61 @@
             overflow-x: auto;
         }
 
-        #payment-method-not-selected,
-        #payment-method-selected {
-            display: none;
+        .eazy-header {
+            display: flex;
+            flex-direction: row;
+            gap: 4rem;
+            flex-wrap: wrap;
         }
-        #payment-method-not-selected.show,
-        #payment-method-selected.show {
+        .eazy-header .eazy-header__item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+        .eazy-header .eazy-header__item .item__icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 65px;
+            height: 65px;
+            border-radius: 1.5rem;
+            background-color: rgba(246, 246, 246, 1) !important;
+        }
+        .eazy-header .eazy-header__item .item__icon svg {
+            width: 35px;
+            height: 35px;
+        }
+        .eazy-header .eazy-header__item .item__text {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .eazy-header .eazy-header__item .item__text .text__subtitle {
             display: block;
+        }
+        .eazy-header .eazy-header__item .item__text .text__title {
+            display: block;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .eazy-student-info {
+            display: flex;
+            flex-direction: row;
+            gap: 4rem;
+        }
+        .eazy-student-info .eazy-student-info__item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .eazy-student-info .eazy-student-info__item .item__subtitle {
+            display: block;
+        }
+        .eazy-student-info .eazy-student-info__item .item__subtitle {
+            display: block;
+            font-weight: 700;
         }
     </style>
 @endsection
@@ -47,35 +99,8 @@
 
 <div id="student-info" class="card mb-3">
     <div class="card-body" style="width: 100%">
-        <div class="d-flex flex-row" style="gap: 4rem; flex-wrap: wrap">
-            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
-                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
-                    <i style="width: 35px; height: 35px" data-feather="user"></i>
-                </div>
-                <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Nama dan No Partisipan</small>
-                    <span class="fw-bolder" style="font-size: 16px">{{ $user->fullname }}</span>
-                    <span class="text-secondary d-block">{{ $user->participant_number }}</span>
-                </div>
-            </div>
-            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
-                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
-                    <i style="width: 35px; height: 35px" data-feather="book-open"></i>
-                </div>
-                <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Fakultas</small>
-                    <span class="fw-bolder" style="font-size: 16px">N/A</span>
-                </div>
-            </div>
-            <div class="d-flex flex-row align-items-center" style="gap: 1rem">
-                <div class="round d-flex justify-content-center align-items-center bg-light" style="width: 65px; height: 65px">
-                    <i style="width: 35px; height: 35px" data-feather="bookmark"></i>
-                </div>
-                <div class="d-flex flex-column" style="gap: 5px">
-                    <small class="d-block">Program Studi</small>
-                    <span class="fw-bolder" style="font-size: 16px">N/A</span>
-                </div>
-            </div>
+        <div id="header-info-student">
+            ...
         </div>
     </div>
 </div>
@@ -98,12 +123,12 @@
                             <th>Aksi</th>
                             <th>Tahun Akademik Tagihan</th>
                             <th>Kode Tagihan</th>
-                            <th>Bulan</th>
                             <th>Total / Rincian Tagihan</th>
                             <th>Total / Rincian Potongan</th>
                             <th>Total / Rincian Beasiswa</th>
                             <th>Total / Rincian Denda</th>
                             <th>Jumlah Total</th>
+                            <th>Keterangan</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -140,33 +165,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3 pt-0">
-                <div id="invoice-header" class="d-flex flex-row justify-content-between align-items-start mb-3">
-                    <div>
-                        <img src="{{ url('images/logo-eazy-small.png') }}" style="height: 40px" alt="eazy logo">
-                    </div>
-                    <div>
-                        <span class="invoice-issue-date d-block fw-bold text-end" style="font-size: 12px">...</span>
-                        <span class="text-end" style="font-size: 10px">No Tagihan: <span class="invoice-number fw-bold">...</span> | Telkom University</span>
-                    </div>
-                </div>
 
-                <div id="student-data" class="mb-4">
-                    <h4 class="fw-bolder mb-1">Data Mahasiwa</h4>
-                    <div class="d-flex flex-row justify-content-between mb-4" style="gap: 2rem">
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Nama</small>
-                            <span class="fw-bolder">{{ $user->fullname }}</span>
-                            <span class="text-secondary d-block">No Partisipan: {{ $user->participant_number }}</span>
-                        </div>
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Fakultas</small>
-                            <span class="fw-bolder">N/A</span>
-                        </div>
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Program Studi</small>
-                            <span class="fw-bolder">N/A</span>
-                        </div>
-                    </div>
+                <div id="invoice-notes"></div>
+
+                <div id="invoice-data" class="mb-3">
+                    <h4 class="fw-bolder mb-1">Data Tagihan</h4>
+                    <table class="eazy-table-info">
+                        <tbody>
+                            <tr>
+                                <td>Nomor Invoice</td>
+                                <td>:&nbsp;&nbsp;<span class="invoice-number">...</span></td>
+                            </tr>
+                            <tr>
+                                <td>Digenerate Pada</td>
+                                <td>:&nbsp;&nbsp;<span class="invoice-created">...</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <div id="invoice-detail" class="mb-4">
@@ -196,12 +211,85 @@
 
 @section('js_section')
 <script>
+
+    const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
+
     $(function(){
         _unpaidPaymentTable.init();
         // _paidPaymentTable.init();
+
+        renderHeaderInfo();
     });
 
-    const userMaster = JSON.parse(`{!! json_encode($user) !!}`);
+    async function renderHeaderInfo() {
+        const studentType = userMaster.participant ? 'new_student' : 'student';
+        const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
+        const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
+
+        const studentDetail = await $.ajax({
+            async: true,
+            url: `${_baseURL}/api/student/detail?${queryParam}`,
+            type: 'get'
+        });
+
+        if (studentType == 'new_student') {
+            $('#header-info-student').html(`
+                <div class="eazy-header">
+                    <div class="eazy-header__item">
+                        <div class="item__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="item__text">
+                            <small class="text__subtitle">Nama Lengkap</small>
+                            <span class="text__title">${studentDetail.par_fullname}</span>
+                        </div>
+                    </div>
+                    <div class="eazy-header__item">
+                        <div class="item__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-hash"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                        </div>
+                        <div class="item__text">
+                            <small class="text__subtitle">NIK</small>
+                            <span class="text__title">${studentDetail.par_nik}</span>
+                        </div>
+                    </div>
+                </div>
+            `);
+        } else if (studentType == 'student') {
+            $('#header-info-student').html(`
+                <div class="eazy-header">
+                    <div class="eazy-header__item">
+                        <div class="item__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="item__text">
+                            <small class="text__subtitle">Nama Lengkap dan NIM</small>
+                            <span class="text__title">${studentDetail.fullname}</span>
+                            <span class="d-block">${studentDetail.student_id}</span>
+                        </div>
+                    </div>
+                    <div class="eazy-header__item">
+                        <div class="item__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                        </div>
+                        <div class="item__text">
+                            <small class="text__subtitle">Fakultas</small>
+                            <span class="text__title">${studentDetail.studyprogram.faculty.faculty_name}</span>
+                        </div>
+                    </div>
+                    <div class="eazy-header__item">
+                        <div class="item__icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                        </div>
+                        <div class="item__text">
+                            <small class="text__subtitle">Program Studi</small>
+                            <span class="text__title">${studentDetail.studyprogram.studyprogram_name}</span>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+    }
 
     const _unpaidPaymentTable = {
         ..._datatable,
@@ -211,9 +299,19 @@
                 ajax: {
                     url: _baseURL+'/api/student/payment/unpaid-payment',
                     data: function(d) {
-                        d.participant_id = userMaster.participant_id;
+                        d.student_type = userMaster.participant ? 'new_student' : 'student';
+                        d.participant_id = userMaster.participant?.par_id;
+                        d.student_id = userMaster.student?.student_id;
                     }
                 },
+                stateSave: false,
+                columnDefs: [
+                    {
+                        targets: [8],
+                        visible: 'participant' in userMaster,
+                        searchable: 'participant' in userMaster,
+                    },
+                ],
                 columns: [
                     {
                         name: 'action',
@@ -237,13 +335,6 @@
                         data: 'invoice_number',
                         render: (data) => {
                             return this.template.defaultCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'month',
-                        data: 'month',
-                        render: (data) => {
-                            return this.template.defaultCell(data ?? '-');
                         }
                     },
                     {
@@ -293,6 +384,13 @@
                         data: 'total_amount',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
+                        }
+                    },
+                    {
+                        name: 'notes',
+                        data: 'notes',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {nowrap: false});
                         }
                     },
                 ],
@@ -350,8 +448,15 @@
         detail: function(e) {
             const data = _unpaidPaymentTable.getRowData(e.currentTarget);
 
-            $('#unpaidPaymentDetailModal #invoice-header .invoice-issue-date').text(moment(data.invoice_issued_date).format('DD MMMM YYYY, HH:mm'));
-            $('#unpaidPaymentDetailModal #invoice-header .invoice-number').text(data.invoice_number);
+            $('#unpaidPaymentDetailModal #invoice-data .invoice-number').text(data.invoice_number);
+            $('#unpaidPaymentDetailModal #invoice-data .invoice-created').text(moment(data.invoice_issued_date).format('DD-MM-YYYY'));
+
+            if (data.invoice_student_type == 'new_student') {
+                $('#unpaidPaymentDetailModal #invoice-notes').html(`
+                    <h4 class="fw-bolder mb-1">Keterangan Tagihan</h4>
+                    <div class="mb-4">${data.notes}</div>
+                `);
+            }
 
             const invoiceDetail = JSON.parse(unescapeHtml(data.invoice_detail));
             const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
