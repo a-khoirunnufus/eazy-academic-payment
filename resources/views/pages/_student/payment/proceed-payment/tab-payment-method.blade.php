@@ -1,5 +1,14 @@
 @push('styles')
     <style>
+        #payment-method-selected,
+        #payment-method-unselected {
+            display: none;
+        }
+        #payment-method-selected.show,
+        #payment-method-unselected.show {
+            display: block;
+        }
+
         .payment-method {
             display: flex;
             flex-wrap: wrap;
@@ -29,39 +38,25 @@
     </style>
 @endpush
 
-<div class="d-flex flex-row">
-    <div id="select-payment-method" class="d-flex flex-column pe-3 w-50">
+<div id="payment-method-selected">...</div>
+
+<div id="payment-method-unselected">
+    <div id="select-payment-method" class="d-flex flex-column w-100">
         <h4 class="mb-2">Pilih Metode Pembayaran</h4>
-        <div class="mb-2">
+        <div>
             <p>Bank Transfer</p>
             <div class="payment-method">...</div>
         </div>
-        <div>
-            <button onclick="paymentMethodTab.selectMethod()" class="btn btn-primary">Pilih Metode Pembayaran</button>
+        <div class="mt-3">
+            <button id="btn-select-payment" onclick="paymentMethodTab.selectMethod()" class="btn btn-primary">Pilih Metode Pembayaran</button>
         </div>
     </div>
 
-    <div id="payment-detail" class="ps-3 w-50">
-        <h4 class="mb-2">Detail Pembayaran</h4>
-        <div class="mb-2">
-            <p class="text-secondary">Nomor Virtual Akun Bank</p>
-            <h4 class="text-primary" id="bank-va-number">...</h4>
-        </div>
-        <div class="d-flex mb-2" style="gap: 2rem">
-            <div class="d-inline-block">
-                <p class="text-secondary">Biaya Awal</p>
-                <h4 class="text-primary" id="initial-cost">...</h4>
-            </div>
-            <div class="d-inline-block">
-                <p class="text-secondary">Biaya Admin</p>
-                <h4 class="text-primary" id="admin-fee">...</h4>
-            </div>
-        </div>
-        <!-- <button type="button" class="btn btn-outline-success d-inline-block text-success me-1" style="height: fit-content">Tata cara pembayaran&nbsp;&nbsp;<i data-feather="book"></i></button>
-        <button class="btn btn-success btn-icon d-inline-block" style="height: fit-content">
-            <i data-feather="printer"></i>
-        </button> -->
-    </div>
+    <!-- <button type="button" class="btn btn-outline-success d-inline-block text-success me-1" style="height: fit-content">Tata cara pembayaran&nbsp;&nbsp;<i data-feather="book"></i></button>
+    <button class="btn btn-success btn-icon d-inline-block" style="height: fit-content">
+        <i data-feather="printer"></i>
+    </button> -->
+
 </div>
 
 @prepend('scripts')
@@ -75,41 +70,47 @@
 
     const paymentMethodTab = {
         showHandler: async function() {
-            console.log('payment method tab opened');
+            // get selected payment method
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+            const selectedMethod = payment.payment_method ?? {mpm_key: null};
 
-            // get all payment method available
-            const paymentMethods = await getRequestCache(`${_baseURL}/api/student/payment-method`);
-            $('#nav-payment-method #select-payment-method .payment-method').html(`
-                ${
-                    paymentMethods.map(item => {
-                        return `
-                            <div class="payment-method__item" data-eazy-method="${item.mpm_key}" data-eazy-selected="false">
-                                <span>${item.mpm_name}</span>
-                            </div>
-                        `;
-                    }).join('')
-                }
-            `);
-            paymentMethodTab.setupClickableMethod();
+            if (selectedMethod.mpm_key) {
+                $('#nav-payment-method #payment-method-selected').html(`
+                    <div
+                        class="alert alert-success p-1 d-inline-block"
+                        style="width: fit-content; margin: 0 auto;"
+                    >
+                        <i data-feather="check"></i>&nbsp;&nbsp;
+                        Anda telah memilih metode pembayaran <strong>Bank Transfer ${selectedMethod.mpm_name}</strong>
+                    </div>
+                `);
+                feather.replace();
 
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
-            const selectedMethod = paymentMethods.filter(item => item.mpm_key == payment.prr_method);
-            $('#nav-payment-method #payment-detail #bank-va-number').text(
-                selectedMethod[0] ? selectedMethod[0].mpm_name+' - '+selectedMethod[0].mpm_account_number : '-'
-            );
-            $('#nav-payment-method #payment-detail #admin-fee').text(
-                selectedMethod[0] ? Rupiah.format(selectedMethod[0].mpm_fee) : '-'
-            );
+                $('#nav-payment-method #payment-method-selected').addClass('show');
+                $('#nav-payment-method #payment-method-unselected').removeClass('show');
+            } else {
+                // get all payment method available
+                const paymentMethods = await getRequestCache(`${_baseURL}/api/student/payment-method`);
+                $('#nav-payment-method #select-payment-method .payment-method').html(`
+                    ${
+                        paymentMethods.map(item => {
+                            return `
+                                <div
+                                    class="payment-method__item"
+                                    data-eazy-method="${item.mpm_key}"
+                                    data-eazy-selected="${item.mpm_key == selectedMethod.mpm_key ? 'true' : 'false'}"
+                                >
+                                    <span>${item.mpm_name}</span>
+                                </div>
+                            `;
+                        }).join('')
+                    }
+                `);
+                paymentMethodTab.setupClickableMethod();
 
-            $('#nav-payment-method #payment-detail #initial-cost').text(`
-                ${Rupiah.format(
-                    payment.payment_detail.reduce((acc, curr) => {
-                        return parseInt(curr.is_plus) == 1 ?
-                            acc + parseInt(curr.prrd_amount)
-                            : acc - parseInt(curr.prrd_amount);
-                    }, 0)
-                )}
-            `);
+                $('#nav-payment-method #payment-method-selected').removeClass('show');
+                $('#nav-payment-method #payment-method-unselected').addClass('show');
+            }
         },
         selectMethod: async function() {
             try {
@@ -119,6 +120,13 @@
                     _toastr.warning('Silahkan pilih metode pembayaran terlebih dahulu.', 'Metode Belum Dipilih');
                     throw new Error('Metode belum dipilih');
                 }
+
+                const confirmed = await _swalConfirmSync({
+                    title: 'Konfirmasi',
+                    text: 'Apakah anda yakin ingin memilih metode pembayaran ini?',
+                });
+
+                if(!confirmed) return;
 
                 const res = await $.ajax({
                     url: `${_baseURL}/api/student/payment/select-method`,
@@ -135,18 +143,10 @@
 
                 _toastr.success(res.message, 'Berhasil');
 
-                this.showHandler();
-
                 tabManager.updateDisableState();
 
             } catch (error) {
                 console.error('Something Wrong!', error);
-            }
-        },
-        nextStep: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
-            if (!payment.prr_method) {
-                _toastr.warning('Silahkan pilih metode pembayaran terlebih dahulu.', 'Metode Belum Dipilih');
             }
         },
         setupClickableMethod: function() {

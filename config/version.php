@@ -2,8 +2,8 @@
 
 return [
 
-    'css_style' => 1686825373,
+    'css_style' => 1687701971,
 
-    'js_config' => 1686825373
+    'js_config' => 1687701971
 
 ];

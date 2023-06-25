@@ -2,7 +2,7 @@
 
 @section('page_title', 'Proses Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', url('student/payment'))
+@section('url_back', url('student/payment').'?type='.request()->query('type'))
 
 @section('css_section')
     <style>
@@ -123,6 +123,7 @@
      * @var object invoiceDataTab
      * @var object paymentMethodTab
      * @var object paymentOptionTab
+     * @var object paymentDetailTab
      * @func getRequestCache()
      */
 
@@ -134,7 +135,8 @@
         tabManager.initTabs(
             invoiceDataTab.showHandler,
             paymentMethodTab.showHandler,
-            paymentOptionTab.showHandler
+            paymentOptionTab.showHandler,
+            paymentDetailTab.showHandler,
         );
     });
 
@@ -143,11 +145,7 @@
         const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
         const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
 
-        const studentDetail = await $.ajax({
-            async: true,
-            url: `${_baseURL}/api/student/detail?${queryParam}`,
-            type: 'get'
-        });
+        const studentDetail = await getRequestCache(`${_baseURL}/api/student/detail?${queryParam}`);
 
         if (studentType == 'new_student') {
             $('#header-info-student').html(`
@@ -209,7 +207,7 @@
     }
 
     const tabManager = {
-        initTabs: function (invoiceDataShowHandler, paymentMethodShowHandler) {
+        initTabs: function (invoiceDataShowHandler, paymentMethodShowHandler, paymentOptionShowHandler, paymentDetailShowHandler) {
             this.updateDisableState();
 
             // Enable tabbable tabs via JavaScript
@@ -232,6 +230,10 @@
                         invoiceDataShowHandler();
                     } else if (target == '#nav-payment-method') {
                         paymentMethodShowHandler();
+                    } else if (target == '#nav-payment-option') {
+                        paymentOptionShowHandler();
+                    } else if (target == '#nav-payment-detail') {
+                        paymentDetailShowHandler();
                     }
                 });
             });
@@ -243,7 +245,8 @@
             $('#nav-tab #nav-payment-option-tab').removeClass('disabled');
             $('#nav-tab #nav-payment-detail-tab').removeClass('disabled');
 
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            await deleteRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
 
             let openTabId = 'nav-payment-method';
 

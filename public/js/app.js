@@ -1011,7 +1011,9 @@ function unescapeHtml(text) {
  */
 
 function getRequestCache(url) {
-    const disableCache = true;
+    const disableCache = false;
+    const displayLogs = true;
+    const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
 
     return new Promise((resolve, reject) => {
         caches.open('eazy-cache').then(cache => {
@@ -1020,7 +1022,7 @@ function getRequestCache(url) {
 
                 try {
                     if(!response || disableCache) {
-                        console.log(`${url} cache not found, get data and store to cache.`);
+                        displayLogs && console.log(`${url} cache NOT FOUND, get data and store to cache.`);
                         data = await $.ajax({
                             async: true,
                             url: url,
@@ -1038,9 +1040,9 @@ function getRequestCache(url) {
                     } else {
                         const date = new Date(response.headers.get('date'))
                         // if cached file is older than 6 hours
-                        if ( Date.now() > date.getTime() + parseInt("{{ config('app.api_resource_cache_expiration') }}") ){
+                        if ( Date.now() > date.getTime() + cacheExpiredTime ){
 
-                            console.log(`${url} cache expired, get data and update cache.`);
+                            displayLogs && console.log(`${url} cache EXPIRED, get data and update cache.`);
                             data = await $.ajax({
                                 async: true,
                                 url: url,
@@ -1056,7 +1058,7 @@ function getRequestCache(url) {
                                 })
                             );
                         } else {
-                            console.log(`${url} cache found.`);
+                            displayLogs && console.log(`${url} cache FOUND.`);
                             data = await response.json();
                         }
                     }
@@ -1069,4 +1071,15 @@ function getRequestCache(url) {
             })
         });
     })
+}
+
+function deleteRequestCache(url) {
+    const displayLogs = true;
+    return new Promise((resolve, reject) => {
+        caches.open('eazy-cache').then(cache => {
+            cache.delete(url);
+            displayLogs && console.log(`${url} cache DELETED.`);
+            resolve(true);
+        });
+    });
 }

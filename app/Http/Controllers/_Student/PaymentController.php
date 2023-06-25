@@ -41,10 +41,6 @@ class PaymentController extends Controller
             $user = $this->getStaticStudentUser();
         }
 
-        $payment = Payment::find($prr_id);
-        $payment_bill = PaymentBill::where('prr_id', '=', $prr_id)->first();
-        $payment_method = MsPaymentMethod::where('mpm_key', '=', $payment->prr_method ?? '0')->first();
-
-        return view('pages._student.payment.proceed-payment.index', compact('prr_id', 'user', 'payment', 'payment_bill', 'payment_method'));
+        return view('pages._student.payment.proceed-payment.index', compact('prr_id', 'user'));
     }
 }

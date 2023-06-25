@@ -9,7 +9,7 @@ use App\Models\HR\MsStudent as Student;
 
 class StudentController extends Controller
 {
-    public function show(Request $request)
+    public function detail(Request $request)
     {
         /**
          * TODO:

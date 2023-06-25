@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\PMB\Register;
 use App\Models\HR\MsStudent;
 use App\Models\Year;
+use App\Models\Masterdata\MsPaymentMethod;
 
 class Payment extends Model
 {
@@ -43,5 +44,10 @@ class Payment extends Model
     public function year()
     {
         return $this->hasOne(Year::class, 'msy_code', 'prr_school_year');
+    }
+
+    public function paymentMethod()
+    {
+        return $this->hasOne(MsPaymentMethod::class, 'mpm_key', 'prr_method');
     }
 }

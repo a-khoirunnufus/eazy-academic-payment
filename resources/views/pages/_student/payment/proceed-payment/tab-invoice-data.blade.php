@@ -63,13 +63,22 @@
     const invoiceDataTab = {
         showHandler: async function() {
             try {
-                const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+                const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+
+                const studentType = payment.register ? 'new_student' : 'student';
 
                 $('#nav-invoice-data #invoice-notes #invoice-notes-text').text(`
-                    Tagihan ${payment.register ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
-                    Program Studi ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
-                    ${payment.register.studyprogram.studyprogram_name}
-                    ${payment.register.lecture_type.mlt_name},
+                    Tagihan ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                    Program Studi ${ studentType == 'new_student' ? `
+                            ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
+                            ${payment.register.studyprogram.studyprogram_name}
+                            ${payment.register.lecture_type.mlt_name}
+                        ` : `
+                            ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
+                            ${payment.student.studyprogram.studyprogram_name}
+                            ${payment.student.lecture_type.mlt_name}
+                        `
+                    }
                     Tahun Ajaran ${payment.year.msy_year}
                     Semester ${payment.year.msy_semester}.
                 `);

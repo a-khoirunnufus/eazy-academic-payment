@@ -128,15 +128,22 @@ Route::group(['prefix' => 'report'], function(){
 
 // STUDENT GROUP ROUTE
 Route::group(['prefix' => 'student'], function(){
-    Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@show');
-    Route::get('payment/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@show');
-    Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
-    Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
-    Route::get('credit-schema/{prr_id}', 'App\Http\Controllers\_Student\Api\CreditSchemaController@detail');
+    Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@detail');
 
     Route::get('payment/unpaid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@unpaidPayment');
     Route::get('payment/paid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@paidPayment');
     Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
+    Route::get('payment/detail/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detail');
+    Route::get('payment/credit-schemas/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@creditSchemas');
+    Route::get('payment/payment-option-preview/{cs_id}', 'App\Http\Controllers\_Student\Api\PaymentController@paymentOptionPreview');
+    Route::get('payment/ppm/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@getPpm');
+    Route::post('payment/create-bill/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@createBill');
+    Route::post('payment/reset-payment/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@resetPayment');
+
+    Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
+    Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
+
+
 
 });
 
