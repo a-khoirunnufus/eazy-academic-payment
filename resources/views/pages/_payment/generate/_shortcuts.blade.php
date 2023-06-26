@@ -23,6 +23,14 @@
             <span>Tagihan Mahasiswa Baru</span>
         </div>
     </a>
+    <a href="{{ route('payment.generate.discount') }}" class="eazy-shortcut-item {{ $active == 'discount' ? 'active' : '' }}">
+        <div class="eazy-shortcut-icon">
+            <i data-feather="percent"></i>
+        </div>
+        <div class="eazy-shortcut-label">
+            <span>Potongan Mahasiswa</span>
+        </div>
+    </a>
     <a href="{{ url('generate/other-invoice') }}" class="eazy-shortcut-item {{ $active == 'other-invoice' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="clipboard"></i>

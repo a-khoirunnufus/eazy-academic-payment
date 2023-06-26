@@ -73,4 +73,10 @@ class GenerateController extends Controller
 
         return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period'));
     }
+    
+    public function discount()
+    {
+        $period = Year::all();
+        return view('pages._payment.generate.discount.index',compact('period'));
+    }
 }

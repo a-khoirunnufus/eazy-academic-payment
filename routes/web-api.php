@@ -94,6 +94,14 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('student-invoice/delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@delete');
         Route::delete('student-invoice/deleteBulk/{faculty}/{studyProgram}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteBulk');
         Route::get('student-invoice/log-invoice', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@logGenerate');
+
+        Route::group(['prefix' => 'discount'], function(){
+            Route::get('index', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@index');
+            Route::post('generate', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@generate');
+            Route::post('generateBulk', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@generateBulk');
+            Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@delete');
+            Route::post('deleteBulk', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@deleteBulk');
+        });
     });
 
     Route::group(['prefix' => 'discount'], function(){

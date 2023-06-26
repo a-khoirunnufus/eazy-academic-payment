@@ -109,7 +109,7 @@ class StudentInvoiceController extends Controller
     }
 
     public function getActiveSchoolYearCode(){
-        return 22231;
+        return 20221;
     }
     
     public function header(Request $request){

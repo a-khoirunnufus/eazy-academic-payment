@@ -15,5 +15,5 @@ class PaymentDetail extends Model
 
     protected $primaryKey = 'prrd_id';
 
-    protected $fillable = ['prr_id', 'prrd_component','prrd_amount','is_plus','type'];
+    protected $fillable = ['prr_id', 'prrd_component','prrd_amount','is_plus','type','reference_table','reference_id'];
 }

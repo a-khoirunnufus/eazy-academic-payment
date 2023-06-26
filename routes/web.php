@@ -48,6 +48,8 @@ Route::group(['prefix' => 'payment'], function () {
 
         Route::get('student-invoice', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoice')->name('payment.generate.student-invoice');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
+
+        Route::get('discount', 'App\Http\Controllers\_Payment\GenerateController@discount')->name('payment.generate.discount');
     });
 
     // Student
