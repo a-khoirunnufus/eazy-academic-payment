@@ -3,24 +3,34 @@
 namespace App\Traits\Authentication;
 
 use Illuminate\Support\Facades\DB;
+use App\Models\PMB\User as NewStudentUser;
+use App\Models\Masterdata\MsUser as StudentUser;
 
 trait StaticStudentUser
 {
-    private $default_user_email = 'omanaristarihoran33@gmail.com';
-    private $default_user_password = '@Pass1234';
+    private $example_ns_user_id = 188;
+    private $example_ns_user_email = 'omanaristarihoran33@gmail.com';
+    private $example_ns_user_password = '@Pass1234';
 
-    private function getStaticUser()
+    private $example_s_user_id = 162;
+    private $example_s_user_email = 'GhinaNelaputri@gmail.com';
+    private $example_s_user_password = null;
+
+    private function getStaticNewStudentUser()
     {
-        $user = DB::table('pmb.users as u')
-            ->leftJoin('pmb.participant as p', 'p.user_id', '=', 'u.user_id')
-            ->where('u.user_email', '=', $this->default_user_email)
-            ->select(
-                'u.user_email as email',
-                'p.par_id as participant_id',
-                'p.par_number as participant_number',
-                'p.par_nik as nik',
-                'p.par_fullname as fullname'
-            )
+        $user = NewStudentUser::with(['participant' => function($query) {
+                $query->select('user_id', 'par_id', 'par_fullname', 'par_nik', 'par_phone');
+            }])
+            ->where('user_email', '=', $this->example_ns_user_email)
+            ->first();
+
+        return $user;
+    }
+
+    private function getStaticStudentUser()
+    {
+        $user = StudentUser::with(['student'])
+            ->where('user_email', '=', $this->example_s_user_email)
             ->first();
 
         return $user;

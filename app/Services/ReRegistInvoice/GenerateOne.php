@@ -17,6 +17,10 @@ class GenerateOne {
 
     public static function generate(int $invoice_period_code, int $register_id)
     {
+        /**
+         * EAZY SERVICE COST DISABLED
+         */
+
         $register = Register::find($register_id);
 
         // check participant not exist
@@ -45,7 +49,7 @@ class GenerateOne {
         }
 
         // eazy service cost
-        $eazy_service_cost = Setting::where('setting_key', 'biaya_service_eazy')->first()->setting_value;
+        // $eazy_service_cost = Setting::where('setting_key', 'biaya_service_eazy')->first()->setting_value;
 
         // total invoice
         $invoice_total = 0;
@@ -54,7 +58,7 @@ class GenerateOne {
         }
 
         // partner's net income
-        $partner_net_income = $invoice_total - intval($eazy_service_cost);
+        $partner_net_income = $invoice_total; //- intval($eazy_service_cost);
 
         try {
             DB::beginTransaction();

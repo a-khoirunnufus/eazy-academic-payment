@@ -1005,3 +1005,81 @@ function unescapeHtml(text) {
         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'");
 }
+
+/**
+ * Cache Helper
+ */
+
+function getRequestCache(url) {
+    const disableCache = false;
+    const displayLogs = true;
+    const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
+
+    return new Promise((resolve, reject) => {
+        caches.open('eazy-cache').then(cache => {
+            cache.match(url).then(async (response) => {
+                let data = null;
+
+                try {
+                    if(!response || disableCache) {
+                        displayLogs && console.log(`${url} cache NOT FOUND, get data and store to cache.`);
+                        data = await $.ajax({
+                            async: true,
+                            url: url,
+                            method: 'GET',
+                            dataType: 'json',
+                        });
+                        cache.put(
+                            url,
+                            new Response(JSON.stringify(data), {
+                                headers: {
+                                    Date: new Date().toUTCString(),
+                                },
+                            })
+                        );
+                    } else {
+                        const date = new Date(response.headers.get('date'))
+                        // if cached file is older than 6 hours
+                        if ( Date.now() > date.getTime() + cacheExpiredTime ){
+
+                            displayLogs && console.log(`${url} cache EXPIRED, get data and update cache.`);
+                            data = await $.ajax({
+                                async: true,
+                                url: url,
+                                method: 'GET',
+                                dataType: 'json',
+                            });
+                            cache.put(
+                                url,
+                                new Response(JSON.stringify(data), {
+                                    headers: {
+                                        Date: new Date().toUTCString(),
+                                    },
+                                })
+                            );
+                        } else {
+                            displayLogs && console.log(`${url} cache FOUND.`);
+                            data = await response.json();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error Happen', error);
+                    reject(error);
+                }
+
+                resolve(data);
+            })
+        });
+    })
+}
+
+function deleteRequestCache(url) {
+    const displayLogs = true;
+    return new Promise((resolve, reject) => {
+        caches.open('eazy-cache').then(cache => {
+            cache.delete(url);
+            displayLogs && console.log(`${url} cache DELETED.`);
+            resolve(true);
+        });
+    });
+}

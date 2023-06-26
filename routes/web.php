@@ -55,7 +55,7 @@ Route::group(['prefix' => 'payment'], function () {
         // Payment
         Route::get('index', 'App\Http\Controllers\_Student\StudentController@index')->name('payment.student.index');
     });
-    
+
     Route::group(['prefix' => 'discount'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\DiscountController@index')->name('payment.discount.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\DiscountController@receiver')->name('payment.discount.receiver');
@@ -70,10 +70,12 @@ Route::group(['prefix' => 'payment'], function () {
 Route::group(['prefix' => 'report'], function () {
     Route::group(['prefix' => 'old-student-invoice'], function () {
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
+        Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
     });
     Route::group(['prefix' => 'new-student-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudent');
+        Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
     });
 });

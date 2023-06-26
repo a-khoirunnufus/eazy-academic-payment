@@ -3,6 +3,7 @@
 namespace App\Models\PMB;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Participant extends Model
 {

@@ -1,5 +1,7 @@
 <?php
 
+// !! Gunakan App\Models\Faculty !!
+
 namespace App\Models\Masterdata;
 
 use Illuminate\Database\Eloquent\Model;
