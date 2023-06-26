@@ -441,7 +441,7 @@
             let data = _discountReceiverTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus penerima potongan ini?',
+                html: 'Apakah anda yakin ingin menghapus <br> <span class="fw-bolder">'+data.student.fullname+'</span> sebagai penerima potongan?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',

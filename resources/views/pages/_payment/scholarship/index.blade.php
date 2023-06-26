@@ -122,12 +122,6 @@
                         data: 'ms_from',
                         searchable: false,
                         render: (data, _, row) => {
-                            let from = "";
-                            if(row.ms_type === 1){
-                                from = "Internal";
-                            }else if(row.ms_type === 2){
-                                from = "External";
-                            }
                             let name = (row.ms_from_name) ? row.ms_from_name : "";
                             return "<span class='fw-bolder'>"+row.ms_from +"</span> <br>"+name;
                         }

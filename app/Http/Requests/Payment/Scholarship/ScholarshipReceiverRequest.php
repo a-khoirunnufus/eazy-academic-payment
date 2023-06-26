@@ -9,9 +9,15 @@ class ScholarshipReceiverRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+    public function attributes()
     {
-        return false;
+        return [
+            'ms_id' => 'Beasiswa',
+            'student_number' => 'Mahasiswa',
+            'msr_period' => 'Periode',
+            'msr_nominal' => 'Nominal',
+            'msr_status' => 'Status',
+        ];
     }
 
     /**
@@ -22,7 +28,12 @@ class ScholarshipReceiverRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'ms_id' => 'required',
+            'student_number' => 'required',
+            'msr_period' => 'required',
+            'msr_nominal' => 'required|numeric',
+            'msr_status' => 'nullable',
+            'msc_id' => 'nullable',
         ];
     }
 }
