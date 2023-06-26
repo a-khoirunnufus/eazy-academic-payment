@@ -128,6 +128,11 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
     });
     
+
+    Route::group(['prefix' => 'approval'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ApprovalController@index');
+        Route::post('{prrb_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ApprovalController@processApproval');
+    });
 });
 
 // REPORT GROUP ROUTE

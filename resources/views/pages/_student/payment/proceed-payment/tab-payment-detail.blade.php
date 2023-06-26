@@ -154,7 +154,6 @@
                 // full 100% payment
 
                 $('#single-bill').addClass('show');
-                $('#form-upload-evidence-wrapper').addClass('show');
                 $('#multiple-bills').removeClass('show');
 
                 const paymentBill = payment.payment_bill[0];
@@ -162,6 +161,10 @@
                 if (paymentBill.prrb_manual_name) {
                     !paymentDetailTab.alwaysAllowReset && $('#reset-payment-section').removeClass('show');
                     $('#form-upload-evidence-wrapper').removeClass('show');
+                }
+
+                if(paymentBill.prrb_manual_status == null || paymentBill.prrb_manual_status == 'rejected') {
+                    $('#form-upload-evidence-wrapper').addClass('show');
                 }
 
                 $('#table-payment-detail-full tbody').html(`
@@ -205,11 +208,11 @@
                                         </p>
                                         <p class="mb-0">Status Approval : ${
                                             paymentBill.prrb_manual_status == 'waiting' ?
-                                                '<span class="badge bg-primary">Menunggu Approval</span>'
+                                                '<span class="badge bg-warning">Menunggu Approval</span>'
                                                 : paymentBill.prrb_manual_status == 'rejected' ?
                                                     '<span class="badge bg-danger">Ditolak</span>'
                                                     : paymentBill.prrb_manual_status == 'accepted' ?
-                                                        '<span class="badge bg-danger">Disetujui</span>'
+                                                        '<span class="badge bg-success">Disetujui</span>'
                                                         : 'N/A'
                                         }</p>
                                     </div>
@@ -287,6 +290,17 @@
                                                     <i data-feather="eye"></i>&nbsp;&nbsp;Lihat Detail
                                                 </button>
                                             `
+                                        }
+                                        ${item.prrb_manual_status == 'rejected' ? `
+                                                <button
+                                                    onclick="paymentDetailTab.openUploadEvidenceModal(event)"
+                                                    data-eazy-prrId="${item.prr_id}"
+                                                    data-eazy-prrbId="${item.prrb_id}"
+                                                    class="btn btn-sm btn-outline-primary mt-1"
+                                                >
+                                                    <i data-feather="upload"></i>&nbsp;&nbsp;Upload Bukti
+                                                </button>
+                                            ` : ''
                                         }
                                     </td>
                                 </tr>
@@ -383,14 +397,21 @@
                                 template: `
                                     ${
                                         paymentBill.prrb_manual_status == 'waiting' ?
-                                            '<span class="badge bg-primary">Menunggu Approval</span>'
+                                            '<span class="badge bg-warning">Menunggu Approval</span>'
                                             : paymentBill.prrb_manual_status == 'rejected' ?
                                                 '<span class="badge bg-danger">Ditolak</span>'
                                                 : paymentBill.prrb_manual_status == 'accepted' ?
-                                                    '<span class="badge bg-danger">Disetujui</span>'
+                                                    '<span class="badge bg-success">Disetujui</span>'
                                                     : 'N/A'
                                     }
                                 `,
+                            },
+                        },
+                        prrb_manual_note: {
+                            title: 'Catatan',
+                            content: {
+                                template: ':text',
+                                text: paymentBill.prrb_manual_note ?? '-'
                             },
                         },
                     },

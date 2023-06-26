@@ -235,6 +235,13 @@
                     </li>
                 </ul>
             </li>
+
+            <li class="nav-item {{ 'payment/approval' == request()->path() ? 'active' : '' }} mb-50">
+                <a class="d-flex align-items-center fw-bold" href="{{ url('payment/approval') }}">
+                    <i data-feather="check-circle"></i>
+                    <span class="menu-title text-truncate">Approval Pembayaran<br>Manual</span>
+                </a>
+            </li>
 	    </ul>
     </div>
 </div>
