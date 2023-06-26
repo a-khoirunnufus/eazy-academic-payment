@@ -104,15 +104,9 @@
                         data: 'student_number',
                         searchable: false,
                         render: (data, _, row) => {
-                            let html = "";
-                            if(row.student.student_type_id === 1) {
-                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
-                            } else {
-                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
-                            }
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${row.student.fullname} ${html}</span><br>
+                                    <span class="text-nowrap fw-bold">${row.student.fullname}</span><br>
                                     <small class="text-nowrap text-secondary">${row.student.student_id}</small>
                                 </div>
                             `;
