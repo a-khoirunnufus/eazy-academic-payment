@@ -14,6 +14,7 @@ use App\Models\PMB\Setting;
 use App\Models\Payment\CreditSchemaPeriodPath;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -433,7 +434,11 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             // delete payment bill
-            PaymentBill::where('prr_id', '=', $prr_id)->delete();
+            $bills = PaymentBill::where('prr_id', '=', $prr_id)->get();
+            foreach ($bills as $bill) {
+                $bill->prrb_manual_evidence && Storage::cloud()->delete($bill->prrb_manual_evidence);
+                PaymentBill::destroy($bill->prrb_id);
+            }
 
             $payment_detail = PaymentDetail::where('prr_id', '=', $prr_id)->get();
             $invoice_total_amount = 0;
@@ -464,6 +469,58 @@ class PaymentController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Berhasil mereset pembayaran.'
+        ], 200);
+    }
+
+    public function getEvidence($prr_id, $prrb_id)
+    {
+        $bill = PaymentBill::find($prrb_id);
+        $data = [
+            'account_owner_name' => $bill->prrb_manual_name,
+            'account_number' => $bill->prrb_manual_norek,
+            'file_evidence' => $bill->prrb_manual_evidence,
+            'approval_status' => $bill->prrb_manual_status,
+        ];
+        return response()->json($data, 200);
+    }
+
+    public function uploadEvidence($prr_id, $prrb_id, Request $request)
+    {
+        $validated = $request->validate([
+            'account_owner_name' => 'required',
+            'account_number' => 'required',
+            'file_evidence' => 'nullable|file|mimes:jpg,png,pdf|max:1000',
+        ]);
+
+        try {
+            $upload_success = Storage::cloud()->putFile('bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
+
+            if (!$upload_success) {
+                throw new \Exception('Failed uploading file!');
+            }
+
+            DB::beginTransaction();
+
+            $bill = PaymentBill::find($prrb_id);
+            $bill->prrb_manual_name = $validated['account_owner_name'];
+            $bill->prrb_manual_norek = $validated['account_number'];
+            $bill->prrb_manual_evidence = $upload_success;
+            $bill->prrb_manual_status = 'waiting';
+            $bill->save();
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil upload bukti pembayaran',
         ], 200);
     }
 }

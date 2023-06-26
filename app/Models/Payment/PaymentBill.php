@@ -15,5 +15,5 @@ class PaymentBill extends Model
 
     protected $primaryKey = 'prrb_id';
 
-    protected $fillable = ['prr_id', 'prrb_status','prrb_invoice_num','prrb_expired_date','prrb_resync_date','prrb_resync_by','prrb_paid_date','prrb_qr_code','prrb_mt_id','prrb_amount','prrb_admin_cost', 'prrb_order'];
+    protected $fillable = ['prr_id', 'prrb_status','prrb_invoice_num','prrb_expired_date','prrb_resync_date','prrb_resync_by','prrb_paid_date','prrb_qr_code','prrb_mt_id','prrb_amount','prrb_admin_cost', 'prrb_order', 'prrb_manual_name', 'prrb_manual_norek', 'prrb_manual_evidence', 'prrb_manual_status'];
 }

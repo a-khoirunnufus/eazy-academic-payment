@@ -160,8 +160,8 @@ Route::group(['prefix' => 'student'], function(){
     Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
     Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
 
-
-
+    Route::get('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
+    Route::post('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@uploadEvidence');
 });
 
 
@@ -185,4 +185,12 @@ Route::get('download', function(Request $request) {
             }
         }
     }
+});
+
+Route::get('download-cloud', function(Request $request) {
+    $path = $request->query('path');
+    if (!$path) {
+        return response()->json(['error' => 'path params must be defined!'], 400);
+    }
+    return \Illuminate\Support\Facades\Storage::cloud()->download($path);
 });
