@@ -219,7 +219,7 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#md_id').append(`
-                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`</option>
+                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`(sisa anggaran: `+Rupiah.format(item.md_budget-item.md_realization)+`)</option>
                         `);
                     });
                     $('#md_id').val(d.md_id);
@@ -334,7 +334,7 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#md_id').append(`
-                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`</option>
+                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`(sisa anggaran: `+Rupiah.format(item.md_budget-item.md_realization)+`)</option>
                         `);
                     });
                     selectRefresh();
