@@ -39,7 +39,7 @@ return [
     'digits_between' => ':attribute must be between :min and :max digits.',
     'dimensions' => ':attribute has invalid image dimensions.',
     'distinct' => ':attribute field has a duplicate value.',
-    'email' => ':attribute must be a valid email address.',
+    'email' => ':attribute harus email valid.',
     'ends_with' => ':attribute must end with one of the following: :values',
     'exists' => ':attribute tidak valid.',
     'file' => ':attribute must be a file.',

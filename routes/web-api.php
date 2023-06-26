@@ -111,6 +111,13 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@delete');
     });
+    
+    Route::group(['prefix' => 'scholarship'], function(){
+        Route::get('index', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@index');
+        Route::get('period', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@period');
+        Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@store');
+        Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@delete');
+    });
 });
 
 // REPORT GROUP ROUTE
