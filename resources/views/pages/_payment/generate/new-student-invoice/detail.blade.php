@@ -530,7 +530,7 @@
             const data = this.tableRef.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan mahasiswa '+data.participant_fullname+' ?',
+                text: 'Apakah anda yakin ingin menghapus tagihan mahasiswa '+data.participant_fullname+' ?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#356CFF',

@@ -84,13 +84,6 @@ class GenerateOne {
                 ]);
             }
 
-            // insert payment_re_register_bill record
-            PaymentBill::create([
-                'prr_id' => $payment->prr_id,
-                'prrb_status' => 'belum lunas',
-                'prrb_amount' => $invoice_total,
-            ]);
-
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollback();

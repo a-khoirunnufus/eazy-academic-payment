@@ -24,7 +24,7 @@ class PaymentController extends Controller
      */
     use StaticStudentUser;
 
-    public function unpaidPayment(Request $request) {
+    public function index(Request $request) {
         /**
          * NOTE:
          * - invoice number still using prr_id, change later.
@@ -34,6 +34,7 @@ class PaymentController extends Controller
             'student_type' => 'required|in:new_student,student',
             'participant_id' => 'required_if:student_type,new_student',
             'student_id' => 'required_if:student_type,student',
+            'status' => 'required|in:paid,unpaid',
         ]);
 
         $invoices = DB::table('finance.payment_re_register as prr')
@@ -53,7 +54,7 @@ class PaymentController extends Controller
         }
 
         $invoices = $invoices->where([
-                ['prr.prr_status', '=', 'belum lunas'],
+                ['prr.prr_status', '=', $validated['status'] == 'unpaid' ? 'belum lunas' : 'lunas'],
                 ['prr.deleted_at', 'is', DB::raw("NULL")],
             ])
             ->select(
@@ -102,6 +103,7 @@ class PaymentController extends Controller
                 "),
                 'prr.prr_total as total_amount',
                 'prr.prr_method as payment_method',
+                'prr.prr_status as payment_status',
                 DB::raw("
                     CASE
                         WHEN prr.reg_id is not null THEN
@@ -118,31 +120,6 @@ class PaymentController extends Controller
             ->toArray();
 
         $datatable = datatables($invoices);
-
-        return $datatable->toJSON();
-    }
-
-    public function paidPayment() {
-        $data = [
-            [
-                'id' => 1,
-                'period' => '2022/2023',
-                'semester' => 'Semester Genap',
-                'invoice_code' => 'INV/20192/2010210',
-                'month' => 'Januari - Februari',
-                'nth_installment' => 1,
-                'payment_method_name' => 'VA BNI',
-                'payment_method_detail' => [
-                    ['label' => 'Kode', 'value' => '002201923123'],
-                    ['label' => 'Tanggal', 'value' => '01-02-2023 / 11:05:00'],
-                ],
-                'invoice_total' => 2300000,
-                'payment_total' => 2300000,
-                'is_paid_off' => true,
-            ],
-        ];
-
-        $datatable = datatables($data);
 
         return $datatable->toJSON();
     }
@@ -320,6 +297,13 @@ class PaymentController extends Controller
         return response()->json($cspp, 200);
     }
 
+    public function getBills($prr_id)
+    {
+        $bills = PaymentBill::where('prr_id', $prr_id)->orderBy('prrb_order', 'asc')->get();
+
+        return response()->json($bills, 200);
+    }
+
     public function createBill($prr_id, Request $request)
     {
         $validated = $request->validate([
@@ -436,7 +420,9 @@ class PaymentController extends Controller
             // delete payment bill
             $bills = PaymentBill::where('prr_id', '=', $prr_id)->get();
             foreach ($bills as $bill) {
-                $bill->prrb_manual_evidence && Storage::cloud()->delete($bill->prrb_manual_evidence);
+                if($bill->prrb_manual_evidence && !config('app.disable_cloud_storage')) {
+                    Storage::cloud()->delete($bill->prrb_manual_evidence);
+                }
                 PaymentBill::destroy($bill->prrb_id);
             }
 
@@ -493,7 +479,11 @@ class PaymentController extends Controller
         ]);
 
         try {
-            $upload_success = Storage::cloud()->putFile('bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
+            if (config('app.disable_cloud_storage')) {
+                $upload_success = '/';
+            } else {
+                $upload_success = Storage::cloud()->putFile('bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
+            }
 
             if (!$upload_success) {
                 throw new \Exception('Failed uploading file!');
@@ -502,6 +492,7 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             $bill = PaymentBill::find($prrb_id);
+            $bill->prrb_paid_date = Carbon::now()->toDateString();
             $bill->prrb_manual_name = $validated['account_owner_name'];
             $bill->prrb_manual_norek = $validated['account_number'];
             $bill->prrb_manual_evidence = $upload_success;

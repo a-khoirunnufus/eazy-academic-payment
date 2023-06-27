@@ -78,7 +78,11 @@ class ApprovalController extends Controller
             $bill->prrb_manual_note = $validated['notes'];
             $bill->save();
 
-            if (PaymentBill::where('prr_id', $bill->prr_id)->get()->count() == 1) {
+            $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
+                ->where('prrb_status', 'belum lunas')
+                ->get();
+
+            if ($unpaid_bills->count() == 0) {
                 $payment = Payment::find($bill->prr_id);
                 $payment->prr_status = $validated['status'] == 'accepted' ? 'lunas' : 'belum lunas';
                 $payment->save();

@@ -94,19 +94,19 @@
         </nav>
         <div class="tab-content pt-2 pb-3 px-3" id="nav-tabContent" style="min-height: 400px">
             <div class="tab-pane fade" id="nav-invoice-data" role="tabpanel">
-                @include('pages._student.payment.proceed-payment.tab-invoice-data')
+                @include('pages._student.proceed-payment.tab-invoice-data')
             </div>
 
             <div class="tab-pane fade" id="nav-payment-method" role="tabpanel">
-                @include('pages._student.payment.proceed-payment.tab-payment-method')
+                @include('pages._student.proceed-payment.tab-payment-method')
             </div>
 
             <div class="tab-pane fade" id="nav-payment-option" role="tabpanel">
-                @include('pages._student.payment.proceed-payment.tab-payment-option')
+                @include('pages._student.proceed-payment.tab-payment-option')
             </div>
 
             <div class="tab-pane fade" id="nav-payment-detail" role="tabpanel">
-                @include('pages._student.payment.proceed-payment.tab-payment-detail')
+                @include('pages._student.proceed-payment.tab-payment-detail')
             </div>
         </div>
     </div>
@@ -267,7 +267,6 @@
             this.openTab(openTabId);
         }
     }
-
 
 </script>
 @endpush

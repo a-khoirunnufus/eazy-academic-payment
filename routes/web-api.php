@@ -102,7 +102,7 @@ Route::group(['prefix' => 'payment'], function(){
             Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@delete');
             Route::post('deleteBulk', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@deleteBulk');
         });
-        
+
         Route::group(['prefix' => 'scholarship'], function(){
             Route::get('index', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@index');
             Route::post('generate', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@generate');
@@ -127,14 +127,14 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@delete');
     });
-    
+
     Route::group(['prefix' => 'scholarship'], function(){
         Route::get('index', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@index');
         Route::get('period', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@delete');
     });
-    
+
     Route::group(['prefix' => 'scholarship-receiver'], function(){
         Route::get('index', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@index');
         Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@scholarship');
@@ -143,7 +143,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
     });
-    
+
 
     Route::group(['prefix' => 'approval'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ApprovalController@index');
@@ -168,8 +168,8 @@ Route::group(['prefix' => 'report'], function(){
 Route::group(['prefix' => 'student'], function(){
     Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@detail');
 
-    Route::get('payment/unpaid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@unpaidPayment');
-    Route::get('payment/paid-payment', 'App\Http\Controllers\_Student\Api\PaymentController@paidPayment');
+    Route::get('payment', 'App\Http\Controllers\_Student\Api\PaymentController@index');
+
     Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
     Route::get('payment/detail/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detail');
     Route::get('payment/credit-schemas/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@creditSchemas');
@@ -180,6 +180,8 @@ Route::group(['prefix' => 'student'], function(){
 
     Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
     Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
+
+    Route::get('payment/{prr_id}/bill', 'App\Http\Controllers\_Student\Api\PaymentController@getBills');
 
     Route::get('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
     Route::post('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@uploadEvidence');
@@ -209,6 +211,12 @@ Route::get('download', function(Request $request) {
 });
 
 Route::get('download-cloud', function(Request $request) {
+    if(config('app.disable_cloud_storage')) {
+        return response()->json([
+            'error' => 'Resource not found',
+        ], 404);
+    }
+
     $path = $request->query('path');
     if (!$path) {
         return response()->json(['error' => 'path params must be defined!'], 400);

@@ -193,6 +193,14 @@
                         </td>
                     </tr>
                     <tr>
+                        <th style="width: 300px">Dibayar Pada</th>
+                        <td>${paymentBill.prrb_paid_date != null ?
+                                moment(paymentBill.prrb_paid_date).format('DD-MM-YYYY')
+                                : '<span class="badge bg-secondary">Belum Dibayar</span>'
+                            }
+                        </td>
+                    </tr>
+                    <tr>
                         <th style="width: 300px">Bukti Pembayaran</th>
                         <td>${!paymentBill.prrb_manual_name ?
                                 '<span class="badge bg-warning">Belum Diupload</span>'
@@ -377,6 +385,13 @@
                             content: {
                                 template: ':number',
                                 number: paymentBill.prrb_manual_norek
+                            },
+                        },
+                        prrb_paid_date: {
+                            title: 'Dibayar Pada Tanggal',
+                            content: {
+                                template: ':text',
+                                text: moment(paymentBill.prrb_paid_date).format('DD-MM-YYYY')
                             },
                         },
                         prrb_manual_evidence: {

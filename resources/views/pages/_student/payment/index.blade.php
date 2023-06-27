@@ -74,24 +74,6 @@
             font-weight: 700;
             font-size: 16px;
         }
-
-        .eazy-student-info {
-            display: flex;
-            flex-direction: row;
-            gap: 4rem;
-        }
-        .eazy-student-info .eazy-student-info__item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .eazy-student-info .eazy-student-info__item .item__subtitle {
-            display: block;
-        }
-        .eazy-student-info .eazy-student-info__item .item__subtitle {
-            display: block;
-            font-weight: 700;
-        }
     </style>
 @endsection
 
@@ -117,96 +99,29 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="navs-invoice_n_va" role="tabpanel">
-                <table id="table-unpaid-payment" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Aksi</th>
-                            <th>Tahun Akademik Tagihan</th>
-                            <th>Kode Tagihan</th>
-                            <th>Total / Rincian Tagihan</th>
-                            <th>Total / Rincian Potongan</th>
-                            <th>Total / Rincian Beasiswa</th>
-                            <th>Total / Rincian Denda</th>
-                            <th>Jumlah Total</th>
-                            <th>Keterangan</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                @include('pages._student.payment.tab-unpaid-payment')
             </div>
             <div class="tab-pane fade" id="navs-payment" role="tabpanel">
-                <table id="payment-table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th class="text-center">Aksi</th>
-                            <th>Periode Masuk</th>
-                            <th>Kode Tagihan</th>
-                            <th>Bulan</th>
-                            <th>Cicilan</th>
-                            <th>Metode Pembayaran</th>
-                            <th>Nominal</th>
-                            <th>Total Bayar</th>
-                            <th>Status Pembayaran</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                @include('pages._student.payment.tab-paid-payment')
             </div>
         </div>
     </div>
 </div>
 
-<!-- Payment Detail Modal -->
-<div class="modal fade" id="unpaidPaymentDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<!-- Invoice Detail Modal -->
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
-                <h4 class="modal-title fw-bolder" id="unpaidPaymentDetailModalLabel">Tagihan Mahasiswa</h4>
+                <h4 class="modal-title fw-bolder" id="invoiceDetailModalLabel">Tagihan Mahasiswa</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3 pt-0">
-
-                <div id="invoice-notes"></div>
-
-                <div id="invoice-data" class="mb-3">
-                    <h4 class="fw-bolder mb-1">Data Tagihan</h4>
-                    <table class="eazy-table-info">
-                        <tbody>
-                            <tr>
-                                <td>Nomor Invoice</td>
-                                <td>:&nbsp;&nbsp;<span class="invoice-number">...</span></td>
-                            </tr>
-                            <tr>
-                                <td>Digenerate Pada</td>
-                                <td>:&nbsp;&nbsp;<span class="invoice-created">...</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="invoice-detail" class="mb-4">
-                    <h4 class="fw-bolder mb-1">Detail Tagihan</h4>
-                    <table id="table-invoice-detail" class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Komponen Tagihan</th>
-                                <th>Biaya Bayar</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot></tfoot>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-start" style="gap: 1rem">
-                    <a type="button" id="btn-proceed-payment" data-eazy-prr-id="" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
-                        Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
-                    </a>
-                </div>
             </div>
         </div>
     </div>
 </div>
+
 @endsection
 
 @section('js_section')
@@ -215,9 +130,6 @@
     const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
 
     $(function(){
-        _unpaidPaymentTable.init();
-        // _paidPaymentTable.init();
-
         renderHeaderInfo();
     });
 
@@ -291,173 +203,79 @@
         }
     }
 
-    const _unpaidPaymentTable = {
-        ..._datatable,
-        init: function() {
-            this.instance = $('#table-unpaid-payment').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: _baseURL+'/api/student/payment/unpaid-payment',
-                    data: function(d) {
-                        d.student_type = userMaster.participant ? 'new_student' : 'student';
-                        d.participant_id = userMaster.participant?.par_id;
-                        d.student_id = userMaster.student?.student_id;
-                    }
-                },
-                stateSave: false,
-                columnDefs: [
-                    {
-                        targets: [8],
-                        visible: 'participant' in userMaster,
-                        searchable: 'participant' in userMaster,
-                    },
-                ],
-                columns: [
-                    {
-                        name: 'action',
-                        data: 'prr_id',
-                        orderable: false,
-                        render: (data, _, row) => {
-                            return this.template.rowAction(data)
-                        }
-                    },
-                    {
-                        name: 'school_year_invoice',
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(
-                                row.invoice_school_year_year,
-                                'Semester '+row.invoice_school_year_semester
-                            );
-                        }
-                    },
-                    {
-                        name: 'invoice_number',
-                        data: 'invoice_number',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'invoice',
-                        render: (data, _, row) => {
-                            const invoiceDetailJson = row.invoice_detail;
-                            const invoiceDetail = JSON.parse(unescapeHtml(invoiceDetailJson));
-                            const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return this.template.invoiceDetailCell(invoiceDetail, invoiceTotal);
-                        }
-                    },
-                    {
-                        name: 'discount',
-                        render: (data, _, row) => {
-                            const discountDetailJson = row.discount_detail;
-                            const discountDetail = JSON.parse(unescapeHtml(discountDetailJson));
-                            const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return discountDetail.length > 0 ?
-                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal)
-                                : '-';
-                        }
-                    },
-                    {
-                        name: 'scholarship',
-                        render: (data, _, row) => {
-                            const scholarshipDetailJson = row.scholarship_detail;
-                            const scholarshipDetail = JSON.parse(unescapeHtml(scholarshipDetailJson));
-                            const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return scholarshipDetail.length > 0 ?
-                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal)
-                                : '-';
-                        }
-                    },
-                    {
-                        name: 'penalty',
-                        render: (data, _, row) => {
-                            const penaltyDetailJson = row.penalty_detail;
-                            const penaltyDetail = JSON.parse(unescapeHtml(penaltyDetailJson));
-                            const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return penaltyDetail.length > 0 ?
-                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal)
-                                : '-';
-                        }
-                    },
-                    {
-                        name: 'total_amount',
-                        data: 'total_amount',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'notes',
-                        data: 'notes',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
-                        }
-                    },
-                ],
-                drawCallback: function(settings) {
-                    feather.replace();
-                },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-actions">>' +
-                    '>' +
-                    '<"eazy-table-wrapper" t>' +
-                    '<"d-flex justify-content-between mx-2 row"' +
-                    '<"col-sm-12 col-md-6"i>' +
-                    '<"col-sm-12 col-md-6"p>' +
-                    '>',
-                initComplete: function() {
-                    $('.invoice-actions').html(`
-                        <div class="d-flex flex-row px-1 justify-content-end" style="gap: 1rem">
-                            <button class="btn btn-success">
-                                <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
-                            </button>
-                            <button class="btn btn-outline-warning">
-                                <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
-                            </button>
-                            <button class="btn btn-outline-primary">
-                                <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
-                            </button>
-                        </div>
-                    `)
-                    feather.replace()
-                }
-            })
-        },
-        template: {
-            ..._datatableTemplates,
-            rowAction: function(id) {
-                return `
-                    <div class="dropdown d-flex justify-content-center">
-                        <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                            <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" onclick="_unpaidPaymentTableAction.detail(event)"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
-                        </div>
-                    </div>
-                `
-            },
-        }
-    }
+    const invoiceDetailModal = {
+        bsModal: new bootstrap.Modal(document.getElementById('invoiceDetailModal')),
+        open: async function(e, datatableObj) {
+            invoiceDetailModal._resetContent();
 
-    const unpaidPaymentDetailModal = new bootstrap.Modal(document.getElementById('unpaidPaymentDetailModal'));
-
-    const _unpaidPaymentTableAction = {
-        detail: function(e) {
-            const data = _unpaidPaymentTable.getRowData(e.currentTarget);
-
-            $('#unpaidPaymentDetailModal #invoice-data .invoice-number').text(data.invoice_number);
-            $('#unpaidPaymentDetailModal #invoice-data .invoice-created').text(moment(data.invoice_issued_date).format('DD-MM-YYYY'));
+            const data = datatableObj.getRowData(e.currentTarget);
 
             if (data.invoice_student_type == 'new_student') {
-                $('#unpaidPaymentDetailModal #invoice-notes').html(`
-                    <h4 class="fw-bolder mb-1">Keterangan Tagihan</h4>
-                    <div class="mb-4">${data.notes}</div>
-                `);
+                invoiceDetailModal._renderInvoiceNotes(data.notes);
             }
 
+            invoiceDetailModal._renderInvoiceData(data.invoice_number, data.invoice_issued_date, data.payment_status);
+
+            invoiceDetailModal._renderInvoiceDetail(data);
+
+            const bills = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/student/payment/${data.prr_id}/bill`,
+                type: 'get',
+            });
+            if (bills.length > 0) {
+                invoiceDetailModal._renderInvoiceBill(bills);
+            }
+
+            if (data.payment_status == 'belum lunas') {
+                invoiceDetailModal._renderProceedPayment(data.prr_id);
+            }
+
+            feather.replace();
+
+            invoiceDetailModal.bsModal.show();
+        },
+        _resetContent: function() {
+            $('#invoiceDetailModal .modal-body').html('');
+        },
+        _renderInvoiceNotes: function(notes) {
+            $('#invoiceDetailModal .modal-body').append(`
+                <div class="mb-4">
+                    <h4 class="fw-bolder mb-1">Keterangan Tagihan</h4>
+                    <div>${notes}</div>
+                </div>
+            `);
+        },
+        _renderInvoiceData: function(invoice_number, invoice_issued_date, payment_status) {
+            $('#invoiceDetailModal .modal-body').append(`
+                <div>
+                    <h4 class="fw-bolder mb-1">Data Tagihan</h4>
+                    <table class="eazy-table-info">
+                        <tbody>
+                            <tr>
+                                <td>Nomor Invoice</td>
+                                <td>:&nbsp;&nbsp;${invoice_number}</td>
+                            </tr>
+                            <tr>
+                                <td>Digenerate Pada</td>
+                                <td>:&nbsp;&nbsp;${moment(invoice_issued_date).format('DD-MM-YYYY')}</td>
+                            </tr>
+                            <tr>
+                                <td>Status Tagihan</td>
+                                <td>:&nbsp;&nbsp;${
+                                    payment_status == 'belum lunas' ?
+                                        '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
+                                        : payment_status == 'lunas' ?
+                                            '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
+                                            : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
+                                }</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `);
+        },
+        _renderInvoiceDetail: function(data) {
             const invoiceDetail = JSON.parse(unescapeHtml(data.invoice_detail));
             const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
             const discountDetail = JSON.parse(unescapeHtml(data.discount_detail));
@@ -467,170 +285,124 @@
             const penaltyDetail = JSON.parse(unescapeHtml(data.penalty_detail));
             const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
             const totalAmount = (invoiceTotal + penaltyTotal) - (discountTotal + scholarshipTotal);
-            $('#unpaidPaymentDetailModal #invoice-detail #table-invoice-detail tbody').html(`
-                ${invoiceDetail.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.name}</td>
-                            <td>${Rupiah.format(item.nominal)}</td>
-                        </tr>
-                    `;
-                }).join('')}
-                ${discountDetail.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.name}</td>
-                            <td>${Rupiah.format(item.nominal)}</td>
-                        </tr>
-                    `;
-                }).join('')}
-                ${scholarshipDetail.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.name}</td>
-                            <td>${Rupiah.format(item.nominal)}</td>
-                        </tr>
-                    `;
-                }).join('')}
-                ${penaltyDetail.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.name}</td>
-                            <td>${Rupiah.format(item.nominal)}</td>
-                        </tr>
-                    `;
-                }).join('')}
-            `);
-            $('#unpaidPaymentDetailModal #invoice-detail #table-invoice-detail tfoot').html(`
-                <tr>
-                    <th>Total Tagihan</th>
-                    <th>${Rupiah.format(totalAmount)}</th>
-                </tr>
-            `);
 
-            $('#unpaidPaymentDetailModal #btn-proceed-payment').attr('data-eazy-prr-id', data.prr_id);
-
-            unpaidPaymentDetailModal.show();
-        }
+            $('#invoiceDetailModal .modal-body').append(`
+                <div class="mt-3">
+                    <h4 class="fw-bolder mb-1">Detail Tagihan</h4>
+                    <table id="table-invoice-detail" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Komponen Tagihan</th>
+                                <th>Biaya Bayar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${
+                                invoiceDetail.map(item => {
+                                    return `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${Rupiah.format(item.nominal)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                                +
+                                discountDetail.map(item => {
+                                    return `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${Rupiah.format(item.nominal)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                                +
+                                scholarshipDetail.map(item => {
+                                    return `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${Rupiah.format(item.nominal)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                                +
+                                penaltyDetail.map(item => {
+                                    return `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${Rupiah.format(item.nominal)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Total Tagihan</th>
+                                <th>${Rupiah.format(totalAmount)}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `);
+        },
+        _renderInvoiceBill: function(bills) {
+            $('#invoiceDetailModal .modal-body').append(`
+                <div class="mt-3">
+                    <h4 class="fw-bolder mb-1">Cicilan</h4>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tenggat Pembayaran</th>
+                                <th>Nominal Tagihan</th>
+                                <th>Biaya Admin</th>
+                                <th>Dibayar Pada</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${
+                                bills.map(bill => {
+                                    return `
+                                        <tr>
+                                            <td>Cicilan ke-${bill.prrb_order}</td>
+                                            <td>${moment(bill.prrb_expired_date).format('DD-MM-YYYY')}</td>
+                                            <td>${Rupiah.format(bill.prrb_amount)}</td>
+                                            <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
+                                            <td>${bill.prrb_paid_date != null ? moment(bill.prrb_paid_date).format('DD-MM-YYYY') : '-'}</td>
+                                            <td>${
+                                                bill.prrb_status == 'belum lunas' ?
+                                                    '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
+                                                    : bill.prrb_status == 'lunas' ?
+                                                        '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
+                                                        : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
+                                            }</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            `);
+        },
+        _renderProceedPayment: function(prrId) {
+            $('#invoiceDetailModal .modal-body').append(`
+                <div id="proceed-payment" class="mt-4">
+                    <div class="d-flex justify-content-start" style="gap: 1rem">
+                        <a type="button" id="btn-proceed-payment" data-eazy-prr-id="${prrId}" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
+                            Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            `);
+        },
     }
 
     function proceedPayment(e) {
         const prrId = $(e.currentTarget).attr('data-eazy-prr-id');
         window.location.href = `${_baseURL}/student/payment/proceed-payment/${prrId}?type=${userMaster.participant ? 'new_student' : 'student'}`;
     }
-
-    const _paidPaymentTable = {
-        ..._datatable,
-        init: function() {
-            this.instance = $('#payment-table').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: _baseURL+'/api/student/paid-payment',
-                },
-                columns: [
-                    {
-                        name: 'action',
-                        data: 'id',
-                        orderable: false,
-                        render: (data, _, row) => {
-                            return this.template.rowAction(data)
-                        }
-                    },
-                    {
-                        name: 'entry_period',
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.period, row.semester);
-                        }
-                    },
-                    {
-                        name: 'invoice_code',
-                        data: 'invoice_code',
-                        render: (data) => {
-                            return this.template.buttonLinkCell(data, {onclickFunc: 'paymentDetailModal.show()'});
-                        }
-                    },
-                    {
-                        name: 'month',
-                        data: 'month',
-                        render: (data) => {
-                            return this.template.defaultCell(data);
-                        }
-                    },
-                    {
-                        name: 'nth_installment',
-                        data: 'nth_installment',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {prefix: 'Cicilan Ke-'});
-                        }
-                    },
-                    {
-                        name: 'payment',
-                        render: (data, _, row) => {
-                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
-                        }
-                    },
-                    {
-                        name: 'invoice_total',
-                        data: 'invoice_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'payment_total',
-                        data: 'payment_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
-                        }
-                    },
-                    {
-                        name: 'is_paid_off',
-                        data: 'is_paid_off',
-                        render: (data) => {
-                            return this.template.badgeCell(
-                                data ? 'Lunas' : 'Tidak Lunas',
-                                data ? 'success' : 'danger',
-                            );
-                        }
-                    },
-                ],
-                drawCallback: function(settings) {
-                    feather.replace();
-                },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"payment-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                    '>t' +
-                    '<"d-flex justify-content-between mx-2 row"' +
-                    '<"col-sm-12 col-md-6"i>' +
-                    '<"col-sm-12 col-md-6"p>' +
-                    '>',
-                initComplete: function() {
-                    $('.payment-actions').html(`
-                        <h5 class="mb-0"></h5>
-                    `)
-                    feather.replace()
-                }
-            })
-        },
-        template: {
-            ..._datatableTemplates,
-            rowAction: function(id) {
-                return `
-                    <div class="dropdown d-flex justify-content-center">
-                        <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                            <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#paymentDetailModal"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
-                        </div>
-                    </div>
-                `
-            },
-        }
-    }
-
 
 </script>
 @endsection

@@ -41,6 +41,6 @@ class PaymentController extends Controller
             $user = $this->getStaticStudentUser();
         }
 
-        return view('pages._student.payment.proceed-payment.index', compact('prr_id', 'user'));
+        return view('pages._student.proceed-payment.index', compact('prr_id', 'user'));
     }
 }
