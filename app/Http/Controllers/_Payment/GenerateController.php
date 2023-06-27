@@ -79,4 +79,10 @@ class GenerateController extends Controller
         $period = Year::all();
         return view('pages._payment.generate.discount.index',compact('period'));
     }
+    
+    public function scholarship()
+    {
+        $period = Year::all();
+        return view('pages._payment.generate.scholarship.index',compact('period'));
+    }
 }

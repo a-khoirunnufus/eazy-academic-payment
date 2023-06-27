@@ -102,6 +102,14 @@ Route::group(['prefix' => 'payment'], function(){
             Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@delete');
             Route::post('deleteBulk', 'App\Http\Controllers\_Payment\Api\Generate\DiscountGenerateController@deleteBulk');
         });
+        
+        Route::group(['prefix' => 'scholarship'], function(){
+            Route::get('index', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@index');
+            Route::post('generate', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@generate');
+            Route::post('generateBulk', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@generateBulk');
+            Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@delete');
+            Route::post('deleteBulk', 'App\Http\Controllers\_Payment\Api\Generate\ScholarshipGenerateController@deleteBulk');
+        });
     });
 
     Route::group(['prefix' => 'discount'], function(){

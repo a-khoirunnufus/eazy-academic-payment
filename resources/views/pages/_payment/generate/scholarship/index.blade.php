@@ -1,7 +1,7 @@
 @extends('layouts.static_master')
 
 
-@section('page_title', 'Generate Potongan Mahasiswa')
+@section('page_title', 'Generate Beasiswa Mahasiswa')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -16,7 +16,7 @@
 
 @section('content')
 
-@include('pages._payment.generate._shortcuts', ['active' => 'discount'])
+@include('pages._payment.generate._shortcuts', ['active' => 'scholarship'])
 
 <div class="card">
     <div class="card-body">
@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountReceiverTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_scholarshipReceiverTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -55,10 +55,10 @@
                 <th class="text-center">Aksi</th>
                 <th>Mahasiswa</th>
                 <th>Fakultas - Prodi</th>
-                <th>Potongan</th>
+                <th>Beasiswa</th>
                 <th>Periode </th>
                 <th>Nominal</th>
-                <th>Status Generate</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -71,16 +71,16 @@
 @section('js_section')
 <script>
     $(function(){
-        _discountReceiverTable.init();
+        _scholarshipReceiverTable.init();
     })
 
-    const _discountReceiverTable = {
+    const _scholarshipReceiverTable = {
         ..._datatable,
         init: function() {
             this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/generate/discount/index',
+                    url: _baseURL+'/api/payment/generate/scholarship/index',
                     data: function(d) {
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
@@ -126,36 +126,37 @@
                         }
                     },
                     {
-                        name: 'md_id',
-                        data: 'md_id',
+                        name: 'ms_id',
+                        data: 'ms_id',
                         searchable: false,
                         render: (data, _, row) => {
-                            return row.discount.md_name
+                            let company = (row.scholarship.ms_from) ? row.scholarship.ms_from : "";
+                            return "<span class='fw-bolder'>"+row.scholarship.ms_name +"</span> <br>"+company;
                         }
                     },
                     {
-                        name: 'mdr_period',
-                        data: 'mdr_period',
+                        name: 'msr_period',
+                        data: 'msr_period',
                         searchable: false,
                         render: (data, _, row) => {
                             return row.period.msy_year + _helper.semester(row.period.msy_semester)
                         }
                     },
                     {
-                        name: 'mdr_nominal',
-                        data: 'mdr_nominal',
+                        name: 'msr_nominal',
+                        data: 'msr_nominal',
                         render: (data, _, row) => {
                             return Rupiah.format(data)
                         }
                     },
                     {
-                        name: 'mdr_status_generate',
-                        data: 'mdr_status_generate',
+                        name: 'msr_status_generate',
+                        data: 'msr_status_generate',
                         searchable: false,
                         render: (data, _, row) => {
                             let status = "Belum Digenerate";
                             let bg = "bg-danger";
-                            if(row.mdr_status_generate === 1){
+                            if(row.msr_status_generate === 1){
                                 status = "Sudah Digenerate";
                                 bg = "bg-success";
                             }
@@ -178,13 +179,13 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_discountReceiverTableActions.generateBulk()" class="btn btn-primary">
+                            <button onclick="_scholarshipReceiverTableActions.generateBulk()" class="btn btn-primary">
                                 <span style="vertical-align: middle">
                                     <i data-feather="command" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Generate All
                                 </span>
                             </button>
-                            <button onclick="_discountReceiverTableActions.deleteBulk()" class="btn btn-danger">
+                            <button onclick="_scholarshipReceiverTableActions.deleteBulk()" class="btn btn-danger">
                                 <span style="vertical-align: middle">
                                     <i data-feather="trash" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Delete All
@@ -205,8 +206,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_discountReceiverTableActions.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="command"></i>&nbsp;&nbsp;Generate Potongan</a>
-                            <a onclick="_discountReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Potongan</a>
+                            <a onclick="_scholarshipReceiverTableActions.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="command"></i>&nbsp;&nbsp;Generate</a>
+                            <a onclick="_scholarshipReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -224,12 +225,12 @@
         }
     }
 
-    const _discountReceiverTableActions = {
+    const _scholarshipReceiverTableActions = {
         generate: function(e) {
-            let data = _discountReceiverTable.getRowData(e);
+            let data = _scholarshipReceiverTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                html: 'Apakah anda yakin ingin generate potongan mahasiswa <span class="fw-bolder">'+data.student.fullname+'</span>?',
+                html: 'Apakah anda yakin ingin generate beasiswa mahasiswa <span class="fw-bolder">'+data.student.fullname+'</span>?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -238,8 +239,8 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/generate', {
-                            mdr_id: data.mdr_id,
+                    $.post(_baseURL + '/api/payment/generate/scholarship/generate', {
+                            msr_id: data.msr_id,
                         }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -247,7 +248,7 @@
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _discountReceiverTable.reload()
+                                _scholarshipReceiverTable.reload()
                             });
                         }else{
                             Swal.fire({
@@ -268,7 +269,7 @@
         },
         generateBulk: function() {
             Swal.fire({
-                title: 'Apakah anda yakin ingin generate seluruh potongan mahasiswa?',
+                title: 'Apakah anda yakin ingin generate seluruh beasiswa mahasiswa?',
                 html: '<small>Mahasiswa yang belum memiliki tagihan tidak akan tergenerate</small>',
                 icon: 'warning',
                 showCancelButton: true,
@@ -278,14 +279,14 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/generateBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/scholarship/generateBulk', function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _discountReceiverTable.reload()
+                                _scholarshipReceiverTable.reload()
                             });
                         }else{
                             Swal.fire({
@@ -305,10 +306,10 @@
             })
         },
         delete: function(e) {
-            let data = _discountReceiverTable.getRowData(e);
+            let data = _scholarshipReceiverTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                html: 'Apakah anda yakin ingin menghapus generate potongan <span class="fw-bolder">'+data.student.fullname+'</span> ?',
+                html: 'Apakah anda yakin ingin menghapus generate beasiswa <span class="fw-bolder">'+data.student.fullname+'</span> ?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -317,7 +318,7 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/delete/' + data.mdr_id, {
+                    $.post(_baseURL + '/api/payment/generate/scholarship/delete/' + data.msr_id, {
                         _method: 'DELETE'
                     }, function(data){
                         data = JSON.parse(data)
@@ -326,7 +327,7 @@
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _discountReceiverTable.reload()
+                                _scholarshipReceiverTable.reload()
                             });
                         }else{
                             Swal.fire({
@@ -346,7 +347,7 @@
         },
         deleteBulk: function() {
             Swal.fire({
-                title: 'Apakah anda yakin ingin menghapus seluruh potongan mahasiswa?',
+                title: 'Apakah anda yakin ingin menghapus seluruh beasiswa mahasiswa?',
                 html: '<small>Seluruh tagihan mahasiswa akan kembali ke nominal awal</small>',
                 icon: 'warning',
                 showCancelButton: true,
@@ -356,14 +357,14 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/deleteBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/scholarship/deleteBulk', function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _discountReceiverTable.reload()
+                                _scholarshipReceiverTable.reload()
                             });
                         }else{
                             Swal.fire({

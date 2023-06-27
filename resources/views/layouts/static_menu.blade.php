@@ -139,6 +139,12 @@
                             <span class="menu-title text-truncate">Generate Potongan</span>
                         </a>
                     </li>
+                    <li class="menu__item nav-item {{ 'payment.generate.scholarship' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.scholarship') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Generate Beasiswa</span>
+                        </a>
+                    </li>
                     <li class="menu__item nav-item {{ 'generate/other-invoice' == request()->path() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ url('generate/other-invoice') }}">
                             <i data-feather="circle"></i>
