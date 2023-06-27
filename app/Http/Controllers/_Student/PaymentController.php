@@ -20,12 +20,13 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $student_type = $request->input('type') ?? 'new_student';
+        $email = $request->query('email') ?? $this->example_ns_user_email;
+        $type = $request->query('type') ?? 'new_student';
 
-        if ($student_type == 'new_student') {
-            $user = $this->getStaticNewStudentUser();
-        } elseif ($student_type == 'student') {
-            $user = $this->getStaticStudentUser();
+        $user = $this->getStaticUser($email, $type);
+
+        if(!$user) {
+            return 'User with email: '.$email.' not found!';
         }
 
         return view('pages._student.payment.index', compact('user'));
@@ -33,12 +34,13 @@ class PaymentController extends Controller
 
     public function proceedPayment($prr_id, Request $request)
     {
-        $student_type = $request->input('type') ?? 'new_student';
+        $email = $request->query('email') ?? $this->example_ns_user_email;
+        $type = $request->query('type') ?? 'new_student';
 
-        if ($student_type == 'new_student') {
-            $user = $this->getStaticNewStudentUser();
-        } elseif ($student_type == 'student') {
-            $user = $this->getStaticStudentUser();
+        $user = $this->getStaticUser($email, $type);
+
+        if(!$user) {
+            return 'User with email: '.$email.' not found!';
         }
 
         return view('pages._student.proceed-payment.index', compact('prr_id', 'user'));

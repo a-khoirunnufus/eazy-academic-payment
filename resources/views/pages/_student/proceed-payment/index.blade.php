@@ -2,7 +2,7 @@
 
 @section('page_title', 'Proses Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', url('student/payment').'?type='.request()->query('type'))
+@section('url_back', url('student/payment').'?email='.request()->query('email').'&type='.request()->query('type'))
 
 @section('css_section')
     <style>

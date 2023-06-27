@@ -16,22 +16,19 @@ trait StaticStudentUser
     private $example_s_user_email = 'GhinaNelaputri@gmail.com';
     private $example_s_user_password = null;
 
-    private function getStaticNewStudentUser()
+    private function getStaticUser($email, $type)
     {
-        $user = NewStudentUser::with(['participant' => function($query) {
-                $query->select('user_id', 'par_id', 'par_fullname', 'par_nik', 'par_phone');
-            }])
-            ->where('user_email', '=', $this->example_ns_user_email)
-            ->first();
-
-        return $user;
-    }
-
-    private function getStaticStudentUser()
-    {
-        $user = StudentUser::with(['student'])
-            ->where('user_email', '=', $this->example_s_user_email)
-            ->first();
+        if($type == 'new_student') {
+            $user = NewStudentUser::with(['participant' => function($query) {
+                    $query->select('user_id', 'par_id', 'par_fullname', 'par_nik', 'par_phone');
+                }])
+                ->where('user_email', '=', $email)
+                ->first();
+        } elseif($type == 'student') {
+            $user = StudentUser::with(['student'])
+                ->where('user_email', '=', $email)
+                ->first();
+        }
 
         return $user;
     }

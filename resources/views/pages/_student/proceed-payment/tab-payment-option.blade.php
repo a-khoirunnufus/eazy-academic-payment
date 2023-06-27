@@ -71,7 +71,11 @@
                 feather.replace();
             }
             else {
-                const creditSchemas = await getRequestCache(`${_baseURL}/api/student/payment/credit-schemas/${prrId}?student_type=${studentType}`);
+                const creditSchemas = await $.ajax({
+                    async: true,
+                    url: `${_baseURL}/api/student/payment/credit-schemas/${prrId}?student_type=${studentType}`,
+                    type: 'get',
+                });
                 $('#select-payment-option').html(`
                     ${
                         creditSchemas.map(item => {
@@ -91,7 +95,11 @@
         renderOptionPreview: async function(cs_id) {
             const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
             const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/student/payment/ppm/${prrId}`);
-            const optionPreview = await getRequestCache(`${_baseURL}/api/student/payment/payment-option-preview/${cs_id}?ppm_id=${ppmId ?? 0}`);
+            const optionPreview = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/student/payment/payment-option-preview/${cs_id}?ppm_id=${ppmId ?? 0}`,
+                type: 'get',
+            });
 
             const invoiceTotal = payment.payment_detail.reduce((acc, curr) => {
                 return parseInt(curr.is_plus) == 1 ?

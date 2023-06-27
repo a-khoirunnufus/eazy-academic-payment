@@ -12,7 +12,14 @@ class ApprovalController extends Controller
 {
     public function index(Request $request)
     {
-        $data = DB::table('finance.payment_re_register as prr')
+        $filters = $request->input('custom_filters');
+
+        // remove item with null value or #ALL value
+        $filters = array_filter($filters, function ($item) {
+            return !is_null($item) && $item != '#ALL';
+        });
+
+        $query = DB::table('finance.payment_re_register as prr')
             ->leftJoin('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
             ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
             ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
@@ -20,8 +27,22 @@ class ApprovalController extends Controller
             ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
             ->whereNull('prr.deleted_at')
             ->whereNull('prrb.deleted_at')
-            ->whereNotNull('prrb.prrb_manual_name')
-            ->select(
+            ->whereNotNull('prrb.prrb_manual_name');
+
+        if (isset($filters['status'])) {
+            $query = $query->where('prrb.prrb_manual_status', $filters['status']);
+        }
+
+        if (isset($filters['student_type'])) {
+            if($filters['student_type'] == 'new_student') {
+                $query = $query->whereNotNull('prr.reg_id');
+            }
+            elseif($filters['student_type'] == 'student') {
+                $query = $query->whereNotNull('prr.student_number');
+            }
+        }
+
+        $data = $query->select(
                 DB::raw("
                     CASE
                         WHEN prr.reg_id is not null THEN par.par_fullname

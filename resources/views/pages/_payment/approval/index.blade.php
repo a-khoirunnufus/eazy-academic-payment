@@ -16,23 +16,23 @@
         <div class="datatable-filter one-row">
             <div>
                 <label class="form-label">Status</label>
-                <select name="filter-status" class="form-select" eazy-select2-active>
+                <select id="filter-status" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Status</option>
-                    <option value="waiting">Menunggu Konfirmasi</option>
+                    <option value="waiting">Menunggu Approval</option>
                     <option value="accepted">Diterima</option>
                     <option value="rejected">Ditolak</option>
                 </select>
             </div>
             <div>
                 <label class="form-label">Tipe Mahasiswa</label>
-                <select name="filter-status" class="form-select" eazy-select2-active>
+                <select id="filter-student-type" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Tipe Mahasiswa</option>
                     <option value="new_student">Mahasiswa Baru</option>
                     <option value="student">Mahasiswa Lama</option>
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_paymentAprovalTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_paymentApprovalTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -118,6 +118,12 @@
                 serverSide: true,
                 ajax: {
                     url: `${_baseURL}/api/payment/approval`,
+                    data: function(d) {
+                        d.custom_filters = {
+                            'status': $('select#filter-status').val(),
+                            'student_type': $('select#filter-student-type').val(),
+                        };
+                    }
                 },
                 stateSave: false,
                 columns: [

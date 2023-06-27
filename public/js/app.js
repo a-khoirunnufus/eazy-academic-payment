@@ -1011,7 +1011,7 @@ function unescapeHtml(text) {
  */
 
 function getRequestCache(url) {
-    const disableCache = true;
+    const disableCache = false;
     const displayLogs = true;
     const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
 

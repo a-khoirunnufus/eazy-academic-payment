@@ -401,7 +401,10 @@
 
     function proceedPayment(e) {
         const prrId = $(e.currentTarget).attr('data-eazy-prr-id');
-        window.location.href = `${_baseURL}/student/payment/proceed-payment/${prrId}?type=${userMaster.participant ? 'new_student' : 'student'}`;
+        const email = userMaster.user_email;
+        const type = userMaster.participant ? 'new_student' : 'student';
+
+        window.location.href = `${_baseURL}/student/payment/proceed-payment/${prrId}?email=${email}&type=${type}`;
     }
 
 </script>
