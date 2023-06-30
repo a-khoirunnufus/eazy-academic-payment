@@ -133,6 +133,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('period', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@delete');
+        Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@exportData');
     });
 
     Route::group(['prefix' => 'scholarship-receiver'], function(){
