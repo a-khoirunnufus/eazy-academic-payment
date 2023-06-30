@@ -550,6 +550,7 @@ class ReportControllerApi extends Controller
                 $sheet->mergeCells('B' . $row . ':B' . ($row + $row_tagihan - 1));
                 $sheet->mergeCells('C' . $row . ':C' . ($row + $row_tagihan - 1));
                 $sheet->mergeCells('D' . $row . ':D' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('G' . $row . ':G' . ($row + $row_tagihan - 1));
 
                 //H,I,J
                 if ($row_denda == 0) {
@@ -591,7 +592,7 @@ class ReportControllerApi extends Controller
                     $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_tagihan - 1));
                     $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_tagihan - 1));
                 }
-                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_tagihan - 1));
+                $sheet->mergeCells('U' . $row . ':U' . ($row + $row_tagihan - 1));
 
                 $sheet->mergeCells('V' . $row . ':V' . ($row + $row_tagihan - 1));
                 $sheet->mergeCells('W' . $row . ':W' . ($row + $row_tagihan - 1));
@@ -609,6 +610,7 @@ class ReportControllerApi extends Controller
                 $sheet->mergeCells('B' . $row . ':B' . ($row + $row_denda - 1));
                 $sheet->mergeCells('C' . $row . ':C' . ($row + $row_denda - 1));
                 $sheet->mergeCells('D' . $row . ':D' . ($row + $row_denda - 1));
+                $sheet->mergeCells('J' . $row . ':J' . ($row + $row_denda - 1));
 
                 //E,F,G TAGIHAN
                 if ($row_tagihan == 0) {
@@ -650,7 +652,7 @@ class ReportControllerApi extends Controller
                     $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_denda - 1));
                     $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_denda - 1));
                 }
-                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_denda - 1));
+                $sheet->mergeCells('U' . $row . ':U' . ($row + $row_denda - 1));
 
                 $sheet->mergeCells('V' . $row . ':V' . ($row + $row_denda - 1));
                 $sheet->mergeCells('W' . $row . ':W' . ($row + $row_denda - 1));
@@ -668,6 +670,7 @@ class ReportControllerApi extends Controller
                 $sheet->mergeCells('B' . $row . ':B' . ($row + $row_beasiswa - 1));
                 $sheet->mergeCells('C' . $row . ':C' . ($row + $row_beasiswa - 1));
                 $sheet->mergeCells('D' . $row . ':D' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('M' . $row . ':M' . ($row + $row_beasiswa - 1));
 
                 //E,F,G TAGIHAN
                 if ($row_tagihan == 0) {
@@ -709,7 +712,7 @@ class ReportControllerApi extends Controller
                     $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_beasiswa - 1));
                     $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_beasiswa - 1));
                 }
-                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_beasiswa - 1));
+                $sheet->mergeCells('U' . $row . ':U' . ($row + $row_beasiswa - 1));
 
                 $sheet->mergeCells('V' . $row . ':V' . ($row + $row_beasiswa - 1));
                 $sheet->mergeCells('W' . $row . ':W' . ($row + $row_beasiswa - 1));
@@ -727,6 +730,7 @@ class ReportControllerApi extends Controller
                 $sheet->mergeCells('B' . $row . ':B' . ($row + $row_potongan - 1));
                 $sheet->mergeCells('C' . $row . ':C' . ($row + $row_potongan - 1));
                 $sheet->mergeCells('D' . $row . ':D' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('P' . $row . ':P' . ($row + $row_potongan - 1));
 
                 //E,F,G TAGIHAN
                 if ($row_tagihan == 0) {
@@ -768,7 +772,7 @@ class ReportControllerApi extends Controller
                     $sheet->mergeCells('S' . ($row + $row_bayar - 1) . ':S' . ($row + $row_potongan - 1));
                     $sheet->mergeCells('T' . ($row + $row_bayar - 1) . ':T' . ($row + $row_potongan - 1));
                 }
-                $sheet->mergeCells('U' . $row . ':J' . ($row + $row_potongan - 1));
+                $sheet->mergeCells('U' . $row . ':U' . ($row + $row_potongan - 1));
 
                 $sheet->mergeCells('V' . $row . ':V' . ($row + $row_potongan - 1));
                 $sheet->mergeCells('W' . $row . ':W' . ($row + $row_potongan - 1));
@@ -786,6 +790,7 @@ class ReportControllerApi extends Controller
                 $sheet->mergeCells('B' . $row . ':B' . ($row + $row_bayar - 1));
                 $sheet->mergeCells('C' . $row . ':C' . ($row + $row_bayar - 1));
                 $sheet->mergeCells('D' . $row . ':D' . ($row + $row_bayar - 1));
+                $sheet->mergeCells('U' . $row . ':U' . ($row + $row_bayar - 1));
 
                 //E,F,G TAGIHAN
                 if ($row_tagihan == 0) {

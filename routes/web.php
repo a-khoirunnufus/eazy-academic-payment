@@ -69,6 +69,7 @@ Route::group(['prefix' => 'payment'], function () {
     Route::group(['prefix' => 'scholarship'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\ScholarshipController@index')->name('payment.scholarship.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\ScholarshipController@receiver')->name('payment.scholarship.receiver');
+        Route::get('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
 
     // Manual Payment Approval

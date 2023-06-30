@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
+use App\Models\Faculty;
+use App\Models\Payment\Scholarship;
 use Illuminate\Http\Request;
 use App\Models\Year;
 
@@ -17,6 +19,9 @@ class ScholarshipController extends Controller
     public function receiver()
     {
         $period = Year::all();
-        return view('pages._payment.scholarship.receiver',compact('period'));
+        $schoolarship = Scholarship::all();
+        $faculty = Faculty::all();
+        
+        return view('pages._payment.scholarship.receiver',compact('period', 'schoolarship', 'faculty'));
     }
 }
