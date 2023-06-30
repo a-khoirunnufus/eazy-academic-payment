@@ -64,7 +64,7 @@ class ScholarshipReceiverController extends Controller
         if (isset($filters['search_filter'])) {
             $data = [];
             foreach ($query as $item) {
-                if (strpos(json_encode($item), $filters['search_filter'])) {
+                if (strpos(strtolower(json_encode($item)), strtolower($filters['search_filter']))) {
                     array_push($data, $item);
                 }
             }
