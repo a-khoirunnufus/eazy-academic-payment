@@ -127,6 +127,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@delete');
+        Route::get('faculty/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@studyProgram');
+        Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@exportData');
     });
 
     Route::group(['prefix' => 'scholarship'], function(){

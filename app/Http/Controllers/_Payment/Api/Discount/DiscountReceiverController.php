@@ -8,30 +8,122 @@ use App\Models\Payment\Discount;
 use App\Models\Payment\DiscountReceiver;
 use App\Http\Requests\Payment\Discount\DiscountReceiverRequest;
 use App\Models\Student;
+use App\Models\Studyprogram;
 use App\Models\Year;
 use DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class DiscountReceiverController extends Controller
 {
     
     public function index(Request $request)
     {
-        // $filters = $request->input('custom_filters');
-        // $filters = array_filter($filters, function ($item) {
-        //     return !is_null($item) && $item != '#ALL';
-        // });
+        $filters = $request->input('custom_filters');
+        $filters = array_filter($filters, function ($item) {
+            return !is_null($item) && $item != '#ALL';
+        });
 
         $query = DiscountReceiver::query();
-        
-        // if (isset($filters['md_period_start_filter'])) {
-        //     $query = $query->where('md_period_start', '=', $filters['md_period_start_filter']);
-        // }
+        $query = $query->with('period','student','discount');
 
-        // if (isset($filters['md_period_end_filter'])) {
-        //     $query = $query->where('md_period_end', '=', $filters['md_period_end_filter']);
-        // }
+        if (isset($filters['md_period_start_filter'])) {
+            $query->whereHas('discount', function($q) use($filters) {
+                $q->where('md_period_start', '=', $filters['md_period_start_filter']);
+            });
+        }
 
-        $query = $query->with('period','student','discount')->orderBy('mdr_id');
+        if (isset($filters['md_period_end_filter'])) {
+            $query->whereHas('discount', function($q) use($filters){
+                $q->where('md_period_end', '=', $filters['md_period_end_filter']);
+            });
+        }
+
+        if(isset($filters['discount_filter'])){
+            $query->whereHas('discount', function($q) use($filters){
+                $q->where('md_id', '=', $filters['discount_filter']);
+            });
+        }
+
+        if(isset($filters['faculty_filter'])){
+            $query->whereHas('student.studyProgram', function($q) use($filters){
+                $q->where('faculty_id', '=', $filters['faculty_filter']);
+            });
+        }
+
+        if(isset($filters['study_program_filter'])){
+            $query->whereHas('student.studyProgram', function($q) use($filters){
+                $q->where('studyprogram_id', '=', $filters['study_program_filter']);
+            });
+        }
+
+        $query = $query->orderBy('mdr_id')->get();
+
+        if(isset($filters['search_filter'])){
+            $data = [];
+            foreach($query as $item){
+                // print_r($item);
+                $isFound = false;
+
+                if(strpos(strtolower($item->student->fullname), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->student->student_id), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->student->studyProgram->studyprogram_type . ' ' . $item->student->studyProgram->studyprogram_name), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->student->studyProgram->faculty->faculty_name), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->discount->md_name), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->period->msy_year.' '.($item->period->msy_semester == 1 ? 'Ganjil':'Genap')), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->mdr_nominal), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+
+                if(strpos(strtolower($item->mdr_status == 1 ? 'Aktif':'Tidak Aktif'), strtolower($filters['search_filter'])) !== false){
+                    if(!$isFound){
+                        $isFound = true;
+                        array_push($data, $item);
+                    }
+                }
+            }
+            return datatables($data)->toJson();
+        }
+
         return datatables($query)->toJson();
     }
     
@@ -127,4 +219,52 @@ class DiscountReceiverController extends Controller
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus penerima potongan"));
     }
     
+    public function studyProgram($id){
+        $studyProgram = Studyprogram::where('faculty_id', '=', $id)->get();
+        return $studyProgram;
+    }
+
+    public function exportData(Request $request)
+    {
+        $textData = $request->post('data');
+        $data = json_decode($textData);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        //header tabel
+        $sheet->setCellValue('A1', 'Nim');
+        $sheet->setCellValue('B1', 'Nama');
+        $sheet->setCellValue('C1', 'Fakultas');
+        $sheet->setCellValue('D1', 'Program Studi');
+        $sheet->setCellValue('E1', 'Potongan');
+        $sheet->setCellValue('F1', 'Periode');
+        $sheet->setCellValue('G1', 'Nominal');
+        $sheet->setCellValue('H1', 'Status');
+
+        //content table
+        $row = 2;
+        foreach($data as $item){
+            $sheet->setCellValue('A'.$row, $item->student->student_id);
+            $sheet->setCellValue('B'.$row, $item->student->fullname);
+            $sheet->setCellValue('C'.$row, $item->student->study_program->faculty->faculty_name);
+            $sheet->setCellValue('D'.$row, $item->student->study_program->studyprogram_type.' '.$item->student->study_program->studyprogram_name);
+            $sheet->setCellValue('E'.$row, $item->discount->md_name);
+            $sheet->setCellValue('F'.$row, $item->period->msy_year.' '.($item->period->msy_semester == 1 ? 'Ganjil':'Genap'));
+            $sheet->setCellValue('G'.$row, $item->mdr_nominal);
+            $sheet->setCellValue('H'.$row, $item->mdr_status == 1 ? 'Aktif':'Tidak Aktif');
+
+            $row++;
+        }
+
+        $response = response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        });
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', 'attachment; filename="Laporan Program Penerima Potongan.xlsx"');
+        $response->send();
+
+    }
 }

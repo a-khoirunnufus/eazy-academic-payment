@@ -39,6 +39,30 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="form-label">Potongan</label>
+                <select name="discount_filter" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Potongan</option>
+                    @foreach ($discount as $item)
+                        <option value="{{$item->md_id}}">{{$item->md_name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Fakultas</label>
+                <select name="faculty_filter" class="form-select" eazy-select2-active onchange="getStudyProgram(this.value)">
+                    <option value="#ALL" selected>Semua Fakultas</option>
+                    @foreach ($faculty as $item)
+                        <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select name="study_program_filter" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Program Studi</option>
+                </select>
+            </div>
             <div class="d-flex align-items-end">
                 <button onclick="_discountReceiverTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
@@ -70,14 +94,15 @@
 
 @section('js_section')
 <script>
+    var dt, dataDt = null;
     $(function(){
         _discountReceiverTable.init();
     })
 
     const _discountReceiverTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#invoice-component-table').DataTable({
+        init: function(searchFilter = '#ALL') {
+            dt = this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/discount-receiver/index',
@@ -85,7 +110,15 @@
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
                             'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
+                            'discount_filter': $('select[name="discount_filter"]').val(),
+                            'faculty_filter': $('select[name="faculty_filter"]').val(),
+                            'study_program_filter': $('select[name="study_program_filter"]').val(),
+                            'search_filter': searchFilter
                         };
+                    },
+                    dataSrc: function(json) {
+                        dataDt = json.data;
+                        return json.data;
                     }
                 },
                 columns: [
@@ -169,12 +202,35 @@
                 dom:
                     '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [{
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                    className: 'btn btn-outline-secondary',
+                    action: function(e, dt, node, config) {
+                        var formData = new FormData();
+                        formData.append("data", JSON.stringify(dataDt));
+                        formData.append("_token", '{{csrf_token()}}');
+                        // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
+                        var xhr = new XMLHttpRequest();
+                        xhr.onload = function(){
+                            var downloadUrl = URL.createObjectURL(xhr.response);
+                            var a = document.createElement("a");
+                            document.body.appendChild(a);
+                            a.style = "display: none";
+                            a.href = downloadUrl;
+                            a.download = "Laporan Program Penerima Potongan";
+                            a.click();
+                        }
+                        xhr.open("POST", _baseURL+"/api/payment/discount-receiver/exportData");
+                        xhr.responseType = 'blob';
+                        xhr.send(formData);
+                    }
+                }],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -186,6 +242,13 @@
                             </button>
                         </div>
                     `)
+                    $('.search-filter').html(`
+                        <div id="invoice-component-table_filter" class="dataTables_filter">
+                            <label>
+                                <input type="search" class="form-control" placeholder="Cari Data" aria-controls="invoice-component-table" onkeyup="searchFilter(event, this)">
+                            </label>
+                        </div>
+                    `);
                     feather.replace()
                 }
             })
@@ -466,5 +529,40 @@
         },
     }
 
+    function getStudyProgram(val){
+        $('select[name="study_program_filter"]').html(`
+            <option value="#ALL" selected>Semua Program Studi</option>
+        `);
+
+        if(val != '#ALL'){
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function(){
+                var data = JSON.parse(this.responseText);
+                for(var i = 0; i < data.length; i++){
+                    $('select[name="study_program_filter"]').append(`
+                        <option value="${data[i].studyprogram_id}">${data[i].studyprogram_type+" "+data[i].studyprogram_name}</option>
+                    `);
+                }
+            }
+            xhr.open("GET", _baseURL+'/api/payment/discount-receiver/faculty/'+val);
+            xhr.send();
+        }
+    }
+
+    function searchFilter(event, elm) {
+        var key = event.key;
+        var text = elm.value;
+        if (key == 'Enter') {
+            elm.value = "";
+            if (text == '') {
+                dt.clear().destroy();
+                _discountReceiverTable.init();
+            } else {
+                dt.clear().destroy();
+                _discountReceiverTable.init(text);
+            }
+            console.log(text);
+        }
+    }
 </script>
 @endsection
