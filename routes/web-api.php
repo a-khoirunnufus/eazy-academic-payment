@@ -117,6 +117,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('period', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@delete');
+        Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@exportData');
     });
 
     Route::group(['prefix' => 'discount-receiver'], function(){
