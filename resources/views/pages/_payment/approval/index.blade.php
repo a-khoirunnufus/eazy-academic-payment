@@ -11,6 +11,8 @@
 
 @section('content')
 
+@include('pages._payment.approval._shortcuts', ['active' => 'manual'])
+
 <div class="card">
     <div class="card-body">
         <div class="datatable-filter one-row">

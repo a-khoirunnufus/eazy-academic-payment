@@ -248,12 +248,28 @@
                 </ul>
             </li>
 
-            <li class="nav-item {{ 'payment/approval' == request()->path() ? 'active' : '' }} mb-50">
-                <a class="d-flex align-items-center fw-bold" href="{{ url('payment/approval') }}">
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
                     <i data-feather="check-circle"></i>
-                    <span class="menu-title text-truncate">Approval Pembayaran<br>Manual</span>
+                    <span class="menu-title text-truncate">Approval</span>
                 </a>
+                <ul class="menu-content">
+                    <li class="nav-item {{ 'payment/approval' == request()->path() ? 'active' : '' }} mb-50">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/approval') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Pembayaran<br>Manual</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'payment.approval.dispensation.index' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.approval.dispensation.index') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Dispensasi</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
+
+            
 	    </ul>
     </div>
 </div>

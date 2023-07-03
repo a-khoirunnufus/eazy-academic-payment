@@ -11,4 +11,14 @@ class ApprovalController extends Controller
     {
         return view('pages._payment.approval.index');
     }
+
+    public function dispensation()
+    {
+        return view('pages._payment.approval.dispensation.index');
+    }
+    
+    public function credit()
+    {
+        return view('pages._payment.approval.credit.index');
+    }
 }
