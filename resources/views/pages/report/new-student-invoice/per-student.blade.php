@@ -45,9 +45,6 @@
             <li class="nav-item">
                 <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
             </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history" disabled>Riwayat Pembayaran</button>
-            </li>
         </ul>
         <div class="tab-content">
 
@@ -114,9 +111,17 @@
                     <tbody></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- NEW STUDENT PAYMENT HISTORY -->
-            <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
+<div class="modal" id="historPaymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
+            </div>
+            <div class="modal-body">
                 <table id="new-student-payment-history-table" class="table table-striped">
                     <thead>
                         <th>Nomor Tagihan</th>
@@ -128,6 +133,9 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -314,24 +322,22 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                buttons: [
-                    {
-                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                        className: 'btn btn-outline-secondary',
-                        action: function(e, dt, node, config) {
-                            window.open(
-                                _baseURL + 
-                                '/report/new-student-invoice/download-perstudent?' +
-                                'prodi_filter_angkatan='+ encodeURIComponent(byFilter) +'&' +
-                                'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
-                                'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
-                                'prodi_path_filter=' + encodeURIComponent(path) + '&' +
-                                'prodi_period_filter=' + encodeURIComponent(period) + '&' +
-                                'student_export=' + encodeURIComponent('new')
-                            )
-                        }
+                buttons: [{
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                    className: 'btn btn-outline-secondary',
+                    action: function(e, dt, node, config) {
+                        window.open(
+                            _baseURL +
+                            '/report/new-student-invoice/download-perstudent?' +
+                            'prodi_filter_angkatan=' + encodeURIComponent(byFilter) + '&' +
+                            'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
+                            'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
+                            'prodi_path_filter=' + encodeURIComponent(path) + '&' +
+                            'prodi_period_filter=' + encodeURIComponent(period) + '&' +
+                            'student_export=' + encodeURIComponent('new')
+                        )
                     }
-                ],
+                }],
                 initComplete: function() {
                     $('.old-student-invoice-detail-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
@@ -450,7 +456,8 @@
             dtHistory.clear().destroy()
             _oldStudentPaymentHistoryTable.init(student_number);
         }
-        $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+        // $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+        $('#historPaymentModal').modal('toggle');
     }
 
     function filter() {

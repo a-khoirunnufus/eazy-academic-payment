@@ -45,9 +45,6 @@
             <li class="nav-item">
                 <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
             </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history" disabled>Riwayat Pembayaran</button>
-            </li>
         </ul>
         <div class="tab-content">
 
@@ -114,9 +111,17 @@
                     <tbody></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- OLD STUDENT PAYMENT HISTORY -->
-            <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
+<div class="modal" id="historPaymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
+            </div>
+            <div class="modal-body">
                 <table id="old-student-payment-history-table" class="table table-striped">
                     <thead>
                         <tr>
@@ -130,6 +135,9 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -450,7 +458,9 @@
             dtHistory.clear().destroy()
             _oldStudentPaymentHistoryTable.init(student_number);
         }
-        $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+        // $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+        $('#historPaymentModal').modal('toggle');
+
     }
 
     function filter() {
