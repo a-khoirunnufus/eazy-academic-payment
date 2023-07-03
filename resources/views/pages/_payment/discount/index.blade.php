@@ -39,6 +39,14 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status_filter" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Status</option>
+                    <option value="1">Aktif</option>
+                    <option value="0">Tidak Aktif</option>
+                </select>
+            </div>
             <div class="d-flex align-items-end">
                 <button onclick="_discountTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
@@ -71,14 +79,16 @@
 
 @section('js_section')
 <script>
+    var dt = null;
+    var dataDt = null;
     $(function(){
         _discountTable.init();
     })
 
     const _discountTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#invoice-component-table').DataTable({
+        init: function(searchFilter = '#ALL') {
+            dt = this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/discount/index',
@@ -86,7 +96,13 @@
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
                             'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
-                        };
+                            'status_filter': $('select[name="status_filter"]').val(),
+                            'search_filter': searchFilter,
+                        }
+                    },
+                    dataSrc: function(json) {
+                        dataDt = json.data;
+                        return json.data;
                     }
                 },
                 columns: [
@@ -159,12 +175,35 @@
                 dom:
                     '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [{
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                    className: 'btn btn-outline-secondary',
+                    action: function(e, dt, node, config) {
+                        var formData = new FormData();
+                        formData.append("data", JSON.stringify(dataDt));
+                        formData.append("_token", '{{csrf_token()}}');
+                        // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
+                        var xhr = new XMLHttpRequest();
+                        xhr.onload = function(){
+                            var downloadUrl = URL.createObjectURL(xhr.response);
+                            var a = document.createElement("a");
+                            document.body.appendChild(a);
+                            a.style = "display: none";
+                            a.href = downloadUrl;
+                            a.download = "Laporan Program Potongan";
+                            a.click();
+                        }
+                        xhr.open("POST", _baseURL+"/api/payment/discount/exportData");
+                        xhr.responseType = 'blob';
+                        xhr.send(formData);
+                    }
+                }],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -176,6 +215,13 @@
                             </button>
                         </div>
                     `)
+                    $('.search-filter').html(`
+                        <div id="invoice-component-table_filter" class="dataTables_filter">
+                            <label>
+                                <input type="search" class="form-control" placeholder="Cari Data" aria-controls="invoice-component-table" onkeyup="searchFilter(event, this)">
+                            </label>
+                        </div>
+                    `);
                     feather.replace()
                 }
             })
@@ -430,5 +476,21 @@
         },
     }
 
+    function searchFilter(event, elm) {
+        var key = event.key;
+        var text = elm.value;
+        if (key == 'Enter') {
+            elm.value = "";
+            if (text == '') {
+                dt.clear().destroy();
+                _discountTable.init();
+            } else {
+                dt.clear().destroy();
+                _discountTable.init(text);
+                console.log('cari')
+            }
+            console.log(text);
+        }
+    }
 </script>
 @endsection
