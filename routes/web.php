@@ -71,6 +71,15 @@ Route::group(['prefix' => 'payment'], function () {
         Route::get('receiver', 'App\Http\Controllers\_Payment\ScholarshipController@receiver')->name('payment.scholarship.receiver');
         Route::get('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
+    
+    Route::group(['prefix' => 'approval'], function () {
+        Route::group(['prefix' => 'dispensation'], function () {
+            Route::get('index', 'App\Http\Controllers\_Payment\ApprovalController@dispensation')->name('payment.approval.dispensation.index');
+        });
+        Route::group(['prefix' => 'credit'], function () {
+            Route::get('index', 'App\Http\Controllers\_Payment\ApprovalController@credit')->name('payment.approval.credit.index');
+        });
+    });
 
     // Manual Payment Approval
     Route::get('approval', 'App\Http\Controllers\_Payment\ApprovalController@index')->name('payment.approval.index');
