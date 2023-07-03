@@ -49,13 +49,21 @@
                     </li>
                 @endforeach
             @endforeach --}}
-        
-            <li class="nav-item mb-50 active">
-                <a class="d-flex align-items-center fw-bold" href="{{ url('student/student-payment') }}">
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
                     <i data-feather="credit-card"></i>
                     <span class="menu-title text-truncate">Pembayaran</span>
                 </a>
+                <ul class="menu-content">
+                    <li class="nav-item mb-50 active">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('student/student-payment') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Tagihan</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
+            
 	    </ul>
     </div>
 </div>

@@ -149,9 +149,9 @@
                             <button class="btn btn-success">
                                 <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
                             </button>
-                            <button class="btn btn-outline-warning">
+                            <a href="{{ route('student.credit.index') }}" class="btn btn-outline-warning">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
-                            </button>
+                            </a>
                             <button class="btn btn-outline-primary">
                                 <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
                             </button>

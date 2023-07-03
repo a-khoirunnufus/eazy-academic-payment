@@ -16,6 +16,10 @@ trait StaticStudentUser
     private $example_s_user_email = 'GhinaNelaputri@gmail.com';
     private $example_s_user_password = null;
 
+    private $example_s_user_id_hafizh = 1862;
+    private $example_s_user_email_hafizh = 'JusufKalla@gmail.com';
+    private $example_s_user_password_hafizh = null;
+
     private function getStaticUser($email, $type)
     {
         if($type == 'new_student') {

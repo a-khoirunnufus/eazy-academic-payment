@@ -101,6 +101,13 @@ Route::group(['prefix' => 'report'], function () {
 Route::group(['prefix' => 'student'], function () {
     Route::get('/payment', 'App\Http\Controllers\_Student\PaymentController@index');
     Route::get('/payment/proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment');
+
+    Route::group(['prefix' => 'dispensation'], function () {
+        Route::get('index', 'App\Http\Controllers\_Student\DispensationController@dispensation')->name('student.dispensation.index');
+    });
+    Route::group(['prefix' => 'credit'], function () {
+        Route::get('index', 'App\Http\Controllers\_Student\CreditController@index')->name('student.credit.index');
+    });
 });
 
 // HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
