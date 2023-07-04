@@ -42,4 +42,17 @@ class ReportController extends Controller
         $faculty = Faculty::all();
         return view('pages.report.new-student-invoice.per-study-program', compact('year', 'faculty'));
     }
+
+    function oldStudentReceivable(){
+        $year = Year::all();
+        $faculty = Faculty::all();
+        return view('pages.report.old-student-receivables.per-study-program', compact('year', 'faculty'));
+    }
+
+    function oldStudentReceivableDetail($programStudy){
+        $angkatan = Year::select(DB::raw("SUBSTR(msy_code, 1, 4) as Tahun"))->distinct()->get();
+        $periode = Period::all();
+        $jalur = Path::all();
+        return view('pages.report.old-student-receivables.per-student', compact('programStudy','angkatan', 'periode', 'jalur'));
+    }
 }

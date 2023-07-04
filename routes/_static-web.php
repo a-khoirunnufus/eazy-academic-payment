@@ -41,13 +41,13 @@ Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-
 //     }
 // });
 Route::get('/report/registrant-invoice', fn() => view('pages.report.registrant-invoice'));
-Route::get('/report/old-student-receivables', function(Request $request) {
-    if ($request->query('type') == 'student') {
-        return view('pages.report.old-student-receivables.per-student');
-    } else {
-        return view('pages.report.old-student-receivables.per-study-program');
-    }
-});
+// Route::get('/report/old-student-receivables', function(Request $request) {
+//     if ($request->query('type') == 'student') {
+//         return view('pages.report.old-student-receivables.per-student');
+//     } else {
+//         return view('pages.report.old-student-receivables.per-study-program');
+//     }
+// });
 Route::get('/report/new-student-receivables', function(Request $request) {
     if ($request->query('type') == 'student') {
         return view('pages.report.new-student-receivables.per-student');

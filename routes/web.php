@@ -96,6 +96,10 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
     });
+    Route::group(['prefix' => 'old-student-receivables'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivable');
+        Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivableDetail');
+    });
 });
 
 Route::group(['prefix' => 'student'], function () {

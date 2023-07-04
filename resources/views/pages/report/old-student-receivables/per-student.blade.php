@@ -5,55 +5,77 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .eazy-summary {
-            display: flex;
-            flex-direction: row;
-            gap: 2rem;
-            justify-content: space-between;
-        }
-        .eazy-summary__item {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-        }
-        .eazy-summary__item .item__icon {
-            color: blue;
-            background-color: lightblue;
-            border-radius: 50%;
-            height: 56px;
-            width: 56px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 1rem;
-        }
-        .eazy-summary__item .item__icon.item__icon--blue{
-            color: #356CFF;
-            background-color: #F0F4FF;
-        }
-        .eazy-summary__item .item__icon.item__icon--green{
-            color: #0BA44C;
-            background-color: #E1FFE0;
-        }
-        .eazy-summary__item .item__icon.item__icon--red{
-            color: #FF4949;
-            background-color: #FFF5F5;
-        }
-        .eazy-summary__item .item__icon svg {
-            height: 30px;
-            width: 30px;
-        }
-        .eazy-summary__item .item__text span:first-child {
-            display: block;
-            font-size: 1rem;
-        }
-        .eazy-summary__item .item__text span:last-child {
-            display: block;
-            font-size: 18px;
-            font-weight: 700;
-        }
-    </style>
+<style>
+    .eazy-summary {
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+        justify-content: space-between;
+    }
+
+    .eazy-summary__item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .eazy-summary__item .item__icon {
+        color: blue;
+        background-color: lightblue;
+        border-radius: 50%;
+        height: 56px;
+        width: 56px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--blue {
+        color: #356CFF;
+        background-color: #F0F4FF;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--green {
+        color: #0BA44C;
+        background-color: #E1FFE0;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--red {
+        color: #FF4949;
+        background-color: #FFF5F5;
+    }
+
+    .eazy-summary__item .item__icon svg {
+        height: 30px;
+        width: 30px;
+    }
+
+    .eazy-summary__item .item__text span:first-child {
+        display: block;
+        font-size: 1rem;
+    }
+
+    .eazy-summary__item .item__text span:last-child {
+        display: block;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .toHistory:hover,
+    .toHistory:hover small {
+        cursor: pointer;
+        color: #5399f5 !important;
+    }
+
+    .select-filtering {
+        min-width: 150px !important;
+    }
+
+    .space {
+        margin-left: 10px;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -62,40 +84,40 @@
 
 <div class="card">
     <div class="card-body">
-        <x-datatable-filter-wrapper oneRow handler="javascript:void(0)">
-            <x-datatable-select-filter
-                title="Tahun Akademik dan Semester"
-                elementId="filter-school-year"
-                resourceName="school-year"
-                value="code"
-                labelTemplate=":year Semester :semester"
-                :labelTemplateItems="array('year', 'semester')"
-            />
-            <x-datatable-select-filter
-                title="Angkatan"
-                elementId="filter-class-year"
-                resourceName="class-year"
-                value="code"
-                labelTemplate=":name"
-                :labelTemplateItems="array('name')"
-            />
-            <x-datatable-select-filter
-                title="Fakultas"
-                elementId="filter-faculty"
-                resourceName="faculty"
-                value="id"
-                labelTemplate=":name"
-                :labelTemplateItems="array('name')"
-            />
-            <x-datatable-select-filter
-                title="Program Studi"
-                elementId="filter-study-program"
-                resourceName="study-program"
-                value="id"
-                labelTemplate=":type :name"
-                :labelTemplateItems="array('type', 'name')"
-            />
-        </x-datatable-filter-wrapper>
+        <div class="d-flex">
+            <div class="select-filtering">
+                <label class="form-label">Angkatan</label>
+                <select class="form-select select2 select-filter" id="filterData">
+                    <option value="#ALL">Semua Tahun</option>
+                    @foreach($angkatan as $item)
+                    <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="space select-filtering">
+                <label class="form-label">Jalur Masuk</label>
+                <select class="form-select select2 select-filter" id="pathData">
+                    <option value="#ALL">Semua Jalur Masuk</option>
+                    @foreach($jalur as $item)
+                    <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="space select-filtering">
+                <label class="form-label">Periode Masuk</label>
+                <select class="form-select select2 select-filter" id="periodData">
+                    <option value="#ALL">Semua Periode Masuk</option>
+                    @foreach($periode as $item)
+                    <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="space align-self-end">
+                <button class="btn btn-primary" onclick="filter()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -108,7 +130,7 @@
                 </div>
                 <div class="item__text">
                     <span>Jumlah Piutang Keseluruhan</span>
-                    <span>Rp 100,000,000,00</span>
+                    <span id="total_piutang">Rp 100,000,000,00</span>
                 </div>
             </div>
             <div class="eazy-summary__item">
@@ -117,7 +139,7 @@
                 </div>
                 <div class="item__text">
                     <span>Jumlah Piutang Terbayar</span>
-                    <span>Rp 50,000,000,00</span>
+                    <span id="piutang_terbayar">Rp 50,000,000,00</span>
                 </div>
             </div>
             <div class="eazy-summary__item">
@@ -126,7 +148,7 @@
                 </div>
                 <div class="item__text">
                     <span>Total Sisa Tagihan Keseluruhan</span>
-                    <span>Rp 50,000,000,00</span>
+                    <span id="sisa_piutang">Rp 50,000,000,00</span>
                 </div>
             </div>
         </div>
@@ -134,12 +156,12 @@
 </div>
 
 <div class="card">
-    <table id="old-student-receivables-table" class="table table-striped">
+    <table id="old-student-invoice-detail-table" class="table table-striped">
         <thead>
             <tr>
                 <th rowspan="2">Program Studi / Fakultas</th>
                 <th rowspan="2">Nama / NIM</th>
-                <th rowspan="2">Rincian Tagihan</th>
+                <th rowspan="2">Total / Rincian Tagihan</th>
                 <th colspan="4" class="text-center">Jenis Tagihan</th>
                 <th rowspan="2">
                     Total Harus Dibayar<br>
@@ -159,105 +181,345 @@
         <tbody></tbody>
     </table>
 </div>
+
+<div class="modal" id="historPaymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
+            </div>
+            <div class="modal-body">
+                <table id="old-student-payment-history-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nomor Tagihan</th>
+                            <th>Biaya Admin</th>
+                            <th>Jumlah</th>
+                            <th>Batas Pembayaran</th>
+                            <th>Tanggal Pembayaran</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('js_section')
 <script>
-    $(document).ready(function () {
+    var all_total_tagihan = 0;
+    var all_total_denda = 0;
+    var all_total_beasiswa = 0;
+    var all_total_potongan = 0;
+    var all_total_terbayar = 0;
+    var all_total_harus_bayar = 0;
+    var all_total_piutang = 0;
+
+    var dtDetail, dtHistory, student = null;
+
+    $(document).ready(function() {
         select2Replace();
     });
 
-    $(function(){
-        _oldStudentReceivablesTable.init();
+    $(function() {
+        _oldStudentInvoiceDetailTable.init();
+        // _oldStudentPaymentHistoryTable.init()
     })
 
-    const _oldStudentReceivablesTable = {
+    const _oldStudentInvoiceDetailTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#old-student-receivables-table').DataTable({
+        init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
+            all_total_tagihan = 0;
+            all_total_denda = 0;
+            all_total_beasiswa = 0;
+            all_total_potongan = 0;
+            all_total_terbayar = 0;
+            all_total_harus_bayar = 0;
+            all_total_piutang = 0;
+
+            dtDetail = this.instance = $('#old-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/dt/report-old-student-receivables-per-student',
+                    url: _baseURL + '/api/report/old-student-invoice',
+                    data: {
+                        prodi_filter_angkatan: byFilter,
+                        prodi_search_filter: searchData,
+                        prodi: '{{$programStudy}}',
+                        prodi_path_filter: path,
+                        prodi_period_filter: period,
+                    },
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'study_program_n_faculty',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.study_program, row.faculty);
+                            return this.template.titleWithSubtitleCell(row.studyprogram.studyprogram_name, row.studyprogram.faculty[0].faculty_name);
                         }
                     },
                     {
                         name: 'student_name_n_id',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.student_name, row.student_id);
+                            var elm = `<div class="toHistory" onclick="toHistory('${row.student_number}')">`;
+                            elm += this.template.titleWithSubtitleCell(row.fullname, row.student_id);
+                            elm += `</div>`;
+                            return elm;
                         }
                     },
                     {
                         name: 'invoice',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_detail);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            for (var i = 0; i < payment.length; i++) {
+                                listData.push({
+                                    name: payment[i].prrd_component,
+                                    nominal: payment[i].prrd_amount
+                                });
+                            }
+
+                            all_total_harus_bayar += row.payment.prr_total;
+                            all_total_terbayar += row.payment.prr_paid;
+                            all_total_piutang += (all_total_harus_bayar - all_total_terbayar);
+                            $('#total_piutang').html(this.template.currencyCell(all_total_harus_bayar));
+                            $('#piutang_terbayar').html(this.template.currencyCell(all_total_terbayar));
+                            $('#sisa_piutang').html(all_total_piutang);
+
+                            return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
                         }
                     },
                     {
                         name: 'invoice_a',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_a_detail, row.invoice_a_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            var totalHarga = 0;
+                            for (var i = 0; i < payment.length; i++) {
+                                if (payment[i].type == 'component') {
+                                    listData.push({
+                                        name: payment[i].prrd_component,
+                                        nominal: payment[i].prrd_amount
+                                    });
+                                    totalHarga += payment[i].prrd_amount;
+                                }
+                            }
+                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
                         }
                     },
                     {
                         name: 'invoice_b',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_b_detail, row.invoice_b_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            var totalHarga = 0;
+                            for (var i = 0; i < payment.length; i++) {
+                                if (payment[i].type == 'denda') {
+                                    listData.push({
+                                        name: payment[i].prrd_component,
+                                        nominal: payment[i].prrd_amount
+                                    });
+                                    totalHarga += payment[i].prrd_amount;
+                                }
+                            }
+                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
                         }
                     },
                     {
                         name: 'invoice_c',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_c_detail, row.invoice_c_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            var totalHarga = 0;
+                            for (var i = 0; i < payment.length; i++) {
+                                if (payment[i].type == 'beasiswa') {
+                                    listData.push({
+                                        name: payment[i].prrd_component,
+                                        nominal: payment[i].prrd_amount
+                                    });
+                                    totalHarga += payment[i].prrd_amount;
+                                }
+                            }
+                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
                         }
                     },
                     {
                         name: 'invoice_d',
                         render: (data, _, row) => {
-                            return this.template.invoiceDetailCell(row.invoice_d_detail, row.invoice_d_total);
+                            var listData = []
+                            var payment = row.payment.payment_detail;
+                            var totalHarga = 0;
+                            for (var i = 0; i < payment.length; i++) {
+                                if (payment[i].type == 'potongan') {
+                                    listData.push({
+                                        name: payment[i].prrd_component,
+                                        nominal: payment[i].prrd_amount
+                                    });
+                                    totalHarga += payment[i].prrd_amount;
+                                }
+                            }
+                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
                         }
                     },
                     {
                         name: 'total_must_be_paid',
-                        data: 'total_must_be_paid',
+                        data: 'payment.prr_total',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
+                            return this.template.currencyCell(data, {
+                                bold: true,
+                                additionalClass: 'text-danger'
+                            });
                         }
                     },
                     {
                         name: 'paid_off_total',
-                        data: 'paid_off_total',
+                        data: 'payment.prr_paid',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
+                            return this.template.currencyCell(data, {
+                                bold: true,
+                                additionalClass: 'text-success'
+                            });
                         }
                     },
                     {
                         name: 'receivables_total',
-                        data: 'receivables_total',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {bold: true, minus: true, additionalClass: 'text-warning'});
+                        render: (data, _, row) => {
+                            var total = row.payment.prr_total - row.payment.prr_paid;
+                            return this.template.currencyCell(total, {
+                                bold: true,
+                                minus: true,
+                                additionalClass: 'text-warning'
+                            });
                         }
                     },
                     {
                         name: 'status',
-                        data: 'status',
-                        render: (data) => {
-                            return this.template.badgeCell(data, 'primary');
+                        render: (data, _, row) => {
+                            var total = row.payment.prr_total - row.payment.prr_paid;
+                            var status = total > 0 ? "Belum Lunas" : "Lunas"
+                            return this.template.badgeCell(status, 'primary');
                         }
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-receivables-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-detail-actions">>' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter">lB> >' +
+                    '>' +
+                    '<"eazy-table-wrapper" t>' +
+                    '<"d-flex justify-content-between mx-2 row"' +
+                    '<"col-sm-12 col-md-6"i>' +
+                    '<"col-sm-12 col-md-6"p>' +
+                    '>',
+                buttons: [{
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                    className: 'btn btn-outline-secondary',
+                    action: function(e, dt, node, config) {
+                        window.open(
+                            _baseURL +
+                            '/report/old-student-invoice/download-perstudent?' +
+                            'prodi_filter_angkatan=' + encodeURIComponent(byFilter) + '&' +
+                            'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
+                            'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
+                            'prodi_path_filter=' + encodeURIComponent(path) + '&' +
+                            'prodi_period_filter=' + encodeURIComponent(period) + '&' +
+                            'student_export=' + encodeURIComponent('old')
+                        )
+                    }
+                }],
+                initComplete: function() {
+                    $('.old-student-invoice-detail-actions').html(`
+                        <h5 class="mb-0">Daftar Tagihan</h5>
+                    `)
+                    $('.search_filter').html(`
+                    <div class="dataTables_filter">
+                        <label><input type="text" id="searchFilterDetail" class="form-control" placeholder="Cari Data" onkeydown="searchDataDetail(event)"></label>
+                    </div>
+                    `)
+                    feather.replace();
+                }
+            })
+        },
+        template: _datatableTemplates,
+    }
+
+    const _oldStudentPaymentHistoryTable = {
+        ..._datatable,
+        init: function(student_number, search = '#ALL') {
+            dtHistory = this.instance = $('#old-student-payment-history-table').DataTable({
+                serverSide: true,
+                ajax: {
+                    url: _baseURL + '/api/report/old-student-invoice/student-history/' + student_number,
+                    data: {
+                        search_filter: search
+                    }
+                },
+                columns: [{
+                        name: 'payment_date',
+                        data: 'prrb_invoice_num',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
+                        }
+                    },
+                    {
+                        name: 'invoice_component',
+                        data: 'prrb_admin_cost',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
+                        }
+                    },
+                    {
+                        name: 'payment_nominal',
+                        data: 'prrb_amount',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
+                        }
+                    },
+                    {
+                        name: 'payment_expired_date',
+                        data: 'prrb_expired_date',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
+                        }
+                    },
+                    {
+                        name: 'payment_paid_date',
+                        data: 'prrb_paid_date',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
+                        }
+                    },
+                    {
+                        name: 'payment_status',
+                        data: 'prrb_status',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
+                        }
+                    }
+                ],
+                drawCallback: function(settings) {
+                    feather.replace();
+                },
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-payment-history-actions">>' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter_history">lB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -265,14 +527,60 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.old-student-receivables-actions').html(`
-                        <h5 class="mb-0">Daftar Piutang Mahasiswa Lama</h5>
+                    $('.old-student-payment-history-actions').html(`
+                        <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
+                    `)
+                    $('.search_filter_history').html(`
+                    <div class="dataTables_filter">
+                        <label><input type="text" id="searchFilterHistory" class="form-control" placeholder="Cari Data" onkeydown="searchDataHistory(event)"></label>
+                    </div>
                     `)
                     feather.replace();
                 }
             })
         },
         template: _datatableTemplates,
+    }
+
+    function toHistory(student_number) {
+        student = student_number;
+        if (dtHistory == null) {
+            _oldStudentPaymentHistoryTable.init(student_number);
+        } else {
+            dtHistory.clear().destroy()
+            _oldStudentPaymentHistoryTable.init(student_number);
+        }
+        // $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
+        $('#historPaymentModal').modal('toggle');
+    }
+
+    function filter() {
+        var angkatan = $('select[id="filterData"]').val();
+        var jalur = $('select[id="pathData"]').val();
+        var periode = $('select[id="periodData"]').val();
+        dtDetail.clear().destroy()
+        _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode)
+    }
+
+    function searchDataDetail(event) {
+        if (event.key == 'Enter') {
+            var angkatan = $('select[id="filterData"]').val();
+            var jalur = $('select[id="pathData"]').val();
+            var periode = $('select[id="periodData"]').val();
+            var find = $('#searchFilterDetail').val();
+            $('#searchFilterDetail').val('');
+            dtDetail.clear().destroy();
+            _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode, find)
+        }
+    }
+
+    function searchDataHistory(event) {
+        if (event.key == 'Enter') {
+            var find = $('#searchFilterHistory').val();
+            $('#searchFilterHistory').val('');
+            dtHistory.clear().destroy();
+            _oldStudentPaymentHistoryTable.init(student, find);
+        }
     }
 </script>
 @endsection
