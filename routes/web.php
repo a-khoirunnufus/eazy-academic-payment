@@ -100,6 +100,10 @@ Route::group(['prefix' => 'report'], function () {
         Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivable');
         Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivableDetail');
     });
+    Route::group(['prefix' => 'new-student-receivables'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudentReceivables');
+        Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentReceivableDetail');
+    });
 });
 
 Route::group(['prefix' => 'student'], function () {
