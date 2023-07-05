@@ -92,11 +92,12 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Kode Komponen</th>
-                <th>Komponen Tagihan</th>
-                <th class="text-center">Mahasiswa Lama</th>
-                <th class="text-center">Mahasiswa Baru</th>
-                <th class="text-center">Pendaftar</th>
+                <th>Tahun Akademik</th>
+                <th>No.HP</th>
+                <th>Email</th>
+                <th>Alasan</th>
+                <th>Bukti</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -185,13 +186,23 @@
         }
     }
 
+    const _helper = {
+        semester: function(msy_semester){
+            var semester = ' Genap';
+            if(msy_semester == 1) {
+                semester = ' Ganjil';
+            }
+            return semester;
+        }
+    }
+
     const _creditTable = {
         ..._datatable,
         init: function() {
             this.instance = $('#credit-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/settings/component/index',
+                    url: _baseURL+'/api/student/credit/index',
                 },
                 columns: [
                     {
@@ -203,50 +214,43 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'msc_name', data: 'msc_name'},
-                    {name: 'msc_description', data: 'msc_description'},
                     {
-                        name: 'msc_is_student',
-                        data: 'msc_is_student',
+                        name: 'msy_id',
+                        data: 'msy_id',
+                        searchable: false,
                         render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
-                            }
-                            html += '</div>'
-                            return html
+                            return row.period.msy_year + _helper.semester(row.period.msy_semester)
+                        }
+                    },
+                    {name: 'mcs_phone', data: 'mcs_phone'},
+                    {name: 'mcs_email', data: 'mcs_email'},
+                    {name: 'mcs_reason', data: 'mcs_reason'},
+                    {
+                        name: 'mcs_proof',
+                        data: 'mcs_proof',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return '<a href="'+row.mcs_proof+'" target="_blank">'+row.mcs_proof_filename+'</a>';
                         }
                     },
                     {
-                        name: 'msc_is_new_student',
-                        data: 'msc_is_new_student',
+                        name: 'mcs_status',
+                        data: 'mcs_status',
+                        searchable: false,
                         render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
+                            let status = "Tidak Disetujui";
+                            let bg = "bg-danger";
+                            if(row.mcs_status === 1){
+                                status = "Disetujui";
+                                bg = "bg-success";
+                            }else if(row.mcs_status === 2){
+                                status = "Sedang Diproses";
+                                bg = "bg-warning";
                             }
-                            html += '</div>'
-                            return html
+                            return '<div class="badge '+bg+'">'+status+'</div>'
                         }
                     },
-                    {
-                        name: 'msc_is_participant',
-                        data: 'msc_is_participant',
-                        render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
-                            }
-                            html += '</div>'
-                            return html
-                        }
-                    },
+                    
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -295,8 +299,8 @@
 
     const _componentForm = {
         clearData: function(){
-            FormDataJson.clear('#form-add-invoice-component')
-            $("#form-add-invoice-component .select2").trigger('change')
+            FormDataJson.clear('#form-add-credit-submission')
+            $("#form-add-credit-submission .select2").trigger('change')
             $(".form-alert").remove()
         },
         setData: function(data){
@@ -319,31 +323,42 @@
         add: function() {
             Modal.show({
                 type: 'form',
-                modalTitle: 'Tambah Komponen Tagihan',
+                modalTitle: 'Pengajuan Cicilan',
                 modalSize: 'md',
                 config: {
-                    formId: 'form-add-invoice-component',
-                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
+                    formId: 'form-add-credit-submission',
+                    formActionUrl: _baseURL + '/api/student/credit/store',
                     formType: 'add',
                     fields: {
                         invoice_component_code: {
-                            title: 'Kode Komponen Tagihan',
+                            title: 'Nama',
                             content: {
                                 template:
                                     `<input
                                         type="text"
-                                        name="msc_name"
+                                        name="fullname"
                                         class="form-control"
                                     >`,
                             },
                         },
                         invoice_component_name: {
-                            title: 'Nama Komponen Tagihan',
+                            title: 'NIM',
                             content: {
                                 template:
                                     `<input
                                         type="text"
-                                        name="msc_description"
+                                        name="student_id"
+                                        class="form-control"
+                                    >`,
+                            },
+                        },
+                        invoice_component_name: {
+                            title: 'Tahun Akademik',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="msy_id"
                                         class="form-control"
                                     >`,
                             },
@@ -378,7 +393,7 @@
                             },
                         },
                     },
-                    formSubmitLabel: 'Tambah Komponen',
+                    formSubmitLabel: 'Ajukan',
                     callback: function(e) {
                         _creditTable.reload()
                     },
