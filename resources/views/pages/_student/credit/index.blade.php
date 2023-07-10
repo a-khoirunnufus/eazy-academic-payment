@@ -324,72 +324,89 @@
             Modal.show({
                 type: 'form',
                 modalTitle: 'Pengajuan Cicilan',
-                modalSize: 'md',
+                modalSize: 'lg',
                 config: {
                     formId: 'form-add-credit-submission',
                     formActionUrl: _baseURL + '/api/student/credit/store',
                     formType: 'add',
+                    isTwoColumn: true,
                     fields: {
-                        invoice_component_code: {
+                        name: {
                             title: 'Nama',
                             content: {
                                 template:
                                     `<input
                                         type="text"
                                         name="fullname"
-                                        class="form-control"
-                                    >`,
+                                        class="form-control" value="{{ $user->student->fullname }}" disabled="disabled"
+                                    >
+                                    <input type="hidden" name="student_number" value="{{$user->student->student_number}}">`,
                             },
                         },
-                        invoice_component_name: {
+                        nim: {
                             title: 'NIM',
                             content: {
                                 template:
                                     `<input
                                         type="text"
                                         name="student_id"
-                                        class="form-control"
+                                        class="form-control" value="{{ $user->student->student_id }}" disabled="disabled"
                                     >`,
                             },
                         },
-                        invoice_component_name: {
+                        academic: {
                             title: 'Tahun Akademik',
                             content: {
                                 template:
                                     `<input
                                         type="text"
-                                        name="msy_id"
+                                        name="academic_year"
+                                        class="form-control" value="{{ $year }}" disabled="disabled"
+                                    >
+                                    <input type="hidden" name="msy_id" value="{{$yearCode}}">`,
+                            },
+                        },
+                        no_telp: {
+                            title: 'No Telepon',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="mcs_phone"
                                         class="form-control"
                                     >`,
                             },
                         },
-                        component_type: {
-                            title: 'Jenis Komponen Tagihan',
+                        email: {
+                            title: 'Email',
                             content: {
                                 template:
-                                    `<select name="msct_id" class="form-control select2">
-                                        <option value="">Pilih Jenis Komponen</option>
-                                    </select>`,
+                                    `<input
+                                        type="text"
+                                        name="mcs_email"
+                                        class="form-control"
+                                    >`,
                             },
                         },
-                        subjects: {
-                            title: 'Tersedia Bagi',
-                            type: 'checkbox',
+                        proof: {
+                            title: 'Bukti Pendukung (.jpg/.pdf)',
                             content: {
-                                template: `
-                                    <table class="table table-bordered">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Mahasiswa Lama</th>
-                                            <th class="text-center">Mahasiswa Baru</th>
-                                            <th class="text-center">Pendaftar</th>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
-                                        </tr>
-                                    </table>
-                                `
+                                template:
+                                    `<input
+                                        type="file"
+                                        name="mcs_proof"
+                                        class="form-control"
+                                    >
+                                    `,
+                            },
+                        },
+                        reason: {
+                            title: 'Alasan',
+                            content: {
+                                template:
+                                    `<textarea name="mcs_reason" class="form-control">
+                                    </textarea>
+                                    `,
                             },
                         },
                     },
@@ -399,11 +416,19 @@
                     },
                 },
             });
-            _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/component-type',
-                nameField: 'msct_id',
-                idData: 'msct_id',
-                nameData: 'msct_name'
+            $.get(_baseURL + '/api/payment/discount/period', (data) => {
+                if (Object.keys(data).length > 0) {
+                    data.map(item => {
+                        $('#md_period_start').append(`
+                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                        `);
+                        $('#md_period_end').append(`
+                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                        `);
+                        
+                    });
+                    selectRefresh();
+                }
             });
         },
         edit: function(e) {

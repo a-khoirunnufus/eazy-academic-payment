@@ -10,6 +10,13 @@ class CreditController extends Controller
 {
     use StaticStudentUser;
 
+    public function getActiveSchoolYearId(){
+        return 1;
+    }
+    public function getActiveSchoolYear(){
+        return "2022/2023 - Ganjil";
+    }
+
     public function index(Request $request)
     {
         $email = $request->query('email') ?? $this->example_s_user_email_hafizh;
@@ -21,6 +28,9 @@ class CreditController extends Controller
             return 'User with email: '.$email.' not found!';
         }
 
-        return view('pages._student.credit.index', compact('user'));
+        $year = $this->getActiveSchoolYear();
+        $yearCode = $this->getActiveSchoolYearId();
+
+        return view('pages._student.credit.index', compact('user','year','yearCode'));
     }
 }

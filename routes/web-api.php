@@ -194,11 +194,11 @@ Route::group(['prefix' => 'student'], function(){
     
     Route::group(['prefix' => 'credit'], function(){
         Route::get('index', 'App\Http\Controllers\_Student\Api\CreditController@index');
+        Route::post('store', 'App\Http\Controllers\_Student\Api\CreditController@store');
         // Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@scholarship');
         // Route::get('student', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@student');
         // Route::get('study-program', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@study_program');
         // Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@period');
-        // Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@store');
         // Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
         // Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
