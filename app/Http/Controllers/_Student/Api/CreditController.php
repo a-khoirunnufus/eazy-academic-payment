@@ -43,23 +43,39 @@ class CreditController extends Controller
         try{
             DB::beginTransaction();
 
-            $credit = CreditSubmission::create([
-                'student_number' => $validated['student_number'],
-                'msy_id' => $validated['msy_id'],
-                'mcs_phone' => $validated['mcs_phone'],
-                'mcs_email' => $validated['mcs_email'],
-                'mcs_reason' => $validated['mcs_reason'],
-                'mcs_method' => $validated['mcs_method'],
-                'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
-                'mcs_status' => 2,
-            ]);
+            if(array_key_exists("msc_id",$validated)){
+                $credit = CreditSubmission::findOrFail($validated["msc_id"]);
+                $credit->update([
+                    'mcs_phone' => $validated['mcs_phone'],
+                    'mcs_email' => $validated['mcs_email'],
+                    'mcs_reason' => $validated['mcs_reason'],
+                    'mcs_method' => $validated['mcs_method'],
+                    'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
+                    'mcs_status' => 2,
+                ]);
+                $text = "Berhasil memperbarui pengajuan";
+            }else{
+                $credit = CreditSubmission::create([
+                    'student_number' => $validated['student_number'],
+                    'msy_id' => $validated['msy_id'],
+                    'mcs_phone' => $validated['mcs_phone'],
+                    'mcs_email' => $validated['mcs_email'],
+                    'mcs_reason' => $validated['mcs_reason'],
+                    'mcs_method' => $validated['mcs_method'],
+                    'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
+                    'mcs_status' => 2,
+                ]);
+                
+                
+                $text = "Berhasil membuat pengajuan";
+            }
+
             if(config('app.disable_cloud_storage')) {
                 $upload_success = '/';
             }else{
                 $upload_success = Storage::disk('minio')->put('student/credit_submission_proof/'.$credit->mcs_id, $validated['mcs_proof']);
                 // INI BUAT READ / GET IMAGE
                 // $url = Storage::disk('minio_read')->temporaryUrl($query->mo_logo, \Carbon\Carbon::now()->addMinutes(60));
-
             }
 
             if(!$upload_success) {
@@ -68,19 +84,7 @@ class CreditController extends Controller
 
             $credit->mcs_proof = $upload_success;
             $credit->update();
-            
-            $text = "Berhasil membuat pengajuan";
 
-            // if(array_key_exists("msc_id",$validated)){
-            //     $data = Discount::findOrFail($validated["msc_id"]);
-            //     $data->update($validated);
-            //     $text = "Berhasil memperbarui potongan";
-            // }else{
-            //     Discount::create($validated + [
-            //         'md_realization' => 0
-            //     ]);
-            //     $text = "Berhasil menambahkan potongan";
-            // }
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
@@ -88,4 +92,13 @@ class CreditController extends Controller
         }
         return json_encode(array('success' => true, 'message' => $text));
     }
+    
+    public function delete($id)
+    {
+        $data = CreditSubmission::findOrFail($id);
+        $data->delete();
+
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus pengajuan"));
+    }
+
 }

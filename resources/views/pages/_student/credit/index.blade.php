@@ -212,6 +212,7 @@
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
+                            console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
@@ -307,18 +308,16 @@
             $(".form-alert").remove()
         },
         setData: function(data){
-            $("[name=msc_name]").val(data.msc_name)
-            $("[name=msc_description]").val(data.msc_description)
-            _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/component-type',
-                nameField: 'msct_id',
-                idData: 'msct_id',
-                nameData: 'msct_name',
-                val: data.msct_id
-            });
-            data.msc_is_new_student == 1 ? $('[name=msc_is_new_student]').prop('checked', true) : '';
-            data.msc_is_student == 1 ? $('[name=msc_is_student]').prop('checked', true) : '';
-            data.msc_is_participant == 1 ? $('[name=msc_is_participant]').prop('checked', true) : '';
+            $("[name=fullname]").val(data.student.fullname)
+            $("[name=student_number]").val(data.student.student_number)
+            $("[name=student_id]").val(data.student.student_id)
+            $("[name=academic_year]").val("{{ $year }}")
+            $("[name=msy_id]").val("{{ $yearCode }}")
+            $("[name=mcs_phone]").val(data.mcs_phone)
+            $("[name=mcs_email]").val(data.mcs_email)
+            $("[name=mcs_reason]").val(data.mcs_reason)
+            $("[name=mcs_method]").val(data.mcs_method)
+            $("[name=mcs_method]").trigger('change')
         }
     }
 
@@ -450,69 +449,107 @@
             let data = _creditTable.getRowData(e);
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Komponen Tagihan',
-                modalSize: 'md',
+                modalTitle: 'Edit Pengajuan Cicilan',
+                modalSize: 'lg',
                 config: {
-                    formId: 'form-edit-transaction-group',
-                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
+                    formId: 'form-edit-credit-submission',
+                    formActionUrl: _baseURL + '/api/student/credit/store',
                     formType: 'edit',
-                    rowId: data.msc_id,
+                    isTwoColumn: true,
+                    rowId: data.mcs_id,
                     fields: {
-                        invoice_component_code: {
-                            title: 'Kode Komponen Tagihan',
+                        name: {
+                            title: 'Nama',
                             content: {
                                 template:
                                     `<input
                                         type="text"
-                                        name="msc_name"
-                                        class="form-control"
-                                        value=""
-                                    >`,
+                                        name="fullname"
+                                        class="form-control" value="{{ $user->student->fullname }}" disabled="disabled"
+                                    >
+                                    <input type="hidden" name="student_number" value="{{$user->student->student_number}}">`,
                             },
                         },
-                        invoice_component_name: {
-                            title: 'Nama Komponen Tagihan',
+                        nim: {
+                            title: 'NIM',
                             content: {
                                 template:
                                     `<input
                                         type="text"
-                                        name="msc_description"
-                                        class="form-control"
-                                        value=""
+                                        name="student_id"
+                                        class="form-control" value="{{ $user->student->student_id }}" disabled="disabled"
                                     >`,
                             },
                         },
-                        component_type: {
-                            title: 'Jenis Komponen Tagihan',
+                        academic: {
+                            title: 'Tahun Akademik',
                             content: {
                                 template:
-                                    `<select name="msct_id" id="msct_id" class="form-control select2">
-                                        <option value="">Pilih Jenis Komponen</option>
+                                    `<input
+                                        type="text"
+                                        name="academic_year"
+                                        class="form-control" value="{{ $year }}" disabled="disabled"
+                                    >
+                                    <input type="hidden" name="msy_id" value="{{$yearCode}}">`,
+                            },
+                        },
+                        no_telp: {
+                            title: 'No Telepon',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="mcs_phone"
+                                        class="form-control"
+                                    >`,
+                            },
+                        },
+                        email: {
+                            title: 'Email',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="mcs_email"
+                                        class="form-control"
+                                    >`,
+                            },
+                        },
+                        method: {
+                            title: 'Metode Pembayaran',
+                            content: {
+                                template:
+                                    `<select name="mcs_method" id="mcs_method" class="form-control select2">
+                                        <option value="">Pilih Metode Pembayaran</option>
+                                        <option value="mandiri">Mandiri - Manual</option>
+                                        <option value="bca">BCA - Manual</option>
+                                        <option value="bni">BNI - Manual</option>
                                     </select>`,
                             },
                         },
-                        subjects: {
-                            title: null,
-                            type: 'checkbox',
+                        proof: {
+                            title: 'Bukti Pendukung (.jpg/.pdf)',
                             content: {
-                                template: `
-                                    <table class="table table-bordered">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Mahasiswa Lama</th>
-                                            <th class="text-center">Mahasiswa Baru</th>
-                                            <th class="text-center">Pendaftar</th>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
-                                        </tr>
-                                    </table>
-                                `
+                                template:
+                                    `<input
+                                        type="file"
+                                        name="mcs_proof"
+                                        class="form-control"
+                                    >
+                                    `,
+                            },
+                        },
+                        reason: {
+                            title: 'Alasan',
+                            content: {
+                                template:
+                                    `<textarea name="mcs_reason" class="form-control">
+                                    </textarea>
+                                    `,
                             },
                         },
                     },
-                    formSubmitLabel: 'Edit Komponen',
+                    formSubmitLabel: 'Edit Pengajuan',
                     callback: function() {
                         _creditTable.reload()
                     },
@@ -526,7 +563,7 @@
             let data = _creditTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
+                text: 'Apakah anda yakin ingin menghapus pengajuan ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -535,20 +572,20 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/settings/component/delete/' + data.msc_id, {
+                    $.post(_baseURL + '/api/student/credit/delete/' + data.mcs_id, {
                         _method: 'DELETE'
                     }, function(data){
                         data = JSON.parse(data)
                         Swal.fire({
                             icon: 'success',
-                            text: data.text,
+                            text: data.message,
                         }).then(() => {
                             _creditTable.reload()
                         });
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
-                            text: data.text,
+                            text: data.message,
                         });
                         _responseHandler.generalFailResponse(error)
                     })
