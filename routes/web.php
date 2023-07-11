@@ -127,3 +127,6 @@ Route::get('test', function() {
 Route::get('queue-log-example', function() {
     return view('queue-log-example');
 });
+
+Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
+

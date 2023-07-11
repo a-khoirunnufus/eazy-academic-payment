@@ -96,6 +96,7 @@
                 <th>No.HP</th>
                 <th>Email</th>
                 <th>Alasan</th>
+                <th>Metode <br>Pembayaran</th>
                 <th>Bukti</th>
                 <th>Status</th>
             </tr>
@@ -225,12 +226,14 @@
                     {name: 'mcs_phone', data: 'mcs_phone'},
                     {name: 'mcs_email', data: 'mcs_email'},
                     {name: 'mcs_reason', data: 'mcs_reason'},
+                    {name: 'mcs_method', data: 'mcs_method'},
                     {
                         name: 'mcs_proof',
                         data: 'mcs_proof',
                         searchable: false,
                         render: (data, _, row) => {
-                            return '<a href="'+row.mcs_proof+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                            let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
+                            return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
                         }
                     },
                     {
@@ -386,6 +389,18 @@
                                         name="mcs_email"
                                         class="form-control"
                                     >`,
+                            },
+                        },
+                        method: {
+                            title: 'Metode Pembayaran',
+                            content: {
+                                template:
+                                    `<select name="mcs_method" id="mcs_method" class="form-control select2">
+                                        <option value="">Pilih Metode Pembayaran</option>
+                                        <option value="mandiri">Mandiri - Manual</option>
+                                        <option value="bca">BCA - Manual</option>
+                                        <option value="bni">BNI - Manual</option>
+                                    </select>`,
                             },
                         },
                         proof: {

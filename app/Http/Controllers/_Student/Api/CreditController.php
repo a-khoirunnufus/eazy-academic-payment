@@ -49,6 +49,7 @@ class CreditController extends Controller
                 'mcs_phone' => $validated['mcs_phone'],
                 'mcs_email' => $validated['mcs_email'],
                 'mcs_reason' => $validated['mcs_reason'],
+                'mcs_method' => $validated['mcs_method'],
                 'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
                 'mcs_status' => 2,
             ]);
@@ -57,7 +58,7 @@ class CreditController extends Controller
             }else{
                 $upload_success = Storage::disk('minio')->put('student/credit_submission_proof/'.$credit->mcs_id, $validated['mcs_proof']);
                 // INI BUAT READ / GET IMAGE
-                // $url = Storage::disk('minio-read')->temporaryUrl($query->mo_logo, \Carbon\Carbon::now()->addMinutes(60));
+                // $url = Storage::disk('minio_read')->temporaryUrl($query->mo_logo, \Carbon\Carbon::now()->addMinutes(60));
 
             }
 
