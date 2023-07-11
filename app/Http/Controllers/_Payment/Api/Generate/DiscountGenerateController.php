@@ -38,6 +38,10 @@ class DiscountGenerateController extends Controller
             $text = "Tagihan tidak ditemukan";
             return json_encode(array('success' => false, 'message' => $text));
         }
+        if($data->mdr_status_generate == 1){
+            $text = "Potongan telah digenerate";
+            return json_encode(array('success' => false, 'message' => $text));
+        }
         DB::beginTransaction();
         try{
             PaymentDetail::create([

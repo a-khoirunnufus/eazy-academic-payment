@@ -96,7 +96,7 @@
                         searchable: false,
                         render: (data, _, row) => {
                             console.log(row);
-                            return this.template.rowAction(data)
+                            return this.template.rowAction(row.msr_status_generate)
                         }
                     },
                     {
@@ -199,15 +199,21 @@
             this.implementSearchDelay()
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(status) {
+                let generate = '';
+                let del = '<a onclick="_scholarshipReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>';
+                if(status != 1){
+                    generate = '<a onclick="_scholarshipReceiverTableActions.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="command"></i>&nbsp;&nbsp;Generate</a>';
+                    del = '';
+                }
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_scholarshipReceiverTableActions.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="command"></i>&nbsp;&nbsp;Generate</a>
-                            <a onclick="_scholarshipReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            ${generate}
+                            ${del}                            
                         </div>
                     </div>
                 `
