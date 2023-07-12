@@ -97,10 +97,13 @@ class DiscountGenerateController extends Controller
         DB::beginTransaction();
         try{
             $paymentDetail = PaymentDetail::where('prr_id',$payment->prr_id)->where('reference_table',$this->getReferenceTable())->where('reference_id',$data->mdr_id)->first();
-            $payment->update([
-                'prr_total' => $payment->prr_total+$paymentDetail->prrd_amount,
-                'prr_paid_net' => $payment->prr_paid_net+$paymentDetail->prrd_amount,
-            ]);
+            if($paymentDetail){
+                $payment->update([
+                    'prr_total' => $payment->prr_total+$paymentDetail->prrd_amount,
+                    'prr_paid_net' => $payment->prr_paid_net+$paymentDetail->prrd_amount,
+                ]);
+            }
+            
             $paymentDetail->delete();
             
             $data->update(['mdr_status_generate' => 0]);
