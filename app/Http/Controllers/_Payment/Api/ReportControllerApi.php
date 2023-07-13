@@ -924,4 +924,91 @@ class ReportControllerApi extends Controller
 
         return $data;
     }
+
+    function exportOldStudentPerProdi(Request $request){
+        $textData = $request->post('data');
+        $data = json_decode($textData);
+        $type = $request->get('old');
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        //header table
+        $sheet->setCellValue('A1', 'PROGRAM STUDI');
+        $sheet->mergeCells('A1:A2');
+
+        $sheet->setCellValue('B1', 'MAHASISWA');
+        $sheet->mergeCells('B1:D1');
+        $sheet->setCellValue('B2', 'LUNAS');
+        $sheet->setCellValue('C2', 'BELUM LUNAS');
+        $sheet->setCellValue('D2', 'JUMLAH MAHASISWA');
+
+        $sheet->setCellValue('E1', 'RINCIAN');
+        $sheet->mergeCells('E1:H1');
+        $sheet->setCellValue('E2', 'TAGIHAN');
+        $sheet->setCellValue('F2', 'DENDA');
+        $sheet->setCellValue('G2', 'BEASISWA');
+        $sheet->setCellValue('H2', 'POTONGAN');
+
+        $sheet->setCellValue('I1', 'PEMBAYARAN');
+        $sheet->mergeCells('I1:K1');
+        $sheet->setCellValue('I2', 'TOTAL HARUS BAYAR');
+        $sheet->setCellValue('J2', 'TERBAYAR');
+        $sheet->setCellValue('K2', 'PIUTANG');
+
+        //content table
+        $baris = 3;
+        foreach ($data as $item){
+            $row = $item;
+            $total_tagihan = 0;
+            $total_denda = 0;
+            $total_beasiswa = 0;
+            $total_potongan = 0;
+            $total_terbayar = 0;
+            $total_harus_bayar = 0;
+            $total_piutang = 0;
+            $total_mahasiswa = 0;
+            $total_mahasiswa_lunas = 0;
+            $total_mahasiswa_belum_lunas = 0;
+
+            $total_mahasiswa = count($row->student);
+            for ($j = 0; $j < count($row->student); $j++) {
+                $total_tagihan += $row->student[$j]->payment->prr_amount;
+                $total_denda += $row->student[$j]->payment->penalty;
+                $total_beasiswa += $row->student[$j]->payment->schoolarsip;
+                $total_potongan += $row->student[$j]->payment->discount;
+                $total_harus_bayar += $row->student[$j]->payment->prr_total;
+                $total_terbayar += $row->student[$j]->payment->prr_paid;
+                $total_piutang += $total_harus_bayar - $total_terbayar;
+
+                if ($row->student[$j]->payment->prr_total - $row->student[$j]->payment->prr_paid > 0) {
+                    $total_mahasiswa_belum_lunas++;
+                } else {
+                    $total_mahasiswa_lunas++;
+                }
+            }
+
+            $sheet->setCellValue('A'.$baris, $item->studyprogram_type.' '.$item->studyprogram_name);
+            $sheet->setCellValue('B'.$baris, $total_mahasiswa_lunas);
+            $sheet->setCellValue('C'.$baris, $total_mahasiswa_belum_lunas);
+            $sheet->setCellValue('D'.$baris, $total_mahasiswa);
+            $sheet->setCellValue('E'.$baris, $total_tagihan);
+            $sheet->setCellValue('F'.$baris, $total_denda);
+            $sheet->setCellValue('G'.$baris, $total_beasiswa);
+            $sheet->setCellValue('H'.$baris, $total_potongan);
+            $sheet->setCellValue('I'.$baris, $total_harus_bayar);
+            $sheet->setCellValue('J'.$baris, $total_terbayar);
+            $sheet->setCellValue('K'.$baris, $total_piutang);
+            $baris++;
+        }
+
+        $response = response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        });
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', 'attachment; filename="Laporan Mahasiswa Program Study.xlsx"');
+        $response->send();
+    }
 }

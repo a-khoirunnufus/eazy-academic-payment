@@ -5,8 +5,13 @@
     .space {
         margin-left: 10px;
     }
+
     .filter-container {
         min-width: 200px !important;
+    }
+
+    .target-print {
+        display: none;
     }
 </style>
 @endsection
@@ -92,9 +97,25 @@
         </tfoot>
     </table>
 </div>
+<div class="target-print">
+    <table id="printTable" class="table table-bordered">
+        <thead>
+            <tr>
+                <td>PROGRAM STUDI</td>
+                <td>MAHASISWA</td>
+                <td>RINCIAN</td>
+                <td>PEMBAYARAN</td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
 @endsection
 
 @section('js_section')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
     var total_tagihan = 0;
     var total_denda = 0;
@@ -114,7 +135,8 @@
     var total_mahasiswa_lunas = 0;
     var total_mahasiswa_belum_lunas = 0;
 
-    var dt;
+    var dt, dtPrint = null;
+    var dataPrint = [];
 
     $(document).ready(function() {
         select2Replace();
@@ -146,6 +168,11 @@
                         id_faculty: faculty,
                         id_prodi: prodi
                     },
+                    dataSrc: function(json) {
+                        setPrintTable(json.data)
+                        dataPrint = json.data;
+                        return json.data;
+                    }
                 },
                 columns: [{
                         name: 'academic_year',
@@ -285,6 +312,78 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [{
+                    extend: 'collection',
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                    className: 'btn btn-outline-secondary dropdown-toggle',
+                    buttons: [{
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                            className: 'dropdown-item',
+                            action: function(e, dt, node, config) {
+                                var element = document.getElementById('printTable');
+                                console.log(element.innerHTML)
+                                var printwin = window.open();
+                                printwin.document.write(
+                                    `<html>
+                                    <head>
+                                    <style>
+                                    table, td, th {  
+                                    border: 1px solid #ddd;
+                                    text-align: left;
+                                    }
+
+                                    table {
+                                    border-collapse: collapse;
+                                    width: 100%;
+                                    }
+
+                                    th, td {
+                                    padding: 5px;
+                                    }
+                                    </style>
+                                    </head>
+                                    <body>
+                                    <table>
+                                    ${element.innerHTML}
+                                    </table>
+                                    </body>
+                                    </html>
+                                    `
+                                );
+                                printwin.print();
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                            className: 'dropdown-item',
+                            action: function(e, dt, node, config) {
+                                var formData = new FormData();
+                                formData.append("data", JSON.stringify(dataPrint));
+                                formData.append("_token", '{{csrf_token()}}');
+                                var xhr = new XMLHttpRequest();
+                                xhr.onload = function() {
+                                    var downloadUrl = URL.createObjectURL(xhr.response);
+                                    var a = document.createElement("a");
+                                    document.body.appendChild(a);
+                                    a.style = "display: none";
+                                    a.href = downloadUrl;
+                                    a.download = "Laporan Mahasiswa per Program Studi";
+                                    a.click();
+                                }
+                                xhr.open("POST", _baseURL + "/api/report/old-student-invoice/export?type=old");
+                                xhr.responseType = 'blob';
+                                xhr.send(formData);
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                            className: 'dropdown-item',
+                            action: function(e, dt, node, config) {
+
+                            }
+                        }
+                    ]
+                }],
                 initComplete: function() {
                     $('.old-student-invoice-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
@@ -340,6 +439,106 @@
 
             dt.clear().destroy()
             _oldStudentInvoiceTable.init($('select[id="filterData"]').val(), faculty, prodi, find);
+        }
+    }
+
+    function setPrintTable(data, type = null) {
+        var tbody = $('#printTable tbody');
+        console.log(tbody);
+        tbody.html('');
+
+        for (var i = 0; i < data.length; i++) {
+            var row = data[i];
+            total_tagihan = 0;
+            total_denda = 0;
+            total_beasiswa = 0;
+            total_potongan = 0;
+            total_terbayar = 0;
+            total_harus_bayar = 0;
+            total_piutang = 0;
+            total_mahasiswa = 0;
+            total_mahasiswa_lunas = 0;
+            total_mahasiswa_belum_lunas = 0;
+
+            total_mahasiswa = row.student.length;
+            for (var j = 0; j < row.student.length; j++) {
+                total_tagihan += row.student[j].payment.prr_amount;
+                total_denda += row.student[j].payment.penalty;
+                total_beasiswa += row.student[j].payment.schoolarsip;
+                total_potongan += row.student[j].payment.discount;
+                total_harus_bayar += row.student[j].payment.prr_total;
+                total_terbayar += row.student[j].payment.prr_paid;
+                total_piutang += total_harus_bayar - total_terbayar;
+
+                if (row.student[j].payment.prr_total - row.student[j].payment.prr_paid > 0) {
+                    total_mahasiswa_belum_lunas++;
+                } else {
+                    total_mahasiswa_lunas++;
+                }
+            }
+
+            var overCols = type == null ? 5 : 4;
+            var row = `<tr class="overcols">`
+            row += `<td rowspan="${overCols}">${data[i].studyprogram_type} ${data[i].studyprogram_name}</td>`
+            row += `<td>Lunas : ${total_mahasiswa_lunas}</td>`
+            row += `<td>Tagihan : ${total_tagihan}</td>`
+            row += `<td>Total Pembayaran : ${total_harus_bayar}<td>`
+            row += `</tr>`
+
+            row += `<tr>`
+            row += `<td>Belum Lunas : ${total_mahasiswa_belum_lunas}</td>`
+            row += `<td>Denda : ${total_denda}</td>`
+            row += `<td>Terbayar : ${total_terbayar}</td>`
+            row += `</tr>`
+
+            row += `<tr>`
+            row += `<td rowspan="${overCols-2}">Jumlah Mahasiswa : ${total_mahasiswa}</td>`
+            row += `<td>Beasiswa : ${total_beasiswa}</td>`
+            row += `<td rowspan="${overCols-2}">Piutang : ${total_piutang}</td>`
+            row += `<tr>`
+
+            row += `<tr>`
+            row += `<td>Potongan : ${total_potongan}</td>`
+            row += `</tr>`
+            tbody.append(row);
+        }
+
+        var cols = document.querySelectorAll('.overcols');
+        console.log(cols);
+        for (var i = 0; i < cols.length; i++) {
+            cols[i].querySelectorAll('td')[4].remove();
+        }
+
+    }
+
+    function exportTableToExcel(tableID, filename = '') {
+        var downloadLink;
+        var dataType = 'application/vnd.ms-excel';
+        var tableSelect = document.getElementById(tableID);
+        var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+
+        // Specify file name
+        filename = filename ? filename + '.xls' : 'excel_data.xls';
+
+        // Create download link element
+        downloadLink = document.createElement("a");
+
+        document.body.appendChild(downloadLink);
+
+        if (navigator.msSaveOrOpenBlob) {
+            var blob = new Blob(['\ufeff', tableHTML], {
+                type: dataType
+            });
+            navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            // Create a link to the file
+            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+
+            // Setting the file name
+            downloadLink.download = filename;
+
+            //triggering the function
+            downloadLink.click();
         }
     }
 </script>
