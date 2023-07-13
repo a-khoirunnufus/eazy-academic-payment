@@ -19,15 +19,16 @@
 @include('pages._payment.approval._shortcuts', ['active' => 'credit'])
 
 <div class="card">
-    <table id="invoice-component-table" class="table table-striped">
+    <table id="credit-submission-table" class="table table-striped">
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Kode Komponen</th>
-                <th>Komponen Tagihan</th>
-                <th class="text-center">Mahasiswa Lama</th>
-                <th class="text-center">Mahasiswa Baru</th>
-                <th class="text-center">Pendaftar</th>
+                <th>Tahun Akademik</th>
+                <th>Nama</th>
+                <th>Fakultas <br>Prodi</th>
+                <th>Komponen <br>Tagihan</th>
+                <th>Total <br>Tagihan</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -116,17 +117,17 @@
     });
 
     $(function(){
-        _invoiceComponentTable.init();
+        _creditSubmissionTable.init();
         _importPreviewTable.init();
     })
 
-    const _invoiceComponentTable = {
+    const _creditSubmissionTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#invoice-component-table').DataTable({
+            this.instance = $('#credit-submission-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/settings/component/index',
+                    url: _baseURL+'/api/payment/approval-credit/index',
                 },
                 columns: [
                     {
@@ -135,51 +136,72 @@
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
+                            console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'msc_name', data: 'msc_name'},
-                    {name: 'msc_description', data: 'msc_description'},
                     {
-                        name: 'msc_is_student',
-                        data: 'msc_is_student',
+                        name: 'msy_id',
+                        data: 'msy_id',
+                        searchable: false,
                         render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
-                            }
-                            html += '</div>'
-                            return html
+                            return row.period.msy_year + _helper.semester(row.period.msy_semester)
                         }
                     },
                     {
-                        name: 'msc_is_new_student',
-                        data: 'msc_is_new_student',
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
                         render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
-                            }
-                            html += '</div>'
-                            return html
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.student.fullname}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.student.student_id}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'msc_is_participant',
-                        data: 'msc_is_participant',
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
                         render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.student.study_program.faculty.faculty_name}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {name: 'mcs_phone', data: 'mcs_phone'},
+                    {name: 'mcs_email', data: 'mcs_email'},
+                    {name: 'mcs_reason', data: 'mcs_reason'},
+                    {name: 'mcs_method', data: 'mcs_method'},
+                    {
+                        name: 'mcs_proof',
+                        data: 'mcs_proof',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
+                            return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                        }
+                    },
+                    {
+                        name: 'mcs_status',
+                        data: 'mcs_status',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Tidak Disetujui";
+                            let bg = "bg-danger";
+                            if(row.mcs_status === 1){
+                                status = "Disetujui";
+                                bg = "bg-success";
+                            }else if(row.mcs_status === 2){
+                                status = "Sedang Diproses";
+                                bg = "bg-warning";
                             }
-                            html += '</div>'
-                            return html
+                            return '<div class="badge '+bg+'">'+status+'</div>'
                         }
                     },
                 ],
@@ -188,7 +210,7 @@
                 },
                 dom:
                     '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"submission-credit-action d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -196,20 +218,12 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    $('.invoice-component-actions').html(`
+                    $('.submission-credit-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_invoiceComponentTableActions.add()" class="btn btn-primary">
+                            <button onclick="_creditTableActions.add()" class="btn btn-primary">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Komponen Tagihan
-                                </span>
-                            </button>
-                        </div>
-                        <div class="ms-1" style="margin-bottom: 7px">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importComponentModal">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Import Komponen Tagihan
+                                    Pengajuan Cicilan
                                 </span>
                             </button>
                         </div>
@@ -227,12 +241,22 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_invoiceComponentTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_invoiceComponentTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_creditSubmissionTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_creditSubmissionTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
             }
+        }
+    }
+
+    const _helper = {
+        semester: function(msy_semester){
+            var semester = ' Genap';
+            if(msy_semester == 1) {
+                semester = ' Ganjil';
+            }
+            return semester;
         }
     }
 
@@ -258,7 +282,7 @@
         }
     }
 
-    const _invoiceComponentTableActions = {
+    const _creditSubmissionTableActions = {
         add: function() {
             Modal.show({
                 type: 'form',
@@ -323,7 +347,7 @@
                     },
                     formSubmitLabel: 'Tambah Komponen',
                     callback: function(e) {
-                        _invoiceComponentTable.reload()
+                        _creditSubmissionTable.reload()
                     },
                 },
             });
@@ -335,7 +359,7 @@
             });
         },
         edit: function(e) {
-            let data = _invoiceComponentTable.getRowData(e);
+            let data = _creditSubmissionTable.getRowData(e);
             Modal.show({
                 type: 'form',
                 modalTitle: 'Edit Komponen Tagihan',
@@ -402,16 +426,16 @@
                     },
                     formSubmitLabel: 'Edit Komponen',
                     callback: function() {
-                        _invoiceComponentTable.reload()
+                        _creditSubmissionTable.reload()
                     },
                 },
             });
             _componentForm.clearData()
             _componentForm.setData(data)
-            _invoiceComponentTable.selected = data
+            _creditSubmissionTable.selected = data
         },
         delete: function(e) {
-            let data = _invoiceComponentTable.getRowData(e);
+            let data = _creditSubmissionTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
@@ -431,7 +455,7 @@
                             icon: 'success',
                             text: data.text,
                         }).then(() => {
-                            _invoiceComponentTable.reload()
+                            _creditSubmissionTable.reload()
                         });
                     }).fail((error) => {
                         Swal.fire({
@@ -645,7 +669,7 @@
                     ImportComponentModal.hide();
                     _toastr.success(data.message, 'Success');
                     _importPreviewTable.reload();
-                    _invoiceComponentTable.reload();
+                    _creditSubmissionTable.reload();
                 } else {
                     _toastr.error(data.message, 'Failed')
                 }
