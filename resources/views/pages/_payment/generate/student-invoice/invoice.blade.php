@@ -5,7 +5,7 @@
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Mahasiswa',
-                modalSize: 'lg',
+                modalSize: 'xl',
                 config: {
                     fields: {
                         header: {
@@ -165,7 +165,7 @@
                 // Transaksi
                 if (Object.keys(source.payment_bill).length > 0) {
                     source.payment_bill.map(item => {
-                        _invoiceAction.rowBill(item.prrb_id,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
+                        _invoiceAction.rowBill(item.prrb_id,item.prrb_due_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
                     });
                 }
             }
@@ -185,20 +185,16 @@
             var paid = "";
             if(status == 'lunas'){
                 stat = '<div class="badge badge-small bg-success" style="padding: 5px!important;">Lunas</div>';
-                expired = '-';
-                paid = (new Date(paid_date)).toLocaleString("id-ID");
             }else{
                 stat = '<div class="badge bg-danger" style="padding: 5px!important;">Belum Lunas</div>';
-                expired = (new Date(expired_date)).toLocaleString("id-ID");
-                paid = '-';
             }
             $("#"+id+"").append(`
                 <tr>
                     <td class="text-center fw-bolder">${inv_num}</td>
-                    <td class="text-center">${expired}</td>
+                    <td class="text-center">${expired_date ? (new Date(expired_date)).toLocaleString("id-ID") : "-"}</td>
                     <td class="text-center">${Rupiah.format(amount)}</td>
                     <td class="text-center">${Rupiah.format(fee)}</td>
-                    <td class="text-center">${paid}</td>
+                    <td class="text-center">${paid_date ? (new Date(paid_date)).toLocaleString("id-ID") : "-"}</td>
                     <td class="text-center">${stat}</td>
                 </tr>
             `)
