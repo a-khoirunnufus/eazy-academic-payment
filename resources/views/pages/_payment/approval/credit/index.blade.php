@@ -26,7 +26,6 @@
                 <th>Tahun Akademik</th>
                 <th>Nama</th>
                 <th>Fakultas <br>Prodi</th>
-                <th>Komponen <br>Tagihan</th>
                 <th>Total <br>Tagihan</th>
                 <th>Status</th>
             </tr>
@@ -141,8 +140,8 @@
                         }
                     },
                     {
-                        name: 'msy_id',
-                        data: 'msy_id',
+                        name: 'mcs_school_year',
+                        data: 'mcs_school_year',
                         searchable: false,
                         render: (data, _, row) => {
                             return row.period.msy_year + _helper.semester(row.period.msy_semester)
@@ -174,17 +173,27 @@
                             `;
                         }
                     },
-                    {name: 'mcs_phone', data: 'mcs_phone'},
-                    {name: 'mcs_email', data: 'mcs_email'},
-                    {name: 'mcs_reason', data: 'mcs_reason'},
-                    {name: 'mcs_method', data: 'mcs_method'},
+                    // {name: 'mcs_phone', data: 'mcs_phone'},
+                    // {name: 'mcs_email', data: 'mcs_email'},
+                    // {name: 'mcs_reason', data: 'mcs_reason'},
+                    // {name: 'mcs_method', data: 'mcs_method'},
+                    // {
+                    //     name: 'mcs_proof',
+                    //     data: 'mcs_proof',
+                    //     searchable: false,
+                    //     render: (data, _, row) => {
+                    //         let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
+                    //         return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                    //     }
+                    // },
                     {
-                        name: 'mcs_proof',
-                        data: 'mcs_proof',
-                        searchable: false,
+                        name: 'prr_id', 
                         render: (data, _, row) => {
-                            let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
-                            return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                            return `
+                                <div>
+                                    <a  onclick="_invoiceAction.detail(event,_creditSubmissionTable,'lazy')" href="javascript:void(0);" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -220,12 +229,7 @@
                 initComplete: function() {
                     $('.submission-credit-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_creditTableActions.add()" class="btn btn-primary">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Pengajuan Cicilan
-                                </span>
-                            </button>
+                            
                         </div>
                     `)
                     feather.replace()
@@ -241,6 +245,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
+                            <a onclick="_creditSubmissionTableActions.detail(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
                             <a onclick="_creditSubmissionTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_creditSubmissionTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
@@ -283,79 +288,72 @@
     }
 
     const _creditSubmissionTableActions = {
-        add: function() {
+        detail: function(e) {
+            const data = _creditSubmissionTable.getRowData(e.currentTarget);
             Modal.show({
-                type: 'form',
-                modalTitle: 'Tambah Komponen Tagihan',
+                type: 'detail',
+                modalTitle: 'Detail Pengajuan Kredit Pembayaran',
                 modalSize: 'md',
                 config: {
-                    formId: 'form-add-invoice-component',
-                    formActionUrl: _baseURL + '/api/payment/settings/component/store',
-                    formType: 'add',
                     fields: {
-                        invoice_component_code: {
-                            title: 'Kode Komponen Tagihan',
-                            content: {
-                                template:
-                                    `<input
-                                        type="text"
-                                        name="msc_name"
-                                        class="form-control"
-                                    >`,
-                            },
-                        },
-                        invoice_component_name: {
-                            title: 'Nama Komponen Tagihan',
-                            content: {
-                                template:
-                                    `<input
-                                        type="text"
-                                        name="msc_description"
-                                        class="form-control"
-                                    >`,
-                            },
-                        },
-                        component_type: {
-                            title: 'Jenis Komponen Tagihan',
-                            content: {
-                                template:
-                                    `<select name="msct_id" class="form-control select2">
-                                        <option value="">Pilih Jenis Komponen</option>
-                                    </select>`,
-                            },
-                        },
-                        subjects: {
-                            title: 'Tersedia Bagi',
-                            type: 'checkbox',
+                        header: {
+                            type: 'custom-field',
+                            title: '',
                             content: {
                                 template: `
-                                    <table class="table table-bordered">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Mahasiswa Lama</th>
-                                            <th class="text-center">Mahasiswa Baru</th>
-                                            <th class="text-center">Pendaftar</th>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
-                                        </tr>
+                                <div>
+                                    <table class="eazy-table-info">
+                                        <tbody>
+                                            <tr>
+                                                <td>Tahun Akademik</td>
+                                                <td>:&nbsp;&nbsp;${data.period.msy_year + _helper.semester(data.period.msy_semester)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nama</td>
+                                                <td>:&nbsp;&nbsp;${data.student.fullname}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>NIM</td>
+                                                <td>:&nbsp;&nbsp;${data.student.student_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Fakultas</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.faculty.faculty_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Prodi</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.studyprogram_type} ${data.student.study_program.studyprogram_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>No.HP</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_phone}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Email</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_email}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Metode Pembayaran</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Alasan</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_reason}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bukti Pendukung</td>
+                                                <td>:&nbsp;&nbsp;<a href="${'{{ url("file","student-credit") }}/'+data.mcs_id}" target="_blank">${data.mcs_proof_filename}</a></td>
+                                            </tr>
+                                        </tbody>
                                     </table>
-                                `
+                                </div>`
                             },
                         },
                     },
-                    formSubmitLabel: 'Tambah Komponen',
-                    callback: function(e) {
-                        _creditSubmissionTable.reload()
-                    },
+                    callback: function() {
+                        feather.replace();
+                    }
                 },
-            });
-            _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/component-type',
-                nameField: 'msct_id',
-                idData: 'msct_id',
-                nameData: 'msct_name'
             });
         },
         edit: function(e) {
@@ -680,4 +678,5 @@
         });
     }
 </script>
+@include('pages._payment.generate.student-invoice.invoice');
 @endsection

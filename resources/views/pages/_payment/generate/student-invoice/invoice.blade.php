@@ -1,11 +1,11 @@
 <script type="text/javascript">
     const _invoiceAction = {
-        detail: function(e) {
-            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
+        detail: function(e,table,type = 'eager') {
+            const data = table.getRowData(e.currentTarget);
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Mahasiswa',
-                modalSize: 'lg',
+                modalSize: 'xl',
                 config: {
                     fields: {
                         header: {
@@ -17,15 +17,15 @@
                                     <div class="row">
                                         <div class="col-lg-3 col-md-3">
                                             <h6>Nama Lengkap</h6>
-                                            <h1 class="h6 fw-bolder">${data.fullname}</h1>
+                                            <h1 class="h6 fw-bolder">${data.fullname ? (data.fullname) : (data.student.fullname)}</h1>
                                         </div>
                                         <div class="col-lg-3 col-md-3">
                                             <h6>NIM</h6>
-                                            <h1 class="h6 fw-bolder">${data.student_id}</h1>
+                                            <h1 class="h6 fw-bolder">${data.student_id ? (data.student_id) : (data.student.student_id)}</h1>
                                         </div>
                                         <div class="col-lg-3 col-md-3">
                                             <h6>No Handphone</h6>
-                                            <h1 class="h6 fw-bolder">${data.phone_number}</h1>
+                                            <h1 class="h6 fw-bolder">${data.phone_number ? (data.phone_number) : (data.student.phone_number)}</h1>
                                         </div>
                                         <div class="col-lg-3 col-md-3">
                                             <h6>Status Pembayaran</h6>
@@ -75,12 +75,13 @@
                     }
                 },
             });
-            if(data.payment){
+            let source = data.payment;
+            if(source){
                 
                 // Status
                 var status = "";
-                if(data.payment){
-                    if(data.payment.prr_status == 'lunas'){
+                if(source){
+                    if(source.prr_status == 'lunas'){
                         status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
                     }else{
                         status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
@@ -90,8 +91,8 @@
 
                 // Tagihan
                 var total = 0;
-                if (Object.keys(data.payment.payment_detail).length > 0) {
-                    data.payment.payment_detail.map(item => {
+                if (Object.keys(source.payment_detail).length > 0) {
+                    source.payment_detail.map(item => {
                         if(item.is_plus === 1){
                             total = total+item.prrd_amount;
                             _invoiceAction.rowDetail(item.prrd_component, item.prrd_amount,'paymentDetail');
@@ -104,7 +105,7 @@
                         </tr>
                     `);
                     let is_header = false;
-                    data.payment.payment_detail.map(item => {
+                    source.payment_detail.map(item => {
                         if(item.is_plus != 1){
                             if(!is_header){
                                 $("#paymentDetail").append(`
@@ -128,18 +129,18 @@
                 $("#paymentDetail").append(`
                     <tr style="background-color:#163485">
                         <td class="text-center fw-bolder" style="color:white!important">Total yang Diterima</td>
-                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_paid_net)}</td>
+                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(source.prr_paid_net)}</td>
                     </tr>
                 `);
 
                 var total_terbayar = 0;
-                if (Object.keys(data.payment.payment_bill).length > 0) {
+                if (Object.keys(source.payment_bill).length > 0) {
                     $("#paymentDetail").append(`
                         <tr class="bg-light">
                             <td class="text-center fw-bolder" colspan="2">Fee</th>
                         </tr>
                     `);
-                    data.payment.payment_bill.map(item => {
+                    source.payment_bill.map(item => {
                         if(item.prrb_status == "lunas"){
                             total_terbayar = total_terbayar + item.prrb_amount+item.prrb_admin_cost;
                         }
@@ -149,7 +150,7 @@
                 $("#paymentDetail").append(`
                     <tr style="background-color:#163485">
                         <td class="text-center fw-bolder" style="color:white!important">Total Tagihan</td>
-                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(data.payment.prr_total)}</td>
+                        <td class="text-center fw-bolder" style="color:white!important">${Rupiah.format(source.prr_total)}</td>
                     </tr>
                 `);
                 
@@ -162,9 +163,9 @@
                 
 
                 // Transaksi
-                if (Object.keys(data.payment.payment_bill).length > 0) {
-                    data.payment.payment_bill.map(item => {
-                        _invoiceAction.rowBill(item.prrb_id,item.prrb_expired_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
+                if (Object.keys(source.payment_bill).length > 0) {
+                    source.payment_bill.map(item => {
+                        _invoiceAction.rowBill(item.prrb_id,item.prrb_due_date, item.prrb_paid_date, item.prrb_amount, item.prrb_admin_cost, item.prrb_status,'paymentBill');
                     });
                 }
             }
@@ -184,20 +185,16 @@
             var paid = "";
             if(status == 'lunas'){
                 stat = '<div class="badge badge-small bg-success" style="padding: 5px!important;">Lunas</div>';
-                expired = '-';
-                paid = (new Date(paid_date)).toLocaleString("id-ID");
             }else{
                 stat = '<div class="badge bg-danger" style="padding: 5px!important;">Belum Lunas</div>';
-                expired = (new Date(expired_date)).toLocaleString("id-ID");
-                paid = '-';
             }
             $("#"+id+"").append(`
                 <tr>
                     <td class="text-center fw-bolder">${inv_num}</td>
-                    <td class="text-center">${expired}</td>
+                    <td class="text-center">${expired_date ? (new Date(expired_date)).toLocaleString("id-ID") : "-"}</td>
                     <td class="text-center">${Rupiah.format(amount)}</td>
                     <td class="text-center">${Rupiah.format(fee)}</td>
-                    <td class="text-center">${paid}</td>
+                    <td class="text-center">${paid_date ? (new Date(paid_date)).toLocaleString("id-ID") : "-"}</td>
                     <td class="text-center">${stat}</td>
                 </tr>
             `)

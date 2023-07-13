@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Year;
 use App\Models\Student;
+use App\Models\Payment\payment;
 
 class CreditSubmission extends Model
 {
@@ -17,15 +18,20 @@ class CreditSubmission extends Model
 
     protected $primaryKey = 'mcs_id';
 
-    protected $fillable = ['student_number', 'msy_id', 'mcs_phone','mcs_email','mcs_reason','mcs_proof','mcs_status','mcs_proof_filename','mcs_method'];
+    protected $fillable = ['student_number', 'mcs_school_year', 'mcs_phone','mcs_email','mcs_reason','mcs_proof','mcs_status','mcs_proof_filename','mcs_method'];
     
     public function period()
     {
-        return $this->belongsTo(Year::class, 'msy_id','msy_id');
+        return $this->belongsTo(Year::class, 'mcs_school_year','msy_code');
     }
     
     public function student()
     {
-        return $this->belongsTo(Student::class, 'student_number','student_number')->with('studyProgram');
+        return $this->belongsTo(Student::class, 'student_number','student_number')->with('studyProgram','payment');
+    }
+    
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill');
     }
 }

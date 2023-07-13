@@ -57,7 +57,7 @@ class CreditController extends Controller
             }else{
                 $credit = CreditSubmission::create([
                     'student_number' => $validated['student_number'],
-                    'msy_id' => $validated['msy_id'],
+                    'mcs_school_year' => $validated['mcs_school_year'],
                     'mcs_phone' => $validated['mcs_phone'],
                     'mcs_email' => $validated['mcs_email'],
                     'mcs_reason' => $validated['mcs_reason'],

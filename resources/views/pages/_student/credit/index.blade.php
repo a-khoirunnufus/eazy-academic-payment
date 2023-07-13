@@ -217,8 +217,8 @@
                         }
                     },
                     {
-                        name: 'msy_id',
-                        data: 'msy_id',
+                        name: 'mcs_school_year',
+                        data: 'mcs_school_year',
                         searchable: false,
                         render: (data, _, row) => {
                             return row.period.msy_year + _helper.semester(row.period.msy_semester)
@@ -312,7 +312,7 @@
             $("[name=student_number]").val(data.student.student_number)
             $("[name=student_id]").val(data.student.student_id)
             $("[name=academic_year]").val("{{ $year }}")
-            $("[name=msy_id]").val("{{ $yearCode }}")
+            $("[name=mcs_school_year]").val("{{ $yearCode }}")
             $("[name=mcs_phone]").val(data.mcs_phone)
             $("[name=mcs_email]").val(data.mcs_email)
             $("[name=mcs_reason]").val(data.mcs_reason)
@@ -365,7 +365,7 @@
                                         name="academic_year"
                                         class="form-control" value="{{ $year }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="msy_id" value="{{$yearCode}}">`,
+                                    <input type="hidden" name="mcs_school_year" value="{{$yearCode}}">`,
                             },
                         },
                         no_telp: {
@@ -418,8 +418,7 @@
                             title: 'Alasan',
                             content: {
                                 template:
-                                    `<textarea name="mcs_reason" class="form-control">
-                                    </textarea>
+                                    `<textarea name="mcs_reason" class="form-control"></textarea>
                                     `,
                             },
                         },
@@ -429,20 +428,6 @@
                         _creditTable.reload()
                     },
                 },
-            });
-            $.get(_baseURL + '/api/payment/discount/period', (data) => {
-                if (Object.keys(data).length > 0) {
-                    data.map(item => {
-                        $('#md_period_start').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
-                        `);
-                        $('#md_period_end').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
-                        `);
-                        
-                    });
-                    selectRefresh();
-                }
             });
         },
         edit: function(e) {
@@ -490,7 +475,7 @@
                                         name="academic_year"
                                         class="form-control" value="{{ $year }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="msy_id" value="{{$yearCode}}">`,
+                                    <input type="hidden" name="mcs_school_year" value="{{$yearCode}}">`,
                             },
                         },
                         no_telp: {
