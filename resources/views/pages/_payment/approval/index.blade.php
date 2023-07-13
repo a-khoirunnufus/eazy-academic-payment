@@ -5,8 +5,8 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-    </style>
+<style>
+</style>
 @endsection
 
 @section('content')
@@ -78,22 +78,10 @@
                 </div>
                 <div class="d-flex flex-row" style="gap: 3rem;">
                     <div class="flex-grow-1">
-                        <button
-                            id="btn-accept-payment"
-                            onclick="_paymentApprovalTableAction.processApproval(event)"
-                            data-eazy-status="accepted"
-                            data-eazy-prrbId=""
-                            class="btn btn-success w-100"
-                        >Terima</button>
+                        <button id="btn-accept-payment" onclick="_paymentApprovalTableAction.processApproval(event)" data-eazy-status="accepted" data-eazy-prrbId="" class="btn btn-success w-100">Terima</button>
                     </div>
                     <div class="flex-grow-1">
-                        <button
-                            id="btn-reject-payment"
-                            onclick="_paymentApprovalTableAction.processApproval(event)"
-                            data-eazy-status="rejected"
-                            data-eazy-prrbId=""
-                            class="btn btn-danger w-100"
-                        >Tolak</button>
+                        <button id="btn-reject-payment" onclick="_paymentApprovalTableAction.processApproval(event)" data-eazy-status="rejected" data-eazy-prrbId="" class="btn btn-danger w-100">Tolak</button>
                     </div>
                 </div>
             </div>
@@ -107,16 +95,16 @@
 @section('js_section')
 
 <script>
-
-    $(function(){
+    var dt = null;
+    $(function() {
         _paymentApprovalTable.init();
         select2Replace();
     });
 
     const _paymentApprovalTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#table-payment-approval').DataTable({
+        init: function(search = '') {
+            dt = this.instance = $('#table-payment-approval').DataTable({
                 serverSide: true,
                 ajax: {
                     url: `${_baseURL}/api/payment/approval`,
@@ -125,11 +113,89 @@
                             'status': $('select#filter-status').val(),
                             'student_type': $('select#filter-student-type').val(),
                         };
+                    },
+                    dataSrc: function(json) {
+                        var data = [];
+                        if (search != '') {
+                            for (var i = 0; i < json.data.length; i++) {
+                                var isFound = false;
+
+                                var name = json.data[i].student_name;
+                                if (!isFound && (name.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var student_type = json.data[i].student_type == 'new_student' ? 'Mahasiswa Baru' : 'Mahasiswa Lama';
+                                if (!isFound && (student_type.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var participant = json.data[i].par_number ?? '-';
+                                if (!isFound && (participant.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var nim = json.data[i].student_id ?? '-';
+                                if (!isFound && (nim.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var bill = ''+json.data[i].bill_total;
+                                if (!isFound && (bill.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var bank = json.data[i].bank_name;
+                                if (!isFound && (bank.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var sender = json.data[i].sender_name;
+                                if (!isFound && (sender.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var bank_number = json.data[i].sender_account_number;
+                                if (!isFound && (bank_number.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+
+                                var status = '';
+                                switch (json.data[i].approval_status) {
+                                    case 'waiting':
+                                        status = 'Menunggu Approval'
+                                        break;
+                                    case 'accepted':
+                                        status = 'Diterima'
+                                        break;
+                                    case 'rejected': 
+                                        status = 'Ditolak'
+                                        break;   
+                                    default:
+                                        status = 'N/A';
+                                        break;
+                                }
+                                if (!isFound && (status.toLowerCase().search(search.toLowerCase()) >= 0)) {
+                                    data.push(json.data[i]);
+                                    isFound = true;
+                                }
+                            }
+                            return json.data = data;
+                        } else {
+                            return json.data;
+                        }
                     }
                 },
                 stateSave: false,
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         orderable: false,
                         searchable: false,
@@ -192,12 +258,12 @@
                         data: 'approval_status',
                         render: (data, _, row) => {
                             return this.template.badgeCell(
-                                data == 'waiting' ? 'Menunggu Approval'
-                                    : data == 'accepted' ? 'Diterima'
-                                        : data = 'rejected' ? 'Ditolak' : 'N/A',
-                                data == 'waiting' ? 'warning'
-                                    : data == 'accepted' ? 'success'
-                                        : data = 'rejected' ? 'danger' : 'secondary',
+                                data == 'waiting' ? 'Menunggu Approval' :
+                                data == 'accepted' ? 'Diterima' :
+                                data = 'rejected' ? 'Ditolak' : 'N/A',
+                                data == 'waiting' ? 'warning' :
+                                data == 'accepted' ? 'success' :
+                                data = 'rejected' ? 'danger' : 'secondary',
                             );
                             return this.template.defaultCell(data);
                         }
@@ -207,10 +273,9 @@
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"manual-payment-actions d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>' +
                     '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
@@ -218,6 +283,13 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
+                    $('.search-filter').html(`
+                    <div id="table-payment-approval_filter" class="dataTables_filter">
+                        <label>
+                        <input type="search" class="form-control" placeholder="Cari Data" aria-controls="table-payment-approval" onkeydown="searchFilter(this, event)">
+                        </label>
+                    </div>
+                    `)
                     feather.replace();
                 }
             });
@@ -309,7 +381,7 @@
                             title: 'Nomor Tagihan',
                             content: {
                                 template: ':code',
-                                code: 'INV/'+data.prr_id
+                                code: 'INV/' + data.prr_id
                             },
                         },
                         invoice_total: {
@@ -393,7 +465,7 @@
                 text: `Apakah anda yakin ingin ${statusValue == 'accepted' ? 'MENERIMA' : 'MENOLAK'} pembayaran ini?`,
             });
 
-            if(!confirmed) return;
+            if (!confirmed) return;
 
             try {
                 const res = await $.ajax({
@@ -423,5 +495,11 @@
 
     const _paymentApprovalModal = new bootstrap.Modal(document.getElementById('paymentApprovalModal'));
 
+    function searchFilter(elm, event){
+        if(event.key == 'Enter'){
+            dt.clear().destroy();
+            _paymentApprovalTable.init(elm.value);
+        }
+    }
 </script>
 @endsection
