@@ -26,7 +26,6 @@
                 <th>Tahun Akademik</th>
                 <th>Nama</th>
                 <th>Fakultas <br>Prodi</th>
-                <th>Komponen <br>Tagihan</th>
                 <th>Total <br>Tagihan</th>
                 <th>Status</th>
             </tr>
@@ -141,8 +140,8 @@
                         }
                     },
                     {
-                        name: 'msy_id',
-                        data: 'msy_id',
+                        name: 'mcs_school_year',
+                        data: 'mcs_school_year',
                         searchable: false,
                         render: (data, _, row) => {
                             return row.period.msy_year + _helper.semester(row.period.msy_semester)
@@ -174,17 +173,27 @@
                             `;
                         }
                     },
-                    {name: 'mcs_phone', data: 'mcs_phone'},
-                    {name: 'mcs_email', data: 'mcs_email'},
-                    {name: 'mcs_reason', data: 'mcs_reason'},
-                    {name: 'mcs_method', data: 'mcs_method'},
+                    // {name: 'mcs_phone', data: 'mcs_phone'},
+                    // {name: 'mcs_email', data: 'mcs_email'},
+                    // {name: 'mcs_reason', data: 'mcs_reason'},
+                    // {name: 'mcs_method', data: 'mcs_method'},
+                    // {
+                    //     name: 'mcs_proof',
+                    //     data: 'mcs_proof',
+                    //     searchable: false,
+                    //     render: (data, _, row) => {
+                    //         let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
+                    //         return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                    //     }
+                    // },
                     {
-                        name: 'mcs_proof',
-                        data: 'mcs_proof',
-                        searchable: false,
+                        name: 'prr_id', 
                         render: (data, _, row) => {
-                            let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
-                            return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
+                            return `
+                                <div>
+                                    <a  onclick="_invoiceAction.detail(event,_creditSubmissionTable,'lazy')" href="javascript:void(0);" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -680,4 +689,5 @@
         });
     }
 </script>
+@include('pages._payment.generate.student-invoice.invoice');
 @endsection

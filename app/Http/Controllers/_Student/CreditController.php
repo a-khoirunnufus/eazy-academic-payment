@@ -10,8 +10,8 @@ class CreditController extends Controller
 {
     use StaticStudentUser;
 
-    public function getActiveSchoolYearId(){
-        return 1;
+    public function getActiveSchoolYearCode(){
+        return 20221;
     }
     public function getActiveSchoolYear(){
         return "2022/2023 - Ganjil";
@@ -29,7 +29,7 @@ class CreditController extends Controller
         }
 
         $year = $this->getActiveSchoolYear();
-        $yearCode = $this->getActiveSchoolYearId();
+        $yearCode = $this->getActiveSchoolYearCode();
 
         return view('pages._student.credit.index', compact('user','year','yearCode'));
     }

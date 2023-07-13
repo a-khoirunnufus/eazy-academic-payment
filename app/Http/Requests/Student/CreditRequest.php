@@ -30,7 +30,7 @@ class CreditRequest extends FormRequest
     {
         return [
             'student_number' => 'required',
-            'msy_id' => 'required',
+            'mcs_school_year' => 'required',
             'mcs_phone' => 'required',
             'mcs_email' => 'required|email',
             'mcs_reason' => 'required',
