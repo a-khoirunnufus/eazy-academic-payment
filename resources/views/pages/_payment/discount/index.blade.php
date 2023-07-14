@@ -73,21 +73,6 @@
         <tbody></tbody>
     </table>
 </div>
-
-<div class="target-print">
-    <table id="printTable" class="table table-bordered">
-        <thead>
-            <tr>
-                <td>NAMA POTONGAN</td>
-                <td>PERIODE AWAL</td>
-                <td>PERIODE </td>
-                <td>PEMBAYARAN</td>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-</div>
 @endsection
 
 
