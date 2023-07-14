@@ -268,29 +268,6 @@
                             }
                         ]
                     },
-                    {
-                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                        className: 'btn btn-outline-secondary',
-                        action: function(e, dt, node, config) {
-                            var formData = new FormData();
-                            formData.append("data", JSON.stringify(dataDt));
-                            formData.append("_token", '{{csrf_token()}}');
-                            // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
-                            var xhr = new XMLHttpRequest();
-                            xhr.onload = function() {
-                                var downloadUrl = URL.createObjectURL(xhr.response);
-                                var a = document.createElement("a");
-                                document.body.appendChild(a);
-                                a.style = "display: none";
-                                a.href = downloadUrl;
-                                a.download = "Laporan Program Potongan";
-                                a.click();
-                            }
-                            xhr.open("POST", _baseURL + "/api/payment/discount/exportData");
-                            xhr.responseType = 'blob';
-                            xhr.send(formData);
-                        }
-                    }
                 ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
