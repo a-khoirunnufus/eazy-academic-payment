@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Studyprogram;
 use App\Models\LectureType;
+use App\Models\Masterdata\MsUser;
 
 class MsStudent extends Model
 {
@@ -14,6 +15,11 @@ class MsStudent extends Model
     protected $primaryKey = 'student_id';
 
     protected $fillable = [];
+
+    public function user()
+    {
+        return $this->belongsTo(MsUser::class, 'user_email', 'user_email');
+    }
 
     public function studyprogram(): HasOne
     {

@@ -1,5 +1,5 @@
 <div class="eazy-shortcut mb-2">
-    <a href="{{ route('payment.approval.index') }}" class="eazy-shortcut-item {{ $active == 'manual' ? 'active' : '' }}">
+    <a href="{{ route('payment.approval.manual-payment.index') }}" class="eazy-shortcut-item {{ $active == 'manual-payment' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="dollar-sign"></i>
         </div>

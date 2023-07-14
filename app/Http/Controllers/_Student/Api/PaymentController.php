@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers\_Student\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
 use App\Traits\Authentication\StaticStudentUser;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\PaymentBill;
-use App\Models\Masterdata\MsPaymentMethod;
+use App\Models\Payment\MasterPaymentMethod;
+use App\Models\Masterdata\MsPaymentMethod; // old
 use App\Models\HR\MsStudent as Student;
 use App\Models\PMB\Setting;
 use App\Models\Payment\CreditSchemaPeriodPath;
-use Illuminate\Support\Facades\DB;
+use App\Models\PMB\Participant as NewStudent;
+use App\Services\Payment\PaymentService;
+use App\Exceptions\MidtransException;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -107,7 +112,7 @@ class PaymentController extends Controller
                 DB::raw("
                     CASE
                         WHEN prr.reg_id is not null THEN
-                            'Tagihan daftar ulang Program Studi ' || UPPER(std.studyprogram_type) || ' ' || std.studyprogram_name || ' ' || mlt.mlt_name
+                            CONCAT('Tagihan daftar ulang Program Studi ', UPPER(std.studyprogram_type), ' ', std.studyprogram_name, ' ', mlt.mlt_name)
                         ELSE
                             NULL
                     END as notes
@@ -158,22 +163,115 @@ class PaymentController extends Controller
         return response()->json($payment, 200);
     }
 
-    public function selectMethod(Request $request)
+    public function getBills($prr_id)
+    {
+        $bills = PaymentBill::where('prr_id', $prr_id)
+            ->orderBy('prrb_order', 'asc')
+            ->get();
+        return response()->json($bills, 200);
+    }
+
+    public function billDetail($prr_id, $prrb_id)
+    {
+        $bill = PaymentBill::find($prrb_id);
+        return response()->json($bill, 200);
+    }
+
+    public function selectPaymentMethod($prr_id, $prrb_id, Request $request)
     {
         $validated = $request->validate([
-            'prr_id' => 'required',
-            'method' => 'required|in:bca,mandiri,bni',
+            'payment_method' => 'required',
         ]);
 
         try {
             DB::beginTransaction();
 
-            $payment = Payment::find($validated['prr_id']);
-            $payment->prr_method = $validated['method'];
-            $payment->save();
+            $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
+            $payment_method = MasterPaymentMethod::where('mpm_key', $validated['payment_method'])->first();
+            $bill = PaymentBill::find($prrb_id);
+
+            // check if previous payment already paid
+            if ($bill->prrb_order > 1) {
+                $prev_pay_paid = PaymentBill::where([
+                        ['prr_id', '=', $prr_id],
+                        ['prrb_order', '=', $bill->prrb_order-1],
+                        ['prrb_status', '=', 'lunas'],
+                    ])->exists();
+                if (!$prev_pay_paid) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda belum membayar tagihan sebelumnya!',
+                    ], 409);
+                }
+            }
+
+            // set payment method
+            $bill->prrb_payment_method = $payment_method->mpm_key;
+
+            // bank transfer manual
+            if ($payment_method->mpm_type == 'bank_transfer_manual') {
+                $bill->prrb_account_number = $payment_method->mpm_account_number;
+                $bill->prrb_admin_cost = $payment_method->mpm_fee;
+            }
+            // bank transfer virtual account / bill payment
+            elseif (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
+
+                $order_id = (string) Str::uuid();
+
+                $student_type = Payment::find($prr_id)->reg_id ? 'new_student' : 'student';
+                $student = null;
+                if ($student_type == 'new_student') {
+                    $student = NewStudent::with('user')->where('par_id', $payment->par_id)->first();
+                }
+                elseif ($student_type == 'student') {
+                    $student = Student::with('user')->where('student_number', $payment->student_number)->first();
+                }
+
+                // charge transaction
+                $charge_result = (new PaymentService())->chargeTransaction([
+                    "order_id" => $order_id,
+                    "payment_type" => $payment_method->mpm_key,
+                    "amount_total" => $bill->prrb_amount + $payment_method->mpm_fee,
+                    "name" => $student_type == 'new_student' ? $student->par_fullname : $student->user->user_fullname,
+                    "email" => $student->user->user_email,
+                    "phone" => $student_type == 'new_student' ? $student->par_phone : $student->phone_number,
+                    "item_details" => [
+                        0 => [
+                            "name" => "Cicilan ke-".$bill->prrb_order,
+                            "price" => $bill->prrb_amount + $payment_method->mpm_fee,
+                        ]
+                    ]
+                ]);
+
+                if ($charge_result->status == 'error') {
+                    throw new \Exception($charge_result->message);
+                }
+
+                $bill->prrb_admin_cost = $payment_method->mpm_fee;
+                $bill->prrb_order_id = $order_id;
+                $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
+                $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
+
+                if ($payment_method->mpm_type == 'bank_transfer_va') {
+                    $bill->prrb_va_number = $charge_result->payload->va_number;
+                }
+                elseif ($payment_method->mpm_type == 'bank_transfer_bill_payment') {
+                    $bill->prrb_mandiri_biller_code = $charge_result->payload->biller_code;
+                    $bill->prrb_mandiri_bill_key = $charge_result->payload->bill_key;
+                }
+            }
+
+            // save bill
+            $bill->save();
 
             DB::commit();
-        } catch (\Throwable $th) {
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil memilih metode pembayaran',
+            ], 200);
+        }
+        catch (\Throwable $th) {
             DB::rollback();
 
             return response()->json([
@@ -181,11 +279,62 @@ class PaymentController extends Controller
                 'message' => $th->getMessage(),
             ], 500);
         }
+    }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasl memilih metode pembayaran',
-        ], 200);
+    public function resetPaymentMethod($prr_id, $prrb_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $bill = PaymentBill::find($prrb_id);
+            $payment_method = MasterPaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
+
+            if (!$bill) {
+                throw new \Exception('Bill not found!');
+            }
+
+            if ($bill->prrb_status == 'lunas') {
+                throw new \Exception('Bill already paid!');
+            }
+
+            if (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
+                // cancel midtrans transaction
+                $cancel_result = (new PaymentService())->cancelTransaction([
+                    "order_id" => $bill->prrb_order_id,
+                ]);
+
+                if ($cancel_result->status == 'error') {
+                    throw new \Exception($cancel_result->message);
+                }
+            }
+
+            $bill->prrb_admin_cost = null;
+            $bill->prrb_payment_method = null;
+            $bill->prrb_order_id = null;
+            $bill->prrb_va_number = null;
+            $bill->prrb_mandiri_bill_key = null;
+            $bill->prrb_mandiri_biller_code = null;
+            $bill->prrb_account_number = null;
+            $bill->prrb_midtrans_transaction_id = null;
+            $bill->prrb_midtrans_transaction_exp = null;
+
+            $bill->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil mereset metode pembayaran',
+            ], 200);
+        }
+        catch (\Throwable $th) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     public function creditSchemas($prr_id, Request $request)
@@ -283,47 +432,98 @@ class PaymentController extends Controller
         return response()->json($ppm, 200);
     }
 
-    public function paymentOptionPreview($cs_id, Request $request)
+    public function paymentOptionPreview($prr_id, Request $request)
     {
         $validated = $request->validate([
             'ppm_id' => 'required',
+            'cs_id' => 'required',
         ]);
 
         $cspp = CreditSchemaPeriodPath::with(['creditSchema.creditSchemaDetail.creditSchemaDeadline'])
-            ->where('cs_id', '=', $cs_id)
+            ->where('cs_id', '=', $validated['cs_id'])
             ->where('ppm_id', '=', $validated['ppm_id'])
             ->first();
 
         return response()->json($cspp, 200);
     }
 
-    public function getBills($prr_id)
-    {
-        $bills = PaymentBill::where('prr_id', $prr_id)->orderBy('prrb_order', 'asc')->get();
-
-        return response()->json($bills, 200);
-    }
-
-    public function createBill($prr_id, Request $request)
+    public function selectPaymentOption($prr_id, Request $request)
     {
         $validated = $request->validate([
             'cs_id' => 'required',
         ]);
 
+        $student_type = Payment::find($prr_id)->reg_id ? 'new_student' : 'student';
+
+        $period_path_major = $this->_getPeriodPathMajor($prr_id, $student_type);
+
+        $credit_schema_detail = $this->_getCreditSchemaDetail($validated['cs_id'], $period_path_major->ppm_id);
+
         $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
+
+        $invoice_total_amount = $this->_calculateInvoiceTotalAmount($payment->paymentDetail);
+
+        try {
+            DB::beginTransaction();
+
+            // delete all bill belong this payment_re_register.prr_id
+            PaymentBill::where('prr_id', '=', $prr_id)->delete();
+
+            // create bill foreach based on item in credit schema
+            foreach ($credit_schema_detail as $csd) {
+                $temp_amount = (int) ceil($invoice_total_amount * (intval($csd->csd_percentage) / 100));
+
+                PaymentBill::create([
+                    'prr_id' => $prr_id,
+                    'prrb_status' => 'belum lunas',
+                    'prrb_due_date' => $csd->creditSchemaDeadline->cse_deadline,
+                    'prrb_amount' => $temp_amount,
+                    'prrb_order' => $csd->csd_order,
+                ]);
+            }
+
+            Payment::where('prr_id', '=', $prr_id)->update([
+                'prr_total' => $invoice_total_amount,
+                'prr_paid_net' => $invoice_total_amount,
+            ]);
+
+            DB::commit();
+        }
+        catch (\Throwable $th) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => true,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil memilih opsi pembayaran.',
+        ], 200);
+    }
+
+    /**
+     * START
+     * func selectPaymentOption() utility functions
+     */
+
+    private function _calculateInvoiceTotalAmount($prr_details)
+    {
         $invoice_total_amount = 0;
-        foreach($payment->paymentDetail as $prrd) {
+        foreach($prr_details as $prrd) {
             if ($prrd->is_plus == 1) {
                 $invoice_total_amount += $prrd->prrd_amount;
             } else {
                 $invoice_total_amount -= $prrd->prrd_amount;
             }
         }
+        return $invoice_total_amount;
+    }
 
-        $payment_method = MsPaymentMethod::where('mpm_key', $payment->prr_method)->first();
-
-        $student_type = Payment::find($prr_id)->reg_id ? 'new_student' : 'student';
-
+    private function _getPeriodPathMajor($prr_id, $student_type)
+    {
         if($student_type == 'new_student') {
             $ppm = DB::table('finance.payment_re_register as prr')
                 ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
@@ -363,54 +563,23 @@ class PaymentController extends Controller
                 ->first();
         }
 
+        return $ppm;
+    }
+
+    private function _getCreditSchemaDetail($cs_id, $ppm_id)
+    {
         $cspp = CreditSchemaPeriodPath::with(['creditSchema.creditSchemaDetail.creditSchemaDeadline'])
-            ->where('cs_id', '=', $validated['cs_id'])
-            ->where('ppm_id', '=', $ppm->ppm_id)
+            ->where('cs_id', '=', $cs_id)
+            ->where('ppm_id', '=', $ppm_id)
             ->first();
 
-        $credit_schema_detail = $cspp->creditSchema->creditSchemaDetail;
-
-        $invoice_total_amount_plus_admin_fee = 0;
-
-        try {
-            DB::beginTransaction();
-
-            PaymentBill::where('prr_id', '=', $prr_id)->delete();
-
-            foreach($credit_schema_detail as $csd) {
-                $temp_amount = $invoice_total_amount * (intval($csd->csd_percentage) / 100);
-                $invoice_total_amount_plus_admin_fee += $temp_amount + $payment_method->mpm_fee;
-                PaymentBill::create([
-                    'prr_id' => $prr_id,
-                    'prrb_status' => 'belum lunas',
-                    'prrb_invoice_num' => $payment_method->mpm_account_number,
-                    'prrb_expired_date' => $csd->creditSchemaDeadline->cse_deadline,
-                    'prrb_amount' => $temp_amount,
-                    'prrb_admin_cost' => $payment_method->mpm_fee,
-                    'prrb_order' => $csd->csd_order,
-                ]);
-            }
-
-            Payment::where('prr_id', '=', $prr_id)->update([
-                'prr_total' => $invoice_total_amount_plus_admin_fee,
-                'prr_paid_net' => $invoice_total_amount,
-            ]);
-
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollback();
-
-            return response()->json([
-                'success' => true,
-                'message' => $th->getMessage(),
-            ], 500);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil memilih opsi pembayaran.',
-        ], 200);
+        return $cspp->creditSchema->creditSchemaDetail;
     }
+
+    /**
+     * END
+     * func selectPaymentOption() utility functions
+     */
 
     public function resetPayment($prr_id)
     {
@@ -420,9 +589,9 @@ class PaymentController extends Controller
             // delete payment bill
             $bills = PaymentBill::where('prr_id', '=', $prr_id)->get();
             foreach ($bills as $bill) {
-                if($bill->prrb_manual_evidence && !config('app.disable_cloud_storage')) {
-                    Storage::cloud()->delete($bill->prrb_manual_evidence);
-                }
+                // if($bill->prrb_manual_evidence && !config('app.disable_cloud_storage')) {
+                //     Storage::disk('minio')->delete($bill->prrb_manual_evidence);
+                // }
                 PaymentBill::destroy($bill->prrb_id);
             }
 
@@ -482,7 +651,7 @@ class PaymentController extends Controller
             if (config('app.disable_cloud_storage')) {
                 $upload_success = '/';
             } else {
-                $upload_success = Storage::cloud()->putFile('bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
+                $upload_success = Storage::disk('minio')->putFile('payment/bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
             }
 
             if (!$upload_success) {
@@ -492,7 +661,6 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             $bill = PaymentBill::find($prrb_id);
-            $bill->prrb_paid_date = Carbon::now()->toDateString();
             $bill->prrb_manual_name = $validated['account_owner_name'];
             $bill->prrb_manual_norek = $validated['account_number'];
             $bill->prrb_manual_evidence = $upload_success;

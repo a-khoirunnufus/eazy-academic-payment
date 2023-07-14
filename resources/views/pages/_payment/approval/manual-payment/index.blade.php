@@ -11,7 +11,7 @@
 
 @section('content')
 
-@include('pages._payment.approval._shortcuts', ['active' => 'manual'])
+@include('pages._payment.approval._shortcuts', ['active' => 'manual-payment'])
 
 <div class="card">
     <div class="card-body">
@@ -176,9 +176,9 @@
                                     case 'accepted':
                                         status = 'Diterima'
                                         break;
-                                    case 'rejected': 
+                                    case 'rejected':
                                         status = 'Ditolak'
-                                        break;   
+                                        break;
                                     default:
                                         status = 'N/A';
                                         break;
@@ -246,7 +246,6 @@
                         render: (data, _, row) => {
                             return `
                             <div>
-                                <span>Bank: ${row.bank_name}</span><br>
                                 <span>Nama Pengirim: ${row.sender_name}</span><br>
                                 <span>Nomor Rekening: ${row.sender_account_number}</span>
                             </div>
@@ -344,10 +343,6 @@
                     <td>${data.sender_name}</td>
                 </tr>
                 <tr>
-                    <td style="width: 250px;">Bank Pengirim</td>
-                    <td>${data.bank_name}</td>
-                </tr>
-                <tr>
                     <td style="width: 250px;">Nomor Rekening Pengirim</td>
                     <td>${data.sender_account_number}</td>
                 </tr>
@@ -398,13 +393,13 @@
                                 text: data.sender_name
                             },
                         },
-                        bank_name: {
-                            title: 'Bank Pengirim',
-                            content: {
-                                template: ':text',
-                                text: data.bank_name
-                            },
-                        },
+                        // bank_name: {
+                        //     title: 'Bank Pengirim',
+                        //     content: {
+                        //         template: ':text',
+                        //         text: data.bank_name
+                        //     },
+                        // },
                         sender_account_number: {
                             title: 'Nomor Rekening Pengirim',
                             content: {

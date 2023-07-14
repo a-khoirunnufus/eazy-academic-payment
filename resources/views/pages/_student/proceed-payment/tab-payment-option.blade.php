@@ -11,7 +11,18 @@
     </style>
 @endpush
 
-<div id="payment-option-selected">...</div>
+<div id="payment-option-selected">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Pembayaran</th>
+                <th>Nominal Pembayaran</th>
+                <th>Tenggat Pembayaran</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <div id="payment-option-unselected">
     <div class="d-flex flex-column align-items-center">
@@ -57,13 +68,23 @@
 
     const paymentOptionTab = {
         showHandler: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
 
             const studentType = payment.register ? 'new_student' : 'student';
 
             if (payment.payment_bill.length > 0) {
-                $('#payment-option-selected').html(`
-                    <div class="alert alert-success p-1 d-inline-block"><i data-feather="check"></i>&nbsp;&nbsp;Opsi Pembayaran Telah Dipilih</div>
+                $('#payment-option-selected > table > tbody').html(`
+                    ${
+                        payment.payment_bill.map((item) => {
+                            return `
+                                <tr>
+                                    <td>Cicilan Ke-${item.prrb_order}</td>
+                                    <td>${Rupiah.format(item.prrb_amount)}</td>
+                                    <td>${moment(item.prrb_expired_date).format('DD-MM-YYYY')}</td>
+                                </tr>
+                            `;
+                        }).join('')
+                    }
                 `);
 
                 $('#nav-payment-option #payment-option-selected').addClass('show');
@@ -73,7 +94,7 @@
             else {
                 const creditSchemas = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/credit-schemas/${prrId}?student_type=${studentType}`,
+                    url: `${_baseURL}/api/student/payment/${prrId}/credit-schemas?student_type=${studentType}`,
                     type: 'get',
                 });
                 $('#select-payment-option').html(`
@@ -93,11 +114,11 @@
             }
         },
         renderOptionPreview: async function(cs_id) {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
-            const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/student/payment/ppm/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}/ppm`);
             const optionPreview = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/payment-option-preview/${cs_id}?ppm_id=${ppmId ?? 0}`,
+                url: `${_baseURL}/api/student/payment/${prrId}/payment-option-preview?ppm_id=${ppmId ?? 0}&cs_id=${cs_id}`,
                 type: 'get',
             });
 
@@ -130,14 +151,14 @@
 
             if(!confirmed) return;
 
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
 
             const selectedCreditSchemaId = $('#select-payment-option').val();
 
             try {
                 const res = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/create-bill/${prrId}`,
+                    url: `${_baseURL}/api/student/payment/${prrId}/select-option`,
                     type: 'post',
                     data: {
                         cs_id: selectedCreditSchemaId,

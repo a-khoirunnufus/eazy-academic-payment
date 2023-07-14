@@ -3,7 +3,7 @@
 namespace App\Models\PMB;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\PMB\User;
 
 class Participant extends Model
 {
@@ -12,4 +12,9 @@ class Participant extends Model
     protected $primaryKey = 'par_id';
 
     protected $fillable = [];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
 }
