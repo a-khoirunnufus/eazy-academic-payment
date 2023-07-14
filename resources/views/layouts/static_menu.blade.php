@@ -254,8 +254,8 @@
                     <span class="menu-title text-truncate">Approval</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="nav-item {{ 'payment/approval' == request()->path() ? 'active' : '' }} mb-50">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/approval') }}">
+                    <li class="manu__item nav-item {{ 'payment.approval.manual-payment.index' == request()->route()->getName() ? 'active' : '' }} mb-50">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.approval.manual-payment.index') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Pembayaran<br>Manual</span>
                         </a>
@@ -275,7 +275,7 @@
                 </ul>
             </li>
 
-            
+
 	    </ul>
     </div>
 </div>

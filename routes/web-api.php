@@ -149,7 +149,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
         Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
-    
+
     Route::group(['prefix' => 'approval-credit'], function(){
         Route::get('index', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@index');
         // Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@scholarship');
@@ -163,8 +163,8 @@ Route::group(['prefix' => 'payment'], function(){
 
 
     Route::group(['prefix' => 'approval'], function(){
-        Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ApprovalController@index');
-        Route::post('{prrb_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ApprovalController@processApproval');
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@index');
+        Route::post('{prrb_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
     });
 });
 
@@ -186,24 +186,29 @@ Route::group(['prefix' => 'report'], function(){
 Route::group(['prefix' => 'student'], function(){
     Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@detail');
 
-    Route::get('payment', 'App\Http\Controllers\_Student\Api\PaymentController@index');
+    Route::group(['prefix' => 'payment'], function() {
+        Route::get('/', 'App\Http\Controllers\_Student\Api\PaymentController@index');
+        Route::get('{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detail');
 
-    Route::post('payment/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectMethod');
-    Route::get('payment/detail/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detail');
-    Route::get('payment/credit-schemas/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@creditSchemas');
-    Route::get('payment/payment-option-preview/{cs_id}', 'App\Http\Controllers\_Student\Api\PaymentController@paymentOptionPreview');
-    Route::get('payment/ppm/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@getPpm');
-    Route::post('payment/create-bill/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@createBill');
-    Route::post('payment/reset-payment/{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@resetPayment');
+        Route::get('{prr_id}/ppm', 'App\Http\Controllers\_Student\Api\PaymentController@getPpm');
+        Route::get('{prr_id}/credit-schemas', 'App\Http\Controllers\_Student\Api\PaymentController@creditSchemas');
+        Route::get('{prr_id}/payment-option-preview', 'App\Http\Controllers\_Student\Api\PaymentController@paymentOptionPreview');
+        Route::post('{prr_id}/select-option', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentOption');
+        Route::post('{prr_id}/reset-payment', 'App\Http\Controllers\_Student\Api\PaymentController@resetPayment');
 
-    Route::get('payment-method', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
-    Route::get('payment-method/{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
+        Route::get('{prr_id}/bill', 'App\Http\Controllers\_Student\Api\PaymentController@getBills');
+        Route::get('{prr_id}/bill/{prrb_id}', 'App\Http\Controllers\_Student\Api\PaymentController@billDetail');
+        Route::get('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
+        Route::post('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@uploadEvidence');
+        Route::post('{prr_id}/bill/{prrb_id}/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentMethod');
+        Route::post('{prr_id}/bill/{prrb_id}/reset-method', 'App\Http\Controllers\_Student\Api\PaymentController@resetPaymentMethod');
+    });
 
-    Route::get('payment/{prr_id}/bill', 'App\Http\Controllers\_Student\Api\PaymentController@getBills');
+    Route::group(['prefix' => 'payment-method'], function() {
+        Route::get('/', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
+        Route::get('{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
+    });
 
-    Route::get('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
-    Route::post('payment/{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@uploadEvidence');
-    
     Route::group(['prefix' => 'credit'], function(){
         Route::get('index', 'App\Http\Controllers\_Student\Api\CreditController@index');
         Route::post('store', 'App\Http\Controllers\_Student\Api\CreditController@store');
@@ -217,7 +222,10 @@ Route::group(['prefix' => 'student'], function(){
 });
 
 
-// Note: untuk mendownload file, baru lokal file yang diimplementasikan.
+// PAYMENT SIMULATOR
+Route::post('payment-simulator/pay', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@pay');
+
+// DOWNLOAD LOCAL
 Route::get('download', function(Request $request) {
     $storage = $request->query('storage');
     $type = $request->query('type');
@@ -239,6 +247,7 @@ Route::get('download', function(Request $request) {
     }
 });
 
+// DOWNLOAD CLOUD
 Route::get('download-cloud', function(Request $request) {
     if(config('app.disable_cloud_storage')) {
         return response()->json([
@@ -250,5 +259,5 @@ Route::get('download-cloud', function(Request $request) {
     if (!$path) {
         return response()->json(['error' => 'path params must be defined!'], 400);
     }
-    return \Illuminate\Support\Facades\Storage::cloud()->download($path);
+    return \Illuminate\Support\Facades\Storage::disk('minio_read')->download($path);
 });
