@@ -825,15 +825,23 @@ class Modal {
             `;
         }
 
-        var formSubmitNote = config.formSubmitNote ?? false;
 
+
+
+        var isDecline = config.isDecline ?? false;
+        let second_button = '<a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>';
+        if(isDecline){
+            second_button = `<a href="${config.declineFunction}" class="btn btn-danger">Tolak</a>`;
+        }
+
+        var formSubmitNote = config.formSubmitNote ?? false;
         if(formSubmitNote){
             var formActionHtml = `
                 <div class="d-flex align-items-center flex-wrap justify-content-between mt-4" style="gap:10px">
                     ${formSubmitNote}
                     <span>
                     <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
-                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    ${second_button}
                     </span>
                 </div>
             `;
@@ -841,7 +849,7 @@ class Modal {
             var formActionHtml = `
                 <div class="d-flex justify-content-end mt-4">
                     <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
-                    <a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>
+                    ${second_button}
                 </div>
             `;
         }
@@ -1011,7 +1019,7 @@ function unescapeHtml(text) {
  */
 
 function getRequestCache(url) {
-    const disableCache = false;
+    const disableCache = true;
     const displayLogs = true;
     const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
 

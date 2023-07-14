@@ -220,7 +220,6 @@ return [
      * Others
      */
 
-    // 'api_resource_cache_expiration' => 1000 * 60 * 60 * 6, // 6 Hours
     'api_resource_cache_expiration' => 1000 * 60 * 60 * 1, // 1 Hours
 
     'disable_cloud_storage' => false,

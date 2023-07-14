@@ -245,9 +245,8 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_creditSubmissionTableActions.detail(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
-                            <a onclick="_creditSubmissionTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_creditSubmissionTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_creditSubmissionTableActions.detail(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
+                            <a onclick="_creditSubmissionTableActions.process(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="loader"></i>&nbsp;&nbsp;Proses Pengajuan</a>
                         </div>
                     </div>
                 `
@@ -289,7 +288,7 @@
 
     const _creditSubmissionTableActions = {
         detail: function(e) {
-            const data = _creditSubmissionTable.getRowData(e.currentTarget);
+            const data = _creditSubmissionTable.getRowData(e);
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Pengajuan Kredit Pembayaran',
@@ -356,111 +355,203 @@
                 },
             });
         },
-        edit: function(e) {
+        process: function(e) {
             let data = _creditSubmissionTable.getRowData(e);
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Komponen Tagihan',
+                modalTitle: 'Proses Pengajuan',
                 modalSize: 'md',
                 config: {
-                    formId: 'form-edit-transaction-group',
+                    formId: 'form-process-credit-submission',
                     formActionUrl: _baseURL + '/api/payment/settings/component/store',
-                    formType: 'edit',
-                    rowId: data.msc_id,
+                    formType: 'add',
+                    rowId: data.mcs_id,
                     fields: {
-                        invoice_component_code: {
-                            title: 'Kode Komponen Tagihan',
+                        detail_credit_submission: {
+                            title: '<span class="fw-bolder">Detail Pengajuan Permohonan Kredit</span>',
                             content: {
                                 template:
-                                    `<input
-                                        type="text"
-                                        name="msc_name"
-                                        class="form-control"
-                                        value=""
-                                    >`,
-                            },
-                        },
-                        invoice_component_name: {
-                            title: 'Nama Komponen Tagihan',
-                            content: {
-                                template:
-                                    `<input
-                                        type="text"
-                                        name="msc_description"
-                                        class="form-control"
-                                        value=""
-                                    >`,
-                            },
-                        },
-                        component_type: {
-                            title: 'Jenis Komponen Tagihan',
-                            content: {
-                                template:
-                                    `<select name="msct_id" id="msct_id" class="form-control select2">
-                                        <option value="">Pilih Jenis Komponen</option>
-                                    </select>`,
-                            },
-                        },
-                        subjects: {
-                            title: null,
-                            type: 'checkbox',
-                            content: {
-                                template: `
-                                    <table class="table table-bordered">
-                                        <tr class="bg-light">
-                                            <th class="text-center">Mahasiswa Lama</th>
-                                            <th class="text-center">Mahasiswa Baru</th>
-                                            <th class="text-center">Pendaftar</th>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
-                                        </tr>
+                                    `<div>
+                                    <table class="eazy-table-info">
+                                        <tbody>
+                                            <tr>
+                                                <td>Tahun Akademik</td>
+                                                <td>:&nbsp;&nbsp;${data.period.msy_year + _helper.semester(data.period.msy_semester)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nama</td>
+                                                <td>:&nbsp;&nbsp;${data.student.fullname}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>NIM</td>
+                                                <td>:&nbsp;&nbsp;${data.student.student_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Fakultas</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.faculty.faculty_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Prodi</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.studyprogram_type} ${data.student.study_program.studyprogram_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>No.HP</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_phone}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Email</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_email}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Metode Pembayaran</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Alasan</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_reason}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bukti Pendukung</td>
+                                                <td>:&nbsp;&nbsp;<a href="${'{{ url("file","student-credit") }}/'+data.mcs_id}" target="_blank">${data.mcs_proof_filename}</a></td>
+                                            </tr>
+                                        </tbody>
                                     </table>
-                                `
+                                </div>`,
+                            },
+                        },
+                        detail_payment: {
+                            title: '<span class="fw-bolder">Detail Tagihan</span>',
+                            content: {
+                                template:
+                                    `<div>
+                                    <table class="eazy-table-info">
+                                        <tbody>
+                                            <tr>
+                                                <td>Total Tagihan</td>
+                                                <td>:&nbsp;&nbsp;${Rupiah.format(data.payment.prr_total)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>`,
+                            },
+                        },
+                        schema: {
+                            type: 'custom-field',
+                            content: {
+                                template: `<div class="mb-2">
+                                    <div class="row">
+                                        <div class="col-lg-12 col-md-12">
+                                            <label class="form-label">Skema Cicilan</label>
+                                            <select class="form-select select2" eazy-select2-active id="csId" name="cs_id">
+                                                <option value="">Pilih Skema</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div id="schemaDeadline">
+                                    </div>
+                                </div>`
                             },
                         },
                     },
-                    formSubmitLabel: 'Edit Komponen',
+                    formSubmitLabel: 'Setujui',
+                    isDecline: true,
+                    declineFunction: _creditSubmissionTableActions.decline(),
                     callback: function() {
                         _creditSubmissionTable.reload()
                     },
                 },
             });
-            _componentForm.clearData()
-            _componentForm.setData(data)
-            _creditSubmissionTable.selected = data
+            $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
+                JSON.parse(d).map(item => {
+                    $("#csId").append(`
+                        <option value="` + item['cs_id'] + `">` + item['cs_name'] + `</option>
+                    `);
+                });
+                selectRefresh();
+            });
+            $("#csId").change(function() {
+                $("#schemaDeadline").empty();
+                cs_id = $(this).val();
+                $.get(_baseURL + '/api/payment/settings/paymentrates/getdetailschemabyid/'+cs_id, (d) => {
+                    JSON.parse(d).map(item => {
+                        console.log(item);
+                        _creditSubmissionTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item, data.payment.prr_total)
+                    });
+                })
+            })
         },
-        delete: function(e) {
-            let data = _creditSubmissionTable.getRowData(e);
+        SchemaDeadlineField: function(cs_id = 0, name = null, percentage = null, total = null) {
+            let html = "";
+            if (percentage != null) {
+                let deadline = "";
+                if (percentage.credit_schema_deadline) {
+                    deadline = percentage.credit_schema_deadline.cse_deadline;
+                } 
+                let percentage_total = 0;
+                if (total){
+                    percentage_total = total*percentage.csd_percentage/100;
+                }
+                html += `
+                <div class="d-flex flex-wrap align-items-center mb-1 SchemaDeadlineField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <div class="flex-fill">
+                        <label class="form-label">Persentase Pembayaran</label>
+                        <input type="text" class="form-control" name="" value="${percentage.csd_percentage}%"
+                            placeholder="Persentase Pembayaran">
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Nominal</label>
+                        <input type="text" class="form-control" name="" value="${percentage_total}"
+                            placeholder="Total Pembayaran">
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Tenggat Pembayaran</label>
+                        <input type="date" class="form-control" name="cse_deadline[]" value="${deadline}"
+                            placeholder="Tenggat Pembayaran" required>
+                        <input type="hidden" name="cse_cs_id[]" value="${cs_id}">
+                        <input type="hidden" name="cse_csd_id[]" value="${percentage.csd_id}">
+                    </div>
+                </div>
+                `
+            }
+            $('#schemaDeadline').append(`
+                <div id="schemaDeadlineTag${cs_id}">
+                    <h5 class="fw-bolder mb-1 mt-2">Pengaturan Skema ${name}</h5>
+                    ${html}
+                </div>
+            `);
+        },
+        decline: function(){
+            // let data = _creditSubmissionTable.getRowData(e);
             Swal.fire({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
-                icon: 'warning',
+                title: 'Submit your Github username',
+                input: 'text',
+                inputAttributes: {
+                    autocapitalize: 'off'
+                },
                 showCancelButton: true,
-                confirmButtonColor: '#ea5455',
-                cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
+                confirmButtonText: 'Look up',
+                showLoaderOnConfirm: true,
+                preConfirm: (login) => {
+                    return fetch(`//api.github.com/users/${login}`)
+                    .then(response => {
+                        if (!response.ok) {
+                        throw new Error(response.statusText)
+                        }
+                        return response.json()
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(
+                        `Request failed: ${error}`
+                        )
+                    })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/settings/component/delete/' + data.msc_id, {
-                        _method: 'DELETE'
-                    }, function(data){
-                        data = JSON.parse(data)
-                        Swal.fire({
-                            icon: 'success',
-                            text: data.text,
-                        }).then(() => {
-                            _creditSubmissionTable.reload()
-                        });
-                    }).fail((error) => {
-                        Swal.fire({
-                            icon: 'error',
-                            text: data.text,
-                        });
-                        _responseHandler.generalFailResponse(error)
+                    Swal.fire({
+                    title: `${result.value.login}'s avatar`,
+                    imageUrl: result.value.avatar_url
                     })
                 }
             })

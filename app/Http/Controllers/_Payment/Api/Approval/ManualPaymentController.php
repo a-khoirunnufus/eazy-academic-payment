@@ -24,7 +24,6 @@ class ApprovalController extends Controller
             ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
             ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
             ->leftJoin('hr.ms_student as student', 'student.student_number', 'prr.student_number')
-            ->leftJoin('masterdata.ms_studyprogram as msp', 'student.studyprogram_id', '=', 'msp.studyprogram_id')
             ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
             ->whereNull('prr.deleted_at')
             ->whereNull('prrb.deleted_at')
@@ -42,14 +41,6 @@ class ApprovalController extends Controller
                 $query = $query->whereNotNull('prr.student_number');
             }
         }
-
-        if (isset($filters['path'])){
-            $query = $query->where('reg.ms_path_id', '=', $filters['path']);
-        }
-
-        // if (isset($filters['period'])){
-        //     $query = $query->where('reg.ms_period_id', '=', $filters['period']);
-        // }
 
         $data = $query->select(
                 DB::raw("
@@ -84,13 +75,10 @@ class ApprovalController extends Controller
                 'prrb.prrb_manual_norek as sender_account_number',
                 'prrb.prrb_manual_evidence as file_payment_evidence',
                 'prrb.prrb_manual_status as approval_status',
-                'prrb.prrb_manual_note as approval_notes',
-                'reg.ms_period_id'
-        );
-        if (isset($filters['period'])){
-            $data = $data->where('reg.ms_period_id', '=', $filters['period']);
-        }
-        $data = $data->distinct()->get();
+                'prrb.prrb_manual_note as approval_notes'
+            )
+            ->distinct()
+            ->get();
 
         return datatables($data)->toJSON();
     }

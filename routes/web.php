@@ -54,35 +54,30 @@ Route::group(['prefix' => 'payment'], function () {
 
     });
 
-    // Student
-    Route::group(['prefix' => 'student'], function () {
-        // Payment
-        Route::get('index', 'App\Http\Controllers\_Student\StudentController@index')->name('payment.student.index');
-    });
-
     Route::group(['prefix' => 'discount'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\DiscountController@index')->name('payment.discount.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\DiscountController@receiver')->name('payment.discount.receiver');
-        
+
     });
-    
+
     Route::group(['prefix' => 'scholarship'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\ScholarshipController@index')->name('payment.scholarship.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\ScholarshipController@receiver')->name('payment.scholarship.receiver');
         Route::get('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
-    
+
     Route::group(['prefix' => 'approval'], function () {
+        Route::get('manual-payment', 'App\Http\Controllers\_Payment\ApprovalController@manualPayment')->name('payment.approval.manual-payment.index');
+
         Route::group(['prefix' => 'dispensation'], function () {
             Route::get('index', 'App\Http\Controllers\_Payment\ApprovalController@dispensation')->name('payment.approval.dispensation.index');
         });
+
         Route::group(['prefix' => 'credit'], function () {
             Route::get('index', 'App\Http\Controllers\_Payment\ApprovalController@credit')->name('payment.approval.credit.index');
         });
     });
 
-    // Manual Payment Approval
-    Route::get('approval', 'App\Http\Controllers\_Payment\ApprovalController@index')->name('payment.approval.index');
 });
 
 Route::group(['prefix' => 'report'], function () {
@@ -106,9 +101,13 @@ Route::group(['prefix' => 'report'], function () {
     });
 });
 
+
+// STUDENT ROUTE
 Route::group(['prefix' => 'student'], function () {
-    Route::get('/payment', 'App\Http\Controllers\_Student\PaymentController@index');
-    Route::get('/payment/proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment');
+    Route::group(['prefix' => 'payment'], function() {
+        Route::get('/', 'App\Http\Controllers\_Student\PaymentController@index')->name('student.payment.index');
+        Route::get('proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment')->name('student.payment.proceed-payment');
+    });
 
     Route::group(['prefix' => 'dispensation'], function () {
         Route::get('index', 'App\Http\Controllers\_Student\DispensationController@dispensation')->name('student.dispensation.index');
@@ -118,14 +117,12 @@ Route::group(['prefix' => 'student'], function () {
     });
 });
 
-// HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
-Route::get('test', function() {
-    return view('test');
-});
 
-// HANYA ROUTE UNTUK TEST BOLEH DIUBAH / DIHAPUS
-Route::get('queue-log-example', function() {
-    return view('queue-log-example');
+// PAYMENT SIMULATOR
+Route::group(['prefix' => 'payment-simulator'], function() {
+    Route::get('bca', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showBca');
+    Route::get('mandiri', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showMandiri');
+    Route::get('bni', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showBni');
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');

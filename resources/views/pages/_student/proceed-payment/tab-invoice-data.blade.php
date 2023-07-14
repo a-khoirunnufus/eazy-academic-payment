@@ -1,35 +1,43 @@
 <!-- Parent Id = 'nav-invoice-data' -->
 
-<div id="invoice-notes" class=" mb-3">
+<!-- <div id="invoice-notes" class=" mb-3">
     <h4 class="fw-bolder mb-1">Keterangan Tagihan</h4>
     <div id="invoice-notes-text">...</div>
-</div>
+</div> -->
 
-<div id="invoice-data" class="mb-3">
-    <h4 class="fw-bolder mb-1">Data Tagihan</h4>
+<div id="invoice-data" class="mb-2">
+    <!-- <h4 class="fw-bolder mb-1">Data Tagihan</h4> -->
     <table class="eazy-table-info">
         <tbody>
             <tr>
-                <td>Nomor Invoice</td>
+                <td>Nomor Tagihan</td>
                 <td>
-                    <span class="fw-bold">
+                    <span>
                         :&nbsp;&nbsp;<span id="invoice-data-number">...</span>
                     </span>
                 </td>
             </tr>
             <tr>
-                <td>Digenerate Pada</td>
+                <td>Tanggal Dibuat</td>
                 <td>
-                    <span class="fw-bold">
+                    <span>
                         :&nbsp;&nbsp;<span id="invoice-data-created">...</span>
                     </span>
                 </td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <td>Status Pembayaran</td>
                 <td>
-                    <span class="fw-bold">
+                    <span>
                         :&nbsp;&nbsp;<span id="invoice-data-status">...</span>
+                    </span>
+                </td>
+            </tr> -->
+            <tr>
+                <td>Keterangan</td>
+                <td>
+                    <span>
+                        :&nbsp;&nbsp;<span id="invoice-data-notes">...</span>
                     </span>
                 </td>
             </tr>
@@ -38,7 +46,7 @@
 </div>
 
 <div id="invoice-detail">
-    <h4 class="fw-bolder mb-1">Detail Tagihan</h4>
+    <!-- <h4 class="fw-bolder mb-1">Detail Tagihan</h4> -->
     <table id="table-invoice-detail" class="table table-bordered">
         <thead>
             <tr>
@@ -63,32 +71,32 @@
     const invoiceDataTab = {
         showHandler: async function() {
             try {
-                const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+                const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
 
                 const studentType = payment.register ? 'new_student' : 'student';
 
-                $('#nav-invoice-data #invoice-notes #invoice-notes-text').text(`
-                    Tagihan ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                $('#nav-invoice-data #invoice-data #invoice-data-number').text(payment.prr_id);
+                $('#nav-invoice-data #invoice-data #invoice-data-created').text(moment(payment.created_at).format('DD-MM-YYYY'));
+                // $('#nav-invoice-data #invoice-data #invoice-data-status').html(
+                //     payment.prr_status == 'lunas' ?
+                //         '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                //         : '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                // );
+
+                $('#nav-invoice-data #invoice-data #invoice-data-notes').text(
+                    `Tagihan ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
                     Program Studi ${ studentType == 'new_student' ? `
                             ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
                             ${payment.register.studyprogram.studyprogram_name}
-                            ${payment.register.lecture_type.mlt_name}
+                            ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
                         ` : `
                             ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
                             ${payment.student.studyprogram.studyprogram_name}
-                            ${payment.student.lecture_type.mlt_name}
+                            ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
                         `
                     }
                     Tahun Ajaran ${payment.year.msy_year}
-                    Semester ${payment.year.msy_semester}.
-                `);
-
-                $('#nav-invoice-data #invoice-data #invoice-data-number').text('INV/'+payment.prr_id);
-                $('#nav-invoice-data #invoice-data #invoice-data-created').text(moment(payment.created_at).format('DD-MM-YYYY'));
-                $('#nav-invoice-data #invoice-data #invoice-data-status').html(
-                    payment.prr_status == 'lunas' ?
-                        '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
-                        : '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                    Semester ${payment.year.msy_semester}.`
                 );
 
                 $('#nav-invoice-data #invoice-detail #table-invoice-detail tbody').html(`

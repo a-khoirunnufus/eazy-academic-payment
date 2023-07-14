@@ -86,10 +86,9 @@
     <div class="card-body p-0">
         <nav>
             <div class="nav nav-tabs custom border-bottom" id="nav-tab" role="tablist">
-                <button class="nav-link" id="nav-invoice-data-tab" data-bs-toggle="tab" data-bs-target="#nav-invoice-data" type="button" role="tab">Data Tagihan</button>
-                <button class="nav-link" id="nav-payment-method-tab" data-bs-toggle="tab" data-bs-target="#nav-payment-method" type="button" role="tab">Metode Pembayaran</button>
+                <button class="nav-link" id="nav-invoice-data-tab" data-bs-toggle="tab" data-bs-target="#nav-invoice-data" type="button" role="tab">Informasi Tagihan</button>
                 <button class="nav-link" id="nav-payment-option-tab" data-bs-toggle="tab" data-bs-target="#nav-payment-option" type="button" role="tab">Opsi Pembayaran</button>
-                <button class="nav-link" id="nav-payment-detail-tab" data-bs-toggle="tab" data-bs-target="#nav-payment-detail" type="button" role="tab">Detail Pembayaran</button>
+                <button class="nav-link" id="nav-pay-bill-tab" data-bs-toggle="tab" data-bs-target="#nav-pay-bill" type="button" role="tab">Bayar Tagihan</button>
             </div>
         </nav>
         <div class="tab-content pt-2 pb-3 px-3" id="nav-tabContent" style="min-height: 400px">
@@ -97,16 +96,12 @@
                 @include('pages._student.proceed-payment.tab-invoice-data')
             </div>
 
-            <div class="tab-pane fade" id="nav-payment-method" role="tabpanel">
-                @include('pages._student.proceed-payment.tab-payment-method')
-            </div>
-
             <div class="tab-pane fade" id="nav-payment-option" role="tabpanel">
                 @include('pages._student.proceed-payment.tab-payment-option')
             </div>
 
-            <div class="tab-pane fade" id="nav-payment-detail" role="tabpanel">
-                @include('pages._student.proceed-payment.tab-payment-detail')
+            <div class="tab-pane fade" id="nav-pay-bill" role="tabpanel">
+                @include('pages._student.proceed-payment.tab-pay-bill')
             </div>
         </div>
     </div>
@@ -121,9 +116,8 @@
 
     /**
      * @var object invoiceDataTab
-     * @var object paymentMethodTab
      * @var object paymentOptionTab
-     * @var object paymentDetailTab
+     * @var object payBillTab
      * @func getRequestCache()
      */
 
@@ -134,9 +128,8 @@
         // init bootstrap tab
         tabManager.initTabs(
             invoiceDataTab.showHandler,
-            paymentMethodTab.showHandler,
             paymentOptionTab.showHandler,
-            paymentDetailTab.showHandler,
+            payBillTab.showHandler,
         );
     });
 
@@ -207,7 +200,7 @@
     }
 
     const tabManager = {
-        initTabs: function (invoiceDataShowHandler, paymentMethodShowHandler, paymentOptionShowHandler, paymentDetailShowHandler) {
+        initTabs: function (invoiceDataShowHandler, paymentOptionShowHandler, payBillShowHandler) {
             this.updateDisableState();
 
             // Enable tabbable tabs via JavaScript
@@ -228,12 +221,10 @@
                     console.log('open tab', target);
                     if (target == '#nav-invoice-data') {
                         invoiceDataShowHandler();
-                    } else if (target == '#nav-payment-method') {
-                        paymentMethodShowHandler();
                     } else if (target == '#nav-payment-option') {
                         paymentOptionShowHandler();
-                    } else if (target == '#nav-payment-detail') {
-                        paymentDetailShowHandler();
+                    } else if (target == '#nav-pay-bill') {
+                        payBillShowHandler();
                     }
                 });
             });
@@ -242,26 +233,26 @@
             bootstrap.Tab.getInstance(document.querySelector('#nav-tab button[data-bs-target="#'+target+'"]')).show();
         },
         updateDisableState: async function() {
-            $('#nav-tab #nav-payment-option-tab').removeClass('disabled');
-            $('#nav-tab #nav-payment-detail-tab').removeClass('disabled');
+            // $('#nav-tab #nav-payment-option-tab').removeClass('disabled');
+            $('#nav-tab #nav-pay-bill-tab').removeClass('disabled');
 
-            await deleteRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/detail/${prrId}`);
+            await deleteRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
 
-            let openTabId = 'nav-payment-method';
+            let openTabId = 'nav-payment-option';
 
-            // check is payment method is not set
-            if (!payment.prr_method) {
-                $('#nav-tab #nav-payment-option-tab').addClass('disabled');
-            } else {
-                openTabId = 'nav-payment-option';
-            }
+            // // check is payment method is not set
+            // if (!payment.prr_method) {
+            //     $('#nav-tab #nav-payment-option-tab').addClass('disabled');
+            // } else {
+            //     openTabId = 'nav-payment-option';
+            // }
 
             // check is payment bill is not generated
             if (payment.payment_bill.length == 0) {
-                $('#nav-tab #nav-payment-detail-tab').addClass('disabled');
+                $('#nav-tab #nav-pay-bill-tab').addClass('disabled');
             } else {
-                openTabId = 'nav-payment-detail';
+                openTabId = 'nav-pay-bill';
             }
 
             this.openTab(openTabId);

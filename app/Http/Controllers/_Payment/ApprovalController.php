@@ -10,6 +10,11 @@ use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
 {
+    public function manualPayment()
+    {
+        return view('pages._payment.approval.index');
+    }
+
     public function index()
     {
         $path = Path::all();
@@ -17,12 +22,12 @@ class ApprovalController extends Controller
         $faculty = Faculty::all();
         return view('pages._payment.approval.index', compact('path', 'period', 'faculty'));
     }
-
+    
     public function dispensation()
     {
         return view('pages._payment.approval.dispensation.index');
     }
-    
+
     public function credit()
     {
         return view('pages._payment.approval.credit.index');
