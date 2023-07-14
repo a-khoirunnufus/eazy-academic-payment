@@ -1019,7 +1019,7 @@ function unescapeHtml(text) {
  */
 
 function getRequestCache(url) {
-    const disableCache = false;
+    const disableCache = true;
     const displayLogs = true;
     const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
 

@@ -48,6 +48,6 @@ class Payment extends Model
 
     public function paymentMethod()
     {
-        return $this->hasOne(MsPaymentMethod::class, 'mpm_key', 'prr_method');
+        return $this->hasOne(MasterPaymentMethod::class, 'mpm_key', 'prr_method');
     }
 }
