@@ -102,7 +102,9 @@
     var dt, dataDt = null;
     $(function() {
         _discountReceiverTable.init();
-        dt.column([7,8,9,10,11]).visible(false)
+        for(var i = 7; i <= 11; i++){
+            dt.column(i).visible(false)
+        }
     })
 
     const _discountReceiverTable = {
