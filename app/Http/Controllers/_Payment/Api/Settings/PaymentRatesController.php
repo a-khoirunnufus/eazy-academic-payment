@@ -112,6 +112,12 @@ class PaymentRatesController extends Controller
         return $schema->toJson();
     }
 
+    public function getDetailSchemaById($cs_id)
+    {
+        $schema = CreditSchemaDetail::with('creditSchemaDeadline','creditSchema')->where('csd_cs_id',$cs_id)->get();
+        return $schema->toJson();
+    }
+
     public function getSchemaById($ppm_id, $cs_id)
     {
         $schema = CreditSchemaPeriodPath::with(['creditSchema' => function($query){

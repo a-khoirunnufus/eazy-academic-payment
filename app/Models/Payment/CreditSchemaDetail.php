@@ -20,4 +20,8 @@ class CreditSchemaDetail extends Model
     {
         return $this->belongsTo(CreditSchemaDeadline::class, 'csd_id','csd_id');
     }
+    public function creditSchema()
+    {
+        return $this->belongsTo(CreditSchema::class, 'csd_cs_id','cs_id');
+    }
 }
