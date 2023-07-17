@@ -6,12 +6,12 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .eazy-table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
-    </style>
+<style>
+    .eazy-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -26,7 +26,7 @@
                 <select name="md_period_start_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <select name="md_period_end_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -73,7 +73,6 @@
         <tbody></tbody>
     </table>
 </div>
-
 @endsection
 
 
@@ -81,7 +80,7 @@
 <script>
     var dt = null;
     var dataDt = null;
-    $(function(){
+    $(function() {
         _discountTable.init();
     })
 
@@ -91,7 +90,7 @@
             dt = this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/discount/index',
+                    url: _baseURL + '/api/payment/discount/index',
                     data: function(d) {
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
@@ -105,8 +104,7 @@
                         return json.data;
                     }
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         data: 'id',
                         orderable: false,
@@ -116,7 +114,10 @@
                             return this.template.rowAction(data)
                         }
                     },
-                    {name: 'md_name', data: 'md_name'},
+                    {
+                        name: 'md_name',
+                        data: 'md_name'
+                    },
                     {
                         name: 'md_period_start',
                         data: 'md_period_start',
@@ -161,19 +162,18 @@
                         render: (data, _, row) => {
                             let status = "Tidak Aktif";
                             let bg = "bg-danger";
-                            if(row.md_status === 1){
+                            if (row.md_status === 1) {
                                 status = "Aktif";
                                 bg = "bg-success";
                             }
-                            return '<div class="badge '+bg+'">'+status+'</div>'
+                            return '<div class="badge ' + bg + '">' + status + '</div>'
                         }
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>t' +
@@ -182,28 +182,78 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 buttons: [{
-                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                    className: 'btn btn-outline-secondary',
-                    action: function(e, dt, node, config) {
-                        var formData = new FormData();
-                        formData.append("data", JSON.stringify(dataDt));
-                        formData.append("_token", '{{csrf_token()}}');
-                        // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function(){
-                            var downloadUrl = URL.createObjectURL(xhr.response);
-                            var a = document.createElement("a");
-                            document.body.appendChild(a);
-                            a.style = "display: none";
-                            a.href = downloadUrl;
-                            a.download = "Laporan Program Potongan";
-                            a.click();
-                        }
-                        xhr.open("POST", _baseURL+"/api/payment/discount/exportData");
-                        xhr.responseType = 'blob';
-                        xhr.send(formData);
-                    }
-                }],
+                        extend: 'collection',
+                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        buttons: [{
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                                className: 'dropdown-item',
+                                extend: 'pdf',
+                                exportOptions: {
+                                    columns: [1,2,3,4,5,6,7]
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config) {
+                                    var formData = new FormData();
+                                    formData.append("data", JSON.stringify(dataDt));
+                                    formData.append("_token", '{{csrf_token()}}');
+                                    // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
+                                    var xhr = new XMLHttpRequest();
+                                    xhr.onload = function() {
+                                        var downloadUrl = URL.createObjectURL(xhr.response);
+                                        var a = document.createElement("a");
+                                        document.body.appendChild(a);
+                                        a.style = "display: none";
+                                        a.href = downloadUrl;
+                                        a.download = "Laporan Program Potongan";
+                                        a.click();
+                                    }
+                                    xhr.open("POST", _baseURL + "/api/payment/discount/exportData");
+                                    xhr.responseType = 'blob';
+                                    xhr.send(formData);
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config) {
+                                    var csv = 'NAMA POTONGAN,PERIODE AWAL,PERIODE AKHIR,NOMINAL,ANGGARAN,REALISASI,STATUS\n';
+
+                                    var csvFileData = [];
+                                    for(var i = 0; i < dataDt.length; i++){
+                                        var row = dataDt[i];
+                                        csvFileData.push([
+                                            row.md_name,
+                                            row.period_start.msy_year + _helper.semester(row.period_start.msy_semester),
+                                            row.period_end.msy_year + _helper.semester(row.period_end.msy_semester),
+                                            Rupiah.format(row.md_nominal),
+                                            Rupiah.format(row.md_budget),
+                                            Rupiah.format(row.md_realization),
+                                            row.md_status === 1 ? 'Aktif':'Tidak Aktif'
+                                        ])
+                                    }
+
+                                    //merge the data with CSV  
+                                    csvFileData.forEach(function(row) {
+                                        csv += row.join(',');
+                                        csv += "\n";
+                                    });
+
+                                    var hiddenElement = document.createElement('a');
+                                    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+                                    hiddenElement.target = '_blank';
+
+                                    //provide the name for the CSV file to be downloaded  
+                                    hiddenElement.download = 'Laporan Data Potongan.csv';
+                                    hiddenElement.click();
+                                }
+                            }
+                        ]
+                    },
+                ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -245,21 +295,21 @@
     }
 
     const _componentForm = {
-        clearData: function(){
+        clearData: function() {
             FormDataJson.clear('#form-edit-discount')
             $("#form-edit-discount .select2").trigger('change')
             $(".form-alert").remove()
         },
-        setData: function(data){
+        setData: function(data) {
             $("[name=md_name]").val(data.md_name);
             $.get(_baseURL + '/api/payment/discount/period', (d) => {
                 if (Object.keys(d).length > 0) {
                     d.map(item => {
                         $('#md_period_start').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                            <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                         `);
                         $('#md_period_end').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                            <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                         `);
                     });
                     $('#md_period_start').val(data.md_period_start);
@@ -276,9 +326,9 @@
     }
 
     const _helper = {
-        semester: function(msy_semester){
+        semester: function(msy_semester) {
             var semester = ' Genap';
-            if(msy_semester == 1) {
+            if (msy_semester == 1) {
                 semester = ' Ganjil';
             }
             return semester;
@@ -299,8 +349,7 @@
                         md_name: {
                             title: 'Nama Potongan',
                             content: {
-                                template:
-                                    `<input
+                                template: `<input
                                         type="text"
                                         name="md_name"
                                         class="form-control"
@@ -310,8 +359,7 @@
                         md_period_start: {
                             title: 'Periode Awal',
                             content: {
-                                template:
-                                    `<select name="md_period_start" id="md_period_start" class="form-control select2">
+                                template: `<select name="md_period_start" id="md_period_start" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -319,8 +367,7 @@
                         md_period_end: {
                             title: 'Periode Akhir',
                             content: {
-                                template:
-                                    `<select name="md_period_end" id="md_period_end" class="form-control select2">
+                                template: `<select name="md_period_end" id="md_period_end" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -328,22 +375,19 @@
                         md_nominal: {
                             title: 'Nominal',
                             content: {
-                                template:
-                                    `<input type="number" name="md_nominal" class="form-control">`,
+                                template: `<input type="number" name="md_nominal" class="form-control">`,
                             },
                         },
                         md_budget: {
                             title: 'Anggaran',
                             content: {
-                                template:
-                                    `<input type="number" name="md_budget" class="form-control">`,
+                                template: `<input type="number" name="md_budget" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
-                                template:
-                                    `<br><input type="radio" name="md_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
+                                template: `<br><input type="radio" name="md_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
@@ -357,12 +401,12 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#md_period_start').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                            <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                         `);
                         $('#md_period_end').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                            <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                         `);
-                        
+
                     });
                     selectRefresh();
                 }
@@ -383,8 +427,7 @@
                         md_name: {
                             title: 'Nama Potongan',
                             content: {
-                                template:
-                                    `<input
+                                template: `<input
                                         type="text"
                                         name="md_name"
                                         class="form-control"
@@ -394,8 +437,7 @@
                         md_period_start: {
                             title: 'Periode Awal',
                             content: {
-                                template:
-                                    `<select name="md_period_start" id="md_period_start" class="form-control select2">
+                                template: `<select name="md_period_start" id="md_period_start" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -403,8 +445,7 @@
                         md_period_end: {
                             title: 'Periode Akhir',
                             content: {
-                                template:
-                                    `<select name="md_period_end" id="md_period_end" class="form-control select2">
+                                template: `<select name="md_period_end" id="md_period_end" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -412,22 +453,19 @@
                         md_nominal: {
                             title: 'Nominal',
                             content: {
-                                template:
-                                    `<input type="number" name="md_nominal" class="form-control">`,
+                                template: `<input type="number" name="md_nominal" class="form-control">`,
                             },
                         },
                         md_budget: {
                             title: 'Anggaran',
                             content: {
-                                template:
-                                    `<input type="number" name="md_budget" class="form-control">`,
+                                template: `<input type="number" name="md_budget" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
-                                template:
-                                    `<br><input type="radio" name="md_status" value="1" id="md_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" id="md_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
+                                template: `<br><input type="radio" name="md_status" value="1" id="md_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" id="md_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
@@ -456,7 +494,7 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/discount/delete/' + data.md_id, {
                         _method: 'DELETE'
-                    }, function(data){
+                    }, function(data) {
                         data = JSON.parse(data)
                         Swal.fire({
                             icon: 'success',

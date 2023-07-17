@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
-use Carbon\Carbon;
 use DB;
 
-class ManualPaymentController extends Controller
+class ApprovalController extends Controller
 {
     public function index(Request $request)
     {
@@ -25,7 +24,7 @@ class ManualPaymentController extends Controller
             ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
             ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
             ->leftJoin('hr.ms_student as student', 'student.student_number', 'prr.student_number')
-            // ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
+            ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
             ->whereNull('prr.deleted_at')
             ->whereNull('prrb.deleted_at')
             ->whereNotNull('prrb.prrb_manual_name');
@@ -72,7 +71,7 @@ class ManualPaymentController extends Controller
                 'prrb.prrb_id',
                 DB::raw("prrb.prrb_amount + prrb.prrb_admin_cost as bill_total"),
                 'prrb.prrb_manual_name as sender_name',
-                // 'mpm.mpm_name as bank_name',
+                'mpm.mpm_name as bank_name',
                 'prrb.prrb_manual_norek as sender_account_number',
                 'prrb.prrb_manual_evidence as file_payment_evidence',
                 'prrb.prrb_manual_status as approval_status',
@@ -96,7 +95,6 @@ class ManualPaymentController extends Controller
 
             $bill = PaymentBill::find($prrb_id);
             $bill->prrb_status = $validated['status'] == 'accepted' ? 'lunas' : 'belum lunas';
-            $bill->prrb_paid_date = $validated['status'] == 'accepted' ? Carbon::now('Asia/Jakarta')->toDateTimeString().'.000 +0700' : null;
             $bill->prrb_manual_status = $validated['status'];
             $bill->prrb_manual_note = $validated['notes'];
             $bill->save();

@@ -6,12 +6,12 @@
 @section('url_back', '')
 
 @section('css_section')
-    <style>
-        .eazy-table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
-    </style>
+<style>
+    .eazy-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -26,7 +26,7 @@
                 <select name="md_period_start_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <select name="md_period_end_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -44,7 +44,7 @@
                 <select name="discount_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Potongan</option>
                     @foreach ($discount as $item)
-                        <option value="{{$item->md_id}}">{{$item->md_name}}</option>
+                    <option value="{{$item->md_id}}">{{$item->md_name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -53,7 +53,7 @@
                 <select name="faculty_filter" class="form-select" eazy-select2-active onchange="getStudyProgram(this.value)">
                     <option value="#ALL" selected>Semua Fakultas</option>
                     @foreach ($faculty as $item)
-                        <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
+                    <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -83,6 +83,11 @@
                 <th>Periode </th>
                 <th>Nominal</th>
                 <th>Status</th>
+                <th>Nim</th>
+                <th>Nama</th>
+                <th>Fakultas</th>
+                <th>prodi</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -95,8 +100,11 @@
 @section('js_section')
 <script>
     var dt, dataDt = null;
-    $(function(){
+    $(function() {
         _discountReceiverTable.init();
+        for(var i = 7; i <= 11; i++){
+            dt.column(i).visible(false)
+        }
     })
 
     const _discountReceiverTable = {
@@ -105,7 +113,7 @@
             dt = this.instance = $('#invoice-component-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/discount-receiver/index',
+                    url: _baseURL + '/api/payment/discount-receiver/index',
                     data: function(d) {
                         d.custom_filters = {
                             'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
@@ -121,8 +129,7 @@
                         return json.data;
                     }
                 },
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         data: 'id',
                         orderable: false,
@@ -188,19 +195,49 @@
                         render: (data, _, row) => {
                             let status = "Tidak Aktif";
                             let bg = "bg-danger";
-                            if(row.mdr_status === 1){
+                            if (row.mdr_status === 1) {
                                 status = "Aktif";
                                 bg = "bg-success";
                             }
-                            return '<div class="badge '+bg+'">'+status+'</div>'
+                            return '<div class="badge ' + bg + '">' + status + '</div>'
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student.student_id'
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student.fullname'
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student.study_program.faculty.faculty_name'
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        render: (data, _, row) => {
+                            return row.student.study_program.studyprogram_type + " " + row.student.study_program.studyprogram_name
+                        }
+                    },
+                    {
+                        name: 'mdr_status',
+                        data: 'mdr_status',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Tidak Aktif";
+                            if (row.mdr_status === 1) {
+                                status = "Aktif";
+                            }
+                            return status
                         }
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>t' +
@@ -209,28 +246,50 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 buttons: [{
-                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                    className: 'btn btn-outline-secondary',
-                    action: function(e, dt, node, config) {
-                        var formData = new FormData();
-                        formData.append("data", JSON.stringify(dataDt));
-                        formData.append("_token", '{{csrf_token()}}');
-                        // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function(){
-                            var downloadUrl = URL.createObjectURL(xhr.response);
-                            var a = document.createElement("a");
-                            document.body.appendChild(a);
-                            a.style = "display: none";
-                            a.href = downloadUrl;
-                            a.download = "Laporan Program Penerima Potongan";
-                            a.click();
+                    extend: 'collection',
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                    className: 'btn btn-outline-secondary dropdown-toggle',
+                    buttons: [{
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                            className: 'dropdown-item',
+                            extend: 'pdf',
+                            exportOptions: {
+                                columns: [7,8,9,10,3,4,5,11]
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                            className: 'dropdown-item',
+                            action: function(e, dt, node, config) {
+                                var formData = new FormData();
+                                formData.append("data", JSON.stringify(dataDt));
+                                formData.append("_token", '{{csrf_token()}}');
+                                // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
+                                var xhr = new XMLHttpRequest();
+                                xhr.onload = function() {
+                                    var downloadUrl = URL.createObjectURL(xhr.response);
+                                    var a = document.createElement("a");
+                                    document.body.appendChild(a);
+                                    a.style = "display: none";
+                                    a.href = downloadUrl;
+                                    a.download = "Laporan Program Penerima Potongan";
+                                    a.click();
+                                }
+                                xhr.open("POST", _baseURL + "/api/payment/discount-receiver/exportData");
+                                xhr.responseType = 'blob';
+                                xhr.send(formData);
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                            className: 'dropdown-item',
+                            extend: 'csv',
+                            exportOptions: {
+                                columns: [7,8,9,10,3,4,5,11]
+                            }
                         }
-                        xhr.open("POST", _baseURL+"/api/payment/discount-receiver/exportData");
-                        xhr.responseType = 'blob';
-                        xhr.send(formData);
-                    }
-                }],
+                    ]
+                }, ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -272,17 +331,17 @@
     }
 
     const _componentForm = {
-        clearData: function(){
+        clearData: function() {
             FormDataJson.clear('#form-edit-discount')
             $("#form-edit-discount .select2").trigger('change')
             $(".form-alert").remove()
         },
-        setData: function(d){
+        setData: function(d) {
             $.get(_baseURL + '/api/payment/discount-receiver/discount', (data) => {
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#md_id').append(`
-                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`(sisa anggaran: `+Rupiah.format(item.md_budget-item.md_realization)+`)</option>
+                            <option value="` + item.md_id + `" data-nominal="` + item.md_nominal + `">` + item.md_name + `(sisa anggaran: ` + Rupiah.format(item.md_budget - item.md_realization) + `)</option>
                         `);
                     });
                     $('#md_id').val(d.md_id);
@@ -294,7 +353,7 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#student_number').append(`
-                            <option value="`+item.student_number+`">`+item.fullname+` - `+item.student_id+`</option>
+                            <option value="` + item.student_number + `">` + item.fullname + ` - ` + item.student_id + `</option>
                         `);
                     });
                     $('#student_number').val(d.student_number);
@@ -304,13 +363,13 @@
             });
             $("#md_id").change(function() {
                 md_id = $(this).val();
-                $.get(_baseURL + '/api/payment/discount-receiver/period/'+md_id, (data) => {
+                $.get(_baseURL + '/api/payment/discount-receiver/period/' + md_id, (data) => {
                     console.log(data);
                     if (Object.keys(data).length > 0) {
                         $("#mdr_period").empty();
                         data.map(item => {
                             $('#mdr_period').append(`
-                                <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                                <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                             `);
                         });
                         $('#mdr_period').val(d.mdr_period);
@@ -325,9 +384,9 @@
     }
 
     const _helper = {
-        semester: function(msy_semester){
+        semester: function(msy_semester) {
             var semester = ' Genap';
-            if(msy_semester == 1) {
+            if (msy_semester == 1) {
                 semester = ' Ganjil';
             }
             return semester;
@@ -348,8 +407,7 @@
                         md_id: {
                             title: 'Potongan',
                             content: {
-                                template:
-                                    `<select name="md_id" id="md_id" class="form-control select2">
+                                template: `<select name="md_id" id="md_id" class="form-control select2">
                                         <option value="">Pilih Potongan</option>
                                     </select>`,
                             },
@@ -357,8 +415,7 @@
                         student_number: {
                             title: 'Mahasiswa',
                             content: {
-                                template:
-                                    `<select name="student_number" id="student_number" class="form-control select2">
+                                template: `<select name="student_number" id="student_number" class="form-control select2">
                                         <option value="">Pilih Mahasiswa</option>
                                     </select>`,
                             },
@@ -366,8 +423,7 @@
                         mdr_period: {
                             title: 'Periode',
                             content: {
-                                template:
-                                    `<select name="mdr_period" id="mdr_period" class="form-control select2">
+                                template: `<select name="mdr_period" id="mdr_period" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -375,15 +431,13 @@
                         mdr_nominal: {
                             title: 'Nominal',
                             content: {
-                                template:
-                                    `<input type="number" name="mdr_nominal" class="form-control">`,
+                                template: `<input type="number" name="mdr_nominal" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
-                                template:
-                                    `<br><input type="radio" name="mdr_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
+                                template: `<br><input type="radio" name="mdr_status" value="1" class="form-check-input" checked/> Aktif <input type="radio" name="md_status" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
@@ -397,7 +451,7 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#md_id').append(`
-                            <option value="`+item.md_id+`" data-nominal="`+item.md_nominal+`">`+item.md_name+`(sisa anggaran: `+Rupiah.format(item.md_budget-item.md_realization)+`)</option>
+                            <option value="` + item.md_id + `" data-nominal="` + item.md_nominal + `">` + item.md_name + `(sisa anggaran: ` + Rupiah.format(item.md_budget - item.md_realization) + `)</option>
                         `);
                     });
                     selectRefresh();
@@ -407,7 +461,7 @@
                 if (Object.keys(data).length > 0) {
                     data.map(item => {
                         $('#student_number').append(`
-                            <option value="`+item.student_number+`">`+item.fullname+` - `+item.student_id+`</option>
+                            <option value="` + item.student_number + `">` + item.fullname + ` - ` + item.student_id + `</option>
                         `);
                     });
                     selectRefresh();
@@ -417,17 +471,17 @@
                 nominal = $(this).find(":selected").data("nominal");
                 md_id = $(this).val();
                 $('[name="mdr_nominal"]').val(nominal);
-                $.get(_baseURL + '/api/payment/discount-receiver/period/'+md_id, (data) => {
-                if (Object.keys(data).length > 0) {
-                    $("#mdr_period").empty();
-                    data.map(item => {
-                        $('#mdr_period').append(`
-                            <option value="`+item.msy_id+`">`+item.msy_year+` `+_helper.semester(item.msy_semester)+`</option>
+                $.get(_baseURL + '/api/payment/discount-receiver/period/' + md_id, (data) => {
+                    if (Object.keys(data).length > 0) {
+                        $("#mdr_period").empty();
+                        data.map(item => {
+                            $('#mdr_period').append(`
+                            <option value="` + item.msy_id + `">` + item.msy_year + ` ` + _helper.semester(item.msy_semester) + `</option>
                         `);
-                    });
-                    selectRefresh();
-                }
-            });
+                        });
+                        selectRefresh();
+                    }
+                });
             })
         },
         edit: function(e) {
@@ -445,8 +499,7 @@
                         md_id: {
                             title: 'Potongan',
                             content: {
-                                template:
-                                    `<select name="md_id" id="md_id" class="form-control select2">
+                                template: `<select name="md_id" id="md_id" class="form-control select2">
                                         <option value="">Pilih Potongan</option>
                                     </select>`,
                             },
@@ -454,8 +507,7 @@
                         student_number: {
                             title: 'Mahasiswa',
                             content: {
-                                template:
-                                    `<select name="student_number" id="student_number" class="form-control select2">
+                                template: `<select name="student_number" id="student_number" class="form-control select2">
                                         <option value="">Pilih Mahasiswa</option>
                                     </select>`,
                             },
@@ -463,8 +515,7 @@
                         mdr_period: {
                             title: 'Periode',
                             content: {
-                                template:
-                                    `<select name="mdr_period" id="mdr_period" class="form-control select2">
+                                template: `<select name="mdr_period" id="mdr_period" class="form-control select2">
                                         <option value="">Pilih Periode</option>
                                     </select>`,
                             },
@@ -472,15 +523,13 @@
                         mdr_nominal: {
                             title: 'Nominal',
                             content: {
-                                template:
-                                    `<input type="number" name="mdr_nominal" class="form-control">`,
+                                template: `<input type="number" name="mdr_nominal" class="form-control">`,
                             },
                         },
                         md_status: {
                             title: 'Status',
                             content: {
-                                template:
-                                    `<br><input type="radio" name="mdr_status" value="1" id="mdr_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="mdr_status" id="mdr_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
+                                template: `<br><input type="radio" name="mdr_status" value="1" id="mdr_status_1" class="form-check-input" checked/> Aktif <input type="radio" name="mdr_status" id="mdr_status_0" value="0" class="form-check-input"/> Tidak Aktif`,
                             },
                         },
                     },
@@ -498,7 +547,7 @@
             let data = _discountReceiverTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                html: 'Apakah anda yakin ingin menghapus <br> <span class="fw-bolder">'+data.student.fullname+'</span> sebagai penerima potongan?',
+                html: 'Apakah anda yakin ingin menghapus <br> <span class="fw-bolder">' + data.student.fullname + '</span> sebagai penerima potongan?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -509,7 +558,7 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/discount-receiver/delete/' + data.mdr_id, {
                         _method: 'DELETE'
-                    }, function(data){
+                    }, function(data) {
                         data = JSON.parse(data)
                         Swal.fire({
                             icon: 'success',
@@ -529,22 +578,22 @@
         },
     }
 
-    function getStudyProgram(val){
+    function getStudyProgram(val) {
         $('select[name="study_program_filter"]').html(`
             <option value="#ALL" selected>Semua Program Studi</option>
         `);
 
-        if(val != '#ALL'){
+        if (val != '#ALL') {
             var xhr = new XMLHttpRequest();
-            xhr.onload = function(){
+            xhr.onload = function() {
                 var data = JSON.parse(this.responseText);
-                for(var i = 0; i < data.length; i++){
+                for (var i = 0; i < data.length; i++) {
                     $('select[name="study_program_filter"]').append(`
                         <option value="${data[i].studyprogram_id}">${data[i].studyprogram_type+" "+data[i].studyprogram_name}</option>
                     `);
                 }
             }
-            xhr.open("GET", _baseURL+'/api/payment/discount-receiver/faculty/'+val);
+            xhr.open("GET", _baseURL + '/api/payment/discount-receiver/faculty/' + val);
             xhr.send();
         }
     }

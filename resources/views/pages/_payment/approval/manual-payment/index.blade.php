@@ -33,6 +33,24 @@
                     <option value="student">Mahasiswa Lama</option>
                 </select>
             </div>
+            <div>
+                <label class="form-label">Jalur</label>
+                <select id="path" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Jalur</option>
+                    @foreach($path as $item)
+                        <option value="{{$item->path_id}}">{{$item->path_name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Periode</label>
+                <select id="period" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Periode</option>
+                    @foreach($period as $item)
+                        <option value="{{$item->period_id}}">{{$item->period_name}}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="d-flex align-items-end">
                 <button onclick="_paymentApprovalTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
@@ -112,6 +130,8 @@
                         d.custom_filters = {
                             'status': $('select#filter-status').val(),
                             'student_type': $('select#filter-student-type').val(),
+                            'path': $('select#path').val(),
+                            'period': $('select#period').val(),
                         };
                     },
                     dataSrc: function(json) {

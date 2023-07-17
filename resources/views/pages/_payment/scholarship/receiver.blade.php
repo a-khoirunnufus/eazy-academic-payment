@@ -83,6 +83,14 @@
                 <th>Periode </th>
                 <th>Nominal</th>
                 <th>Status</th>
+                <th>Nim</th>
+                <th>Nama</th>
+                <th>Fakultas</th>
+                <th>Prodi</th>
+                <th>Beasiswa</th>
+                <th>Perusahaan</th>
+                <th>PIC</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -98,6 +106,9 @@
     var dataDt = [];
     $(function() {
         _scholarshipReceiverTable.init();
+        for (var i = 7; i <= 14; i++) {
+            dt.column(i).visible(false)
+        }
     })
 
     const _scholarshipReceiverTable = {
@@ -196,6 +207,74 @@
                             return '<div class="badge ' + bg + '">' + status + '</div>'
                         }
                     },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.student_id;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.fullname;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.study_program.faculty.faculty_name;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return `${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}`;
+                        }
+                    },
+                    {
+                        name: 'ms_id',
+                        data: 'ms_id',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.scholarship.ms_name;
+                        }
+                    },
+                    {
+                        name: 'ms_id',
+                        data: 'ms_id',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.scholarship.ms_from;
+                        }
+                    },
+                    {
+                        name: 'ms_id',
+                        data: 'ms_id',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.scholarship.ms_from_name;
+                        }
+                    },
+                    {
+                        name: 'msr_status',
+                        data: 'msr_status',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Tidak Aktif";
+                            if (row.msr_status === 1) {
+                                status = "Aktif";
+                            }
+                            return status;
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -209,28 +288,52 @@
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 buttons: [{
-                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                    className: 'btn btn-outline-secondary',
-                    action: function(e, dt, node, config) {
-                        var formData = new FormData();
-                        formData.append("data", JSON.stringify(dataDt));
-                        formData.append("_token", '{{csrf_token()}}');
-                        // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function(){
-                            var downloadUrl = URL.createObjectURL(xhr.response);
-                            var a = document.createElement("a");
-                            document.body.appendChild(a);
-                            a.style = "display: none";
-                            a.href = downloadUrl;
-                            a.download = "Laporan Mahasiswa Penerima Beasiswa";
-                            a.click();
-                        }
-                        xhr.open("POST", _baseURL+"/api/payment/scholarship-receiver/exportData");
-                        xhr.responseType = 'blob';
-                        xhr.send(formData);
-                    }
-                }],
+                        extend: 'collection',
+                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        buttons: [{
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                                className: 'dropdown-item',
+                                extend: 'pdf',
+                                orientation: 'landscape',
+                                exportOptions: {
+                                    columns: [7,8,9,10,11,12,13,14]
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config) {
+                                    var formData = new FormData();
+                                    formData.append("data", JSON.stringify(dataDt));
+                                    formData.append("_token", '{{csrf_token()}}');
+                                    // window.open(_baseURL+'/payment/scholarship/exportData?data='+JSON.stringify(dataDt));
+                                    var xhr = new XMLHttpRequest();
+                                    xhr.onload = function() {
+                                        var downloadUrl = URL.createObjectURL(xhr.response);
+                                        var a = document.createElement("a");
+                                        document.body.appendChild(a);
+                                        a.style = "display: none";
+                                        a.href = downloadUrl;
+                                        a.download = "Laporan Mahasiswa Penerima Beasiswa";
+                                        a.click();
+                                    }
+                                    xhr.open("POST", _baseURL + "/api/payment/scholarship-receiver/exportData");
+                                    xhr.responseType = 'blob';
+                                    xhr.send(formData);
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                                className: 'dropdown-item',
+                                extend: 'csv',
+                                exportOptions: {
+                                    columns: [7, 8, 9, 10, 11, 12, 13, 14]
+                                }
+                            }
+                        ]
+                    },
+                ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
