@@ -108,6 +108,8 @@
 
 @section('js_section')
 <script>
+    var percentageVal = 0;
+    var amountVal = 0;
     // enabling multiple modal open
     $(document).on('show.bs.modal', '.modal', function() {
         const zIndex = 1040 + 10 * $('.modal:visible').length;
@@ -472,37 +474,50 @@
             $("#csId").change(function() {
                 $("#schemaDeadline").empty();
                 cs_id = $(this).val();
+                let count = 0;
                 $.get(_baseURL + '/api/payment/settings/paymentrates/getdetailschemabyid/'+cs_id, (d) => {
                     JSON.parse(d).map(item => {
                         console.log(item);
-                        _creditSubmissionTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item, data.payment.prr_total)
+                        _creditSubmissionTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item, data.payment.prr_total, count);
+                        count++;
                     });
                 })
             })
         },
-        SchemaDeadlineField: function(cs_id = 0, name = null, percentage = null, total = null) {
+        amountOfPercentage: function(total, csd_percentage) {
+            if (total){
+                return total * (csd_percentage / 100);
+            }else{
+                return 0;
+            }
+        },
+        percentageOfAmount: function(total, total_credit) {
+            if (total){
+                return (total_credit / total) * 100;
+            }else{
+                return 0;
+            }
+        },
+        SchemaDeadlineField: function(cs_id = 0, name = null, percentage = null, total = null,count) {
             let html = "";
             if (percentage != null) {
                 let deadline = "";
                 if (percentage.credit_schema_deadline) {
                     deadline = percentage.credit_schema_deadline.cse_deadline;
                 } 
-                let percentage_total = 0;
-                if (total){
-                    percentage_total = total*percentage.csd_percentage/100;
-                }
+                let amount_percentage = _creditSubmissionTableActions.amountOfPercentage(total,percentage.csd_percentage);
                 html += `
                 <div class="d-flex flex-wrap align-items-center mb-1 SchemaDeadlineField" style="gap:10px"
                     id="comp-order-preview-0">
                     <div class="flex-fill">
                         <label class="form-label">Persentase Pembayaran</label>
-                        <input type="text" class="form-control" name="" value="${percentage.csd_percentage}%"
-                            placeholder="Persentase Pembayaran">
+                        <input type="number" class="form-control" name="cse_percentage[]" total="${total}" value="${percentage.csd_percentage}"
+                            placeholder="Persentase Pembayaran" id="percentage${count}">
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Nominal</label>
-                        <input type="text" class="form-control" name="" value="${percentage_total}"
-                            placeholder="Total Pembayaran">
+                        <input type="number" class="form-control" name="cse_amount[]" total="${total}" value="${amount_percentage}"
+                            placeholder="Total Pembayaran" id="amount${count}">
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tenggat Pembayaran</label>
@@ -513,6 +528,8 @@
                     </div>
                 </div>
                 `
+                percentageVal = parseInt(percentageVal)+parseInt(percentage.csd_percentage);
+                amountVal = parseInt(amountVal)+parseInt(amount_percentage);
             }
             $('#schemaDeadline').append(`
                 <div id="schemaDeadlineTag${cs_id}">
@@ -520,6 +537,18 @@
                     ${html}
                 </div>
             `);
+            $(`#percentage${count}`).on("input", function() {
+                let csd_percentage = $(this).val();
+                let total = $(this).attr("total");
+                let amount_percentage = _creditSubmissionTableActions.amountOfPercentage(total,csd_percentage);
+                $(`#amount${count}`).val(amount_percentage);
+            });
+            $(`#amount${count}`).on("input", function() {
+                let total_credit = $(this).val();
+                let total = $(this).attr("total");
+                let percentage = _creditSubmissionTableActions.percentageOfAmount(total,total_credit);
+                $(`#percentage${count}`).val(percentage);
+            });
         },
         decline: function(){
             // let data = _creditSubmissionTable.getRowData(e);
