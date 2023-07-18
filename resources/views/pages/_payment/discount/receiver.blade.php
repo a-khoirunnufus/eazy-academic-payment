@@ -88,6 +88,7 @@
                 <th>Fakultas</th>
                 <th>prodi</th>
                 <th>Status</th>
+                <th>Nominal</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -102,7 +103,7 @@
     var dt, dataDt = null;
     $(function() {
         _discountReceiverTable.init();
-        for(var i = 7; i <= 11; i++){
+        for(var i = 7; i <= 12; i++){
             dt.column(i).visible(false)
         }
     })
@@ -233,6 +234,10 @@
                             return status
                         }
                     },
+                    {
+                        name: 'mdr_nominal',
+                        data: 'mdr_nominal',
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -285,7 +290,7 @@
                             className: 'dropdown-item',
                             extend: 'csv',
                             exportOptions: {
-                                columns: [7,8,9,10,3,4,5,11]
+                                columns: [7,8,9,10,3,4,12,11]
                             }
                         }
                     ]
