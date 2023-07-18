@@ -90,6 +90,7 @@
                 <th>Beasiswa</th>
                 <th>Perusahaan</th>
                 <th>PIC</th>
+                <th>Nominal</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -106,7 +107,7 @@
     var dataDt = [];
     $(function() {
         _scholarshipReceiverTable.init();
-        for (var i = 7; i <= 14; i++) {
+        for (var i = 7; i <= 15; i++) {
             dt.column(i).visible(false)
         }
     })
@@ -264,6 +265,13 @@
                         }
                     },
                     {
+                        name: 'msr_nominal',
+                        data: 'msr_nominal',
+                        render: (data, _, row) => {
+                            return data
+                        }
+                    },
+                    {
                         name: 'msr_status',
                         data: 'msr_status',
                         searchable: false,
@@ -297,7 +305,7 @@
                                 extend: 'pdf',
                                 orientation: 'landscape',
                                 exportOptions: {
-                                    columns: [7,8,9,10,11,12,13,14]
+                                    columns: [7,8,9,10,11,12,13,14,15]
                                 }
                             },
                             {
@@ -328,7 +336,7 @@
                                 className: 'dropdown-item',
                                 extend: 'csv',
                                 exportOptions: {
-                                    columns: [7, 8, 9, 10, 11, 12, 13, 14]
+                                    columns: [7, 8, 9, 10, 11, 12, 13, 14, 15]
                                 }
                             }
                         ]
