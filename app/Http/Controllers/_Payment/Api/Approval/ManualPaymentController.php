@@ -8,7 +8,7 @@ use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use DB;
 
-class ApprovalController extends Controller
+class ManualPaymentController extends Controller
 {
     public function index(Request $request)
     {
