@@ -125,6 +125,9 @@
     $(function() {
         _paymentApprovalTable.init();
         select2Replace();
+        for(var i = 8; i <= 15; i++){
+            dt.column(i).visible(false)
+        }
     });
 
     const _paymentApprovalTable = {
