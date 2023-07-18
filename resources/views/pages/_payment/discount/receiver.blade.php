@@ -22,17 +22,8 @@
     <div class="card-body">
         <div class="datatable-filter one-row">
             <div>
-                <label class="form-label">Periode Awal</label>
-                <select name="md_period_start_filter" class="form-select" eazy-select2-active>
-                    <option value="#ALL" selected>Semua Periode</option>
-                    @foreach ($period as $item)
-                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="form-label">Periode Akhir</label>
-                <select name="md_period_end_filter" class="form-select" eazy-select2-active>
+                <label class="form-label">Periode</label>
+                <select name="period" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
                     <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
@@ -103,7 +94,7 @@
     var dt, dataDt = null;
     $(function() {
         _discountReceiverTable.init();
-        for(var i = 7; i <= 12; i++){
+        for (var i = 7; i <= 12; i++) {
             dt.column(i).visible(false)
         }
     })
@@ -117,8 +108,7 @@
                     url: _baseURL + '/api/payment/discount-receiver/index',
                     data: function(d) {
                         d.custom_filters = {
-                            'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
-                            'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
+                            'period': $('select[name="period"]').val(),
                             'discount_filter': $('select[name="discount_filter"]').val(),
                             'faculty_filter': $('select[name="faculty_filter"]').val(),
                             'study_program_filter': $('select[name="study_program_filter"]').val(),
@@ -259,7 +249,7 @@
                             className: 'dropdown-item',
                             extend: 'pdf',
                             exportOptions: {
-                                columns: [7,8,9,10,3,4,5,11]
+                                columns: [7, 8, 9, 10, 3, 4, 5, 11]
                             }
                         },
                         {
@@ -290,7 +280,7 @@
                             className: 'dropdown-item',
                             extend: 'csv',
                             exportOptions: {
-                                columns: [7,8,9,10,3,4,12,11]
+                                columns: [7, 8, 9, 10, 3, 4, 12, 11]
                             }
                         }
                     ]
