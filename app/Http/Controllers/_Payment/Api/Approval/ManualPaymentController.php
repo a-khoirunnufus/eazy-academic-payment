@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
+use App\Models\Studyprogram;
 use DB;
 
 class ManualPaymentController extends Controller
@@ -24,6 +25,8 @@ class ManualPaymentController extends Controller
             ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
             ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
             ->leftJoin('hr.ms_student as student', 'student.student_number', 'prr.student_number')
+            ->leftJoin('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', '=', 'student.studyprogram_id')
+            ->leftJoin('masterdata.ms_faculties as faculty', 'faculty.faculty_id', '=', 'sp.faculty_id')
             ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
             ->whereNull('prr.deleted_at')
             ->whereNull('prrb.deleted_at')
@@ -40,6 +43,22 @@ class ManualPaymentController extends Controller
             elseif($filters['student_type'] == 'student') {
                 $query = $query->whereNotNull('prr.student_number');
             }
+        }
+
+        if(isset($filters['path'])){
+            $query = $query->where('student.path_id', '=', $filters['path']);
+        }
+
+        if(isset($filters['period'])){
+            $query = $query->where('student.period_id', '=', $filters['period']);
+        }
+
+        if(isset($filters['faculty'])){
+            $query = $query->where('faculty.faculty_id', '=', $filters['faculty']);
+        }
+
+        if(isset($filters['prodi'])){
+            $query = $query->where('student.studyprogram_id', '=', $filters['prodi']);
         }
 
         $data = $query->select(
@@ -122,5 +141,11 @@ class ManualPaymentController extends Controller
             'success' => true,
             'message' => 'Berhasil memproses approval pembayaran',
         ], 200);
+    }
+
+    public function getProdi($faculty){
+        $data = Studyprogram::where('faculty_id', '=', $faculty);
+
+        return $data->get();
     }
 }

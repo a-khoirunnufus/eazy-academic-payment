@@ -51,6 +51,21 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="form-label">Fakultas</label>
+                <select id="faculty" class="form-select" eazy-select2-active onchange="getProdi(this.value)">
+                    <option value="#ALL" selected>Semua Fakultas</option>
+                    @foreach($faculty as $item)
+                    <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select id="prodi" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Program Studi</option>
+                </select>
+            </div>
             <div class="d-flex align-items-end">
                 <button onclick="_paymentApprovalTable.reload()" class="btn btn-primary text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
@@ -125,7 +140,7 @@
     $(function() {
         _paymentApprovalTable.init();
         select2Replace();
-        for(var i = 8; i <= 15; i++){
+        for (var i = 8; i <= 15; i++) {
             dt.column(i).visible(false)
         }
     });
@@ -143,6 +158,8 @@
                             'student_type': $('select#filter-student-type').val(),
                             'path': $('select#path').val(),
                             'period': $('select#period').val(),
+                            'faculty': $('select#faculty').val(),
+                            'prodi': $('select#prodi').val(),
                         };
                     },
                     dataSrc: function(json) {
@@ -389,7 +406,7 @@
                             className: 'dropdown-item',
                             extend: 'pdf',
                             exportOptions: {
-                                columns: [8,9,10,11,12,13,14,15]
+                                columns: [8, 9, 10, 11, 12, 13, 14, 15]
                             }
                         },
                         {
@@ -397,7 +414,7 @@
                             className: 'dropdown-item',
                             extend: 'excel',
                             exportOptions: {
-                                columns: [8,9,10,11,12,13,14,15]
+                                columns: [8, 9, 10, 11, 12, 13, 14, 15]
                             }
                         },
                         {
@@ -405,7 +422,7 @@
                             className: 'dropdown-item',
                             extend: 'csv',
                             exportOptions: {
-                                columns: [8,9,10,11,12,13,14,15]
+                                columns: [8, 9, 10, 11, 12, 13, 14, 15]
                             }
                         }
                     ]
@@ -624,6 +641,30 @@
             dt.clear().destroy();
             _paymentApprovalTable.init(elm.value);
         }
+    }
+
+    function getProdi(faculty) {
+        console.log('getprodi')
+        console.log(faculty);
+        $('#prodi').html(
+            `<option value="#ALL" selected>Semua Program Studi</option>`
+        )
+
+        if (faculty != '#ALL') {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+                var data = JSON.parse(this.responseText);
+
+                for (var i = 0; i < data.length; i++) {
+                    $('#prodi').append(`
+                    <option value="${data[i].studyprogram_id}">${data[i].studyprogram_name}</option>
+                    `)
+                }
+            }
+            xhr.open("GET", `${_baseURL}/api/payment/approval/prodi/${faculty}`);
+            xhr.send()
+        }
+
     }
 </script>
 @endsection
