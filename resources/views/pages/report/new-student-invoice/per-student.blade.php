@@ -57,7 +57,7 @@
                             <select class="form-select select2 select-filter" id="filterData">
                                 <option value="#ALL">Semua Tahun</option>
                                 @foreach($angkatan as $item)
-                                <option value="{{ $item->msy_id }}">{{ substr($item->msy_year, 0, 4).' Semester '.$item->msy_semester }}</option>
+                                <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
                                 @endforeach
                             </select>
                         </div>
