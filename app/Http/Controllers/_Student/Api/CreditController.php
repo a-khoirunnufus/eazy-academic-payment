@@ -49,7 +49,6 @@ class CreditController extends Controller
                     'mcs_phone' => $validated['mcs_phone'],
                     'mcs_email' => $validated['mcs_email'],
                     'mcs_reason' => $validated['mcs_reason'],
-                    'mcs_method' => $validated['mcs_method'],
                     'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
                     'mcs_status' => 2,
                 ]);
@@ -61,7 +60,6 @@ class CreditController extends Controller
                     'mcs_phone' => $validated['mcs_phone'],
                     'mcs_email' => $validated['mcs_email'],
                     'mcs_reason' => $validated['mcs_reason'],
-                    'mcs_method' => $validated['mcs_method'],
                     'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
                     'mcs_status' => 2,
                 ]);

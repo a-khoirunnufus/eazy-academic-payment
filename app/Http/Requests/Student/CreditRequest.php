@@ -17,7 +17,6 @@ class CreditRequest extends FormRequest
              'mcs_email' => 'Email',
              'mcs_reason' => 'Alasan',
              'mcs_proof' => 'Bukti Pendukung',
-             'mcs_method' => 'Metode Pembayaran',
          ];
      }
 
@@ -34,7 +33,6 @@ class CreditRequest extends FormRequest
             'mcs_phone' => 'required',
             'mcs_email' => 'required|email',
             'mcs_reason' => 'required',
-            'mcs_method' => 'required',
             'mcs_proof' => 'required|file|mimes:jpg,png,pdf',
             'msc_id' => 'nullable',
         ];

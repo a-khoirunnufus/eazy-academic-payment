@@ -96,7 +96,6 @@
                 <th>No.HP</th>
                 <th>Email</th>
                 <th>Alasan</th>
-                <th>Metode <br>Pembayaran</th>
                 <th>Bukti</th>
                 <th>Status</th>
             </tr>
@@ -227,7 +226,6 @@
                     {name: 'mcs_phone', data: 'mcs_phone'},
                     {name: 'mcs_email', data: 'mcs_email'},
                     {name: 'mcs_reason', data: 'mcs_reason'},
-                    {name: 'mcs_method', data: 'mcs_method'},
                     {
                         name: 'mcs_proof',
                         data: 'mcs_proof',
@@ -321,8 +319,6 @@
             $("[name=mcs_phone]").val(data.mcs_phone)
             $("[name=mcs_email]").val(data.mcs_email)
             $("[name=mcs_reason]").val(data.mcs_reason)
-            $("[name=mcs_method]").val(data.mcs_method)
-            $("[name=mcs_method]").trigger('change')
         }
     }
 
@@ -378,10 +374,6 @@
                                             <tr>
                                                 <td>Email</td>
                                                 <td>:&nbsp;&nbsp;${data.mcs_email}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Metode Pembayaran</td>
-                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
                                             </tr>
                                             <tr>
                                                 <td>Alasan</td>
@@ -469,18 +461,6 @@
                                         name="mcs_email"
                                         class="form-control"
                                     >`,
-                            },
-                        },
-                        method: {
-                            title: 'Metode Pembayaran',
-                            content: {
-                                template:
-                                    `<select name="mcs_method" id="mcs_method" class="form-control select2">
-                                        <option value="">Pilih Metode Pembayaran</option>
-                                        <option value="mandiri">Mandiri - Manual</option>
-                                        <option value="bca">BCA - Manual</option>
-                                        <option value="bni">BNI - Manual</option>
-                                    </select>`,
                             },
                         },
                         proof: {
@@ -579,18 +559,6 @@
                                         name="mcs_email"
                                         class="form-control"
                                     >`,
-                            },
-                        },
-                        method: {
-                            title: 'Metode Pembayaran',
-                            content: {
-                                template:
-                                    `<select name="mcs_method" id="mcs_method" class="form-control select2">
-                                        <option value="">Pilih Metode Pembayaran</option>
-                                        <option value="mandiri">Mandiri - Manual</option>
-                                        <option value="bca">BCA - Manual</option>
-                                        <option value="bni">BNI - Manual</option>
-                                    </select>`,
                             },
                         },
                         proof: {

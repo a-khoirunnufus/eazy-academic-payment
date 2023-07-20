@@ -104,19 +104,6 @@
                             `;
                         }
                     },
-                    // {name: 'mcs_phone', data: 'mcs_phone'},
-                    // {name: 'mcs_email', data: 'mcs_email'},
-                    // {name: 'mcs_reason', data: 'mcs_reason'},
-                    // {name: 'mcs_method', data: 'mcs_method'},
-                    // {
-                    //     name: 'mcs_proof',
-                    //     data: 'mcs_proof',
-                    //     searchable: false,
-                    //     render: (data, _, row) => {
-                    //         let link = '{{ url("file","student-credit") }}/'+row.mcs_id;
-                    //         return '<a href="'+link+'" target="_blank">'+row.mcs_proof_filename+'</a>';
-                    //     }
-                    // },
                     {
                         name: 'prr_id', 
                         render: (data, _, row) => {
@@ -276,10 +263,6 @@
                                                 <td>:&nbsp;&nbsp;${data.mcs_email}</td>
                                             </tr>
                                             <tr>
-                                                <td>Metode Pembayaran</td>
-                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
-                                            </tr>
-                                            <tr>
                                                 <td>Alasan</td>
                                                 <td>:&nbsp;&nbsp;${data.mcs_reason}</td>
                                             </tr>
@@ -345,10 +328,6 @@
                                             <tr>
                                                 <td>Email</td>
                                                 <td>:&nbsp;&nbsp;${data.mcs_email}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Metode Pembayaran</td>
-                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
                                             </tr>
                                             <tr>
                                                 <td>Alasan</td>
