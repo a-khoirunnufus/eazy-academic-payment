@@ -110,7 +110,7 @@ Route::group(['prefix' => 'student'], function () {
     });
 
     Route::group(['prefix' => 'dispensation'], function () {
-        Route::get('index', 'App\Http\Controllers\_Student\DispensationController@dispensation')->name('student.dispensation.index');
+        Route::get('index', 'App\Http\Controllers\_Student\DispensationController@index')->name('student.dispensation.index');
     });
     Route::group(['prefix' => 'credit'], function () {
         Route::get('index', 'App\Http\Controllers\_Student\CreditController@index')->name('student.credit.index');

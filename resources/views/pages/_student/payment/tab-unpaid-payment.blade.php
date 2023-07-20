@@ -152,9 +152,9 @@
                             <a href="{{ route('student.credit.index') }}" class="btn btn-outline-warning">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
                             </a>
-                            <button class="btn btn-outline-primary">
+                            <a href="{{ route('student.dispensation.index') }}" class="btn btn-outline-primary">
                                 <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
-                            </button>
+                            </a>
                         </div>
                     `)
                     feather.replace()

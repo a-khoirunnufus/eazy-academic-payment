@@ -4,13 +4,13 @@ namespace App\Http\Controllers\_Student\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\CreditSubmission;
+use App\Models\Student\DispensationSubmission;
 use App\Traits\Authentication\StaticStudentUser;
-use App\Http\Requests\Student\CreditRequest;
+use App\Http\Requests\Student\DispensationRequest;
 use DB;
 use Storage;
 
-class CreditController extends Controller
+class DispensationController extends Controller
 {
     use StaticStudentUser;
     
@@ -25,12 +25,12 @@ class CreditController extends Controller
             return 'User with email: '.$email.' not found!';
         }
         
-        $query = CreditSubmission::query();
-        $query = $query->with('period','student')->where('student_number',$user->student->student_number)->orderBy('mcs_id');
+        $query = DispensationSubmission::query();
+        $query = $query->with('period','student')->where('student_number',$user->student->student_number)->orderBy('mds_id');
         return datatables($query)->toJson();
     }
     
-    public function store(CreditRequest $request)
+    public function store(DispensationRequest $request)
     {
         $validated = $request->validated();
         
@@ -38,24 +38,24 @@ class CreditController extends Controller
             DB::beginTransaction();
 
             if(array_key_exists("msc_id",$validated)){
-                $credit = CreditSubmission::findOrFail($validated["msc_id"]);
-                $credit->update([
-                    'mcs_phone' => $validated['mcs_phone'],
-                    'mcs_email' => $validated['mcs_email'],
-                    'mcs_reason' => $validated['mcs_reason'],
-                    'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
-                    'mcs_status' => 2,
+                $dispensation = DispensationSubmission::findOrFail($validated["msc_id"]);
+                $dispensation->update([
+                    'mds_phone' => $validated['mds_phone'],
+                    'mds_email' => $validated['mds_email'],
+                    'mds_reason' => $validated['mds_reason'],
+                    'mds_proof_filename' => $validated['mds_proof']->getClientOriginalName(),
+                    'mds_status' => 2,
                 ]);
                 $text = "Berhasil memperbarui pengajuan";
             }else{
-                $credit = CreditSubmission::create([
+                $dispensation = DispensationSubmission::create([
                     'student_number' => $validated['student_number'],
-                    'mcs_school_year' => $validated['mcs_school_year'],
-                    'mcs_phone' => $validated['mcs_phone'],
-                    'mcs_email' => $validated['mcs_email'],
-                    'mcs_reason' => $validated['mcs_reason'],
-                    'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
-                    'mcs_status' => 2,
+                    'mds_school_year' => $validated['mds_school_year'],
+                    'mds_phone' => $validated['mds_phone'],
+                    'mds_email' => $validated['mds_email'],
+                    'mds_reason' => $validated['mds_reason'],
+                    'mds_proof_filename' => $validated['mds_proof']->getClientOriginalName(),
+                    'mds_status' => 2,
                 ]);
                 
                 
@@ -65,7 +65,7 @@ class CreditController extends Controller
             if(config('app.disable_cloud_storage')) {
                 $upload_success = '/';
             }else{
-                $upload_success = Storage::disk('minio')->put('student/credit_submission_proof/'.$credit->mcs_id, $validated['mcs_proof']);
+                $upload_success = Storage::disk('minio')->put('student/dispensation_submission_proof/'.$dispensation->mds_id, $validated['mds_proof']);
                 // INI BUAT READ / GET IMAGE
                 // $url = Storage::disk('minio_read')->temporaryUrl($query->mo_logo, \Carbon\Carbon::now()->addMinutes(60));
             }
@@ -74,8 +74,8 @@ class CreditController extends Controller
                 throw new \Exception('Failed uploading file!');
             }
 
-            $credit->mcs_proof = $upload_success;
-            $credit->update();
+            $dispensation->mds_proof = $upload_success;
+            $dispensation->update();
 
             DB::commit();
         }catch(\Exception $e){
@@ -87,10 +87,9 @@ class CreditController extends Controller
     
     public function delete($id)
     {
-        $data = CreditSubmission::findOrFail($id);
+        $data = DispensationSubmission::findOrFail($id);
         $data->delete();
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus pengajuan"));
     }
-
 }
