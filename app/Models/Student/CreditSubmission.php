@@ -18,7 +18,7 @@ class CreditSubmission extends Model
 
     protected $primaryKey = 'mcs_id';
 
-    protected $fillable = ['student_number', 'mcs_school_year', 'mcs_phone','mcs_email','mcs_reason','mcs_proof','mcs_status','mcs_proof_filename','mcs_method'];
+    protected $fillable = ['student_number', 'mcs_school_year', 'mcs_phone','mcs_email','mcs_reason','mcs_proof','mcs_status','mcs_proof_filename','mcs_method','mcs_decline_reason'];
     
     public function period()
     {

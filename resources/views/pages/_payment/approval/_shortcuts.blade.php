@@ -20,7 +20,7 @@
             <i data-feather="credit-card"></i>
         </div>
         <div class="eazy-shortcut-label">
-            <span>Pengajuan Kredit <br> Pembayaran</span>
+            <span>Pengajuan Cicilan <br> Pembayaran</span>
         </div>
     </a>
 </div>

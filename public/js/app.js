@@ -828,10 +828,10 @@ class Modal {
 
 
 
-        var isDecline = config.isDecline ?? false;
-        let second_button = '<a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary">Batal</a>';
-        if(isDecline){
-            second_button = `<a href="${config.declineFunction}" class="btn btn-danger">Tolak</a>`;
+        var isSecondButtonCustom = config.isSecondButtonCustom ?? false;
+        let second_button = '<a href="javascript:void(0);" data-bs-dismiss="modal" class="btn btn-outline-secondary me-1">Batal</a>';
+        if(isSecondButtonCustom){
+            second_button = config.SecondButtonCustom;
         }
 
         var formSubmitNote = config.formSubmitNote ?? false;
@@ -840,16 +840,16 @@ class Modal {
                 <div class="d-flex align-items-center flex-wrap justify-content-between mt-4" style="gap:10px">
                     ${formSubmitNote}
                     <span>
-                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
                     ${second_button}
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'}">${config.formSubmitLabel}</button>
                     </span>
                 </div>
             `;
         }else{
             var formActionHtml = `
                 <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'} me-1">${config.formSubmitLabel}</button>
                     ${second_button}
+                    <button type="submit" class="btn ${formType == 'add' ? 'btn-success' : 'btn-warning'}">${config.formSubmitLabel}</button>
                 </div>
             `;
         }

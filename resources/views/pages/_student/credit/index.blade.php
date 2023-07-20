@@ -213,7 +213,7 @@
                         searchable: false,
                         render: (data, _, row) => {
                             console.log(row);
-                            return this.template.rowAction(data)
+                            return this.template.rowAction(row)
                         }
                     },
                     {
@@ -242,7 +242,7 @@
                         data: 'mcs_status',
                         searchable: false,
                         render: (data, _, row) => {
-                            let status = "Tidak Disetujui";
+                            let status = "Ditolak";
                             let bg = "bg-danger";
                             if(row.mcs_status === 1){
                                 status = "Disetujui";
@@ -285,15 +285,20 @@
             this.implementSearchDelay()
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(row) {
+                let action = ``;
+                if(row.mcs_status == 2){
+                    action = `<a onclick="_creditTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_creditTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>`;
+                }
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_creditTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_creditTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_creditTableActions.detail(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
+                            ${action}
                         </div>
                     </div>
                 `
@@ -322,6 +327,82 @@
     }
 
     const _creditTableActions = {
+        detail: function(e) {
+            const data = _creditTable.getRowData(e);
+            let decline_reason = ``;
+            if(data.mcs_status == 0){
+                decline_reason = `<tr>
+                    <td class="fw-bolder">Alasan Penolakan</td>
+                    <td class="fw-bolder">:&nbsp;&nbsp;${data.mcs_decline_reason}</td>
+                </tr>`
+            }
+            Modal.show({
+                type: 'detail',
+                modalTitle: 'Detail Pengajuan Cicilan Pembayaran',
+                modalSize: 'md',
+                config: {
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: '',
+                            content: {
+                                template: `
+                                <div>
+                                    <table class="eazy-table-info">
+                                        <tbody>
+                                            ${decline_reason}
+                                            <tr>
+                                                <td>Tahun Akademik</td>
+                                                <td>:&nbsp;&nbsp;${data.period.msy_year + _helper.semester(data.period.msy_semester)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Nama</td>
+                                                <td>:&nbsp;&nbsp;${data.student.fullname}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>NIM</td>
+                                                <td>:&nbsp;&nbsp;${data.student.student_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Fakultas</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.faculty.faculty_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Prodi</td>
+                                                <td>:&nbsp;&nbsp;${data.student.study_program.studyprogram_type} ${data.student.study_program.studyprogram_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>No.HP</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_phone}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Email</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_email}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Metode Pembayaran</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_method}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Alasan</td>
+                                                <td>:&nbsp;&nbsp;${data.mcs_reason}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bukti Pendukung</td>
+                                                <td>:&nbsp;&nbsp;<a href="${'{{ url("file","student-credit") }}/'+data.mcs_id}" target="_blank">${data.mcs_proof_filename}</a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>`
+                            },
+                        },
+                    },
+                    callback: function() {
+                        feather.replace();
+                    }
+                },
+            });
+        },
         add: function() {
             Modal.show({
                 type: 'form',

@@ -269,7 +269,7 @@
                     <li class="menu__item nav-item {{ 'payment.approval.credit.index' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.approval.credit.index') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Pengajuan Kredit</span>
+                            <span class="menu-title text-truncate">Pengajuan Cicilan</span>
                         </a>
                     </li>
                 </ul>
