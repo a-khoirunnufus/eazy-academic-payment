@@ -12,7 +12,10 @@ class ApprovalController extends Controller
 {
     public function manualPayment()
     {
-        return view('pages._payment.approval.index');
+        $path = Path::all();
+        $period = Period::all();
+        $faculty = Faculty::all();
+        return view('pages._payment.approval.manual-payment.index', compact('path', 'period', 'faculty'));
     }
 
     public function index()

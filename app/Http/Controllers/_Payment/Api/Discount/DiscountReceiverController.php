@@ -27,16 +27,8 @@ class DiscountReceiverController extends Controller
         $query = DiscountReceiver::query();
         $query = $query->with('period','student','discount');
 
-        if (isset($filters['md_period_start_filter'])) {
-            $query->whereHas('discount', function($q) use($filters) {
-                $q->where('md_period_start', '=', $filters['md_period_start_filter']);
-            });
-        }
-
-        if (isset($filters['md_period_end_filter'])) {
-            $query->whereHas('discount', function($q) use($filters){
-                $q->where('md_period_end', '=', $filters['md_period_end_filter']);
-            });
+        if (isset($filters['period'])){
+            $query->where('mdr_period', '=', $filters['period']);
         }
 
         if(isset($filters['discount_filter'])){

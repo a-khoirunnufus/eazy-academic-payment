@@ -166,6 +166,7 @@ Route::group(['prefix' => 'payment'], function(){
 
     Route::group(['prefix' => 'approval'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@index');
+        Route::get('/prodi/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@getProdi');
         Route::post('{prrb_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
     });
 });

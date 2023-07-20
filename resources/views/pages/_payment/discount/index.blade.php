@@ -229,9 +229,9 @@
                                             row.md_name,
                                             row.period_start.msy_year + _helper.semester(row.period_start.msy_semester),
                                             row.period_end.msy_year + _helper.semester(row.period_end.msy_semester),
-                                            Rupiah.format(row.md_nominal),
-                                            Rupiah.format(row.md_budget),
-                                            Rupiah.format(row.md_realization),
+                                            row.md_nominal,
+                                            row.md_budget,
+                                            row.md_realization,
                                             row.md_status === 1 ? 'Aktif':'Tidak Aktif'
                                         ])
                                     }

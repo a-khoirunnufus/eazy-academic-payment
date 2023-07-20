@@ -82,6 +82,9 @@
                 <th>PIC</th>
                 <th>Kontak</th>
                 <th>Status</th>
+                <th>Nominal</th>
+                <th>Anggaran</th>
+                <th>Realisasi</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -97,7 +100,7 @@
     var dataDt = [];
     $(function() {
         _scholarshipTable.init();
-        for(var i = 10; i <= 13; i++){
+        for(var i = 10; i <= 16; i++){
             dt.column(i).visible(false)
         }
     })
@@ -212,9 +215,8 @@
                         }
                     },
                     {
-                        name: 'ms_from',
+                        // name: 'ms_from',
                         data: 'ms_from',
-                        searchable: false,
                         render: (data, _, row) => {
                             return row.ms_from
                         }
@@ -222,7 +224,6 @@
                     {
                         name: 'ms_from',
                         data: 'ms_from',
-                        searchable: false,
                         render: (data, _, row) => {
                             let name = (row.ms_from_name) ? row.ms_from_name : "";
                             return name;
@@ -235,7 +236,6 @@
                     {
                         name: 'ms_status',
                         data: 'ms_status',
-                        searchable: false,
                         render: (data, _, row) => {
                             let status = "Tidak Aktif";
                             if (row.ms_status === 1) {
@@ -243,6 +243,18 @@
                             }
                             return status;
                         }
+                    },
+                    {
+                        name: 'ms_nominal',
+                        data: 'ms_nominal',
+                    },
+                    {
+                        name: 'ms_budget',
+                        data: 'ms_budget',
+                    },
+                    {
+                        name: 'ms_realization',
+                        data: 'ms_realization',
                     },
                 ],
                 drawCallback: function(settings) {
@@ -264,7 +276,10 @@
                                 text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
                                 className: 'dropdown-item',
                                 extend: 'pdf',
-                                orientation: 'landscape'
+                                orientation: 'landscape',
+                                exportOptions: {
+                                    columns: [1,2,10,11,12,4,5,6,7,8,13]
+                                }
                             },
                             {
                                 text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
@@ -294,7 +309,7 @@
                                 className: 'dropdown-item',
                                 extend: 'csv',
                                 exportOptions: {
-                                    columns: [1,2,10,11,12,4,5,6,7,8,13]
+                                    columns: [1,2,10,11,12,4,5,14,15,16,13]
                                 }
                             }
                         ]

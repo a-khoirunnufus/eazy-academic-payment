@@ -31,7 +31,7 @@ class ReportController extends Controller
 
     function newStudentDetail($programStudy)
     {
-        $angkatan = Year::all();
+        $angkatan = Year::select(DB::raw("SUBSTR(msy_code, 1, 4) as Tahun"))->distinct()->get();
         $periode = Period::all();
         $jalur = Path::all();
         return view('pages.report.new-student-invoice.per-student', compact('programStudy','angkatan', 'periode', 'jalur'));

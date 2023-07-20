@@ -205,7 +205,7 @@ class ReportControllerApi extends Controller
                     'r.ms_path_id'
                 );
                 if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
-                    $listStudent->where(DB::raw('SUBSTR(r.reg_major_pass_date, 1, 4)'), '=', $prodi_filter_angkatan);
+                    $listStudent->where(DB::raw("SUBSTR(TO_CHAR(r.reg_major_pass_date, 'YYYY-MM-DD'), 1, 4)"), '=', $prodi_filter_angkatan);
                 }
                 if ($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL) {
                     $listStudent->where('r.ms_path_id', '=', $prodi_path_filter);
