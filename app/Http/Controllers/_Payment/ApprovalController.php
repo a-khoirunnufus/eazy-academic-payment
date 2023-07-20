@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\Path;
 use App\Models\Period;
+use App\Models\Year;
 use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
@@ -33,6 +34,8 @@ class ApprovalController extends Controller
 
     public function credit()
     {
-        return view('pages._payment.approval.credit.index');
+        $year = Year::all();
+        $faculty = Faculty::all();
+        return view('pages._payment.approval.credit.index', compact('year', 'faculty'));
     }
 }

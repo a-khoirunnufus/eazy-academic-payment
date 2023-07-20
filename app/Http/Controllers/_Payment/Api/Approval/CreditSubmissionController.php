@@ -7,14 +7,42 @@ use Illuminate\Http\Request;
 use App\Models\Student\CreditSubmission;
 use App\Http\Requests\Payment\Discount\DiscountSubmission;
 use App\Models\Payment\PaymentBill;
+use App\Models\Studyprogram;
 use DB;
 
 class CreditSubmissionController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->input('custom_filters');
+        $filters = array_filter($filters, function ($item) {
+            return !is_null($item) && $item != '#ALL';
+        });
+
         $query = CreditSubmission::query();
-        $query = $query->with('period','student','payment')->whereHas('payment', function($q){
+        $query = $query->with('period','student','payment');
+        
+        if(isset($filters['year'])){
+            $query = $query->where('mcs_school_year', '=', $filters['year']);
+        }
+
+        if(isset($filters['faculty'])){
+            $query = $query->whereHas('student.studyProgram.faculty', function($q) use($filters) {
+                $q->where('faculty_id', '=', $filters['faculty']);
+            });
+        }
+
+        if(isset($filters['prodi'])){
+            $query = $query->whereHas('student.studyProgram', function($q) use($filters) {
+                $q->where('studyprogram_id', '=', $filters['prodi']);
+            });
+        }
+
+        if(isset($filters['status'])){
+            $query = $query->where('mcs_status', '=', $filters['status']);
+        }
+        
+        $query = $query->whereHas('payment', function($q){
             $q->whereColumn('finance.payment_re_register.prr_school_year', 'finance.ms_credit_submission.mcs_school_year');
         })->orderBy('finance.ms_credit_submission.mcs_id');
         // dd($query->get());
@@ -74,5 +102,11 @@ class CreditSubmissionController extends Controller
         
         $text = "Berhasil menolak pengajuan cicilan";
         return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function getProdi($faculty){
+        $study_program = Studyprogram::where('faculty_id', '=', $faculty);
+
+        return $study_program->get();
     }
 }

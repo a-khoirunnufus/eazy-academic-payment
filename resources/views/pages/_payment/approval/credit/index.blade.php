@@ -17,6 +17,50 @@
 @section('content')
 
 @include('pages._payment.approval._shortcuts', ['active' => 'credit'])
+<div class="card">
+    <div class="card-body">
+        <div class="datatable-filter one-row">
+            <div>
+                <label class="form-label">Tahun Akademik</label>
+                <select name="year" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Tahun</option>
+                    @foreach($year as $item)
+                        <option value="{{$item->msy_code}}">{{$item->msy_year}} {{$item->msy_semester == 1 ? 'Ganjil':'Genap'}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Fakultas</label>
+                <select name="faculty" class="form-select" eazy-select2-active onchange="getProdi(this.value)">
+                    <option value="#ALL" selected>Semua Fakultas</option>
+                    @foreach($faculty as $item)
+                        <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select name="prodi" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Program Study</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" eazy-select2-active>
+                    <option value="#ALL" selected>Semua Status</option>
+                    <option value="0">Ditolak</option>
+                    <option value="1">Disetujui</option>
+                    <option value="2">Menunggu Diproses</option>
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button onclick="_creditSubmissionTable.reload()" class="btn btn-primary text-nowrap">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="card">
     <table id="credit-submission-table" class="table table-striped">
@@ -28,6 +72,12 @@
                 <th>Fakultas <br>Prodi</th>
                 <th>Total <br>Tagihan</th>
                 <th>Status</th>
+                <th>Nama</th>
+                <th>Nim</th>
+                <th>Fakultas</th>
+                <th>Prodi</th>
+                <th>Total Tagihan</th>
+                <th>status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -40,6 +90,8 @@
 <script>
     var percentageVal = 0;
     var amountVal = 0;
+
+    var dt;
     // enabling multiple modal open
     $(document).on('show.bs.modal', '.modal', function() {
         const zIndex = 1040 + 10 * $('.modal:visible').length;
@@ -47,17 +99,103 @@
         setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
     });
 
+    var target_column = [];
+
     $(function(){
         _creditSubmissionTable.init();
+
+        for(var i = 6; i <= 11; i++){
+            dt.column(i).visible(false)
+            target_column.push(i);
+        }
+
+        dt.buttons.exportData({
+            columns: target_column
+        })
     })
 
     const _creditSubmissionTable = {
         ..._datatable,
-        init: function() {
-            this.instance = $('#credit-submission-table').DataTable({
+        init: function(searchFilter = '#ALL') {
+            dt = this.instance = $('#credit-submission-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL+'/api/payment/approval-credit/index',
+                    data: function(d) {
+                        d.custom_filters = {
+                            'year': $('select[name="year"]').val(),
+                            'faculty': $('select[name="faculty"]').val(),
+                            'prodi': $('select[name="prodi"]').val(),
+                            'status': $('select[name="status"]').val(),
+                        };
+                    },
+                    dataSrc: (json) => {
+                        if(searchFilter != '#ALL'){
+                            var data = [];
+
+                            for(var i = 0; i < json.data.length; i++){
+                                var row = json.data[i];
+
+                                var isFound = false;
+
+                                if(!isFound && (''+row.period.msy_year+' '+(row.period.msy_semester == 1 ? 'Ganjil':'Genap')).toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                if(!isFound && ''+row.student.fullname.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                if(!isFound && ''+row.student.student_id.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                if(!isFound && ''+row.student.study_program.studyprogram_type+' '+row.student.study_program.studyprogram_name.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                if(!isFound && ''+row.student.study_program.faculty.faculty_name.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                var prr;
+                                if(row.payment.prr_total != null){
+                                    prr = row.payment.prr_total.toString();
+                                }else {
+                                    prr = '-'
+                                }
+                                if(!isFound && ''+prr.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                var status = '';
+                                switch(row.mcs_status){
+                                    case 0:
+                                        status = 'Ditolak';
+                                        break;
+                                    case 1: 
+                                        status = 'Disetujui';
+                                        break;
+                                    case 2:
+                                        status = 'Menunggu Diproses';
+                                        break;
+                                }
+                                if(!isFound && status.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+                            }
+
+                            json.data = data;
+                        }
+                        return json.data;
+                    }
                 },
                 columns: [
                     {
@@ -131,6 +269,58 @@
                             return '<div class="badge '+bg+'">'+status+'</div>'
                         }
                     },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.fullname;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.student_id;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return row.student.study_program.faculty.faculty_name;
+                        }
+                    },
+                    {
+                        name: 'student_number',
+                        data: 'student_number',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return `${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}`;
+                        }
+                    },
+                    {
+                        name: 'prr_id', 
+                        render: (data, _, row) => {
+                            return (row.payment) ? row.payment.prr_total : "-"
+                        }
+                    },
+                    {
+                        name: 'mcs_status',
+                        data: 'mcs_status',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Ditolak";
+                            if(row.mcs_status === 1){
+                                status = "Disetujui";
+                            }else if(row.mcs_status === 2){
+                                status = "Menunggu Diproses";
+                            }
+                            return status
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -138,17 +328,56 @@
                 dom:
                     '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"submission-credit-action d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                    buttons: [{
+                    extend: 'collection',
+                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                    className: 'btn btn-outline-secondary dropdown-toggle',
+                    buttons: [
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                            className: 'dropdown-item',
+                            extend: 'excel',
+                            exportOptions: {
+                                columns: target_column
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                            className: 'dropdown-item',
+                            extend: 'pdf',
+                            exportOptions: {
+                                columns: target_column
+                            }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                            className: 'dropdown-item',
+                            extend: 'csv',
+                            exportOptions: {
+                                columns: target_column
+                            }
+                        }
+                    ]
+                }, ],
                 initComplete: function() {
                     $('.submission-credit-action').html(`
                         <div style="margin-bottom: 7px">
                             
                         </div>
+                    `)
+
+                    $('.search-filter').html(`
+                    <div id="credit-submission-table_filter" class="dataTables_filter">
+                        <label>
+                            <input type="search" class="form-control" placeholder="Cari Data" aria-controls="credit-submission-table" onkeydown="searchFilter(event, this)">
+                        </label>
+                    </div>
                     `)
                     feather.replace()
                 }
@@ -518,6 +747,39 @@
         },
     }
 
+    function getProdi(val){
+        console.log(val)
+        
+        $('select[name="prodi"]').html(`
+            <option value="#ALL" selected>Semua Program Study</option>
+        `)
+
+        if(val != '#ALL'){
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function(){
+                var data = JSON.parse(this.responseText);
+                
+                for(var i = 0; i < data.length; i++){
+                    var item = data[i];
+                    $('select[name="prodi"]').append(`
+                        <option value="${item.studyprogram_id}">${item.studyprogram_type} ${item.studyprogram_name}</option>
+                    `)
+                }
+            }
+            xhr.open('GET', _baseURL+'/api/payment/approval-credit/study-program/'+val);
+            xhr.send()
+        }
+    }
+
+    function searchFilter(event, elm){
+        if(event.key == 'Enter'){
+            var val = elm.value;
+            elm.value = ''
+
+            dt.clear().destroy();
+            _creditSubmissionTable.init(val);
+        }
+    }
 </script>
 @include('pages._payment.generate.student-invoice.invoice');
 @endsection

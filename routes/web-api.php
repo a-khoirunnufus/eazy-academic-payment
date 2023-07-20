@@ -155,6 +155,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('index', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@index');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@store');
         Route::post('decline', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@decline');
+        Route::get('study-program/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@getProdi');
         // Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@scholarship');
         // Route::get('student', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@student');
         // Route::get('study-program', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@study_program');
