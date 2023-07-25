@@ -83,6 +83,8 @@
                 if(source){
                     if(source.prr_status == 'lunas'){
                         status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                    }else if(source.prr_status == 'kredit'){
+                        status = '<div class="badge bg-warning" style="font-size: inherit">Kredit</div>'
                     }else{
                         status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
                     }

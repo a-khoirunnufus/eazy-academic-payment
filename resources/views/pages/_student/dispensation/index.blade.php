@@ -2,7 +2,7 @@
 
 @section('page_title', 'Pengajuan Dispensasi')
 @section('sidebar-size', 'collapsed')
-@section('url_back', '')
+@section('url_back', route('student.payment.index'))
 
 @section('css_section')
     <style>

@@ -64,7 +64,7 @@ class DispensationSubmissionController extends Controller
         DB::beginTransaction();
         try{
             $payment = Payment::findorfail($data->payment->prr_id);
-            $payment->update(['prr_dispensation_date' => $validated['prr_dispensation_date']]);
+            $payment->update(['prr_status' => 'kredit','prr_dispensation_date' => $validated['prr_dispensation_date']]);
 
             $data->update(['mds_deadline' => $validated['prr_dispensation_date'],'mds_status' => 1]);
             $text = "Berhasil mengupdate pengajuan dispensasi";

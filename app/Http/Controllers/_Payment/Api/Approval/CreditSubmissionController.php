@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Student\CreditSubmission;
 use App\Http\Requests\Payment\Discount\DiscountSubmission;
 use App\Models\Payment\PaymentBill;
+use App\Models\Payment\Payment;
 use App\Models\Studyprogram;
 use DB;
 
@@ -70,6 +71,9 @@ class CreditSubmissionController extends Controller
         // dd($validated['cse_order'][1]);
         DB::beginTransaction();
         try{
+            $payment = Payment::findorfail($data->payment->prr_id);
+            $payment->update(['prr_status' => 'kredit']);
+
             PaymentBill::where('prr_id', '=', $data->payment->prr_id)->delete();
 
             foreach ($validated['cse_amount'] as $key => $item) {
