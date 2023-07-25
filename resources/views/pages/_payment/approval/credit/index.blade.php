@@ -93,11 +93,11 @@
 
     var dt;
     // enabling multiple modal open
-    $(document).on('show.bs.modal', '.modal', function() {
-        const zIndex = 1040 + 10 * $('.modal:visible').length;
-        $(this).css('z-index', zIndex);
-        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
-    });
+    // $(document).on('show.bs.modal', '.modal', function() {
+    //     const zIndex = 1040 + 10 * $('.modal:visible').length;
+    //     $(this).css('z-index', zIndex);
+    //     setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    // });
 
     var target_column = [];
 
@@ -613,6 +613,7 @@
                     },
                 },
             });
+            $('#mainModal .modal-dialog').addClass('modal-dialog-scrollable');
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
                     $("#csId").append(`
