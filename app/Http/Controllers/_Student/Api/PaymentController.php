@@ -5,6 +5,7 @@ namespace App\Http\Controllers\_Student\Api;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Traits\Authentication\StaticStudentUser;
@@ -29,7 +30,8 @@ class PaymentController extends Controller
      */
     use StaticStudentUser;
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         /**
          * NOTE:
          * - invoice number still using prr_id, change later.
@@ -299,12 +301,10 @@ class PaymentController extends Controller
 
             if (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
                 // cancel midtrans transaction
-                $cancel_result = (new PaymentService())->cancelTransaction([
-                    "order_id" => $bill->prrb_order_id,
-                ]);
+                $cancel_result = (new PaymentService())->cancelTransaction($bill->prrb_order_id);
 
                 if ($cancel_result->status == 'error') {
-                    throw new \Exception($cancel_result->message);
+                    // try cancel transaction again later by put it into queue
                 }
             }
 
@@ -586,6 +586,14 @@ class PaymentController extends Controller
         try {
             DB::beginTransaction();
 
+            // cancel if there are bills that already paid
+            $has_paid_bill = PaymentBill::where('prr_id', '=', $prr_id)
+                ->where('prrb_status', 'lunas')
+                ->exists();
+            if ($has_paid_bill) {
+                throw new \Exception('Sudah ada tagihan yang terbayar!');
+            }
+
             // delete payment bill
             $bills = PaymentBill::where('prr_id', '=', $prr_id)->get();
             foreach ($bills as $bill) {
@@ -612,7 +620,13 @@ class PaymentController extends Controller
             $payment->save();
 
             DB::commit();
-        } catch (\Throwable $th) {
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil mereset pembayaran.'
+            ], 200);
+        }
+        catch (\Throwable $th) {
             DB::rollback();
 
             return response()->json([
@@ -620,11 +634,6 @@ class PaymentController extends Controller
                 'message' => $th->getMessage(),
             ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil mereset pembayaran.'
-        ], 200);
     }
 
     public function getEvidence($prr_id, $prrb_id)
@@ -665,6 +674,7 @@ class PaymentController extends Controller
             $bill->prrb_manual_norek = $validated['account_number'];
             $bill->prrb_manual_evidence = $upload_success;
             $bill->prrb_manual_status = 'waiting';
+            $bill->prrb_manual_note = null;
             $bill->save();
 
             DB::commit();

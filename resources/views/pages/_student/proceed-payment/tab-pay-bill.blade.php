@@ -4,7 +4,8 @@
             display: none;
         }
         #reset-payment-section.show {
-            display: block;
+            display: flex;
+            justify-content: end;
         }
 
         .payment-method-list {
@@ -29,7 +30,7 @@
     </style>
 @endpush
 
-<div id="reset-payment-section" class="show mb-2 d-flex justify-content-end">
+<div id="reset-payment-section" class="show mb-2">
     <button onclick="payBillTab.resetPayment()" class="btn btn-outline-warning">Ganti Opsi Pembayaran</button>
 </div>
 
@@ -122,9 +123,9 @@
                     <h5 class="mb-1">Petunjuk Pembayaran</h5>
                     <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatem quis sapiente repellendus dignissimos quam aliquam reprehenderit dolorum? Libero, totam magnam iusto reprehenderit consequuntur ullam ipsam modi hic! Eaque, officia. Ratione!</p>
                     <ul>
-                        <li><a href="{{ url('payment-simulator/bca') }}" target="_blank">BCA Virtual Account Payment Simulator</a></li>
-                        <li><a href="{{ url('payment-simulator/bni') }}" target="_blank">BNI Virtual Account Payment Simulator</a></li>
-                        <li><a href="{{ url('payment-simulator/mandiri') }}" target="_blank">Mandiri Bill Payment Simulator</a></li>
+                        <li><a href="https://simulator.sandbox.midtrans.com/bca/va/index" target="_blank">BCA Virtual Account Payment Simulator</a></li>
+                        <li><a href="https://simulator.sandbox.midtrans.com/bni/va/index" target="_blank">BNI Virtual Account Payment Simulator</a></li>
+                        <li><a href="https://simulator.sandbox.midtrans.com/mandiri/bill/index" target="_blank">Mandiri Bill Payment Simulator</a></li>
                     </ul>
                 </div>
             </div>
@@ -164,7 +165,7 @@
     });
 
     const payBillTab = {
-        alwaysAllowReset: true,
+        alwaysAllowReset: false,
         showHandler: async function() {
             const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
             const studentType = payment.register ? 'new_student' : 'student';
@@ -533,6 +534,29 @@
                             </tbody>
                         </table>
                     `);
+
+                    if (bill.prrb_manual_status == 'rejected') {
+                        $('#paymentInstructionModal #payment-evidence-section').append(`
+                            <h5 class="mt-3 mb-1">Upload Kembali Bukti Pembayaran</h5>
+                            <form onsubmit="payBillModal.uploadPaymentEvidence(event)" style="width: 400px">
+                                <input type="hidden" name="prr_id" value="${prrId}">
+                                <input type="hidden" name="prrb_id" value="${bill.prrb_id}">
+                                <div class="mb-1">
+                                    <label class="form-label">Nama Pemilik Rekening</label>
+                                    <input name="account_owner_name" type="text" class="form-control">
+                                </div>
+                                <div class="mb-1">
+                                    <label class="form-label">Nomor Rekening</label>
+                                    <input name="account_number" type="text" class="form-control">
+                                </div>
+                                <div class="mb-1">
+                                    <label class="form-label">File Bukti Bayar</label>
+                                    <input name="file_evidence" type="file" class="form-control">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Upload Bukti Pembayaran</button>
+                            </form>
+                        `);
+                    }
                 }
             }
 
