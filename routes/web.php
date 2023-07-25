@@ -118,12 +118,5 @@ Route::group(['prefix' => 'student'], function () {
 });
 
 
-// PAYMENT SIMULATOR
-Route::group(['prefix' => 'payment-simulator'], function() {
-    Route::get('bca', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showBca');
-    Route::get('mandiri', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showMandiri');
-    Route::get('bni', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@showBni');
-});
-
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
 
