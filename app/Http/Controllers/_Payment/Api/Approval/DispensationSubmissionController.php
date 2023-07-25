@@ -8,6 +8,7 @@ use App\Models\Student\DispensationSubmission;
 use App\Http\Requests\Payment\Dispensation\DispensationSubmission as RequestDispensation;
 use App\Models\Payment\Payment;
 use App\Models\Studyprogram;
+use App\Models\Student;
 use DB;
 
 class DispensationSubmissionController extends Controller
@@ -90,5 +91,10 @@ class DispensationSubmissionController extends Controller
         $study_program = Studyprogram::where('faculty_id', '=', $faculty);
 
         return $study_program->get();
+    }
+
+    public function getStudent(){
+        $data = Student::all();
+        return $data->toJson();
     }
 }

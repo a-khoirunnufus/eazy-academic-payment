@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Student\DispensationSubmission;
 use App\Traits\Authentication\StaticStudentUser;
 use App\Http\Requests\Student\DispensationRequest;
+use App\Models\Payment\Payment;
 use DB;
 use Storage;
 
@@ -33,7 +34,11 @@ class DispensationController extends Controller
     public function store(DispensationRequest $request)
     {
         $validated = $request->validated();
-        
+
+        $payment = Payment::where('student_number',$validated['student_number'])->where('prr_school_year',$validated['mds_school_year'])->first();
+        if(!$payment){
+            return json_encode(array('success' => false, 'message' => 'Data tagihan tidak ditemukan'));
+        }
         try{
             DB::beginTransaction();
 
