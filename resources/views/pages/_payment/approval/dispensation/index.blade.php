@@ -78,6 +78,7 @@
                 <th>Fakultas</th>
                 <th>Prodi</th>
                 <th>Total Tagihan</th>
+                <th>Tanggal Dispensasi</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -105,7 +106,7 @@
     $(function(){
         _dispensationSubmissionTable.init();
 
-        for(var i = 6; i <= 11; i++){
+        for(var i = 7; i <= 13; i++){
             dt.column(i).visible(false)
             target_column.push(i);
         }
@@ -171,6 +172,12 @@
                                     prr = '-'
                                 }
                                 if(!isFound && ''+prr.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
+                                    data.push(row);
+                                    isFound = true;
+                                }
+
+                                var tglDispen = row.mds_deadline ? row.mds_deadline:'-';
+                                if(!isFound && ''+tglDispen.toLowerCase().search(searchFilter.toLowerCase()) >= 0){
                                     data.push(row);
                                     isFound = true;
                                 }
@@ -266,6 +273,23 @@
                         }
                     },
                     {
+                        name: 'mds_status',
+                        data: 'mds_status',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Ditolak";
+                            let bg = "bg-danger";
+                            if(row.mds_status === 1){
+                                status = "Disetujui";
+                                bg = "bg-success";
+                            }else if(row.mds_status === 2){
+                                status = "Menunggu Diproses";
+                                bg = "bg-warning";
+                            }
+                            return '<div class="badge '+bg+'">'+status+'</div>'
+                        }
+                    },
+                    {
                         name: 'student_number',
                         data: 'student_number',
                         searchable: false,
@@ -304,6 +328,18 @@
                         }
                     },
                     {
+                        name: 'mds_deadline',
+                        data: 'mds_deadline',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let date = "-";
+                            if(row.mds_deadline){
+                                date = row.mds_deadline;
+                            }
+                            return `${date}`;
+                        }
+                    },
+                    {
                         name: 'mds_status',
                         data: 'mds_status',
                         searchable: false,
@@ -315,23 +351,6 @@
                                 status = "Menunggu Diproses";
                             }
                             return status
-                        }
-                    },
-                    {
-                        name: 'mds_status',
-                        data: 'mds_status',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            let status = "Ditolak";
-                            let bg = "bg-danger";
-                            if(row.mds_status === 1){
-                                status = "Disetujui";
-                                bg = "bg-success";
-                            }else if(row.mds_status === 2){
-                                status = "Menunggu Diproses";
-                                bg = "bg-warning";
-                            }
-                            return '<div class="badge '+bg+'">'+status+'</div>'
                         }
                     },
                 ],
@@ -375,7 +394,15 @@
                             exportOptions: {
                                 columns: target_column
                             }
-                        }
+                        },
+                        {
+                            text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy font-small-4 me-50"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</span>',
+                            className: 'dropdown-item',
+                            extend: 'copy',
+                            exportOptions: {
+                                columns: target_column
+                            }
+                        },
                     ]
                 }, ],
                 initComplete: function() {
