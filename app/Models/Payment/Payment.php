@@ -19,7 +19,7 @@ class Payment extends Model
 
     protected $primaryKey = 'prr_id';
 
-    protected $fillable = ['reg_id', 'prr_status','prr_method','prr_total','prr_paid_net','student_number','prr_school_year', 'par_id'];
+    protected $fillable = ['reg_id', 'prr_status','prr_method','prr_total','prr_paid_net','student_number','prr_school_year', 'par_id','prr_dispensation_date'];
 
     public function paymentDetail()
     {

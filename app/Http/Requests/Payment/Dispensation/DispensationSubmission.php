@@ -9,9 +9,11 @@ class DispensationSubmission extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+    public function attributes()
     {
-        return false;
+        return [
+            'prr_dispensation_date' => 'Tanggal Dispensasi',
+        ];
     }
 
     /**
@@ -22,7 +24,8 @@ class DispensationSubmission extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'prr_dispensation_date' => 'required',
+            'msc_id' => 'required',
         ];
     }
 }

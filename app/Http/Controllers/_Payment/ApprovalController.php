@@ -29,7 +29,9 @@ class ApprovalController extends Controller
     
     public function dispensation()
     {
-        return view('pages._payment.approval.dispensation.index');
+        $year = Year::all();
+        $faculty = Faculty::all();
+        return view('pages._payment.approval.dispensation.index', compact('year', 'faculty'));
     }
 
     public function credit()

@@ -156,14 +156,14 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@store');
         Route::post('decline', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@decline');
         Route::get('study-program/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@getProdi');
-        // Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@scholarship');
-        // Route::get('student', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@student');
-        // Route::get('study-program', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@study_program');
-        // Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@period');
-        // Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
-        // Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
 
+    Route::group(['prefix' => 'approval-dispensation'], function(){
+        Route::get('index', 'App\Http\Controllers\_Payment\Api\Approval\DispensationSubmissionController@index');
+        Route::post('store', 'App\Http\Controllers\_Payment\Api\Approval\DispensationSubmissionController@store');
+        Route::post('decline', 'App\Http\Controllers\_Payment\Api\Approval\DispensationSubmissionController@decline');
+        Route::get('study-program/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\DispensationSubmissionController@getProdi');
+    });
 
     Route::group(['prefix' => 'approval'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@index');
