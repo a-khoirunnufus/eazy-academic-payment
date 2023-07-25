@@ -48,6 +48,9 @@ class ApprovalController extends Controller
     {
         $year = Year::all();
         $faculty = Faculty::all();
-        return view('pages._payment.approval.credit.index', compact('year', 'faculty'));
+        
+        $activeYear = $this->getActiveSchoolYear();
+        $yearCode = $this->getActiveSchoolYearCode();
+        return view('pages._payment.approval.credit.index', compact('year', 'faculty','activeYear', 'yearCode'));
     }
 }

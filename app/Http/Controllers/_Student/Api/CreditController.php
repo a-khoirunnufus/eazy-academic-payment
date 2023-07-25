@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Student\CreditSubmission;
 use App\Traits\Authentication\StaticStudentUser;
 use App\Http\Requests\Student\CreditRequest;
+use App\Models\Payment\Payment;
 use DB;
 use Storage;
 
@@ -33,7 +34,10 @@ class CreditController extends Controller
     public function store(CreditRequest $request)
     {
         $validated = $request->validated();
-        
+        $payment = Payment::where('student_number',$validated['student_number'])->where('prr_school_year',$validated['mcs_school_year'])->first();
+        if(!$payment){
+            return json_encode(array('success' => false, 'message' => 'Data tagihan tidak ditemukan'));
+        }
         try{
             DB::beginTransaction();
 

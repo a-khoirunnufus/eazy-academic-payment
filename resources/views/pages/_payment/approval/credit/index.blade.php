@@ -368,7 +368,12 @@
                 initComplete: function() {
                     $('.submission-credit-action').html(`
                         <div style="margin-bottom: 7px">
-                            
+                            <button onclick="_creditSubmissionTableActions.add()" class="btn btn-primary">
+                                <span style="vertical-align: middle">
+                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    Tambah Pengajuan Cicilan
+                                </span>
+                            </button>
                         </div>
                     `)
 
@@ -510,6 +515,96 @@
                     }
                 },
             });
+        },
+        add: function() {
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Pengajuan Cicilan',
+                modalSize: 'lg',
+                config: {
+                    formId: 'form-add-credit-submission',
+                    formActionUrl: _baseURL + '/api/student/credit/store',
+                    formType: 'add',
+                    isTwoColumn: true,
+                    fields: {
+                        name: {
+                            title: 'Nama',
+                            content: {
+                                template:
+                                    `<select class="form-select select2" eazy-select2-active id="studentId" name="student_number">
+                                        <option value="">Pilih Mahasiswa</option>
+                                    </select>`,
+                            },
+                        },
+                        academic: {
+                            title: 'Tahun Akademik',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="academic_year"
+                                        class="form-control" value="{{ $activeYear }}" disabled="disabled"
+                                    >
+                                    <input type="hidden" name="mcs_school_year" value="{{$yearCode}}">`,
+                            },
+                        },
+                        no_telp: {
+                            title: 'No Telepon',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="mcs_phone"
+                                        class="form-control"
+                                    >`,
+                            },
+                        },
+                        email: {
+                            title: 'Email',
+                            content: {
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="mcs_email"
+                                        class="form-control"
+                                    >`,
+                            },
+                        },
+                        proof: {
+                            title: 'Bukti Pendukung (.jpg/.pdf)',
+                            content: {
+                                template:
+                                    `<input
+                                        type="file"
+                                        name="mcs_proof"
+                                        class="form-control"
+                                    >
+                                    `,
+                            },
+                        },
+                        reason: {
+                            title: 'Alasan',
+                            content: {
+                                template:
+                                    `<textarea name="mcs_reason" class="form-control"></textarea>
+                                    `,
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Tambahkan',
+                    callback: function(e) {
+                        _creditSubmissionTable.reload()
+                    },
+                },
+            });
+            $.get(_baseURL + '/api/payment/approval-credit/getStudent', (data) => {
+                JSON.parse(data).map(item => {
+                    $("#studentId").append(`
+                        <option value="` + item['student_number'] + `">` + item['fullname'] + ` - `+item['student_id']+`</option>
+                    `)
+                })
+                selectRefresh();
+            })
         },
         process: function(e) {
             let data = _creditSubmissionTable.getRowData(e);

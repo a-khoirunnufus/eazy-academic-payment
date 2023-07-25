@@ -9,6 +9,7 @@ use App\Http\Requests\Payment\Discount\DiscountSubmission;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Payment;
 use App\Models\Studyprogram;
+use App\Models\Student;
 use DB;
 
 class CreditSubmissionController extends Controller
@@ -112,5 +113,10 @@ class CreditSubmissionController extends Controller
         $study_program = Studyprogram::where('faculty_id', '=', $faculty);
 
         return $study_program->get();
+    }
+    
+    public function getStudent(){
+        $data = Student::all();
+        return $data->toJson();
     }
 }

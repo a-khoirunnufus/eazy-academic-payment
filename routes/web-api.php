@@ -156,6 +156,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@store');
         Route::post('decline', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@decline');
         Route::get('study-program/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@getProdi');
+        Route::get('getStudent', 'App\Http\Controllers\_Payment\Api\Approval\CreditSubmissionController@getStudent');
     });
 
     Route::group(['prefix' => 'approval-dispensation'], function(){
