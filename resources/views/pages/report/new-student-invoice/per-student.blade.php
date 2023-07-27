@@ -241,7 +241,7 @@
                             var payment = row.payment.payment_detail;
                             var totalHarga = 0;
                             for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'beasiswa') {
+                                if (payment[i].type == 'scholarship') {
                                     listData.push({
                                         name: payment[i].prrd_component,
                                         nominal: payment[i].prrd_amount
@@ -259,7 +259,7 @@
                             var payment = row.payment.payment_detail;
                             var totalHarga = 0;
                             for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'potongan') {
+                                if (payment[i].type == 'discount') {
                                     listData.push({
                                         name: payment[i].prrd_component,
                                         nominal: payment[i].prrd_amount

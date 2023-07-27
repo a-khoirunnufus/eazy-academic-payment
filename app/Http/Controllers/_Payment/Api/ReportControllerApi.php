@@ -49,8 +49,16 @@ class ReportControllerApi extends Controller
             $list_studyProgram = $list_studyProgram->distinct()->get();
 
             foreach ($list_studyProgram as $studyProgram) {
-                // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
-                $listStudent = $this->getColomns('ms2.*');
+                $prr_list_student_number = DB::table('finance.payment_re_register as prr')
+                                            ->whereNull('prr.deleted_at')
+                                            ->whereNotNull('prr.student_number')
+                                            ->select('prr.student_number');
+                $list_student_number = array();
+                foreach($prr_list_student_number->get() as $item){
+                    array_push($list_student_number, $item->student_number);
+                }
+
+                $listStudent = $this->getColomns('ms2.*')->whereIn('ms2.student_number', $list_student_number);
                 if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
                     $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
                 }
@@ -60,7 +68,10 @@ class ReportControllerApi extends Controller
                 if ($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL) {
                     $listStudent->where('ms2.period_id', '=', $prodi_period_filter);
                 }
-                $listStudent->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
+                $listStudent
+                    ->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)
+                    ->where('msy.msy_id', '=', $tahun->msy_id)
+                    ->distinct();
 
                 $studyProgram->student = $listStudent->get();
                 $studyProgram->year = $tahun;
@@ -77,6 +88,7 @@ class ReportControllerApi extends Controller
                     foreach ($listPayment as $list_payment) {
                         $listPaymentDetail = $this->getColomns('prrd.*')
                             ->where('prrd.prr_id', '=', $list_payment->prr_id)
+                            ->whereNull('prrd.deleted_at')
                             ->distinct()
                             ->get();
                         $total_prrd_amount = 0;
@@ -88,10 +100,10 @@ class ReportControllerApi extends Controller
                                 case "denda":
                                     $denda += $pd->prrd_amount;
                                     break;
-                                case "beasiswa":
+                                case "scholarship":
                                     $beasiswa += $pd->prrd_amount;
                                     break;
-                                case "potongan":
+                                case "discount":
                                     $potongan += $pd->prrd_amount;
                                     break;
                             }
@@ -192,6 +204,14 @@ class ReportControllerApi extends Controller
 
             foreach ($list_studyProgram as $studyProgram) {
                 // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
+                $prr_list_reg_id = DB::table('finance.payment_re_register as prr')
+                                            ->whereNull('prr.deleted_at')
+                                            ->whereNotNull('prr.reg_id')
+                                            ->select('prr.reg_id');
+                $list_reg_id = array();
+                foreach($prr_list_reg_id->get() as $item){
+                    array_push($list_reg_id, $item->reg_id);
+                }
                 $listStudent = $this->getNew(
                     'p.par_id',
                     'p.par_fullname',
@@ -203,7 +223,7 @@ class ReportControllerApi extends Controller
                     'r.reg_id',
                     'r.ms_period_id',
                     'r.ms_path_id'
-                );
+                )->whereIn('r.reg_id', $list_reg_id);
                 if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
                     $listStudent->where(DB::raw("SUBSTR(TO_CHAR(r.reg_major_pass_date, 'YYYY-MM-DD'), 1, 4)"), '=', $prodi_filter_angkatan);
                 }
@@ -241,10 +261,10 @@ class ReportControllerApi extends Controller
                                 case "denda":
                                     $denda += $pd->prrd_amount;
                                     break;
-                                case "beasiswa":
+                                case "scholarship":
                                     $beasiswa += $pd->prrd_amount;
                                     break;
-                                case "potongan":
+                                case "discount":
                                     $potongan += $pd->prrd_amount;
                                     break;
                             }
