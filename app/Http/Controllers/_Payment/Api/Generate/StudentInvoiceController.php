@@ -315,12 +315,29 @@ class StudentInvoiceController extends Controller
     public function delete($prr_id)
     {
         // Deleting Detail invoice
-        PaymentDetail::where('prr_id', $prr_id)->delete();
-        // Deleting Detail Bill
-        PaymentBill::where('prr_id', $prr_id)->delete();
-        $data = Payment::findorfail($prr_id);
-        $data->delete();
-
+        DB::beginTransaction();
+        try{
+            $detail = PaymentDetail::where('prr_id', $prr_id)->get();
+            if($detail){
+                foreach($detail as $item){
+                    if($item->type == 'discount' or $item->type == 'scholarship'){
+                        return json_encode(array('success' => false, 'message' => "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini."));
+                    }
+                }
+            }
+            // Deleting Detail Bill
+            $data = Payment::findorfail($prr_id);
+            if($data->prr_status == 'kredit'){
+                return json_encode(array('success' => false, 'message' => "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini."));
+            }
+            $data->delete();
+            PaymentDetail::where('prr_id', $prr_id)->delete();
+            PaymentBill::where('prr_id', $prr_id)->delete();
+            DB::commit();
+        }catch(\Exception $e){
+            DB::rollback();
+            return response()->json($e->getMessage());
+        }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
     }
     

@@ -179,7 +179,7 @@
                         orderable: false,
                         render: (data, _, row) => {
                             console.log(row);
-                            return this.template.rowAction(data)
+                            return this.template.rowAction(row)
                         }
                     },
                     {
@@ -402,7 +402,11 @@
             })
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(row) {
+                let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
+                if(row.payment){
+                    action = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
+                }
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
@@ -410,8 +414,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
-                            <a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>
-                            <a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>
+                            ${action}
                         </div>
                     </div>
                 `
@@ -492,7 +495,7 @@
             const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
-                html: `Apakah anda yakin ingin menghapus tagihan mahasiswa ${data.fullname}? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
+                html: `Apakah anda yakin ingin menghapus tagihan mahasiswa ${data.fullname}?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -508,12 +511,19 @@
                             _method: 'DELETE'
                         }, function(data){
                             data = JSON.parse(data)
-                            Swal.fire({
-                                icon: 'success',
-                                text: data.message,
-                            }).then(() => {
-                                _studentInvoiceDetailTable.reload()
-                            });
+                            if(data.success){
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: data.message,
+                                }).then(() => {
+                                    _studentInvoiceDetailTable.reload()
+                                });
+                            }else{
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: data.message,
+                                })
+                            }
                         }).fail((error) => {
                             Swal.fire({
                                 icon: 'error',
