@@ -492,7 +492,7 @@
             const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan mahasiswa ini?',
+                html: `Apakah anda yakin ingin menghapus tagihan mahasiswa ${data.fullname}? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',

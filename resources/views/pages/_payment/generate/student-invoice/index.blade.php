@@ -291,7 +291,7 @@
         delete: function(faculty_id,studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan pada unit ini?',
+                html: `Apakah anda yakin ingin menghapus tagihan pada unit ini? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
