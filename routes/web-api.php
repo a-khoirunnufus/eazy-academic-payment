@@ -220,17 +220,13 @@ Route::group(['prefix' => 'student'], function(){
         Route::post('store', 'App\Http\Controllers\_Student\Api\CreditController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Student\Api\CreditController@delete');
     });
-    
+
     Route::group(['prefix' => 'dispensation'], function(){
         Route::get('index', 'App\Http\Controllers\_Student\Api\DispensationController@index');
         Route::post('store', 'App\Http\Controllers\_Student\Api\DispensationController@store');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Student\Api\DispensationController@delete');
     });
 });
-
-
-// PAYMENT SIMULATOR
-Route::post('payment-simulator/pay', 'App\Http\Controllers\_PaymentSimulator\PaymentSimulatorController@pay');
 
 // DOWNLOAD LOCAL
 Route::get('download', function(Request $request) {
@@ -266,5 +262,5 @@ Route::get('download-cloud', function(Request $request) {
     if (!$path) {
         return response()->json(['error' => 'path params must be defined!'], 400);
     }
-    return \Illuminate\Support\Facades\Storage::disk('minio_read')->download($path);
+    return \Illuminate\Support\Facades\Storage::disk('minio')->download($path);
 });

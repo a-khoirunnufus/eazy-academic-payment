@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Studyprogram;
+use Carbon\Carbon;
 use DB;
 
 class ManualPaymentController extends Controller
@@ -113,6 +114,7 @@ class ManualPaymentController extends Controller
             DB::beginTransaction();
 
             $bill = PaymentBill::find($prrb_id);
+            $bill->prrb_paid_date = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
             $bill->prrb_status = $validated['status'] == 'accepted' ? 'lunas' : 'belum lunas';
             $bill->prrb_manual_status = $validated['status'];
             $bill->prrb_manual_note = $validated['notes'];

@@ -18,6 +18,15 @@ class PaymentService {
         ];
     }
 
+    public function transactionStatus($order_id)
+    {
+        $response = Http::withHeaders($this->req_header)
+            ->post($this->base_url.'/'.$order_id.'/charge')
+            ->object();
+
+        return $response;
+    }
+
     public function chargeTransaction($data)
     {
         $response = Http::withHeaders($this->req_header)
@@ -27,10 +36,10 @@ class PaymentService {
         return $response;
     }
 
-    public function cancelTransaction($data)
+    public function cancelTransaction($order_id)
     {
         $response = Http::withHeaders($this->req_header)
-            ->post($this->base_url.'/cancel', $data)
+            ->post($this->base_url.'/'.$order_id.'/cancel')
             ->object();
 
         return $response;

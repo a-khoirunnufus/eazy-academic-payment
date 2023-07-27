@@ -18,7 +18,7 @@ class MsStudent extends Model
 
     public function user()
     {
-        return $this->belongsTo(MsUser::class, 'user_email', 'user_email');
+        return $this->belongsTo(MsUser::class, 'email', 'user_email');
     }
 
     public function studyprogram(): HasOne
