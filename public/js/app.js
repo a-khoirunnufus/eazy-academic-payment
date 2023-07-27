@@ -721,7 +721,7 @@ class Modal {
             config.modalShow && config.modalShow();
             $('#'+config.formId).on(
                 'submit',
-                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId, config.data),
+                this.makeFormSubmitHandler(config.formId, config.formActionUrl, config.beforeSubmit, config.callback, config.rowId, config.data, config.title, config.textConfirm),
             );
         } else if(type == 'confirmation') {
             html = this.generateModalConfirmationBody(config);
@@ -871,45 +871,59 @@ class Modal {
         return html;
     }
 
-    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null, data = null) {
+    static makeFormSubmitHandler(formId, formActionUrl, beforeSubmit, callback, rowId = null, data = null, title= 'Konfirmasi', textConfirm = 'Apakah anda yakin ingin melakukan aksi ini?') {
         return async (e) => {
             e.preventDefault();
 
             try {
-                if(beforeSubmit) await beforeSubmit();
-                var formData = null;
-                data ? formData = data : formData = new FormData($('#'+formId)[0]);
-                rowId ? formData.append('msc_id', rowId) : "";
 
-                $.ajax({
-                    url: formActionUrl,
-                    type:'post',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType:'json',
-                    success : (data, textStatus, jqXHR) => {
-                        if (data.success == true) {
-                            Swal.fire({
-                                icon: 'success',
-                                text: data.message,
-                            }).then(() => {
-                                this.close();
-                                callback();
-                            });
-                        } else if (data.success == false) {
-                            Swal.fire({
-                                icon: 'error',
-                                text: data.message,
-                            });
-                        } else {
-                            _responseHandler.generalFailResponse(jqXHR);
-                        }
-                    },
-                    error: function(data){
-                        _responseHandler.formFailResponse(data);
-                    },
-                });
+                if(beforeSubmit) await beforeSubmit();
+                Swal.fire({
+                    title: title,
+                    text: textConfirm,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ea5455',
+                    cancelButtonColor: '#82868b',
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var formData = null;
+                        data ? formData = data : formData = new FormData($('#'+formId)[0]);
+                        rowId ? formData.append('msc_id', rowId) : "";
+
+                        $.ajax({
+                            url: formActionUrl,
+                            type:'post',
+                            data: formData,
+                            contentType: false,
+                            processData: false,
+                            dataType:'json',
+                            success : (data, textStatus, jqXHR) => {
+                                if (data.success == true) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        text: data.message,
+                                    }).then(() => {
+                                        this.close();
+                                        callback();
+                                    });
+                                } else if (data.success == false) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        text: data.message,
+                                    });
+                                } else {
+                                    _responseHandler.generalFailResponse(jqXHR);
+                                }
+                            },
+                            error: function(data){
+                                _responseHandler.formFailResponse(data);
+                            },
+                        });
+                    }
+                })
 
             } catch (error) {
                 _responseHandler.generalFailResponse(jqXHR);

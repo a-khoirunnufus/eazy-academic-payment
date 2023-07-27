@@ -541,6 +541,8 @@
                     formType: 'add',
                     data: $("#generateForm").serialize(),
                     isTwoColumn: false,
+                    title: 'Konfirmasi Generate Tagihan',
+                    textConfirm: 'Generate tagihan hanya akan memproses fakultas atau prodi yang sudah memiliki komponen tagihan',
                     fields: {
                         header: {
                             type: 'custom-field',
