@@ -18,7 +18,7 @@ class DiscountReceiver extends Model
 
     protected $primaryKey = 'mdr_id';
 
-    protected $fillable = ['md_id', 'student_number', 'mdr_period','mdr_nominal','mdr_status','mdr_status_generate'];
+    protected $fillable = ['md_id', 'student_number', 'mdr_period','mdr_nominal','mdr_status','mdr_status_generate','prr_id'];
     
     public function discount()
     {

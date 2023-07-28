@@ -5,7 +5,7 @@ namespace App\Http\Controllers\_Payment\API\Approval;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student\CreditSubmission;
-use App\Http\Requests\Payment\Discount\DiscountSubmission;
+use App\Http\Requests\Payment\Credit\CreditSubmission as CreditRequest;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Payment;
 use App\Models\Studyprogram;
@@ -51,7 +51,7 @@ class CreditSubmissionController extends Controller
         return datatables($query)->toJson();
     }
     
-    public function store(DiscountSubmission $request)
+    public function store(CreditRequest $request)
     {
         $validated = $request->validated();
         $total = 0;
@@ -89,7 +89,7 @@ class CreditSubmissionController extends Controller
                 ]);
             }
 
-            $data->update(['mcs_status' => 1]);
+            $data->update(['mcs_status' => 1,'prr_id'=> $data->payment->prr_id,'cs_id'=> $validated['cs_id']]);
             $text = "Berhasil mengupdate pengajuan cicilan";
             
             DB::commit();
