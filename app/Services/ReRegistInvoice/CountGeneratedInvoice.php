@@ -18,18 +18,21 @@ class CountGeneratedInvoice {
             return [
                 'status' => 'not_generated',
                 'text' => 'Belum Digenerate ('.$generated_invoice_count.'/'.$all_registrants.')',
+                'available_for_generate' => $all_registrants - $generated_invoice_count,
             ];
         }
         elseif ($all_registrants != 0 && $generated_invoice_count < $all_registrants) {
             return [
                 'status' => 'partial_generated',
                 'text' => 'Telah Digenerate Sebagian ('.$generated_invoice_count.'/'.$all_registrants.')',
+                'available_for_generate' => $all_registrants - $generated_invoice_count,
             ];
         }
         elseif ($all_registrants != 0 && $generated_invoice_count == $all_registrants) {
             return [
                 'status' => 'done_generated',
                 'text' => 'Telah Digenerate ('.$generated_invoice_count.'/'.$all_registrants.')',
+                'available_for_generate' => $all_registrants - $generated_invoice_count,
             ];
         }
     }

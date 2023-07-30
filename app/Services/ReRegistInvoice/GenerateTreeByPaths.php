@@ -5,7 +5,7 @@ namespace App\Services\ReRegistInvoice;
 class GenerateTreeByPaths {
 
     private $paths;
-    private $id = 0;
+    private $id = 1;
 
     public function __construct($paths)
     {

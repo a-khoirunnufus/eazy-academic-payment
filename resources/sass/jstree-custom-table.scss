@@ -75,11 +75,11 @@
     white-space: break-spaces;
     line-height: 1.3rem;
 }
-.jstree-node[aria-level="1"] > .jstree-anchor > .text { width: 619px }
-.jstree-node[aria-level="2"] > .jstree-anchor > .text { width: 595px }
-.jstree-node[aria-level="3"] > .jstree-anchor > .text { width: 571px }
-.jstree-node[aria-level="4"] > .jstree-anchor > .text { width: 547px }
-.jstree-node[aria-level="5"] > .jstree-anchor > .text { width: 523px }
+.jstree-node[aria-level="1"] > .jstree-anchor > .text { width: calc(619px - 80px) }
+.jstree-node[aria-level="2"] > .jstree-anchor > .text { width: calc(595px - 80px) }
+.jstree-node[aria-level="3"] > .jstree-anchor > .text { width: calc(571px - 80px) }
+.jstree-node[aria-level="4"] > .jstree-anchor > .text { width: calc(547px - 80px) }
+.jstree-node[aria-level="5"] > .jstree-anchor > .text { width: calc(523px - 80px) }
 
 // .jstree-default .jstree-disabled.jstree-clicked,
 // .jstree-default.jstree-checkbox-no-clicked .jstree-clicked.jstree-hovered {
