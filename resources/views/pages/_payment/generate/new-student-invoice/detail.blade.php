@@ -7,8 +7,8 @@
 
 @section('css_section')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-    @vite(['resources/sass/jstree-custom-table.scss'])
-    <!-- <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" /> -->
+    <!-- @vite(['resources/sass/jstree-custom-table.scss']) -->
+    <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
 
     <style>
         .eazy-table-wrapper {
