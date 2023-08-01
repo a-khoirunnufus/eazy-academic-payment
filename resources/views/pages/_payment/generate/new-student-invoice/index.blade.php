@@ -6,7 +6,6 @@
 
 @section('css_section')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-    <!-- @vite(['resources/sass/jstree-custom-table.scss']) -->
     <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
 @endsection
 
@@ -328,6 +327,7 @@
                 console.log('binding event handler');
                 $(this.selector).on("loaded.jstree", () => { console.log('tree is loaded'); this.appendColumn(this.selector) });
                 $(this.selector).on("ready.jstree", () => { console.log('tree is ready'); this.appendColumn(this.selector) });
+                $(this.selector).on("refresh.jstree", () => { console.log('tree is refreshed'); this.appendColumn(this.selector) });
                 $(this.selector).on("before_open.jstree", () => { console.log('tree is before open'); this.appendColumn(this.selector) });
                 $(this.selector).on("check_all.jstree", () => { console.log('tree is check all'); this.appendColumn(this.selector) });
                 $(this.selector).on("uncheck_all.jstree", () => { console.log('tree is uncheck all');this.appendColumn(this.selector) });
