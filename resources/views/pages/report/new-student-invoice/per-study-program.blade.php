@@ -128,13 +128,6 @@
 
 @section('js_section')
 <script>
-    var total_tagihan = 0;
-    var total_denda = 0;
-    var total_beasiswa = 0;
-    var total_potongan = 0;
-    var total_terbayar = 0;
-    var total_harus_bayar = 0;
-    var total_piutang = 0;
     var all_total_tagihan = 0;
     var all_total_denda = 0;
     var all_total_beasiswa = 0;
@@ -142,9 +135,6 @@
     var all_total_terbayar = 0;
     var all_total_harus_bayar = 0;
     var all_total_piutang = 0;
-    var total_mahasiswa = 0;
-    var total_mahasiswa_lunas = 0;
-    var total_mahasiswa_belum_lunas = 0;
 
     var dt;
     var dataPrint = [];
@@ -210,16 +200,16 @@
                     {
                         name: 'student',
                         render: (data, _, row) => {
-                            total_tagihan = 0;
-                            total_denda = 0;
-                            total_beasiswa = 0;
-                            total_potongan = 0;
-                            total_terbayar = 0;
-                            total_harus_bayar = 0;
-                            total_piutang = 0;
-                            total_mahasiswa = 0;
-                            total_mahasiswa_lunas = 0;
-                            total_mahasiswa_belum_lunas = 0;
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
 
                             total_mahasiswa = row.student.length;
                             for (var i = 0; i < row.student.length; i++) {
@@ -272,30 +262,165 @@
                     {
                         name: 'invoice_a',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_tagihan);
                         }
                     },
                     {
                         name: 'invoice_b',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_denda);
                         }
                     },
                     {
                         name: 'invoice_c',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_beasiswa);
                         }
                     },
                     {
                         name: 'invoice_d',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_potongan);
                         }
                     },
                     {
                         name: 'invoice_total',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_harus_bayar, {
                                 bold: true
                             });
@@ -304,6 +429,33 @@
                     {
                         name: 'paid_off_total',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_terbayar, {
                                 bold: true
                             });
@@ -312,6 +464,33 @@
                     {
                         name: 'receivables_total',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return this.template.currencyCell(total_piutang, {
                                 bold: true
                             });
@@ -330,48 +509,291 @@
                     {
                         name: 'total_mahasiswa_lunas_export',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_mahasiswa_lunas
                         }
                     },
                     {
                         name: 'total_mahasiswa_belum_lunas_export',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_mahasiswa_belum_lunas
                         }
                     },
                     {
                         name: 'total_tagihan_export',
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_tagihan
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_denda
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_beasiswa
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_potongan
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_harus_bayar
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_terbayar
                         }
                     },
                     {
                         render: (data, _, row) => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
                             return total_piutang
                         }
                     },

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\_Payment\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\Payment\Payment;
+use App\Models\PMB\Register;
 use App\Models\Studyprogram;
 use App\Models\Year;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -913,6 +915,29 @@ class ReportControllerApi extends Controller
         return DataTables($data)->toJson();
     }
 
+    function studentRegistrant(Request $request){
+        $data = Register::with('participant', 'studyprogram', 'lectureType', 'period', 'path' ,'payment', 'year');
+        
+        if($request->get('angkatan', '#ALL') !== '#ALL'){
+            $data = $data->whereHas('year', function($q) use($request) {
+                $q->where('msy_id', '=', $request->get('angkatan'));
+            });
+        }
+
+        if($request->get('path', '#ALL') !== '#ALL'){
+            $data = $data->whereHas('path', function($q) use($request) {
+                $q->where('path_id', '=', $request->get('path'));
+            });
+        }
+
+        if($request->get('period', '#ALL') !== '#ALL'){
+            $data = $data->whereHas('period', function($q) use($request){
+                $q->where('period_id', '=', $request->get('period'));
+            });
+        }
+
+        return DataTables($data->get())->toJson();
+    }
     function getColomns()
     {
         $list_colomns = func_get_args();

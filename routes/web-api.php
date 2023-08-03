@@ -185,6 +185,9 @@ Route::group(['prefix' => 'report'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudent');
         Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudentHistory');
     });
+    Route::group(['prefix' => 'registrant-invoice'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentRegistrant');
+    });
     Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@getProdi');
 });
 

@@ -68,4 +68,11 @@ class ReportController extends Controller
         $jalur = Path::all();
         return view('pages.report.new-student-receivables.per-student', compact('programStudy','angkatan', 'periode', 'jalur'));
     }
+
+    function registrantInvoice(){
+        $angkatan = Year::all();
+        $periode = Period::all();
+        $jalur = Path::all();
+        return view('pages.report.registrant-invoice', compact('angkatan', 'periode', 'jalur'));
+    }
 }
