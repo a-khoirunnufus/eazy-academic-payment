@@ -47,6 +47,7 @@
                 <th>Frekuensi Pembayaran</th>
                 <th>Persentase Cicilan</th>
                 <th class="text-center">Status Validitas</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -224,6 +225,16 @@
                             return this.template.badgeCell(
                                 data == 'yes' ? 'Valid' :  'Tidak Valid',
                                 data == 'yes' ? 'success' : 'danger',
+                            );
+                        }
+                    },
+                    {
+                        name: 'cs_valid',
+                        data: 'cs_status',
+                        render: (data) => {
+                            return this.template.badgeCell(
+                                data == 1 ? 'Aktif' :  'Tidak Aktf',
+                                data == 1 ? 'success' : 'danger',
                             );
                         }
                     },
