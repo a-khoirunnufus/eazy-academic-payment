@@ -63,8 +63,8 @@
                     <div style="width: 1185px; margin: 0 auto;">
                         <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
                             <div style="width: 80px"></div>
-                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 619px">Scope</div>
-                            <div class="fw-bolder text-uppercase" style="width: 200px">Status Generate</div>
+                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 539px">Scope</div>
+                            <div class="fw-bolder text-uppercase" style="width: 280px">Status Generate</div>
                             <div class="fw-bolder text-uppercase" style="width: 284px">Status Komponen Tagihan</div>
                         </div>
                         <div id="tree-generate-invoice"></div>
@@ -84,12 +84,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
 <script>
-    const defaultPeriodCode = "{{ $current_period_code }}";
+    let selectedPeriod = "{{ $current_period_code }}";
 
     $(function(){
         _newStudentInvoiceTable.init();
 
         $('#select-invoice-period').change(function() {
+            selectedPeriod = $(this).val();
             _newStudentInvoiceTable.reload();
         });
     })
@@ -320,33 +321,46 @@
         openModal: function() {
             $('#generateInvoiceModal #info-invoice-period').text($("#select-invoice-period option:selected" ).text());
             this.initTree();
-            $(this.selector).on("loaded.jstree", () => { this.appendColumn(this.selector) });
-            $(this.selector).on("before_open.jstree", () => { this.appendColumn(this.selector) });
+
+            // if tree is not yet initilized
+            if (!$(this.selector).jstree(true)) {
+                console.log('binding event handler');
+                $(this.selector).on("loaded.jstree", () => { console.log('tree is loaded'); this.appendColumn(this.selector) });
+                $(this.selector).on("ready.jstree", () => { console.log('tree is ready'); this.appendColumn(this.selector) });
+                $(this.selector).on("refresh.jstree", () => { console.log('tree is refreshed'); this.appendColumn(this.selector) });
+                $(this.selector).on("before_open.jstree", () => { console.log('tree is before open'); this.appendColumn(this.selector) });
+                $(this.selector).on("check_all.jstree", () => { console.log('tree is check all'); this.appendColumn(this.selector) });
+                $(this.selector).on("uncheck_all.jstree", () => { console.log('tree is uncheck all');this.appendColumn(this.selector) });
+            }
+
             GenerateInvoiceModal.show();
         },
         initTree: async function() {
             const {data} = await $.ajax({
                 async: true,
-                url: _baseURL+'/api/payment/generate/new-student-invoice/get-tree-generate-all?invoice_period_code='+$('#select-invoice-period').val(),
+                url: _baseURL+'/api/payment/generate/new-student-invoice/get-tree-generate-university?invoice_period_code='+$('#select-invoice-period').val(),
                 type: 'get',
             });
 
-            if ($(this.selector).jstree(true)) {
-                $(this.selector).jstree(true).destroy();
+            if ($(TreeGenerate.selector).jstree(true)) {
+                console.log('update tree with new data');
+                $(TreeGenerate.selector).jstree(true).settings.core.data = data.tree;
+                $(TreeGenerate.selector).jstree(true).refresh();
+            } else {
+                console.log('initializing tree');
+                $(TreeGenerate.selector).jstree({
+                    'core' : {
+                        'data' : data.tree,
+                        "themes":{
+                            "icons":false
+                        }
+                    },
+                    "checkbox" : {
+                        "keep_selected_style" : false
+                    },
+                    "plugins" : [ "checkbox", "wholerow" ],
+                });
             }
-
-            $(this.selector).jstree({
-                'core' : {
-                    'data' : data.tree,
-                    "themes":{
-                        "icons":false
-                    }
-                },
-                "checkbox" : {
-                    "keep_selected_style" : false
-                },
-                "plugins" : [ "checkbox", "wholerow" ],
-            });
         },
         appendColumn: function(selector) {
             $(selector+' .jstree-anchor').each(function() {
@@ -358,10 +372,28 @@
                     $(this).append(children.get(0));
                     $(this).append(children.get(1));
                     $(this).append(`<div class="text"><span>${node.text}</span></div>`);
-                    $(this).append(`<div style="display: flex; justify-content: flex-end;">
-                        <div style="width: 200px">${node.data.status_generated.text}</div>
-                        <div style="width: 280px">${node.data.status_invoice_component == 'defined' ? 'Komponen Tagihan Belum Diset!' : ''}</div>
-                    </div>`);
+                    $(this).append(`
+                        <div style="display: flex; justify-content: flex-end;">
+                            <div style="width: 280px">${
+                                node.data.status_generated.status == 'not_generated' ? `
+                                    <span class="badge bg-danger">${node.data.status_generated.text}</span>
+                                ` : node.data.status_generated.status == 'partial_generated' ? `
+                                        <span class="badge bg-warning">${node.data.status_generated.text}</span>
+                                    ` : node.data.status_generated.status == 'done_generated' ? `
+                                            <span class="badge bg-success">${node.data.status_generated.text}</span>
+                                        ` : '-'
+                            }</div>
+                            <div style="width: 280px">${
+                                node.data.status_invoice_component == 'not_defined' ?
+                                    `<span class="badge bg-danger">Komponen Tagihan Belum Diset!</span>`
+                                    : node.data.status_invoice_component == 'partially_defined' ?
+                                        `<span class="badge bg-warning">Komponen Tagihan Diset Sebagian</span>`
+                                        : node.data.status_invoice_component == 'defined' ?
+                                            `<span class="badge bg-success">Komponen Tagihan Telah Diset</span>`
+                                            : ''
+                            }</div>
+                        </div>
+                    `);
                 }
             });
         },
@@ -381,10 +413,15 @@
     const GenerateInvoiceAction = {
         getPaths: () => {
             const treeApi = $(TreeGenerate.selector).jstree(true);
+
             // get selected nodes
-            const selected = treeApi.get_selected();
+            let selected = treeApi.get_selected(true);
+            selected = selected.filter((node) => node.state.disabled == false)
+                .map((checked) => checked.id);
+
             // foreach selected node, select only leaf node
             const leafs = selected.filter(nodeId => treeApi.is_leaf(nodeId));
+
             // foreach leaf, get path
             const paths = leafs.map(nodeId => {
                 return {
@@ -392,6 +429,7 @@
                     pathString: treeApi.get_path(nodeId, '/', true),
                 };
             });
+
             return paths;
         },
         getOptimizedPaths: (paths) => {
@@ -404,7 +442,7 @@
             const leafsParents = [];
             paths.forEach(path => {
                 const pathArr = path.pathString.split('/');
-                const leafParentId = pathArr[pathArr.length-2];
+                const leafParentId = pathArr[0];
                 if (!leafsParents.includes(leafParentId)) {
                     leafsParents.push(leafParentId);
                 }
@@ -421,7 +459,7 @@
             const leafsParentsExt = leafsParents.map(id => {
                 const filteredPaths = paths.filter(path => {
                     const pathArr = path.pathString.split('/');
-                    const leafParentId = pathArr[pathArr.length-2];
+                    const leafParentId = pathArr[0];
                     return leafParentId == id
                 });
                 const childrenCount = treeApi.get_node(id).children.length;
@@ -457,13 +495,15 @@
             return optimizedPaths.map(path => {
                 const pathArr = path.pathString.split('/');
                 let scope = 'n/a';
-                if(pathArr.length == 1) scope = 'faculty';
-                if(pathArr.length == 2) scope = 'studyprogram';
+                if(pathArr.length == 1) scope = 'university';
+                if(pathArr.length == 2) scope = 'faculty';
+                if(pathArr.length == 3) scope = 'studyprogram';
                 return {
                     ...path,
                     scope,
-                    faculty_id: treeApi.get_node(pathArr[0]).data.obj_id,
-                    studyprogram_id: treeApi.get_node(pathArr[1]).data?.obj_id,
+                    university_id: treeApi.get_node(pathArr[0]).data?.obj_id,
+                    faculty_id: treeApi.get_node(pathArr[1]).data?.obj_id,
+                    studyprogram_id: treeApi.get_node(pathArr[2]).data?.obj_id,
                 };
             });
         },
@@ -491,10 +531,13 @@
             const generateData = processScope.map(item => {
                 return {
                     scope: item.scope,
+                    university_id: item.university_id,
                     faculty_id: item.faculty_id,
                     studyprogram_id: item.studyprogram_id,
                 }
             });
+
+            // console.log(generateData); return;
 
             $.ajax({
                 url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scopes',

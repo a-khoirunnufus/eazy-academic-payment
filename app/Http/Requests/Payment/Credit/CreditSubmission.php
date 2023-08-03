@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Payment\Discount;
+namespace App\Http\Requests\Payment\Credit;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DiscountSubmission extends FormRequest
+class CreditSubmission extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,6 +15,7 @@ class DiscountSubmission extends FormRequest
             'cse_amount' => 'Nominal',
             'cse_deadline' => 'Deadline',
             'cse_order' => 'Order',
+            'cs_id' => 'Skema Kredit',
         ];
     }
 
@@ -30,6 +31,7 @@ class DiscountSubmission extends FormRequest
             'cse_deadline' => 'required',
             'cse_order' => 'required',
             'msc_id' => 'required',
+            'cs_id' => 'required',
         ];
     }
 }

@@ -55,7 +55,7 @@ class ScholarshipGenerateController extends Controller
                 'prr_paid_net' => $payment->prr_paid_net-$data->msr_nominal,
             ]);
 
-            $data->update(['msr_status_generate' => 1]);
+            $data->update(['msr_status_generate' => 1,'prr_id'=> $payment->prr_id]);
 
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();

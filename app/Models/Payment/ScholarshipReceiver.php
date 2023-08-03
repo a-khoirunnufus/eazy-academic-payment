@@ -18,7 +18,7 @@ class ScholarshipReceiver extends Model
 
     protected $primaryKey = 'msr_id';
 
-    protected $fillable = ['ms_id', 'student_number', 'msr_period','msr_nominal','msr_status','msr_status_generate'];
+    protected $fillable = ['ms_id', 'student_number', 'msr_period','msr_nominal','msr_status','msr_status_generate','prr_id'];
     
     public function scholarship()
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\_Payment\Api\Generate;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Masterdata\MsInstitution as Institution;
@@ -17,6 +18,7 @@ use App\Models\PMB\Register;
 use App\Models\PMB\Setting;
 use App\Exceptions\GenerateInvoiceException;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
+use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\UniversityScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\FacultyScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\StudyprogramScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\PathScope;
@@ -318,7 +320,10 @@ class NewStudentInvoiceController extends Controller
         foreach($validated['generate_data'] as $data) {
             $scopeObj = null;
 
-            if ($data['scope'] == 'faculty') {
+            if ($data['scope'] == 'university') {
+                $scopeObj = new UniversityScope();
+            }
+            elseif ($data['scope'] == 'faculty') {
                 $scopeObj = new FacultyScope($data['faculty_id']);
             }
             elseif ($data['scope'] == 'studyprogram') {
@@ -446,7 +451,7 @@ class NewStudentInvoiceController extends Controller
         ], 200);
     }
 
-    public function getTreeGenerateAll(Request $request)
+    public function getTreeGenerateUniversity(Request $request)
     {
         $validated = $request->validate([
             'invoice_period_code' => 'required',
@@ -476,7 +481,9 @@ class NewStudentInvoiceController extends Controller
             ->get()
             ->toArray();
 
-        $tree = (new GenerateTreeComplete($paths, $registrants))->generate();
+        // Log::debug([$paths, $registrants]);
+
+        $tree = (new GenerateTreeComplete($paths, $registrants))->generateByUniversity();
 
         return response()->json([
             'success' => true,

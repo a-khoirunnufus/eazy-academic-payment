@@ -20,6 +20,8 @@ class GenerateTreeComplete {
     {
         $raw_tree = (new GenerateTreeByPaths($this->paths))->generate();
 
+        // Log::debug($raw_tree);
+
         $tree = array();
 
         foreach ($raw_tree as $faculty) {
@@ -92,7 +94,10 @@ class GenerateTreeComplete {
                                 'status_invoice_component' => $new_lecture_type_item_status_invoice_component,
                             ];
                             $new_lecture_type_item['state'] = [
-                                'disabled' => $new_lecture_type_item_status_generated['status'] == 'done_generated' ? true : false,
+                                'disabled' =>
+                                    $new_lecture_type_item_status_generated['status'] == 'done_generated'
+                                    || $new_lecture_type_item_status_invoice_component == 'not_defined'
+                                        ? true : false,
                             ];
                             $new_period_item_children[] = $new_lecture_type_item;
                         }
@@ -149,7 +154,145 @@ class GenerateTreeComplete {
             $tree[] = $new_faculty_item;
         }
 
-        return $tree;
+        // insert university as parent
+        $new_tree = [
+            'id' => 1,
+            'name' => 'university_1',
+            'text' => 'Universitas Telkom',
+            'data' => [
+                'obj_type' => 'university',
+                'obj_id' => '1',
+                'status_generated' => CountGeneratedInvoice::count($this->registrants),
+                'status_component' => null,
+            ],
+            'state' => [
+                'disabled' => false,
+            ],
+            'children' => $tree,
+        ];
+
+        return $new_tree;
+    }
+
+    public function generateByUniversity()
+    {
+        $raw_tree = (new GenerateTreeByPaths($this->paths))->generate();
+
+        $tree = array();
+        $faculty_invoice_component_not_defined_count = 0;
+        $faculty_invoice_component_partially_defined_count = 0;
+        $available_generate_university = 0;
+
+        foreach ($raw_tree as $faculty) {
+            $faculty_id = $faculty['data']['obj_id'];
+            $filtered_by_faculty = array_values(array_filter($this->registrants, function($item) use($faculty_id) {
+                return $item->faculty_id == $faculty_id;
+            }));
+
+            $new_faculty_item = $faculty;
+            $new_faculty_item['children'] = [];
+            $new_faculty_item_children = array();
+            $available_generate_faculty = 0;
+            $studyprogram_invoice_component_not_defined_count = 0;
+
+            foreach ($faculty['children'] as $studyprogram) {
+                $studyprogram_id = $studyprogram['data']['obj_id'];
+                $filtered_by_studyprogram = array_values(array_filter($filtered_by_faculty, function($item) use($studyprogram_id) {
+                    return $item->studyprogram_id == $studyprogram_id;
+                }));
+
+                $new_studyprogram_item = $studyprogram;
+                $new_studyprogram_item['children'] = [];
+                $new_studyprogram_item['text'] = 'Program Studi: '.strtoupper($filtered_by_studyprogram[0]->studyprogram_type).' '.$filtered_by_studyprogram[0]->studyprogram_name;
+                $new_studyprogram_item_status_generated = CountGeneratedInvoice::count($filtered_by_studyprogram);
+                $new_studyprogram_item_status_invoice_component = ComponentDetail::where([
+                        ['period_id', '=', $filtered_by_studyprogram[0]->registration_period_id],
+                        ['path_id', '=', $filtered_by_studyprogram[0]->registration_path_id],
+                        ['mma_id', '=', $filtered_by_studyprogram[0]->studyprogram_id],
+                    ])->get()->count() > 0 ? 'defined' : 'not_defined';
+                $new_studyprogram_item['data'] = [
+                    ...$new_studyprogram_item['data'],
+                    'status_generated' => $new_studyprogram_item_status_generated,
+                    'status_invoice_component' => $new_studyprogram_item_status_invoice_component,
+                ];
+                $new_studyprogram_item['state'] = [
+                    'disabled' => $new_studyprogram_item_status_generated['status'] == 'done_generated'
+                        || $new_studyprogram_item_status_invoice_component == 'not_defined'
+                            ? true : false,
+                ];
+                $new_faculty_item_children[] = $new_studyprogram_item;
+
+                if ($new_studyprogram_item_status_generated['status'] == 'not_generated') {
+                    $available_generate_faculty += $new_studyprogram_item_status_generated['available_for_generate'];
+                }
+                if ($new_studyprogram_item_status_invoice_component == 'not_defined') {
+                    $studyprogram_invoice_component_not_defined_count++;
+                    $available_generate_faculty -= $new_studyprogram_item_status_generated['available_for_generate'];
+                }
+            }
+
+            $new_faculty_item['text'] = 'Fakultas: '.$filtered_by_faculty[0]->faculty_name;
+            $new_faculty_item_status_generated = CountGeneratedInvoice::count($filtered_by_faculty);
+            $new_faculty_item_status_invoice_component =
+                $studyprogram_invoice_component_not_defined_count <= 0 ? 'defined'
+                    : (count($new_faculty_item_children) > $studyprogram_invoice_component_not_defined_count ? 'partially_defined'
+                        : 'not_defined');
+            $new_faculty_item['data'] = [
+                ...$new_faculty_item['data'],
+                'status_generated' => $new_faculty_item_status_generated,
+                'status_invoice_component' => $new_faculty_item_status_invoice_component,
+            ];
+            $new_faculty_item['state'] = [
+                'disabled' => $new_faculty_item_status_generated['status'] == 'done_generated'
+                    || $available_generate_faculty <= 0
+                    || $new_faculty_item_status_invoice_component == 'not_defined'
+                        ? true : false,
+            ];
+            $new_faculty_item['children'] = $new_faculty_item_children;
+            $tree[] = $new_faculty_item;
+
+            if ($new_faculty_item_status_generated['status'] == 'not_generated') {
+                $available_generate_university += $new_faculty_item_status_generated['available_for_generate'];
+                Log::debug(['Universitas Telkom PLUS', $filtered_by_faculty[0]->faculty_name, $available_generate_university]);
+            }
+            if ($new_faculty_item_status_invoice_component == 'not_defined') {
+                $faculty_invoice_component_not_defined_count++;
+                $available_generate_university -= $new_faculty_item_status_generated['available_for_generate'];
+                Log::debug(['Universitas Telkom MINUS', $filtered_by_faculty[0]->faculty_name, $available_generate_university]);
+            }
+            if ($new_faculty_item_status_invoice_component == 'partially_defined') {
+                $faculty_invoice_component_partially_defined_count++;
+            }
+        }
+
+
+        // insert university as parent
+        $new_university_item_status_generated = CountGeneratedInvoice::count($this->registrants);
+        $new_university_item_status_invoice_component =
+            $faculty_invoice_component_not_defined_count == 0 ? 'defined'
+                : ($faculty_invoice_component_not_defined_count > 0 && count($tree) > $faculty_invoice_component_not_defined_count ? 'partially_defined'
+                    : 'not_defined');
+
+        $new_tree = [
+            'id' => 1,
+            'name' => 'university_1',
+            'text' => 'Universitas Telkom',
+            'data' => [
+                'obj_type' => 'university',
+                'obj_id' => '1',
+                'status_generated' => $new_university_item_status_generated,
+                'status_invoice_component' => $new_university_item_status_invoice_component,
+            ],
+            'state' => [
+                'disabled' => $new_university_item_status_generated['status'] == 'done_generated'
+                    || $available_generate_university <= 0
+                    || $new_university_item_status_invoice_component == 'not_defined'
+                        ? true : false,
+            ],
+            'children' => $tree,
+        ];
+
+        return $new_tree;
     }
 
     public function generateByFaculty()
@@ -167,6 +310,7 @@ class GenerateTreeComplete {
             $new_studyprogram_item = $studyprogram;
             $new_studyprogram_item['children'] = [];
             $new_studyprogram_item_children = array();
+            $path_invoice_component_not_defined_count = 0;
 
             foreach ($studyprogram['children'] as $path_idx => $path) {
                 $path_id = $path['data']['obj_id'];
@@ -177,6 +321,7 @@ class GenerateTreeComplete {
                 $new_path_item = $path;
                 $new_path_item['children'] = [];
                 $new_path_item_children = array();
+                $period_invoice_component_not_defined_count = 0;
 
                 foreach ($path['children'] as $period_idx => $period) {
                     $period_id = $period['data']['obj_id'];
@@ -187,6 +332,7 @@ class GenerateTreeComplete {
                     $new_period_item = $period;
                     $new_period_item['children'] = [];
                     $new_period_item_children = array();
+                    $lecture_type_invoice_component_not_defined_count = 0;
 
                     foreach ($period['children'] as $lecture_type_idx => $lecture_type) {
                         $lecture_type_id = $lecture_type['data']['obj_id'];
@@ -210,45 +356,74 @@ class GenerateTreeComplete {
                             'status_invoice_component' => $new_lecture_type_item_status_invoice_component,
                         ];
                         $new_lecture_type_item['state'] = [
-                            'disabled' => $new_lecture_type_item_status_generated['status'] == 'done_generated' ? true : false,
+                            'disabled' => $new_lecture_type_item_status_generated['status'] == 'done_generated'
+                                            || $new_lecture_type_item_status_invoice_component == 'not_defined'
+                                                ? true : false,
                         ];
                         $new_period_item_children[] = $new_lecture_type_item;
+                        if ($new_lecture_type_item_status_invoice_component == 'not_defined') {
+                            $lecture_type_invoice_component_not_defined_count++;
+                        }
                     }
 
                     $new_period_item['text'] = 'Periode: '.$filtered_by_period[0]->registration_period_name;
                     $new_period_item_status_generated = CountGeneratedInvoice::count($filtered_by_period);
+                    $new_period_item_status_invoice_component =
+                        count($new_period_item_children) == $lecture_type_invoice_component_not_defined_count
+                        ? 'not_defined' : 'defined';
                     $new_period_item['data'] = [
                         ...$new_period_item['data'],
                         'status_generated' => $new_period_item_status_generated,
+                        'status_invoice_component' => $new_period_item_status_invoice_component,
                     ];
                     $new_period_item['state'] = [
-                        'disabled' => $new_period_item_status_generated['status'] == 'done_generated' ? true : false,
+                        'disabled' => $new_period_item_status_generated['status'] == 'done_generated'
+                            || $new_period_item_status_invoice_component == 'not_defined'
+                                ? true : false,
                     ];
                     $new_period_item['children'] = $new_period_item_children;
                     $new_path_item_children[] = $new_period_item;
+                    if ($new_period_item_status_invoice_component == 'not_defined') {
+                        $period_invoice_component_not_defined_count++;
+                    }
                 }
 
                 $new_path_item['text'] = 'Jalur: '.$filtered_by_path[0]->registration_path_name;
                 $new_path_item_status_generated = CountGeneratedInvoice::count($filtered_by_path);
+                $new_path_item_status_invoice_component =
+                    count($new_path_item_children) == $period_invoice_component_not_defined_count
+                    ? 'not_defined' : 'defined';
                 $new_path_item['data'] = [
                     ...$new_path_item['data'],
                     'status_generated' => $new_path_item_status_generated,
+                    'status_invoice_component' => $new_path_item_status_invoice_component,
                 ];
                 $new_path_item['state'] = [
-                    'disabled' => $new_path_item_status_generated['status'] == 'done_generated' ? true : false,
+                    'disabled' => $new_path_item_status_generated['status'] == 'done_generated'
+                                    || $new_path_item_status_invoice_component == 'not_defined'
+                                        ? true : false,
                 ];
                 $new_path_item['children'] = $new_path_item_children;
                 $new_studyprogram_item_children[] = $new_path_item;
+                if ($new_path_item_status_invoice_component == 'not_defined') {
+                    $path_invoice_component_not_defined_count++;
+                }
             }
 
             $new_studyprogram_item['text'] = 'Program Studi: '.strtoupper($filtered_by_studyprogram[0]->studyprogram_type).' '.$filtered_by_studyprogram[0]->studyprogram_name;
             $new_studyprogram_item_status_generated = CountGeneratedInvoice::count($filtered_by_studyprogram);
+            $new_studyprogram_item_status_invoice_component =
+                count($new_studyprogram_item_children) == $path_invoice_component_not_defined_count
+                ? 'not_defined' : 'defined';
             $new_studyprogram_item['data'] = [
                 ...$new_studyprogram_item['data'],
                 'status_generated' => $new_studyprogram_item_status_generated,
+                'status_invoice_component' => $new_studyprogram_item_status_invoice_component,
             ];
             $new_studyprogram_item['state'] = [
-                'disabled' => $new_studyprogram_item_status_generated['status'] == 'done_generated' ? true : false,
+                'disabled' => $new_studyprogram_item_status_generated['status'] == 'done_generated'
+                                || $new_studyprogram_item_status_invoice_component == 'not_defined'
+                                    ? true : false,
             ];
             $new_studyprogram_item['children'] = $new_studyprogram_item_children;
             $tree[] = $new_studyprogram_item;
@@ -272,6 +447,7 @@ class GenerateTreeComplete {
             $new_path_item = $path;
             $new_path_item['children'] = [];
             $new_path_item_children = array();
+            $period_invoice_component_not_defined_count = 0;
 
             foreach ($path['children'] as $period_idx => $period) {
                 $period_id = $period['data']['obj_id'];
@@ -282,6 +458,7 @@ class GenerateTreeComplete {
                 $new_period_item = $period;
                 $new_period_item['children'] = [];
                 $new_period_item_children = array();
+                $lecture_type_invoice_component_not_defined_count = 0;
 
                 foreach ($period['children'] as $lecture_type_idx => $lecture_type) {
                     $lecture_type_id = $lecture_type['data']['obj_id'];
@@ -293,45 +470,64 @@ class GenerateTreeComplete {
                     $new_lecture_type_item['children'] = [];
                     $new_lecture_type_item['text'] = 'Jenis Perkuliahan: '.$filtered_by_lecture_type[0]->lecture_type_name;
                     $new_lecture_type_item_status_generated = CountGeneratedInvoice::count($filtered_by_lecture_type);
-                    $component_details = ComponentDetail::where([
+                    $new_lecture_type_item_status_invoice_component = ComponentDetail::where([
                             ['mlt_id', '=', $lecture_type_id],
                             ['period_id', '=', $period_id],
                             ['path_id', '=', $path_id],
-                            ['mma_id', '=', $filtered_by_lecture_type[0]->studyprogram_id]
-                        ])->get();
-                    $new_lecture_type_item_status_invoice_component = count($component_details) > 0 ? 'defined' : 'not_defined';
+                            ['mma_id', '=', $filtered_by_lecture_type[0]->studyprogram_id],
+                        ])->get()->count() > 0 ? 'defined' : 'not_defined';
                     $new_lecture_type_item['data'] = [
                         ...$new_lecture_type_item['data'],
                         'status_generated' => $new_lecture_type_item_status_generated,
                         'status_invoice_component' => $new_lecture_type_item_status_invoice_component,
                     ];
                     $new_lecture_type_item['state'] = [
-                        'disabled' => $new_lecture_type_item_status_generated['status'] == 'done_generated' ? true : false,
+                        'disabled' => $new_lecture_type_item_status_generated['status'] == 'done_generated'
+                                        || $new_lecture_type_item_status_invoice_component == 'not_defined'
+                                            ? true : false,
                     ];
                     $new_period_item_children[] = $new_lecture_type_item;
+                    if ($new_lecture_type_item_status_invoice_component == 'not_defined') {
+                        $lecture_type_invoice_component_not_defined_count++;
+                    }
                 }
 
                 $new_period_item['text'] = 'Periode: '.$filtered_by_period[0]->registration_period_name;
                 $new_period_item_status_generated = CountGeneratedInvoice::count($filtered_by_period);
+                $new_period_item_status_invoice_component =
+                    count($new_period_item_children) == $lecture_type_invoice_component_not_defined_count
+                    ? 'not_defined' : 'defined';
                 $new_period_item['data'] = [
                     ...$new_period_item['data'],
                     'status_generated' => $new_period_item_status_generated,
+                    'status_invoice_component' => $new_period_item_status_invoice_component,
                 ];
                 $new_period_item['state'] = [
-                    'disabled' => $new_period_item_status_generated['status'] == 'done_generated' ? true : false,
+                    'disabled' => $new_period_item_status_generated['status'] == 'done_generated'
+                                    || $new_period_item_status_invoice_component == 'not_defined'
+                                        ? true : false,
                 ];
                 $new_period_item['children'] = $new_period_item_children;
                 $new_path_item_children[] = $new_period_item;
+                if ($new_period_item_status_invoice_component == 'not_defined') {
+                    $period_invoice_component_not_defined_count++;
+                }
             }
 
             $new_path_item['text'] = 'Jalur: '.$filtered_by_path[0]->registration_path_name;
             $new_path_item_status_generated = CountGeneratedInvoice::count($filtered_by_path);
+            $new_path_item_status_invoice_component =
+                count($new_path_item_children) == $period_invoice_component_not_defined_count
+                ? 'not_defined' : 'defined';
             $new_path_item['data'] = [
                 ...$new_path_item['data'],
                 'status_generated' => $new_path_item_status_generated,
+                'status_invoice_component' => $new_path_item_status_invoice_component,
             ];
             $new_path_item['state'] = [
-                'disabled' => $new_path_item_status_generated['status'] == 'done_generated' ? true : false,
+                'disabled' => $new_path_item_status_generated['status'] == 'done_generated'
+                                || $new_path_item_status_invoice_component == 'not_defined'
+                                    ? true : false,
             ];
             $new_path_item['children'] = $new_path_item_children;
             $tree[] = $new_path_item;

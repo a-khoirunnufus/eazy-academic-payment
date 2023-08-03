@@ -18,7 +18,7 @@ class DispensationSubmission extends Model
 
     protected $primaryKey = 'mds_id';
 
-    protected $fillable = ['student_number', 'mds_school_year', 'mds_phone','mds_email','mds_reason','mds_proof','mds_deadline','mds_status','mds_proof_filename','mds_decline_reason'];
+    protected $fillable = ['student_number', 'mds_school_year', 'mds_phone','mds_email','mds_reason','mds_proof','mds_deadline','mds_status','mds_proof_filename','mds_decline_reason','prr_id'];
     
     public function period()
     {

@@ -120,8 +120,8 @@
                     <div style="width: 1185px; margin: 0 auto;">
                         <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
                             <div style="width: 80px"></div>
-                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 619px">Scope</div>
-                            <div class="fw-bolder text-uppercase" style="width: 200px">Status Generate</div>
+                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 539px">Scope</div>
+                            <div class="fw-bolder text-uppercase" style="width: 280px">Status Generate</div>
                             <div class="fw-bolder text-uppercase" style="width: 284px">Status Komponen Tagihan</div>
                         </div>
                         <div id="tree-generate-invoice"></div>
@@ -565,15 +565,24 @@
 
     const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));
 
+
     const TreeGenerate = {
         selector: '#tree-generate-invoice',
         openModal: function() {
             $('#generateInvoiceModal #info-invoice-period').text("{{ $invoice_period->msy_year.' Semester '.$invoice_period->msy_semester }}");
             this.initTree();
-            $(this.selector).on("loaded.jstree", () => { this.appendColumn(this.selector) });
-            $(this.selector).on("before_open.jstree", () => { this.appendColumn(this.selector) });
-            $(this.selector).on("check_all.jstree", () => { this.appendColumn(this.selector) });
-            $(this.selector).on("uncheck_all.jstree", () => { this.appendColumn(this.selector) });
+
+            // if tree is not yet initilized
+            if (!$(this.selector).jstree(true)) {
+                console.log('binding event handler');
+                $(this.selector).on("loaded.jstree", () => { console.log('tree is loaded'); this.appendColumn(this.selector) });
+                $(this.selector).on("ready.jstree", () => { console.log('tree is ready'); this.appendColumn(this.selector) });
+                $(this.selector).on("refresh.jstree", () => { console.log('tree is refreshed'); this.appendColumn(this.selector) });
+                $(this.selector).on("before_open.jstree", () => { console.log('tree is before open'); this.appendColumn(this.selector) });
+                $(this.selector).on("check_all.jstree", () => { console.log('tree is check all'); this.appendColumn(this.selector) });
+                $(this.selector).on("uncheck_all.jstree", () => { console.log('tree is uncheck all');this.appendColumn(this.selector) });
+            }
+
             GenerateInvoiceModal.show();
         },
         initTree: async function() {
@@ -591,22 +600,26 @@
                 type: 'get',
             });
 
-            if ($(this.selector).jstree(true)) {
-                $(this.selector).jstree(true).destroy();
+            if ($(TreeGenerate.selector).jstree(true)) {
+                console.log('update tree with new data');
+                $(TreeGenerate.selector).jstree(true).settings.core.data = data.tree;
+                $(TreeGenerate.selector).jstree(true).refresh();
+            } else {
+                console.log('initializing tree');
+                $(TreeGenerate.selector).jstree({
+                    'core' : {
+                        'data' : data.tree,
+                        "themes":{
+                            "icons":false
+                        }
+                    },
+                    "checkbox" : {
+                        "keep_selected_style" : false
+                    },
+                    "plugins" : [ "checkbox", "wholerow" ],
+                });
             }
 
-            $(this.selector).jstree({
-                'core' : {
-                    'data' : data.tree,
-                    "themes":{
-                        "icons":false
-                    }
-                },
-                "checkbox" : {
-                    "keep_selected_style" : false
-                },
-                "plugins" : [ "checkbox", "wholerow" ],
-            });
         },
         appendColumn: function(selector) {
             $(selector+' .jstree-anchor').each(function() {
@@ -618,15 +631,28 @@
                     $(this).append(children.get(0));
                     $(this).append(children.get(1));
                     $(this).append(`<div class="text"><span>${node.text}</span></div>`);
-                    $(this).append(`<div style="display: flex; justify-content: flex-end;">
-                        <div style="width: 200px">${node.data.status_generated.text}</div>
-                        <div style="width: 280px">
-                            ${
-                                node.data.status_invoice_component == "not_defined"
-                                    ? 'Komponen Tagihan Belum Diset!' : ''
-                            }
+                    $(this).append(`
+                        <div style="display: flex; justify-content: flex-end;">
+                            <div style="width: 280px">${
+                                node.data.status_generated.status == 'not_generated' ? `
+                                    <span class="badge bg-danger">${node.data.status_generated.text}</span>
+                                ` : node.data.status_generated.status == 'partial_generated' ? `
+                                        <span class="badge bg-warning">${node.data.status_generated.text}</span>
+                                    ` : node.data.status_generated.status == 'done_generated' ? `
+                                            <span class="badge bg-success">${node.data.status_generated.text}</span>
+                                        ` : '-'
+                            }</div>
+                            <div style="width: 280px">${
+                                node.data.status_invoice_component == 'not_defined' ?
+                                    `<span class="badge bg-danger">Komponen Tagihan Belum Diset!</span>`
+                                    : node.data.status_invoice_component == 'partially_defined' ?
+                                        `<span class="badge bg-warning">Komponen Tagihan Diset Sebagian</span>`
+                                        : node.data.status_invoice_component == 'defined' ?
+                                            `<span class="badge bg-success">Komponen Tagihan Telah Diset</span>`
+                                            : ''
+                            }</div>
                         </div>
-                    </div>`);
+                    `);
                 }
             });
         },
