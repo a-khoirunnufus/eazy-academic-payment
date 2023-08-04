@@ -15,7 +15,7 @@ use DB;
 
 class ScholarshipGenerateController extends Controller
 {
-    
+
     public function getActiveSchoolYearCode(){
         return 22231;
     }
@@ -30,7 +30,7 @@ class ScholarshipGenerateController extends Controller
         $query = $query->with('period','student','scholarship')->where('msr_status',1)->orderBy('msr_id');
         return datatables($query)->toJson();
     }
-    
+
     public function store($id){
         $data = ScholarshipReceiver::with('period','scholarship','student')->findorfail($id);
         $payment = Payment::where('student_number',$data->student_number)->where('prr_school_year',$data->period->msy_code)->first();
@@ -45,7 +45,7 @@ class ScholarshipGenerateController extends Controller
                 'prrd_component' => $data->scholarship->ms_name,
                 'prrd_amount' => $data->msr_nominal,
                 'is_plus' => 0,
-                'type' => 'discount',
+                'type' => 'scholarship',
                 'reference_table' => $this->getReferenceTable(),
                 'reference_id' => $data->msr_id,
             ]);
@@ -66,12 +66,12 @@ class ScholarshipGenerateController extends Controller
         $text = "Berhasil generate beasiswa mahasiswa ".$data->student->fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function generate(Request $request)
     {
         return $this->store($request->msr_id);
     }
-    
+
     public function generateBulk()
     {
         $query = ScholarshipReceiver::where('msr_status',1)->get();
@@ -100,7 +100,7 @@ class ScholarshipGenerateController extends Controller
                 ]);
             }
             $paymentDetail->delete();
-            
+
             $data->update(['msr_status_generate' => 0]);
 
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
@@ -112,7 +112,7 @@ class ScholarshipGenerateController extends Controller
         $text = "Berhasil menghapus beasiswa mahasiswa ".$data->student->fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function deleteBulk()
     {
         $query = ScholarshipReceiver::where('msr_status',1)->get();
@@ -122,5 +122,5 @@ class ScholarshipGenerateController extends Controller
         $text = "Delete beasiswa mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
 }
