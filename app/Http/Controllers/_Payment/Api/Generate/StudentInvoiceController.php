@@ -26,7 +26,7 @@ class StudentInvoiceController extends Controller
 {
     public function index(Request $request){
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
-        
+
         $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
         $student = Student::with(['payment' => function($query) use ($activeSchoolYearCode){
             $query->where('prr_school_year',$activeSchoolYearCode);
@@ -81,7 +81,7 @@ class StudentInvoiceController extends Controller
         $query = Student::query();
         $query = $query->with('lectureType','period','payment','path','year','studyProgram')
         ->join('masterdata.ms_studyprogram as sp','sp.studyprogram_id','hr.ms_student.studyprogram_id')
-        
+
         ->select('hr.ms_student.*');
         if($data['f'] != 0 && $data['f']){
             $query = $query->where('sp.faculty_id',$data['f']);
@@ -111,7 +111,7 @@ class StudentInvoiceController extends Controller
     public function getActiveSchoolYearCode(){
         return 20221;
     }
-    
+
     public function header(Request $request){
         // dd($request);
         $data['f'] = $request->query()['f'];
@@ -138,10 +138,10 @@ class StudentInvoiceController extends Controller
         // dd($query->get());
         return $header;
     }
-    
+
     public function headerAll(){
         $activeSchoolYear = $this->getActiveSchoolYear();
-        
+
         $header['university'] = "Universitas Telkom";
         $header['active'] = $activeSchoolYear;
 
@@ -153,7 +153,7 @@ class StudentInvoiceController extends Controller
         $result = $this->storeStudentGenerate($student);
         return $result;
     }
-    
+
     public function choice($f, $sp){
         // dd($f);
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
@@ -165,7 +165,7 @@ class StudentInvoiceController extends Controller
             $join->where('finance.payment_re_register.prr_school_year','=',$activeSchoolYearCode);
             $join->where('finance.payment_re_register.deleted_at','=',null);
         });
-        
+
         if($f && $f != 0){
             $sp_in_faculty = Studyprogram::where('faculty_id',$f)->pluck('studyprogram_id')->toArray();
             $student = $student->whereIn('studyprogram_id',$sp_in_faculty);
@@ -187,10 +187,10 @@ class StudentInvoiceController extends Controller
             ->get();
             $student[$key]->setRelation('component_filter', $getComponent->values());
         }
-        
+
         return $student;
     }
-    
+
     public function choiceAll(){
         // dd($f);
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
@@ -204,7 +204,7 @@ class StudentInvoiceController extends Controller
             $join->where('finance.payment_re_register.prr_school_year','=',$activeSchoolYearCode);
             $join->where('finance.payment_re_register.deleted_at','=',null);
         });
-        
+
         $student = $student
         ->where('student_type_id',1)
         ->select('hr.ms_student.studyprogram_id','masterdata.ms_faculties.faculty_id',DB::raw('count(hr.ms_student.*) as total_student'),DB::raw('count(prr_id) as total_generate'))
@@ -220,12 +220,12 @@ class StudentInvoiceController extends Controller
             ->get();
             $student[$key]->setRelation('component_filter', $getComponent->values());
         }
-        
+
         return $student;
     }
 
     public function storeStudentGenerate($student){
-        
+
         $components = $student->getComponent()
         ->where('path_id',$student->path_id)
         ->where('period_id',$student->period_id)
@@ -308,10 +308,15 @@ class StudentInvoiceController extends Controller
     }
 
     public function studentBulkGenerate(Request $request){
-        GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from)->onQueue('bulk');
-        return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
+        if($request->generate_checkbox){
+            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from)->onQueue('bulk');
+            return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
+        }else{
+            return json_encode(array('success' => false, 'message' => "Belum ada data yang dipilih!"));
+        }
+
     }
-    
+
     public function delete($prr_id)
     {
         // Deleting Detail invoice
@@ -340,13 +345,13 @@ class StudentInvoiceController extends Controller
         }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
     }
-    
+
     public function logGenerate()
     {
         $data = MasterJob::with('detail','user')->get();
         return $data;
     }
-    
+
     public function deleteBulk($f,$sp)
     {
         // dd($sp);
@@ -382,7 +387,7 @@ class StudentInvoiceController extends Controller
 //         $prr_total = $prr_total+$item->cd_fee;
 //     }
 //     $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
-    
+
 //     DB::beginTransaction();
 //     try{
 //         if($payment){
@@ -401,7 +406,7 @@ class StudentInvoiceController extends Controller
 //             ]);
 
 //         }
-        
+
 //         foreach($components as $item){
 //             PaymentDetail::create([
 //                 'prr_id' => $payment->prr_id,
