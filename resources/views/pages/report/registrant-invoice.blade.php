@@ -32,6 +32,10 @@
     .space {
         margin-left: 10px;
     }
+
+    #forExport_wrapper {
+        display: none !important;
+    }
 </style>
 @endsection
 
@@ -42,9 +46,9 @@
             <li class="nav-item">
                 <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Pendaftar</button>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history">Riwayat Pembayaran</button>
-            </li>
+            </li> -->
         </ul>
         <div class="tab-content">
 
@@ -92,6 +96,8 @@
                             <th rowspan="2">Nama</th>
                             <th rowspan="2">Jalur / Periode</th>
                             <th rowspan="2">Metode Pembayaran</th>
+                            <th rowspan="2">Nomor Tagihan</th>
+                            <th rowspan="2">Tanggal Pembayaran</th>
                             <th colspan="2" class="text-center">Jenis Tagihan</th>
                             <th rowspan="2">
                                 Total Harus Dibayar<br>
@@ -106,10 +112,29 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+                <table id="forExport" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Nama</th>
+                            <th rowspan="2">Jalur</th>
+                            <th rowspan="2">periode</th>
+                            <th rowspan="2">Metode Pembayaran</th>
+                            <th rowspan="2">Nomor Tagihan</th>
+                            <th rowspan="2">Tanggal Pembayaran</th>
+                            <th colspan="2">Jenis Tagihan</th>
+                            <th rowspan="2">status</th>
+                        </tr>
+                        <tr>
+                            <th>Nama Tagihan</th>
+                            <th>Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
 
             <!-- REGISTRANT PAYMENT HISTORY -->
-            <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
+            <!-- <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
                 <table id="registrant-payment-history-table" class="table table-striped">
                     <thead>
                         <tr>
@@ -121,7 +146,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
-            </div>
+            </div> -->
         </div>
     </div>
 </div>
@@ -130,6 +155,22 @@
 @section('js_section')
 <script>
     var dtDetail, dtHistory, student = null;
+
+    var dtExport = $('#forExport').DataTable({
+        paging: false,
+        dom: 'Bfrtip',
+        buttons: [
+            'copy',
+            'excel',
+            'csv',
+            {
+                extend: 'pdf',
+                orientation: 'landscape',
+                pageSize: 'LEGAL'
+            }
+        ]
+    });
+
     $(document).ready(function() {
         select2Replace();
     });
@@ -142,6 +183,7 @@
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
         init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
+            var jsonData = [];
             dtDetail = this.instance = $('#registrant-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
@@ -212,6 +254,7 @@
                                 }
                             }
                         }
+                        jsonData = data;
                         json.data = data;
                         return json.data;
                     }
@@ -240,6 +283,14 @@
                                 return "";
                             }
                         }
+                    },
+                    {
+                        name: 'invoice_number',
+                        data: 'payment.payment_reg_invoice_num'
+                    },
+                    {
+                        name: 'paid_date',
+                        data: 'payment.payment_reg_paid_date'
                     },
                     {
                         name: 'invoice_a',
@@ -289,7 +340,11 @@
                         name: 'status',
                         data: 'payment.payment_reg_status',
                         render: (data) => {
-                            return this.template.badgeCell(data, 'success');
+                            if(data == 'lunas'){
+                                return this.template.badgeCell(data, 'success');
+                            }else{
+                                return this.template.badgeCell(data, 'danger');
+                            }
                         }
                     },
                 ],
@@ -305,6 +360,41 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [{
+                        extend: 'collection',
+                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        buttons: [{
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config){
+                                    getPdf();
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config){
+                                    getExcel();
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config){
+                                    getCsv();
+                                }
+                            },
+                            {
+                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy font-small-4 me-50"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</span>',
+                                className: 'dropdown-item',
+                                action: function(e, dt, node, config){
+                                    getCopy();
+                                }
+                            }
+                        ]
+                    },
+                ],
                 initComplete: function() {
                     $('.registrant-invoice-detail-actions').html(`
                         <h5 class="mb-0">Daftar Tagihan</h5>
@@ -315,6 +405,7 @@
                     </div>
                     `)
                     feather.replace();
+                    setExportDataTableExport(jsonData);
                 }
             })
         },
@@ -402,6 +493,75 @@
             dtDetail.clear().destroy();
             _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode, find)
         }
+    }
+
+    function setExportDataTableExport(data){
+        dtExport.clear().destroy();
+        var listData = [];
+
+        data.forEach((row) => {
+            row.payment.payment_register_detail.forEach((list) => {
+                listData.push({
+                    par_fullname: row.participant.par_fullname,
+                    path_name: row.path.path_name,
+                    period_name: row.period.period_name,
+                    payment_reg_method: row.payment.payment_reg_method,
+                    payment_reg_invoice_num: row.payment.payment_reg_invoice_num,
+                    payment_reg_paid_date: row.payment.payment_reg_paid_date,
+                    payment_rd_component: list.payment_rd_component,
+                    payment_rd_amount: list.payment_rd_amount,
+                    payment_reg_status: row.payment.payment_reg_status
+                })
+            })
+        })
+
+        dtExport = $('#forExport').DataTable({
+            paging: false,
+            dom: 'Bfrtip',
+            buttons: [
+                'copyHtml5',
+                'excelHtml5',
+                'csvHtml5',
+                {
+                    extend: 'pdf',
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL'
+                }
+            ],
+            data: listData,
+            serverSide: false,
+            columns: [
+                { data: 'par_fullname' },
+                { data: 'path_name' },
+                { data: 'period_name' },
+                { data: 'payment_reg_method' },
+                { data: 'payment_reg_invoice_num' },
+                { data: 'payment_reg_paid_date' },
+                { data: 'payment_rd_component' },
+                { data: 'payment_rd_amount' },
+                { data: 'payment_reg_status' },
+            ]
+        });
+    }
+
+    function getPdf(){
+        var pdfButton = $('#forExport_wrapper .buttons-pdf');
+        pdfButton.click();
+    }
+
+    function getExcel(){
+        var pdfButton = $('#forExport_wrapper .buttons-excel');
+        pdfButton.click();
+    }
+    
+    function getCsv(){
+        var pdfButton = $('#forExport_wrapper .buttons-csv');
+        pdfButton.click();
+    }
+
+    function getCopy(){
+        var pdfButton = $('#forExport_wrapper .buttons-copy');
+        pdfButton.click();
     }
 </script>
 @endsection
