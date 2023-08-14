@@ -90,14 +90,7 @@
                     },
                     {
                         name: 'rule', 
-                        render: (data, _, row) => {
-                            return `
-                                <div>
-                                    <span class="fw-bold">${row.invoice_component}</span><br>
-                                    <small class="text-secondary">${row.rule_name}</small>
-                                </div>
-                            `;
-                        }
+                        data: 'rule_name'
                     },
                     {
                         name: 'invoice_component', 
