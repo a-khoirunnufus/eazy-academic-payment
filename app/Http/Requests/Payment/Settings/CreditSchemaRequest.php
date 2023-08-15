@@ -13,6 +13,7 @@ class CreditSchemaRequest extends FormRequest
             'cs_valid' => 'Status Validitas',
             'csd_percentage' => 'Persentase Pembayaran',
             'csd_percentage.*' => 'Persentase Pembayaran',
+            'cs_status' => 'Status',
         ];
     }
 
@@ -35,6 +36,7 @@ class CreditSchemaRequest extends FormRequest
             ],
             'csd_percentage.*' => 'required|numeric|min:0.000000001|max:100',
             'cs_valid' => 'required|min:1',
+            'cs_status' => 'required|min:1',
         ];
     }
 }

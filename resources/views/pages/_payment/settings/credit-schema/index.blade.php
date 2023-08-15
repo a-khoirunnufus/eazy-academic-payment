@@ -118,6 +118,16 @@
                             </select>
                         </div>
                     </div>
+                    <div class="row mb-1">
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select name="cs_status" class="form-select">
+                                <option value="" disabled selected>Pilih status</option>
+                                <option value="0">Tidak Aktif</option>
+                                <option value="1">Aktif</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="installment-component-group">
                         <label class="form-label">Komponen Cicilan</label>
                         <div class="border rounded p-1">
@@ -463,6 +473,7 @@
         setData: (data) => {
             $('#credit-schema-form input[name="cs_name"]').val(data.cs_name);
             $('#credit-schema-form select[name="cs_valid"]').val(data.cs_valid).trigger('change');
+            $('#credit-schema-form select[name="cs_status"]').val(data.cs_status).trigger('change');
             $('#credit-schema-form #credit-schema-component-list').html(
                 data.credit_schema_detail.map(item => {
                     return creditSchemaTemplate.schemaComponentItem(item.csd_percentage);

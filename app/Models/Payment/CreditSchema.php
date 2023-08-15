@@ -17,7 +17,7 @@ class CreditSchema extends Model
 
     protected $primaryKey = 'cs_id';
 
-    protected $fillable = ['cs_name', 'cs_valid', 'is_template'];
+    protected $fillable = ['cs_name', 'cs_valid', 'is_template', 'cs_status'];
 
     public function creditSchemaDetail()
     {

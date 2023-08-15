@@ -37,6 +37,7 @@ class CreditSchemaController extends Controller
             $credit_schema = CreditSchema::create([
                 'cs_name' => $validated['cs_name'],
                 'cs_valid' => $validated['cs_valid'],
+                'cs_status' => $validated['cs_status']
             ]);
             foreach ($validated['csd_percentage'] as $key => $percent) {
                 CreditSchemaDetail::create([
@@ -67,6 +68,7 @@ class CreditSchemaController extends Controller
             $credit_schema = CreditSchema::find($id);
             $credit_schema->cs_name = $validated['cs_name'];
             $credit_schema->cs_valid = $validated['cs_valid'];
+            $credit_schema->cs_status = $validated['cs_status'];
 
             // delete old credit schema detail
             CreditSchemaDetail::where(['csd_cs_id' => $id])->delete();
