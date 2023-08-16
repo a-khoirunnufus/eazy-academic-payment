@@ -229,12 +229,25 @@ class NewStudentInvoiceController extends Controller
         try {
             $payBill = PaymentBill::where('prr_id', '=', $validated['payment_reregist_id'])
                         ->whereNull('deleted_at')->get();
+
+            $componentRules = PaymentDetail::where('prr_id', '=', $validated['payment_reregist_id'])
+                                ->whereIn('type', array('scholarship', 'discount'))
+                                ->whereNull('deleted_at')->get();
+
             if(count($payBill) > 0){
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.',
                 ], 200);
             }
+
+            if(count($componentRules) > 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.',
+                ], 200);
+            }
+            
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
         } catch (DeleteInvoiceException $ex) {
             return response()->json([
