@@ -17,6 +17,7 @@ use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
 use App\Models\PMB\Setting;
 use App\Exceptions\GenerateInvoiceException;
+use App\Models\Payment\PaymentBill;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\UniversityScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\FacultyScope;
@@ -226,6 +227,14 @@ class NewStudentInvoiceController extends Controller
         ]);
 
         try {
+            $payBill = PaymentBill::where('prr_id', '=', $validated['payment_reregist_id'])
+                        ->whereNull('deleted_at')->get();
+            if(count($payBill) > 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.',
+                ], 200);
+            }
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
         } catch (DeleteInvoiceException $ex) {
             return response()->json([
