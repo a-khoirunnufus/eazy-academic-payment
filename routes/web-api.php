@@ -189,10 +189,10 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('getStudent', 'App\Http\Controllers\_Payment\Api\Approval\DispensationSubmissionController@getStudent');
     });
 
-    Route::group(['prefix' => 'approval'], function(){
+    Route::group(['prefix' => 'approval-manual-payment'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@index');
         Route::get('/prodi/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@getProdi');
-        Route::post('{prrb_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
+        Route::post('{pma_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
     });
 });
 
@@ -230,7 +230,11 @@ Route::group(['prefix' => 'student'], function(){
         Route::get('{prr_id}/bill', 'App\Http\Controllers\_Student\Api\PaymentController@getBills');
         Route::get('{prr_id}/bill/{prrb_id}', 'App\Http\Controllers\_Student\Api\PaymentController@billDetail');
         Route::get('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
-        Route::post('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@uploadEvidence');
+        Route::get('{prr_id}/bill/{prrb_id}/approval', 'App\Http\Controllers\_Student\Api\PaymentController@getApproval');
+        Route::get('{prr_id}/bill/{prrb_id}/approval/{pma_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailApproval');
+        Route::get('{prr_id}/bill/{prrb_id}/transaction', 'App\Http\Controllers\_Student\Api\PaymentController@getTransaction');
+        Route::get('{prr_id}/bill/{prrb_id}/transaction/{prrt_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailTransaction');
+        Route::post('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@storeApproval');
         Route::post('{prr_id}/bill/{prrb_id}/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentMethod');
         Route::post('{prr_id}/bill/{prrb_id}/reset-method', 'App\Http\Controllers\_Student\Api\PaymentController@resetPaymentMethod');
     });

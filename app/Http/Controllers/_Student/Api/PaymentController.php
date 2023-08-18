@@ -13,11 +13,15 @@ use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\MasterPaymentMethod;
+use App\Models\Payment\PaymentManualApproval;
+use App\Models\Payment\CreditSchemaPeriodPath;
+use App\Models\Payment\PaymentTransaction;
+use App\Models\PMB\Setting;
+use App\Models\PMB\Participant as NewStudent;
+use App\Models\PMB\Participant;
+use App\Models\PMB\Register;
 use App\Models\Masterdata\MsPaymentMethod; // old
 use App\Models\HR\MsStudent as Student;
-use App\Models\PMB\Setting;
-use App\Models\Payment\CreditSchemaPeriodPath;
-use App\Models\PMB\Participant as NewStudent;
 use App\Services\Payment\PaymentService;
 use App\Exceptions\MidtransException;
 use Carbon\Carbon;
@@ -650,6 +654,8 @@ class PaymentController extends Controller
 
     public function uploadEvidence($prr_id, $prrb_id, Request $request)
     {
+        dd($request->all());
+
         $validated = $request->validate([
             'account_owner_name' => 'required',
             'account_number' => 'required',
@@ -691,5 +697,140 @@ class PaymentController extends Controller
             'success' => true,
             'message' => 'Berhasil upload bukti pembayaran',
         ], 200);
+    }
+
+    public function getApproval($prr_id, $prrb_id)
+    {
+        $data = PaymentManualApproval::where('prrb_id', $prrb_id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json($data, 200);
+    }
+
+    public function detailApproval($prr_id, $prrb_id, $pma_id)
+    {
+        $data = PaymentManualApproval::find($pma_id);
+
+        return response()->json($data, 200);
+    }
+
+    public function storeApproval($prr_id, $prrb_id, Request $request)
+    {
+        $validated = $request->validate([
+            'student_type' => 'required',
+            'sender_account_name' => 'required',
+            'sender_account_number' => 'required',
+            'sender_bank' => 'required',
+            'amount' => 'required',
+            'receiver_account_number' => 'required',
+            'receiver_account_name' => 'required',
+            'receiver_bank' => 'required',
+            'payment_time' => 'required',
+            'evidence' => 'required|file|mimes:jpg,png,pdf|max:1000',
+        ]);
+
+        try {
+            if (config('app.disable_cloud_storage')) {
+                $upload_success = '/';
+            } else {
+                $upload_success = Storage::disk('minio')->putFile('payment/bukti_bayar/re_register/'.$prr_id, $validated['evidence']);
+            }
+
+            if (!$upload_success) {
+                throw new \Exception('Failed uploading file!');
+            }
+
+            $student = null;
+            if ($validated['student_type'] == 'new_student') {
+                $reg_id = Payment::find($prr_id)->reg_id;
+                $par_id = Register::find($reg_id)->par_id;
+                $student = NewStudent::with([
+                        'register' => function($query) use($reg_id) {
+                            $query->where('reg_id', $reg_id);
+                        },
+                        'register.studyprogram',
+                        'register.lectureType',
+                        'register.year',
+                        'register.period',
+                        'register.path',
+                    ])
+                    ->where('par_id', '=', $par_id)
+                    ->first();
+            }
+            elseif ($validated['student_type'] == 'student') {
+                $student_number = Payment::find($prr_id)->student_number;
+                $student = Student::with(['studyprogram', 'lectureType', 'year', 'period', 'path'])
+                    ->where('student_number', '=', $student_number)
+                    ->first();
+            }
+
+            DB::beginTransaction();
+
+            $approval = new PaymentManualApproval();
+            $approval->prrb_id = $prrb_id;
+
+            if ($validated['student_type'] == 'student') {
+                $approval->pma_student_name = $student->fullname;
+                $approval->pma_student_id = $student->student_id;
+                $approval->pma_student_type = 'Mahasiswa Lama';
+                $approval->pma_student_studyprogram = strtoupper($student->studyprogram->studyprogram_type).' '.$student->studyprogram->studyprogram_name;
+                $approval->pma_student_lecturetype = $student->lectureType->mlt_name;
+                $approval->pma_student_reg_year = $student->year->msy_year;
+                $approval->pma_student_reg_period = $student->period->period_name;
+                $approval->pma_student_reg_path = $student->path->path_name;
+            }
+            elseif ($validated['student_type'] == 'new_student') {
+                $approval->pma_student_name = $student->par_fullname;
+                $approval->pma_student_id = null;
+                $approval->pma_student_type = 'Mahasiswa Baru';
+                $approval->pma_student_studyprogram = strtoupper($student->register->studyprogram->studyprogram_type).' '.$student->register->studyprogram->studyprogram_name;
+                $approval->pma_student_lecturetype = $student->register->lectureType->mlt_name;
+                $approval->pma_student_reg_year = $student->register->year->msy_year;
+                $approval->pma_student_reg_period = $student->register->period->period_name;
+                $approval->pma_student_reg_path = $student->register->path->path_name;
+            }
+
+            $approval->pma_sender_account_name = $validated['sender_account_name'];
+            $approval->pma_sender_account_number = $validated['sender_account_number'];
+            $approval->pma_sender_bank = $validated['sender_bank'];
+            $approval->pma_amount = $validated['amount'];
+            $approval->pma_receiver_account_number = $validated['receiver_account_number'];
+            $approval->pma_receiver_account_name = $validated['receiver_account_name'];
+            $approval->pma_receiver_bank = $validated['receiver_bank'];
+            $approval->pma_payment_time = $validated['payment_time'];
+            $approval->pma_evidence = $upload_success;
+            $approval->pma_approval_status = 'waiting';
+            $approval->save();
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            throw $th;
+            // return response()->json([
+            //     'success' => false,
+            //     'message' => $th->getMessage(),
+            // ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil upload bukti pembayaran',
+        ], 200);
+    }
+
+    public function getTransaction($prr_id, $prrb_id)
+    {
+        $data = PaymentTransaction::where('prrb_id', $prrb_id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json($data, 200);
+    }
+
+    public function detailTransaction($prr_id, $prrb_id, $prrt_id)
+    {
+
     }
 }

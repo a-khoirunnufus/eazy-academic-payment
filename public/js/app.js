@@ -297,6 +297,13 @@ const _datatableTemplates = {
             </span>
         `;
     },
+    dateTimeCell: function(data, {nowrap = true, bold = false, additionalClass = ''} = {}) {
+        return `
+            <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
+                ${moment(data).format('DD/MM/YYYY HH:mm:ss')}
+            </span>
+        `;
+    },
     buttonLinkCell: function(label, {onclickFunc = null, link = null}, {nowrap = true, additionalClass = ''} = {}) {
         return `
             <div class="${additionalClass}">
@@ -328,6 +335,29 @@ const _datatableTemplates = {
             <div>
                 <span class="fw-bold ${nowrap ? 'text-nowrap' : ''}">${title}</span><br>
                 <small class="text-secondary  ${nowrap ? 'text-nowrap' : ''}">${subtitle}</small>
+            </div>
+        `;
+    },
+    listCell: function(listData) {
+        return `
+            <div class="d-flex flex-column" style="gap: 8px">
+                ${
+                    listData.map(item => {
+                        return `
+                            <span
+                                class="
+                                    d-inine-block
+                                    ${item.bold ? 'fw-bold' : ''}
+                                    ${item.small ? 'text-secondary' : ''}
+                                    ${item.nowrap ? 'text-nowrap' : ''}
+                                "
+                                style="${item.small ? 'font-size: 0.857rem;' : ''}"
+                                >
+                                ${item.text}
+                            </span>
+                        `;
+                    }).join('')
+                }
             </div>
         `;
     },
@@ -737,7 +767,11 @@ class Modal {
 
     static generateModalDetailBody(config) {
         var fieldConfig = config.fields;
-        var html = '<div class="d-flex flex-column" style="gap: 1.5rem">';
+        let html = '<div class="d-flex flex-column" style="gap: 1.5rem">';
+
+        if (config.isTwoColumn) {
+            html = '<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 1.5rem">';
+        }
 
         for (var key in fieldConfig) {
             var title = fieldConfig[key].title;
@@ -745,17 +779,19 @@ class Modal {
             var contentHtml = contentConfig.template;
             delete contentConfig.template
 
-            for(var x in contentConfig) {
-                contentHtml = contentHtml.replace(':'+x, contentConfig[x].escape());
+            for (var x in contentConfig) {
+                if (contentConfig[x]) {
+                    contentHtml = contentHtml.replace(':'+x, contentConfig[x].escape());
+                }
             }
 
-            if(fieldConfig[key].isHidden) {
+            if (fieldConfig[key].isHidden) {
                 html += '';
             } else {
                 html += `
                     <div>
                         <div class="fw-bold" style="margin-bottom: .5rem">${title}</div>
-                        <div>${contentHtml}</div>
+                        <div style="word-break: break-word">${contentHtml}</div>
                     </div>
                 `;
             }

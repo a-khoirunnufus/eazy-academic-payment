@@ -29,7 +29,7 @@ trait StaticStudentUser
                 ->where('user_email', '=', $email)
                 ->first();
         } elseif($type == 'student') {
-            $user = StudentUser::with(['student'])
+            $user = StudentUser::with(['student', 'student.studyProgram'])
                 ->where('user_email', '=', $email)
                 ->first();
         }
