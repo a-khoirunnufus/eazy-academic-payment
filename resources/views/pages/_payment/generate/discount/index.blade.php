@@ -104,10 +104,20 @@
                         data: 'student_number',
                         searchable: false,
                         render: (data, _, row) => {
+                            let fullname = "";
+                            let student_id = "";
+                            if(!row.student){
+                                fullname = row.new_student.participant.par_fullname;
+                                student_id = row.new_student.reg_number;
+                            }else{
+                                fullname = row.student.fullname;
+                                student_id = row.student.fullname;
+                            }
+
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${row.student.fullname}</span><br>
-                                    <small class="text-nowrap text-secondary">${row.student.student_id}</small>
+                                    <span class="text-nowrap fw-bold">${fullname}</span><br>
+                                    <small class="text-nowrap text-secondary">${student_id}</small>
                                 </div>
                             `;
                         }
@@ -117,10 +127,22 @@
                         data: 'student_number',
                         searchable: false,
                         render: (data, _, row) => {
+                            let studyprogram_type = "";
+                            let studyprogram_name = "";
+                            let faculty_name = "";
+                            if(!row.student){
+                                studyprogram_type = row.new_student.studyprogram.studyprogram_type;
+                                studyprogram_name = row.new_student.studyprogram.studyprogram_name;
+                                faculty_name = row.new_student.studyprogram.faculty.faculty_name;
+                            }else{
+                                studyprogram_type = row.student.study_program.studyprogram_type;
+                                studyprogram_name = row.student.study_program.studyprogram_name;
+                                faculty_name = row.student.study_program.faculty.faculty_name;
+                            }
                             return `
                                 <div>
-                                    <span class="text-nowrap fw-bold">${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}</span><br>
-                                    <small class="text-nowrap text-secondary">${row.student.study_program.faculty.faculty_name}</small>
+                                    <span class="text-nowrap fw-bold">${studyprogram_type} ${studyprogram_name}</span><br>
+                                    <small class="text-nowrap text-secondary">${faculty_name}</small>
                                 </div>
                             `;
                         }
@@ -233,9 +255,15 @@
     const _discountReceiverTableActions = {
         generate: function(e) {
             let data = _discountReceiverTable.getRowData(e);
+            let fullname = "";
+            if(!data.student){
+                fullname = data.new_student.participant.par_fullname;
+            }else{
+                fullname = data.student.fullname;
+            }
             Swal.fire({
                 title: 'Konfirmasi',
-                html: 'Apakah anda yakin ingin generate potongan mahasiswa <span class="fw-bolder">'+data.student.fullname+'</span>?',
+                html: 'Apakah anda yakin ingin generate potongan mahasiswa <span class="fw-bolder">'+fullname+'</span>?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -261,7 +289,7 @@
                                 text: data.message,
                             });
                         }
-                        
+
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
@@ -299,7 +327,7 @@
                                 text: data.message,
                             });
                         }
-                        
+
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
@@ -312,9 +340,15 @@
         },
         delete: function(e) {
             let data = _discountReceiverTable.getRowData(e);
+            let fullname = "";
+            if(!data.student){
+                fullname = data.new_student.participant.par_fullname;
+            }else{
+                fullname = data.student.fullname;
+            }
             Swal.fire({
                 title: 'Konfirmasi',
-                html: 'Apakah anda yakin ingin menghapus generate potongan <span class="fw-bolder">'+data.student.fullname+'</span> ?',
+                html: 'Apakah anda yakin ingin menghapus generate potongan <span class="fw-bolder">'+fullname+'</span> ?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -377,7 +411,7 @@
                                 text: data.message,
                             });
                         }
-                        
+
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
