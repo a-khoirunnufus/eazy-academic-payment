@@ -1,121 +1,121 @@
 <?php
 
-namespace App\Http\Controllers\_Payment\API\Discount;
+namespace App\Http\Controllers\_Payment\Api\Discount;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\Discount;
 use App\Models\Payment\DiscountReceiver;
-use App\Http\Requests\Payment\Discount\DiscountReceiverRequest;
+use App\Http\Requests\Payment\Discount\DiscountReceiverNewStudentRequest;
 use App\Models\Student;
 use App\Models\Studyprogram;
+use App\Models\PMB\Register;
 use App\Models\Year;
 use DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-class DiscountReceiverController extends Controller
+class DiscountReceiverNewStudentController extends Controller
 {
-
     public function index(Request $request)
     {
-        $filters = $request->input('custom_filters');
-        $filters = array_filter($filters, function ($item) {
-            return !is_null($item) && $item != '#ALL';
-        });
+        // $filters = $request->input('custom_filters');
+        // $filters = array_filter($filters, function ($item) {
+        //     return !is_null($item) && $item != '#ALL';
+        // });
 
         $query = DiscountReceiver::query();
-        $query = $query->where('reg_id', '=', null);
-        $query = $query->with('period','student','discount');
+        $query = $query->where('reg_id', '!=', null);
+        $query = $query->with('period','newStudent','discount');
 
-        if (isset($filters['period'])){
-            $query->where('mdr_period', '=', $filters['period']);
-        }
+        // if (isset($filters['period'])){
+        //     $query->where('mdr_period', '=', $filters['period']);
+        // }
 
-        if(isset($filters['discount_filter'])){
-            $query->whereHas('discount', function($q) use($filters){
-                $q->where('md_id', '=', $filters['discount_filter']);
-            });
-        }
+        // if(isset($filters['discount_filter'])){
+        //     $query->whereHas('discount', function($q) use($filters){
+        //         $q->where('md_id', '=', $filters['discount_filter']);
+        //     });
+        // }
 
-        if(isset($filters['faculty_filter'])){
-            $query->whereHas('student.studyProgram', function($q) use($filters){
-                $q->where('faculty_id', '=', $filters['faculty_filter']);
-            });
-        }
+        // if(isset($filters['faculty_filter'])){
+        //     $query->whereHas('student.studyProgram', function($q) use($filters){
+        //         $q->where('faculty_id', '=', $filters['faculty_filter']);
+        //     });
+        // }
 
-        if(isset($filters['study_program_filter'])){
-            $query->whereHas('student.studyProgram', function($q) use($filters){
-                $q->where('studyprogram_id', '=', $filters['study_program_filter']);
-            });
-        }
+        // if(isset($filters['study_program_filter'])){
+        //     $query->whereHas('student.studyProgram', function($q) use($filters){
+        //         $q->where('studyprogram_id', '=', $filters['study_program_filter']);
+        //     });
+        // }
 
         $query = $query->orderBy('mdr_id')->get();
 
-        if(isset($filters['search_filter'])){
-            $data = [];
-            foreach($query as $item){
-                // print_r($item);
-                $isFound = false;
+        // if(isset($filters['search_filter'])){
+        //     $data = [];
+        //     foreach($query as $item){
+        //         // print_r($item);
+        //         $isFound = false;
 
-                if(strpos(strtolower($item->student->fullname), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->student->fullname), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->student->student_id), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->student->student_id), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->student->studyProgram->studyprogram_type . ' ' . $item->student->studyProgram->studyprogram_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->student->studyProgram->studyprogram_type . ' ' . $item->student->studyProgram->studyprogram_name), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->student->studyProgram->faculty->faculty_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->student->studyProgram->faculty->faculty_name), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->discount->md_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->discount->md_name), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->period->msy_year.' '.($item->period->msy_semester == 1 ? 'Ganjil':'Genap')), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->period->msy_year.' '.($item->period->msy_semester == 1 ? 'Ganjil':'Genap')), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->mdr_nominal), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
+        //         if(strpos(strtolower($item->mdr_nominal), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
 
-                if(strpos(strtolower($item->mdr_status == 1 ? 'Aktif':'Tidak Aktif'), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-            }
-            return datatables($data)->toJson();
-        }
+        //         if(strpos(strtolower($item->mdr_status == 1 ? 'Aktif':'Tidak Aktif'), strtolower($filters['search_filter'])) !== false){
+        //             if(!$isFound){
+        //                 $isFound = true;
+        //                 array_push($data, $item);
+        //             }
+        //         }
+        //     }
+        //     return datatables($data)->toJson();
+        // }
 
         return datatables($query)->toJson();
     }
@@ -128,7 +128,7 @@ class DiscountReceiverController extends Controller
 
     public function student()
     {
-        $query = Student::all();
+        $query = Register::with('participant')->where('reg_major_pass','!=', null)->get();
         return $query;
     }
 
@@ -155,7 +155,7 @@ class DiscountReceiverController extends Controller
         return $period;
     }
 
-    public function store(DiscountReceiverRequest $request)
+    public function store(DiscountReceiverNewStudentRequest $request)
     {
         $validated = $request->validated();
         DB::beginTransaction();
