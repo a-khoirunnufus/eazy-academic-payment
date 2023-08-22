@@ -111,7 +111,7 @@
                                 student_id = row.new_student.reg_number;
                             }else{
                                 fullname = row.student.fullname;
-                                student_id = row.student.fullname;
+                                student_id = row.student.student_id;
                             }
 
                             return `
