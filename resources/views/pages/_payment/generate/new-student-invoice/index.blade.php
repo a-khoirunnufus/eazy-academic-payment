@@ -5,8 +5,8 @@
 @section('url_back', '')
 
 @section('css_section')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-    <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
 @endsection
 
 @section('content')
@@ -17,12 +17,9 @@
     <label class="form-label">Pilih Periode Tagihan</label>
     <select id="select-invoice-period" class="form-control select2">
         @foreach($invoice_periods as $period)
-            <option
-                value="{{ $period->school_year_code }}"
-                {{ $current_period_code == $period->school_year_code ? 'selected' : '' }}
-            >
-                {{ $period->school_year_year }} Semester {{ $period->school_year_semester }}
-            </option>
+        <option value="{{ $period->school_year_code }}" {{ $current_period_code == $period->school_year_code ? 'selected' : '' }}>
+            {{ $period->school_year_year }} Semester {{ $period->school_year_semester }}
+        </option>
         @endforeach
     </select>
 </div>
@@ -86,7 +83,7 @@
 <script>
     let selectedPeriod = "{{ $current_period_code }}";
 
-    $(function(){
+    $(function() {
         _newStudentInvoiceTable.init();
 
         $('#select-invoice-period').change(function() {
@@ -101,14 +98,13 @@
             this.instance = $('#new-student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/generate/new-student-invoice/index',
+                    url: _baseURL + '/api/payment/generate/new-student-invoice/index',
                     data: function(d) {
                         d.invoice_period_code = $('#select-invoice-period').val();
                     }
                 },
                 stateSave: false,
-                columns: [
-                    {
+                columns: [{
                         name: 'action',
                         orderable: false,
                         searchable: false,
@@ -122,9 +118,11 @@
                         orderable: false,
                         render: (data, _, row) => {
                             return this.template.buttonLinkCell(
-                                data,
-                                {link: `${_baseURL}/payment/generate/new-student-invoice/detail?invoice_period_code=${$('#select-invoice-period').val()}&scope=${row.unit_type}&${row.unit_type}_id=${row.unit_id}`},
-                                {additionalClass: row.unit_type == 'studyprogram' ? 'ps-2' : ''}
+                                data, {
+                                    link: `${_baseURL}/payment/generate/new-student-invoice/detail?invoice_period_code=${$('#select-invoice-period').val()}&scope=${row.unit_type}&${row.unit_type}_id=${row.unit_id}`
+                                }, {
+                                    additionalClass: row.unit_type == 'studyprogram' ? 'ps-2' : ''
+                                }
                             );
                         }
                     },
@@ -158,7 +156,9 @@
                                 bsColor = 'success';
                             }
 
-                            return this.template.badgeCell(data, bsColor, {centered: false});
+                            return this.template.badgeCell(data, bsColor, {
+                                centered: false
+                            });
                         }
                     },
                     {
@@ -171,8 +171,7 @@
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
@@ -180,55 +179,64 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                buttons: [
-                    {
-                        extend: 'collection',
-                        className: 'btn btn-outline-secondary dropdown-toggle',
-                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
-                        buttons: [
-                            {
-                                extend: 'print',
-                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
-                                className: 'dropdown-item',
-                                exportOptions: {
-                                    columns: [1,2,3,4]
-                                }
-                            },
-                            {
-                                extend: 'csv',
-                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
-                                className: 'dropdown-item',
-                                exportOptions: {
-                                    columns: [1,2,5,4]
-                                }
-                            },
-                            {
-                                extend: 'excel',
-                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
-                                className: 'dropdown-item',
-                                exportOptions: {
-                                    columns: [1,2,5,4]
-                                }
-                            },
-                            {
-                                extend: 'pdf',
-                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
-                                className: 'dropdown-item',
-                                exportOptions: {
-                                    columns: [1,2,3,4]
-                                }
-                            },
-                            {
-                                extend: 'copy',
-                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
-                                className: 'dropdown-item',
-                                exportOptions: {
-                                    columns: [1,2,5,4]
-                                }
+                buttons: [{
+                    extend: 'collection',
+                    className: 'btn btn-outline-secondary dropdown-toggle',
+                    text: feather.icons['external-link'].toSvg({
+                        class: 'font-small-4 me-50'
+                    }) + 'Export',
+                    buttons: [{
+                            extend: 'print',
+                            text: feather.icons['printer'].toSvg({
+                                class: 'font-small-4 me-50'
+                            }) + 'Print',
+                            className: 'dropdown-item',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4]
                             }
-                        ],
-                    }
-                ],
+                        },
+                        {
+                            extend: 'csv',
+                            text: feather.icons['file-text'].toSvg({
+                                class: 'font-small-4 me-50'
+                            }) + 'Csv',
+                            className: 'dropdown-item',
+                            exportOptions: {
+                                columns: [1, 2, 5, 4]
+                            }
+                        },
+                        {
+                            extend: 'excel',
+                            text: feather.icons['file'].toSvg({
+                                class: 'font-small-4 me-50'
+                            }) + 'Excel',
+                            className: 'dropdown-item',
+                            exportOptions: {
+                                columns: [1, 2, 5, 4]
+                            }
+                        },
+                        {
+                            extend: 'pdf',
+                            text: feather.icons['clipboard'].toSvg({
+                                class: 'font-small-4 me-50'
+                            }) + 'Pdf',
+                            className: 'dropdown-item',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4]
+                            }
+                        },
+                        {
+                            extend: 'copy',
+                            text: feather.icons['copy'].toSvg({
+                                class: 'font-small-4 me-50'
+                            }) + 'Copy',
+                            className: 'dropdown-item',
+                            exportOptions: {
+                                columns: [1, 2, 5, 4]
+                            }
+                        }
+                    ],
+                }],
                 initComplete: function() {
                     $('.new-student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -252,7 +260,7 @@
                         <div class="dropdown-menu">
                             <a onclick="_newStudentInvoiceTableActions.openDetail('${unit_type}', ${unit_id})" class="dropdown-item"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="GenerateInvoiceAction.generateOneScope(event)" class="dropdown-item ${generated_status == 'done' ? 'disabled' : ''}" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="GenerateInvoiceAction.deleteOneScope(event)" class="dropdown-item ${generated_status == 'done' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_newStudentInvoiceTableActions.delete(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                         </div>
                     </div>
                 `
@@ -267,10 +275,10 @@
     const _newStudentInvoiceTableActions = {
         tableRef: _newStudentInvoiceTable,
         openDetail: function(unit_type, unit_id) {
-            window.location.href = `${_baseURL}/payment/generate/new-student-invoice/detail`
-                +`?invoice_period_code=${$('#select-invoice-period').val()}`
-                +`&scope=${unit_type}`
-                +`&${unit_type}_id=${unit_id}`;
+            window.location.href = `${_baseURL}/payment/generate/new-student-invoice/detail` +
+                `?invoice_period_code=${$('#select-invoice-period').val()}` +
+                `&scope=${unit_type}` +
+                `&${unit_type}_id=${unit_id}`;
         },
         generate: function() {
             Swal.fire({
@@ -292,7 +300,7 @@
                 }
             })
         },
-        delete: function() {
+        delete: function(unit_type, unit_id) {
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin menghapus tagihan pada unit ini?',
@@ -305,10 +313,31 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
+                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/";
+                    if (unit_type == "studyprogram") {
+                        $url += "prodi/"
+                    } else {
+                        $url += "faculty/"
+                    }
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.onload = function() {
+                        var data = JSON.parse(this.responseText);
+                        Swal.fire({
+                            icon: data.status == true ? 'success':'error',
+                            text: data.msg
+                        })
+                    }
+                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.send();
+                    
+
                     Swal.fire({
                         icon: 'success',
                         text: 'Berhasil menghapus tagihan',
                     })
+
                 }
             })
         },
@@ -319,26 +348,46 @@
     const TreeGenerate = {
         selector: '#tree-generate-invoice',
         openModal: function() {
-            $('#generateInvoiceModal #info-invoice-period').text($("#select-invoice-period option:selected" ).text());
+            $('#generateInvoiceModal #info-invoice-period').text($("#select-invoice-period option:selected").text());
             this.initTree();
 
             // if tree is not yet initilized
             if (!$(this.selector).jstree(true)) {
                 console.log('binding event handler');
-                $(this.selector).on("loaded.jstree", () => { console.log('tree is loaded'); this.appendColumn(this.selector) });
-                $(this.selector).on("ready.jstree", () => { console.log('tree is ready'); this.appendColumn(this.selector) });
-                $(this.selector).on("refresh.jstree", () => { console.log('tree is refreshed'); this.appendColumn(this.selector) });
-                $(this.selector).on("before_open.jstree", () => { console.log('tree is before open'); this.appendColumn(this.selector) });
-                $(this.selector).on("check_all.jstree", () => { console.log('tree is check all'); this.appendColumn(this.selector) });
-                $(this.selector).on("uncheck_all.jstree", () => { console.log('tree is uncheck all');this.appendColumn(this.selector) });
+                $(this.selector).on("loaded.jstree", () => {
+                    console.log('tree is loaded');
+                    this.appendColumn(this.selector)
+                });
+                $(this.selector).on("ready.jstree", () => {
+                    console.log('tree is ready');
+                    this.appendColumn(this.selector)
+                });
+                $(this.selector).on("refresh.jstree", () => {
+                    console.log('tree is refreshed');
+                    this.appendColumn(this.selector)
+                });
+                $(this.selector).on("before_open.jstree", () => {
+                    console.log('tree is before open');
+                    this.appendColumn(this.selector)
+                });
+                $(this.selector).on("check_all.jstree", () => {
+                    console.log('tree is check all');
+                    this.appendColumn(this.selector)
+                });
+                $(this.selector).on("uncheck_all.jstree", () => {
+                    console.log('tree is uncheck all');
+                    this.appendColumn(this.selector)
+                });
             }
 
             GenerateInvoiceModal.show();
         },
         initTree: async function() {
-            const {data} = await $.ajax({
+            const {
+                data
+            } = await $.ajax({
                 async: true,
-                url: _baseURL+'/api/payment/generate/new-student-invoice/get-tree-generate-university?invoice_period_code='+$('#select-invoice-period').val(),
+                url: _baseURL + '/api/payment/generate/new-student-invoice/get-tree-generate-university?invoice_period_code=' + $('#select-invoice-period').val(),
                 type: 'get',
             });
 
@@ -349,21 +398,21 @@
             } else {
                 console.log('initializing tree');
                 $(TreeGenerate.selector).jstree({
-                    'core' : {
-                        'data' : data.tree,
-                        "themes":{
-                            "icons":false
+                    'core': {
+                        'data': data.tree,
+                        "themes": {
+                            "icons": false
                         }
                     },
-                    "checkbox" : {
-                        "keep_selected_style" : false
+                    "checkbox": {
+                        "keep_selected_style": false
                     },
-                    "plugins" : [ "checkbox", "wholerow" ],
+                    "plugins": ["checkbox", "wholerow"],
                 });
             }
         },
         appendColumn: function(selector) {
-            $(selector+' .jstree-anchor').each(function() {
+            $(selector + ' .jstree-anchor').each(function() {
                 if ($(this).children().length <= 2) {
                     const nodeId = $(this).parents('li').attr('id');
                     const node = $(selector).jstree('get_node', nodeId);
@@ -463,7 +512,11 @@
                     return leafParentId == id
                 });
                 const childrenCount = treeApi.get_node(id).children.length;
-                return { id, childrenCount, hasPaths: filteredPaths };
+                return {
+                    id,
+                    childrenCount,
+                    hasPaths: filteredPaths
+                };
             });
 
             /**
@@ -495,9 +548,9 @@
             return optimizedPaths.map(path => {
                 const pathArr = path.pathString.split('/');
                 let scope = 'n/a';
-                if(pathArr.length == 1) scope = 'university';
-                if(pathArr.length == 2) scope = 'faculty';
-                if(pathArr.length == 3) scope = 'studyprogram';
+                if (pathArr.length == 1) scope = 'university';
+                if (pathArr.length == 2) scope = 'faculty';
+                if (pathArr.length == 3) scope = 'studyprogram';
                 return {
                     ...path,
                     scope,
@@ -522,7 +575,7 @@
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin generate tagihan?',
             });
-            if(!confirmed) return;
+            if (!confirmed) return;
 
             const paths = this.getPaths();
             const optimizedPaths = this.getOptimizedPaths(paths);
@@ -540,7 +593,7 @@
             // console.log(generateData); return;
 
             $.ajax({
-                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scopes',
+                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scopes',
                 type: 'post',
                 data: {
                     invoice_period_code: $('#select-invoice-period').val(),
@@ -563,21 +616,23 @@
                 title: 'Konfirmasi',
                 text: 'Apakah anda yakin ingin generate tagihan?',
             });
-            if(!confirmed) return;
+            if (!confirmed) return;
 
-            let requestData = { invoice_period_code: $('#select-invoice-period').val() };
+            let requestData = {
+                invoice_period_code: $('#select-invoice-period').val()
+            };
 
-            if(data.unit_type == 'faculty') {
+            if (data.unit_type == 'faculty') {
                 requestData.scope = 'faculty';
                 requestData.faculty_id = data.unit_id;
-            } else if(data.unit_type == 'studyprogram') {
+            } else if (data.unit_type == 'studyprogram') {
                 requestData.scope = 'studyprogram';
                 requestData.faculty_id = data.faculty_id;
                 requestData.studyprogram_id = data.unit_id;
             }
 
             $.ajax({
-                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scope',
+                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scope',
                 type: 'post',
                 data: requestData,
                 success: (res) => {
@@ -594,23 +649,25 @@
 
             const confirmed = await _swalConfirmSync({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan?',
+                text: 'Apakah anda yakin ingin menghapus tagihan? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>',
             });
-            if(!confirmed) return;
+            if (!confirmed) return;
 
-            let requestData = { invoice_period_code: $('#select-invoice-period').val() };
+            let requestData = {
+                invoice_period_code: $('#select-invoice-period').val()
+            };
 
-            if(data.unit_type == 'faculty') {
+            if (data.unit_type == 'faculty') {
                 requestData.scope = 'faculty';
                 requestData.faculty_id = data.unit_id;
-            } else if(data.unit_type == 'studyprogram') {
+            } else if (data.unit_type == 'studyprogram') {
                 requestData.scope = 'studyprogram';
                 requestData.faculty_id = data.faculty_id;
                 requestData.studyprogram_id = data.unit_id;
             }
 
             $.ajax({
-                url: _baseURL+'/api/payment/generate/new-student-invoice/delete-by-scope',
+                url: _baseURL + '/api/payment/generate/new-student-invoice/delete-by-scope',
                 type: 'post',
                 data: requestData,
                 success: (res) => {
@@ -620,6 +677,5 @@
             });
         }
     }
-
 </script>
 @endsection

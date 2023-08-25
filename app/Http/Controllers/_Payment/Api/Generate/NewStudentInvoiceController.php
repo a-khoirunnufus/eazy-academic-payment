@@ -18,6 +18,7 @@ use App\Models\PMB\Register;
 use App\Models\PMB\Setting;
 use App\Exceptions\GenerateInvoiceException;
 use App\Models\Payment\PaymentBill;
+use App\Models\Student;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\UniversityScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\FacultyScope;
@@ -32,6 +33,7 @@ use App\Services\ReRegistInvoice\DeleteOne as DeleteOneInvoice;
 use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
 use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
 use App\Services\ReRegistInvoice\GenerateTreeComplete;
+use Illuminate\Database\QueryException;
 
 class NewStudentInvoiceController extends Controller
 {
@@ -244,6 +246,13 @@ class NewStudentInvoiceController extends Controller
             if(count($componentRules) > 0){
                 return response()->json([
                     'success' => false,
+                    'message' => 'Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.',
+                ], 200);
+            }
+
+            if(count($componentRules) > 0){
+                return response()->json([
+                    'success' => false,
                     'message' => 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.',
                 ], 200);
             }
@@ -262,6 +271,34 @@ class NewStudentInvoiceController extends Controller
             'success' => true,
             'message' => 'Berhasil menghapus tagihan mahasiswa.',
         ], 200);
+    }
+
+    public function deleteByProdi($prodi_id){
+        return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
+    }
+
+    public function deleteByFaculty($faculty_id){
+        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
+
+        $dataSuccess = 0;
+        $dataFailed = 0;
+        foreach($studyprogram as $item){
+            $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id));
+            
+            if(!$target_prodi['status']){
+                return json_encode($target_prodi, JSON_PRETTY_PRINT);
+            }
+
+            $dataSuccess += $target_prodi['data_success'];
+            $dataFailed += $target_prodi['data_failed'];
+        }
+
+        return array(
+            'status' => true,
+            'msg' => 'data sukses: '.$dataSuccess.', data gagal: '.$dataFailed,
+            'data_success' => $dataSuccess,
+            'data_failed' => $dataFailed
+        );
     }
 
     public function generateAll(Request $request)
@@ -611,5 +648,60 @@ class NewStudentInvoiceController extends Controller
                 'tree' => $tree,
             ],
         ], 200);
+    }
+
+    public function deleteTagihanByProdi($prodi_id){
+        $dataSuccess = 0;
+        $dataFailed = 0;
+        try{
+            $data = DB::table('finance.payment_re_register as prr')
+                    ->select('prr.prr_id')
+                    ->join('pmb.register as r', 'r.reg_major_pass', '=', $prodi_id)
+                    ->whereNull('prr.deleted_at')
+                    ->get();
+            
+            /*
+                hapus data jika tidak terdapat pembayaran yang sudah dilakukan
+                dan juga beasiswa dan potongan yang belum digenerate
+            */
+            foreach($data as $item){
+                $target_detail = DB::table('finance.payment_re_register_detail')
+                    ->select('pprd_id')
+                    ->where('prr_id', '=', $item->prr_id)
+                    ->whereNull('deleted_at')
+                    ->whereIn('type', ['scholarship', 'discount'])
+                    ->get();
+                
+                $target_bill = DB::table('finance.payment_re_register_bill')
+                    ->select('prrb_id')
+                    ->where('prr_id', '=', $item->prr_id)
+                    ->whereNull('deleted_at')
+                    ->get();
+                
+                if(count($target_detail) > 0 || count($target_bill) > 0){
+                   $dataFailed++;
+                }else {
+                    $target_detail_update = DB::table('finance.payment_re_register')
+                            ->where('prr_id', '=', $item->prr_id)
+                            ->update(['deleted_at' => date("Y-m-d H:i:s")]);
+
+                    $dataSuccess++;
+                }
+            }
+        }catch(QueryException $e){
+            return array(
+                'status' => false,
+                'msg' => 'error system: '.$e->getMessage(),
+                'data_success' => $dataSuccess,
+                'data_failed' => $dataFailed
+            );
+        }
+        
+        return array(
+            'status' => true,
+            'msg' => 'data sukses: '.$dataSuccess.', data gagal: '.$dataFailed,
+            'data_success' => $dataSuccess,
+            'data_failed' => $dataFailed
+        );
     }
 }

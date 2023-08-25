@@ -97,4 +97,14 @@ class DispensationController extends Controller
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus pengajuan"));
     }
+
+    public function getSpesific($prr_id){
+        $data = DispensationSubmission::where('prr_id', $prr_id)
+                ->where('mds_status', 1)
+                ->whereNull('deleted_at')
+                ->first();
+        
+        return json_encode($data, JSON_PRETTY_PRINT);
+    }
+
 }

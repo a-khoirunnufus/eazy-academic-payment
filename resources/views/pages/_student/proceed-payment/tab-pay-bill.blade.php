@@ -27,6 +27,9 @@
             border: 1px solid #7367f0 !important;
             box-shadow: 0 4px 24px 0 rgb(34 41 47 / 10%) !important;
         }
+        .line {
+            text-decoration: line-through;
+        }
     </style>
 @endpush
 
@@ -183,49 +186,105 @@
 
             $('#table-pay-bill tbody').html(`
                 ${payment.payment_bill.map(item => {
-                    return `
-                        <tr>
-                            <td>${item.prrb_order}</td>
-                            <td>
-                                Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
-                                Program Studi ${ studentType == 'new_student' ? `
-                                        ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
-                                        ${payment.register.studyprogram.studyprogram_name}
-                                        ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
-                                    ` : `
-                                        ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
-                                        ${payment.student.studyprogram.studyprogram_name}
-                                        ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
-                                    `
-                                }
-                                Tahun Ajaran ${payment.year.msy_year}
-                                Semester ${payment.year.msy_semester}
-                            </td>
-                            <td>${Rupiah.format(item.prrb_amount)}</td>
-                            <td>${moment(item.prrb_due_date).format('DD-MM-YYYY')}</td>
-                            <td>
-                                ${item.prrb_status == 'lunas' ?
-                                    '<span class="badge bg-success">Lunas</span>'
-                                    : item.prrb_status == 'belum lunas' ?
-                                        '<span class="badge bg-danger">Belum Lunas</span>'
-                                        : 'N/A'
-                                }
-                            </td>
-                            <td>
-                                ${
-                                    item.prrb_status == 'belum lunas' ? `
-                                        <button class="btn btn-sm btn-success" onclick="payBillModal.open(${item.prrb_id})">
-                                            Bayar
-                                        </button>
-                                    ` : `
-                                        <button class="btn btn-sm btn-info text-nowrap" onclick="paymentDetailModal.open(${item.prrb_id})">
-                                            Detail Pembayaran
-                                        </button>
-                                    `
-                                }
-                            </td>
-                        </tr>
-                    `;
+                    var row = null;
+                    var xhr = new XMLHttpRequest()
+                    xhr.onload = function(){
+                        var response = JSON.parse(this.responseText);
+                        if(response == null){
+                            console.log('not found');
+                        }
+                        console.log(response);
+                        row = `
+                            <tr>
+                                <td>${item.prrb_order}</td>
+                                <td>
+                                    Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                                    Program Studi ${ studentType == 'new_student' ? `
+                                            ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
+                                            ${payment.register.studyprogram.studyprogram_name}
+                                            ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
+                                        ` : `
+                                            ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
+                                            ${payment.student.studyprogram.studyprogram_name}
+                                            ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
+                                        `
+                                    }
+                                    Tahun Ajaran ${payment.year.msy_year}
+                                    Semester ${payment.year.msy_semester}
+                                </td>
+                                <td>${Rupiah.format(item.prrb_amount)}</td>
+                                <td>${ response == null ? moment(item.prrb_due_date).format('DD-MM-YYYY') : '<p class="line">'+moment(item.prrb_due_date).format('DD-MM-YYYY')+'</p><br><p>'+moment(response.mds_deadline).format('DD-MM-YYYY')}</td>
+                                <td>
+                                    ${item.prrb_status == 'lunas' ?
+                                        '<span class="badge bg-success">Lunas</span>'
+                                        : item.prrb_status == 'belum lunas' ?
+                                            '<span class="badge bg-danger">Belum Lunas</span>'
+                                            : 'N/A'
+                                    }
+                                </td>
+                                <td>
+                                    ${
+                                        item.prrb_status == 'belum lunas' ? `
+                                            <button class="btn btn-sm btn-success" onclick="payBillModal.open(${item.prrb_id})">
+                                                Bayar
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-sm btn-info text-nowrap" onclick="paymentDetailModal.open(${item.prrb_id})">
+                                                Detail Pembayaran
+                                            </button>
+                                        `
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    xhr.open("GET", _baseURL+"/api/student/dispensation/spesific-payment/{{ $prr_id }}", false);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.send();
+                    return row;
+                    // return `
+                    //     <tr>
+                    //         <td>${item.prrb_order}</td>
+                    //         <td>
+                    //             Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                    //             Program Studi ${ studentType == 'new_student' ? `
+                    //                     ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
+                    //                     ${payment.register.studyprogram.studyprogram_name}
+                    //                     ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
+                    //                 ` : `
+                    //                     ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
+                    //                     ${payment.student.studyprogram.studyprogram_name}
+                    //                     ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
+                    //                 `
+                    //             }
+                    //             Tahun Ajaran ${payment.year.msy_year}
+                    //             Semester ${payment.year.msy_semester}
+                    //         </td>
+                    //         <td>${Rupiah.format(item.prrb_amount)}</td>
+                    //         <td>${moment(item.prrb_due_date).format('DD-MM-YYYY')}</td>
+                    //         <td>
+                    //             ${item.prrb_status == 'lunas' ?
+                    //                 '<span class="badge bg-success">Lunas</span>'
+                    //                 : item.prrb_status == 'belum lunas' ?
+                    //                     '<span class="badge bg-danger">Belum Lunas</span>'
+                    //                     : 'N/A'
+                    //             }
+                    //         </td>
+                    //         <td>
+                    //             ${
+                    //                 item.prrb_status == 'belum lunas' ? `
+                    //                     <button class="btn btn-sm btn-success" onclick="payBillModal.open(${item.prrb_id})">
+                    //                         Bayar
+                    //                     </button>
+                    //                 ` : `
+                    //                     <button class="btn btn-sm btn-info text-nowrap" onclick="paymentDetailModal.open(${item.prrb_id})">
+                    //                         Detail Pembayaran
+                    //                     </button>
+                    //                 `
+                    //             }
+                    //         </td>
+                    //     </tr>
+                    // `;
                 })}
             `);
         },

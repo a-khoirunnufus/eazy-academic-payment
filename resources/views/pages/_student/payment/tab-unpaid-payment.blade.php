@@ -180,6 +180,7 @@
 
     const _unpaidPaymentTableAction = {
         detail: function(e) {
+            console.log(e);
             invoiceDetailModal.open(e, _unpaidPaymentTable);
         }
     }

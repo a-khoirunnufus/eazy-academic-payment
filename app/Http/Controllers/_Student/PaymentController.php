@@ -42,7 +42,7 @@ class PaymentController extends Controller
         if(!$user) {
             return 'User with email: '.$email.' not found!';
         }
-
-        return view('pages._student.proceed-payment.index', compact('prr_id', 'user'));
+        
+        return view('pages._student.proceed-payment.index', compact('prr_id', 'user', 'email', 'type'));
     }
 }
