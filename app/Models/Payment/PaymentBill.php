@@ -16,4 +16,9 @@ class PaymentBill extends Model
     protected $primaryKey = 'prrb_id';
 
     protected $fillable = ['prr_id', 'prrb_status', 'prrb_paid_date', 'prrb_amount', 'prrb_admin_cost', 'prrb_order', 'prrb_manual_name', 'prrb_manual_norek', 'prrb_manual_evidence', 'prrb_manual_status', 'prrb_manual_note', 'prrb_payment_method', 'prrb_due_date', 'prrb_va_number', 'prrb_order_id', 'prrb_midtrans_transaction_id', 'prrb_mandiri_bill_key', 'prrb_mandiri_biller_code', 'prrb_midtrans_transaction_exp'];
+
+    public function paymentMethod()
+    {
+        return $this->hasOne(MasterPaymentMethod::class, 'mpm_key', 'prrb_payment_method');
+    }
 }

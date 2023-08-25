@@ -222,5 +222,5 @@ return [
 
     'api_resource_cache_expiration' => 1000 * 60 * 60 * 1, // 1 Hours
 
-    'disable_cloud_storage' => false,
+    'disable_cloud_storage' => env('DISABLE_CLOUD_STORAGE', false),
 ];

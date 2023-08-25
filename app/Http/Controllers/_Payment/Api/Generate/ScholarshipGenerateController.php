@@ -27,13 +27,18 @@ class ScholarshipGenerateController extends Controller
     public function index(Request $request)
     {
         $query = ScholarshipReceiver::query();
-        $query = $query->with('period','student','scholarship')->where('msr_status',1)->orderBy('msr_id');
+        $query = $query->with('period','student','newStudent','scholarship')->where('msr_status',1)->orderBy('msr_id');
         return datatables($query)->toJson();
     }
 
     public function store($id){
-        $data = ScholarshipReceiver::with('period','scholarship','student')->findorfail($id);
-        $payment = Payment::where('student_number',$data->student_number)->where('prr_school_year',$data->period->msy_code)->first();
+        $data = ScholarshipReceiver::with('period','scholarship','student','newStudent')->findorfail($id);
+        if(!$data->student){
+            $payment = Payment::where('reg_id',$data->reg_id)->where('prr_school_year',$data->period->msy_code)->first();
+        }else{
+            $payment = Payment::where('student_number',$data->student_number)->where('prr_school_year',$data->period->msy_code)->first();
+        }
+        // dd($data->reg_id);
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
             return json_encode(array('success' => false, 'message' => $text));
@@ -63,7 +68,12 @@ class ScholarshipGenerateController extends Controller
             DB::rollback();
             return response()->json($e->getMessage());
         }
-        $text = "Berhasil generate beasiswa mahasiswa ".$data->student->fullname;
+        if($data->student){
+            $fullname = $data->student->fullname;
+        }else{
+            $fullname = $data->newStudent->participant->par_fullname;
+        }
+        $text = "Berhasil generate beasiswa mahasiswa ".$fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
 
@@ -85,7 +95,7 @@ class ScholarshipGenerateController extends Controller
     public function delete($id)
     {
         $data = ScholarshipReceiver::with('period','scholarship','student')->findorfail($id);
-        $payment = Payment::where('student_number',$data->student_number)->where('prr_school_year',$data->period->msy_code)->first();
+        $payment = Payment::where('prr_id',$data->prr_id)->first();
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
             return json_encode(array('success' => false, 'message' => $text));
@@ -109,7 +119,12 @@ class ScholarshipGenerateController extends Controller
             DB::rollback();
             return response()->json($e->getMessage());
         }
-        $text = "Berhasil menghapus beasiswa mahasiswa ".$data->student->fullname;
+        if($data->student){
+            $fullname = $data->student->fullname;
+        }else{
+            $fullname = $data->newStudent->participant->par_fullname;
+        }
+        $text = "Berhasil menghapus beasiswa mahasiswa ".$fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
 

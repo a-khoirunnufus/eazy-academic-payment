@@ -17,4 +17,9 @@ class Participant extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
+
+    public function register()
+    {
+        return $this->belongsTo(Register::class, 'par_id', 'par_id');
+    }
 }

@@ -23,7 +23,7 @@ class Register extends Model
 
     public function studyprogram()
     {
-        return $this->hasOne(Studyprogram::class, 'studyprogram_id', 'reg_major_pass');
+        return $this->hasOne(Studyprogram::class, 'studyprogram_id', 'reg_major_pass')->with('faculty');
     }
 
     public function lectureType()

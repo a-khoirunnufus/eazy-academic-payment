@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Studyprogram;
+use App\Models\Payment\PaymentManualApproval;
+use App\Models\Payment\PaymentTransaction;
 use Carbon\Carbon;
 use DB;
 
@@ -14,96 +16,98 @@ class ManualPaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $filters = $request->input('custom_filters');
+        // $filters = $request->input('custom_filters');
 
-        // remove item with null value or #ALL value
-        $filters = array_filter($filters, function ($item) {
-            return !is_null($item) && $item != '#ALL';
-        });
+        // // remove item with null value or #ALL value
+        // $filters = array_filter($filters, function ($item) {
+        //     return !is_null($item) && $item != '#ALL';
+        // });
 
-        $query = DB::table('finance.payment_re_register as prr')
-            ->leftJoin('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
-            ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
-            ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
-            ->leftJoin('hr.ms_student as student', 'student.student_number', 'prr.student_number')
-            ->leftJoin('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', '=', 'student.studyprogram_id')
-            ->leftJoin('masterdata.ms_faculties as faculty', 'faculty.faculty_id', '=', 'sp.faculty_id')
-            ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
-            ->whereNull('prr.deleted_at')
-            ->whereNull('prrb.deleted_at')
-            ->whereNotNull('prrb.prrb_manual_name');
+        // $query = DB::table('finance.payment_re_register as prr')
+        //     ->leftJoin('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
+        //     ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
+        //     ->leftJoin('pmb.participant as par', 'par.par_id', '=', 'reg.par_id')
+        //     ->leftJoin('hr.ms_student as student', 'student.student_number', 'prr.student_number')
+        //     ->leftJoin('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', '=', 'student.studyprogram_id')
+        //     ->leftJoin('masterdata.ms_faculties as faculty', 'faculty.faculty_id', '=', 'sp.faculty_id')
+        //     ->leftJoin('masterdata.ms_payment_method as mpm', 'mpm.mpm_key', '=', 'prr.prr_method')
+        //     ->whereNull('prr.deleted_at')
+        //     ->whereNull('prrb.deleted_at')
+        //     ->whereNotNull('prrb.prrb_manual_name');
 
-        if (isset($filters['status'])) {
-            $query = $query->where('prrb.prrb_manual_status', $filters['status']);
-        }
+        // if (isset($filters['status'])) {
+        //     $query = $query->where('prrb.prrb_manual_status', $filters['status']);
+        // }
 
-        if (isset($filters['student_type'])) {
-            if($filters['student_type'] == 'new_student') {
-                $query = $query->whereNotNull('prr.reg_id');
-            }
-            elseif($filters['student_type'] == 'student') {
-                $query = $query->whereNotNull('prr.student_number');
-            }
-        }
+        // if (isset($filters['student_type'])) {
+        //     if($filters['student_type'] == 'new_student') {
+        //         $query = $query->whereNotNull('prr.reg_id');
+        //     }
+        //     elseif($filters['student_type'] == 'student') {
+        //         $query = $query->whereNotNull('prr.student_number');
+        //     }
+        // }
 
-        if(isset($filters['path'])){
-            $query = $query->where('student.path_id', '=', $filters['path']);
-        }
+        // if(isset($filters['path'])){
+        //     $query = $query->where('student.path_id', '=', $filters['path']);
+        // }
 
-        if(isset($filters['period'])){
-            $query = $query->where('student.period_id', '=', $filters['period']);
-        }
+        // if(isset($filters['period'])){
+        //     $query = $query->where('student.period_id', '=', $filters['period']);
+        // }
 
-        if(isset($filters['faculty'])){
-            $query = $query->where('faculty.faculty_id', '=', $filters['faculty']);
-        }
+        // if(isset($filters['faculty'])){
+        //     $query = $query->where('faculty.faculty_id', '=', $filters['faculty']);
+        // }
 
-        if(isset($filters['prodi'])){
-            $query = $query->where('student.studyprogram_id', '=', $filters['prodi']);
-        }
+        // if(isset($filters['prodi'])){
+        //     $query = $query->where('student.studyprogram_id', '=', $filters['prodi']);
+        // }
 
-        $data = $query->select(
-                DB::raw("
-                    CASE
-                        WHEN prr.reg_id is not null THEN par.par_fullname
-                        ELSE student.fullname
-                    END as student_name
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prr.reg_id is not null THEN 'new_student'
-                        ELSE 'student'
-                    END as student_type
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prr.reg_id is not null THEN par.par_number
-                        ELSE NULL
-                    END AS par_number
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prr.student_number is not null THEN student.student_id
-                        ELSE NULL
-                    END AS student_id
-                "),
-                'prr.prr_id',
-                'prrb.prrb_id',
-                DB::raw("prrb.prrb_amount + prrb.prrb_admin_cost as bill_total"),
-                'prrb.prrb_manual_name as sender_name',
-                'mpm.mpm_name as bank_name',
-                'prrb.prrb_manual_norek as sender_account_number',
-                'prrb.prrb_manual_evidence as file_payment_evidence',
-                'prrb.prrb_manual_status as approval_status',
-                'prrb.prrb_manual_note as approval_notes'
-            )
-            ->distinct()
-            ->get();
+        // $data = $query->select(
+        //         DB::raw("
+        //             CASE
+        //                 WHEN prr.reg_id is not null THEN par.par_fullname
+        //                 ELSE student.fullname
+        //             END as student_name
+        //         "),
+        //         DB::raw("
+        //             CASE
+        //                 WHEN prr.reg_id is not null THEN 'new_student'
+        //                 ELSE 'student'
+        //             END as student_type
+        //         "),
+        //         DB::raw("
+        //             CASE
+        //                 WHEN prr.reg_id is not null THEN par.par_number
+        //                 ELSE NULL
+        //             END AS par_number
+        //         "),
+        //         DB::raw("
+        //             CASE
+        //                 WHEN prr.student_number is not null THEN student.student_id
+        //                 ELSE NULL
+        //             END AS student_id
+        //         "),
+        //         'prr.prr_id',
+        //         'prrb.prrb_id',
+        //         DB::raw("prrb.prrb_amount + prrb.prrb_admin_cost as bill_total"),
+        //         'prrb.prrb_manual_name as sender_name',
+        //         'mpm.mpm_name as bank_name',
+        //         'prrb.prrb_manual_norek as sender_account_number',
+        //         'prrb.prrb_manual_evidence as file_payment_evidence',
+        //         'prrb.prrb_manual_status as approval_status',
+        //         'prrb.prrb_manual_note as approval_notes'
+        //     )
+        //     ->distinct()
+        //     ->get();
+
+        $data = PaymentManualApproval::all();
 
         return datatables($data)->toJSON();
     }
 
-    public function processApproval($prrb_id, Request $request)
+    public function processApproval($pma_id, Request $request)
     {
         $validated = $request->validate([
             'status' => 'required|in:accepted,rejected',
@@ -113,21 +117,53 @@ class ManualPaymentController extends Controller
         try {
             DB::beginTransaction();
 
-            $bill = PaymentBill::find($prrb_id);
-            $bill->prrb_paid_date = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
-            $bill->prrb_status = $validated['status'] == 'accepted' ? 'lunas' : 'belum lunas';
-            $bill->prrb_manual_status = $validated['status'];
-            $bill->prrb_manual_note = $validated['notes'];
-            $bill->save();
+            $approval = PaymentManualApproval::find($pma_id);
+            $approval->pma_approval_status = $validated['status'];
+            $approval->pma_notes = $validated['notes'];
+            $approval->pma_processed_at = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
+            $approval->save();
 
-            $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
-                ->where('prrb_status', 'belum lunas')
-                ->get();
+            $bill = PaymentBill::with('paymentMethod')->where('prrb_id', $approval->prrb_id)->first();
 
-            if ($unpaid_bills->count() == 0) {
-                $payment = Payment::find($bill->prr_id);
-                $payment->prr_status = $validated['status'] == 'accepted' ? 'lunas' : 'belum lunas';
-                $payment->save();
+            if ($validated['status'] == 'accepted') {
+                // create transaction record
+                $payment_transaction = new PaymentTransaction();
+                $payment_transaction->prrb_id = $bill->prrb_id;
+                $payment_transaction->prrt_payment_method = $bill->prrb_payment_method;
+                if ($bill->paymentMethod->mpm_type == 'bank_transfer_manual') {
+                    $payment_transaction->prrt_account_number = $bill->prrb_account_number;
+                }
+                elseif ($bill->paymentMethod->mpm_type == 'bank_transfer_va') {
+                    $payment_transaction->prrt_va_number = $bill->prrb_va_number;
+                }
+                elseif ($bill->paymentMethod->mpm_type == 'bank_transfer_bill_payment') {
+                    $payment_transaction->prrt_biller_code = $bill->prrb_biller_code;
+                    $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
+                }
+                $payment_transaction->prrt_amount = $approval->pma_amount;
+                $payment_transaction->prrt_time = $approval->pma_payment_time;
+                $payment_transaction->save();
+
+                // check if bill fully paid
+                $total_paid = PaymentManualApproval::where('prrb_id', $approval->prrb_id)->sum('pma_amount');
+                $bill = PaymentBill::find($approval->prrb_id);
+                if (
+                    $bill->prrb_status == 'belum lunas'
+                    && $total_paid >= ($bill->prrb_amount + $bill->prrb_admin_cost)
+                ) {
+                    $bill->prrb_paid_date = $approval->pma_payment_time;
+                    $bill->prrb_status = 'lunas';
+                    $bill->save();
+                }
+
+                $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
+                    ->where('prrb_status', 'belum lunas')
+                    ->get();
+                if ($unpaid_bills->count() == 0) {
+                    $payment = Payment::find($bill->prr_id);
+                    $payment->prr_status = 'lunas';
+                    $payment->save();
+                }
             }
 
             DB::commit();
