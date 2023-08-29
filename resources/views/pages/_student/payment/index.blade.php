@@ -77,6 +77,9 @@
         .line {
             text-decoration: line-through;
         }
+        #report-unpaid_wrapper {
+            display: none;
+        }
     </style>
 @endsection
 
@@ -267,7 +270,7 @@
                                 <td>Status Tagihan</td>
                                 <td>:&nbsp;&nbsp;${
                                     payment_status == 'belum lunas' ?
-                                        '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
+                                        '<span class="badge bg-danger" style="font-size: 1rem">Kredit</span>'
                                         : payment_status == 'lunas' ?
                                             '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
                                             : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'

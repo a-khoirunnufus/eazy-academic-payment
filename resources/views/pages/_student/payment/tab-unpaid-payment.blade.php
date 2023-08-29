@@ -15,14 +15,31 @@
     <tbody></tbody>
 </table>
 
+<table id="report-unpaid">
+    <thead>
+        <tr>
+            <th>Tagihan</th>
+            <th>Tenggat Pembayaran</th>
+            <th>Nominal Tagihan</th>
+            <th>Biaya Admin</th>
+            <th>Dibayar Pada</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
 @prepend('scripts')
 <script>
-
     /**
      * @var object userMaster
      */
+    var unpaidData = [];
+    var reportUnpaidTable = $('#report-unpaid').DataTable({
+        data: []
+    })
 
-    $(function(){
+    $(function() {
         _unpaidPaymentTable.init();
     });
 
@@ -32,28 +49,55 @@
             this.instance = $('#table-unpaid-payment').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/student/payment',
+                    url: _baseURL + '/api/student/payment',
                     data: function(d) {
                         d.student_type = userMaster.participant ? 'new_student' : 'student';
                         d.participant_id = userMaster.participant?.par_id;
                         d.student_id = userMaster.student?.student_id;
                         d.status = 'unpaid';
+                    },
+                    dataSrc: function(json) {
+                        unpaidData = [];
+                        return json.data;
                     }
                 },
                 stateSave: false,
-                columnDefs: [
-                    {
-                        targets: [8],
-                        visible: 'participant' in userMaster,
-                        searchable: 'participant' in userMaster,
-                    },
-                ],
-                columns: [
-                    {
+                columnDefs: [{
+                    targets: [8],
+                    visible: 'participant' in userMaster,
+                    searchable: 'participant' in userMaster,
+                }, ],
+                columns: [{
                         name: 'action',
                         data: 'prr_id',
                         orderable: false,
                         render: (data, _, row) => {
+                            var xhr = new XMLHttpRequest();
+                            xhr.onload = function(){
+                                var response = JSON.parse(this.responseText);
+                                response.forEach(item => {
+                                    var xhrD = new XMLHttpRequest()
+                                    xhrD.onload = function(){
+                                        var dispensation = JSON.parse(this.responseText);
+                                        if(dispensation != null){
+                                            item.prrb_due_date = dispensation.mds_deadline
+                                        }
+                                        item.prrb_due_date = item.prrb_due_date ?? '';
+                                        item.prrb_amount = item.prrb_amount ?? 0;
+                                        item.prrb_admin_cost = item.prrb_admin_cost ?? 0;
+                                        item.prrb_paid_date = item.prrb_paid_date ?? '-';
+                                        item.prrb_status = item.prrb_status ?? '';
+                                    }
+                                    xhrD.open("GET", _baseURL+`/api/student/dispensation/spesific-payment/${item.prr_id}`, false);
+                                    xhrD.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                                    xhrD.send();
+
+                                    unpaidData.push(item);
+                                })
+                            }
+                            xhr.open("GET", _baseURL+"/api/student/payment/"+data+"/bill", false);
+                            xhr.setRequestHeader("X-CSRF-TOKEN", "{{ csrf_token() }}");
+                            xhr.send();
                             return this.template.rowAction(data)
                         }
                     },
@@ -62,7 +106,7 @@
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(
                                 row.invoice_school_year_year,
-                                'Semester '+row.invoice_school_year_semester
+                                'Semester ' + row.invoice_school_year_semester
                             );
                         }
                     },
@@ -70,7 +114,9 @@
                         name: 'invoice_number',
                         data: 'invoice_number',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
@@ -89,8 +135,8 @@
                             const discountDetail = JSON.parse(unescapeHtml(discountDetailJson));
                             const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return discountDetail.length > 0 ?
-                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal) :
+                                '-';
                         }
                     },
                     {
@@ -100,8 +146,8 @@
                             const scholarshipDetail = JSON.parse(unescapeHtml(scholarshipDetailJson));
                             const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return scholarshipDetail.length > 0 ?
-                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal) :
+                                '-';
                         }
                     },
                     {
@@ -111,30 +157,33 @@
                             const penaltyDetail = JSON.parse(unescapeHtml(penaltyDetailJson));
                             const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return penaltyDetail.length > 0 ?
-                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal) :
+                                '-';
                         }
                     },
                     {
                         name: 'total_amount',
                         data: 'total_amount',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'notes',
                         data: 'notes',
                         render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
+                            return this.template.defaultCell(data, {
+                                nowrap: false
+                            });
                         }
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom:
-                    '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-actions">>' +
                     '>' +
@@ -146,7 +195,7 @@
                 initComplete: function() {
                     $('.invoice-actions').html(`
                         <div class="d-flex flex-row px-1 justify-content-end" style="gap: 1rem">
-                            <button class="btn btn-success">
+                            <button class="btn btn-success" onclick="printUnpaid()">
                                 <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
                             </button>
                             <a href="{{ route('student.credit.index') }}" class="btn btn-outline-warning">
@@ -157,6 +206,28 @@
                             </a>
                         </div>
                     `)
+                    console.log(unpaidData);
+                    reportUnpaidTable.clear().destroy();
+                    var counter = 0;
+                    reportUnpaidTable = $('#report-unpaid').DataTable({
+                        data: unpaidData,
+                        serverSide: false,
+                        paging: false,
+                        columns: [
+                            { 
+                                render: (data, _, row) => {
+                                    return 'Tagihan ke-'+counter++;
+                                } 
+                            },
+                            { "data": 'prrb_due_date' },
+                            { "data": 'prrb_amount' },
+                            { "data": 'prrb_admin_cost' },
+                            { "data": 'prrb_paid_date' },
+                            { "data": 'prrb_status' },
+                        ],
+                        buttons: ['pdf']
+                    })
+
                     feather.replace()
                 }
             })
@@ -185,5 +256,9 @@
         }
     }
 
+    function printUnpaid(){
+        var btn = $('#report-unpaid_wrapper .buttons-pdf');
+        btn.click();
+    }
 </script>
 @endprepend

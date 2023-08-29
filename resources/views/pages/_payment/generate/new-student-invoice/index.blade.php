@@ -261,6 +261,7 @@
                             <a onclick="_newStudentInvoiceTableActions.openDetail('${unit_type}', ${unit_id})" class="dropdown-item"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="GenerateInvoiceAction.generateOneScope(event)" class="dropdown-item ${generated_status == 'done' ? 'disabled' : ''}" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.delete(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_newStudentInvoiceTableActions.regenerate(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
                         </div>
                     </div>
                 `
@@ -328,19 +329,48 @@
                             icon: data.status == true ? 'success':'error',
                             text: data.msg
                         })
+                        _newStudentInvoiceTable.reload();
                     }
                     xhr.open("DELETE", $url+unit_id, true);
                     xhr.send();
-                    
-
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Berhasil menghapus tagihan',
-                    })
-
                 }
             })
         },
+        regenerate: function(unit_type, unit_id){
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // ex: do ajax request
+                    $url = _baseURL + "/api/payment/generate/new-student-invoice/regenerate/";
+                    if (unit_type == "studyprogram") {
+                        $url += "prodi/"
+                    } else {
+                        $url += "faculty/"
+                    }
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.onload = function() {
+                        var data = JSON.parse(this.responseText);
+                        Swal.fire({
+                            icon: data.status == true ? 'success':'error',
+                            text: data.msg
+                        })
+                        _newStudentInvoiceTable.reload();
+                    }
+                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.send();
+                }
+            })
+        }
     }
 
     const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));

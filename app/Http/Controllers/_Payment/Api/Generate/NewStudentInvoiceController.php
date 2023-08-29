@@ -17,7 +17,10 @@ use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
 use App\Models\PMB\Setting;
 use App\Exceptions\GenerateInvoiceException;
+use App\Models\Payment\DiscountReceiver;
 use App\Models\Payment\PaymentBill;
+use App\Models\Payment\ScholarshipReceiver;
+use App\Models\PMB\PaymentRegisterDetail;
 use App\Models\Student;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\UniversityScope;
@@ -34,6 +37,7 @@ use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
 use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
 use App\Services\ReRegistInvoice\GenerateTreeComplete;
 use Illuminate\Database\QueryException;
+use PhpParser\Node\Expr\FuncCall;
 
 class NewStudentInvoiceController extends Controller
 {
@@ -277,6 +281,10 @@ class NewStudentInvoiceController extends Controller
         return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
     }
 
+    public function regenerateByProdi($prodi_id){
+        return json_encode($this->regenerateTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
+    }
+
     public function deleteByFaculty($faculty_id){
         $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
 
@@ -298,6 +306,23 @@ class NewStudentInvoiceController extends Controller
             'msg' => 'data sukses: '.$dataSuccess.', data gagal: '.$dataFailed,
             'data_success' => $dataSuccess,
             'data_failed' => $dataFailed
+        );
+    }
+
+    public function regenerateByFaculty($faculty_id){
+        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
+
+        foreach($studyprogram as $item){
+            $target_prodi = json_decode($this->regenerateByProdi($item->studyprogram_id), true);
+            
+            if(!$target_prodi['status']){
+                return json_encode($target_prodi, JSON_PRETTY_PRINT);
+            }
+        }
+
+        return array(
+            'status' => true,
+            'msg' => 'Berhasil menggenerate ulang'
         );
     }
 
@@ -702,6 +727,97 @@ class NewStudentInvoiceController extends Controller
             'msg' => 'data sukses: '.$dataSuccess.', data gagal: '.$dataFailed,
             'data_success' => $dataSuccess,
             'data_failed' => $dataFailed
+        );
+    }
+
+    public function regenerateTagihanByProdi($prodi_id){
+        try{
+            $prr = DB::table('finance.payment_re_register as prr')
+                ->select('prr.prr_id', 'prr.reg_id')
+                ->join('pmb.register as student', 'student.reg_id', '=', 'prr.reg_id')
+                ->whereNull('prr.deleted_at')
+                ->where('student.reg_major_pass', '=', $prodi_id)
+                ->get();
+
+            foreach($prr as $list){
+                $payment_bill = DB::table('finance.payment_re_register_detail as prrd')
+                    ->where('prr_id', '=', $list->prr_id)
+                    ->whereNull('deleted_at')
+                    ->update(['deleted_at' => date("Y-m-d H:i:s")]);
+                
+                $component = DB::table('finance.component_detail as cd')
+                        ->select('c.msc_name as component_name', 'cd.cd_fee as fee')
+                        ->join('pmb.register as r', function($join){
+                            $join->on('r.reg_major_pass', '=', 'cd.mma_id')
+                                ->on('r.ms_period_id', '=', 'cd.period_id')
+                                ->on('r.ms_path_id', '=', 'cd.path_id')
+                                ->on('r.ms_school_year_id', '=', 'cd.msy_id');
+                        })
+                        ->join('finance.ms_component as c', 'c.msc_id', '=', 'cd.msc_id')
+                        ->where('r.reg_id', '=', $list->reg_id)
+                        ->get();
+
+                foreach($component as $item){
+                    $prrd = PaymentRegisterDetail::create([
+                        'prr_id' => $list->prr_id,
+                        'prrd_component' => $item->component_name,
+                        'prrd_amount' => $item->fee,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'is_plus' => 1,
+                        'type' => 'component'
+                    ]);
+                }
+
+                $scholarship = DB::table('finance.ms_scholarship_receiver')
+                    ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'ms_id')
+                    ->where('reg_id', '=', $list->reg_id)
+                    ->where('msr_status_generate', '=', 1)
+                    ->where('msr_status', '=', '1')
+                    ->where('prr_id', '=', $list->prr_id)
+                    ->whereNull('deleted_at')
+                    ->get('msr_nominal as fee', 'scholarship.ms_name as component_name');
+
+                foreach($scholarship as $item){
+                    $prrd = PaymentRegisterDetail::create([
+                        'prr_id' => $list->prr_id,
+                        'prrd_component' => $item->component_name,
+                        'prrd_amount' => $item->fee,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'is_plus' => 0,
+                        'type' => 'scholarship'
+                    ]);
+                }
+
+                $discount = DB::table('finance.ms_discount_receiver as mdr')
+                    ->join('finance.ms_discount as md', 'md.md_id', '=', 'mdr.md_id')
+                    ->where('reg_id', '=', $list->reg_id)
+                    ->where('mdr_status_generate', '=', 1)
+                    ->where('mdr_status', '=', '1')
+                    ->where('prr_id', '=', $list->prr_id)
+                    ->whereNull('deleted_at')
+                    ->get('mdr_nominal as fee', 'md.md_name as component_name');
+
+                foreach($discount as $item){
+                    $prrd = PaymentRegisterDetail::create([
+                        'prr_id' => $list->prr_id,
+                        'prrd_component' => $item->component_name,
+                        'prrd_amount' => $item->fee,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'is_plus' => 0,
+                        'type' => 'discount'
+                    ]);
+                }
+            }
+        }catch(QueryException $e){
+            return array(
+                'status' => false,
+                'msg' => 'error system: '.$e->getMessage()
+            );
+        }
+
+        return array(
+            'status' => true,
+            'msg' => 'Berhasil menggenerate ulang'
         );
     }
 }
