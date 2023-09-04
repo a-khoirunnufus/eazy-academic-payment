@@ -681,7 +681,8 @@ class NewStudentInvoiceController extends Controller
         try{
             $data = DB::table('finance.payment_re_register as prr')
                     ->select('prr.prr_id')
-                    ->join('pmb.register as r', 'r.reg_major_pass', '=', $prodi_id)
+                    ->join('pmb.register as r', 'r.reg_major_pass', '=', 'prr.reg_id')
+                    ->where('r.reg_major_pass', '=', $prodi_id)
                     ->whereNull('prr.deleted_at')
                     ->get();
             

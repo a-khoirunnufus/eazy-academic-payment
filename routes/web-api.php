@@ -97,7 +97,11 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student-invoice/choiceall', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@choiceAll');
         Route::post('student-invoice/student', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@studentGenerate');
         Route::post('student-invoice/bulk', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@studentBulkGenerate');
-        Route::delete('student-invoice/delete/{id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@delete');
+        Route::delete('student-invoice/delete-one/{id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@delete');
+        Route::delete('student-invoice/delete/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteByProdi');
+        Route::delete('student-invoice/delete/faculty/{faculty_id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteByFaculty');
+        Route::delete('student-invoice/regenerate/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@regenerateByProdi');
+        Route::delete('student-invoice/regenerate/faculty/{faculty_id}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@regenerateByFaculty');
         Route::delete('student-invoice/deleteBulk/{faculty}/{studyProgram}', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@deleteBulk');
         Route::get('student-invoice/log-invoice', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@logGenerate');
 

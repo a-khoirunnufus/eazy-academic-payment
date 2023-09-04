@@ -259,6 +259,7 @@
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="_studentInvoiceTableActions.delete(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.regenerate(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
                         </div>
                     </div>
                 `
@@ -301,24 +302,28 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    $.post(_baseURL + '/api/payment/generate/student-invoice/deleteBulk/' + faculty_id+'/'+studyprogram_id, {
-                        _method: 'DELETE'
-                    }, function(data){
-                        data = JSON.parse(data)
+                    $url = _baseURL + "/api/payment/generate/student-invoice/delete/";
+                    var unit_id = 0;
+                    if (faculty_id == 0) {
+                        $url += "prodi/"
+                        unit_id = studyprogram_id
+                    } else {
+                        $url += "faculty/"
+                        unit_id = faculty_id
+                    }
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.onload = function() {
+                        var data = JSON.parse(this.responseText);
                         Swal.fire({
-                            icon: 'success',
-                            text: data.message,
-                        }).then(() => {
-                            _studentInvoiceTable.reload()
-                        });
-                    }).fail((error) => {
-                        Swal.fire({
-                            icon: 'error',
-                            text: data.message,
-                        });
-                        _responseHandler.generalFailResponse(error)
-                    })
-                    
+                            icon: data.status == true ? 'success':'error',
+                            text: data.msg
+                        })
+                        _newStudentInvoiceTable.reload();
+                    }
+                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.send();
                 }
             })
         },
@@ -666,6 +671,44 @@
                 }
             });
         },
+        regenerate: function(faculty_id, studyprogram_id) {
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // ex: do ajax request
+                    $url = _baseURL + "/api/payment/generate/student-invoice/regenerate/";
+                    var unit_id = 0;
+                    if (faculty_id == 0) {
+                        $url += "prodi/"
+                        unit_id = studyprogram_id
+                    } else {
+                        $url += "faculty/"
+                        unit_id = faculty_id
+                    }
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.onload = function() {
+                        var data = JSON.parse(this.responseText);
+                        Swal.fire({
+                            icon: data.status == true ? 'success':'error',
+                            text: data.msg
+                        })
+                        _newStudentInvoiceTable.reload();
+                    }
+                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.send();
+                }
+            })
+        }
     }
 
     function filters(){

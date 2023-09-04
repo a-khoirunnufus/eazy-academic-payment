@@ -507,7 +507,7 @@
                     // ex: do ajax request
                     if(data.payment){
                         console.log(data);
-                        $.post(_baseURL + '/api/payment/generate/student-invoice/delete/' + data.payment.prr_id, {
+                        $.post(_baseURL + '/api/payment/generate/student-invoice/delete-one/' + data.payment.prr_id, {
                             _method: 'DELETE'
                         }, function(data){
                             data = JSON.parse(data)

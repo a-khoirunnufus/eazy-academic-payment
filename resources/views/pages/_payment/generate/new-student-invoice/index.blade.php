@@ -261,7 +261,7 @@
                             <a onclick="_newStudentInvoiceTableActions.openDetail('${unit_type}', ${unit_id})" class="dropdown-item"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="GenerateInvoiceAction.generateOneScope(event)" class="dropdown-item ${generated_status == 'done' ? 'disabled' : ''}" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
                             <a onclick="_newStudentInvoiceTableActions.delete(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.regenerate(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
+                            <a onclick="_newStudentInvoiceTableActions.regenerate(${unit_type}, ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
                         </div>
                     </div>
                 `
