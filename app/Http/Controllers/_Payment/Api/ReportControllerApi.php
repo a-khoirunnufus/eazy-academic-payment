@@ -117,6 +117,21 @@ class ReportControllerApi extends Controller
                             ->get();
                         $total_paid = 0;
                         foreach ($listPaymentBill as $pb) {
+                            $manual_payment = DB::table('finance.payment_re_register_transaction')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->get();
+                            if(count($manual_payment) > 0){
+                                $total = 0;
+                                foreach($manual_payment as $mp){
+                                    $total += $mp->prrt_amount;
+                                }
+                                if($total >= $pb->prrb_amount){
+                                    $pb_update = DB::table('finance.payment_re_register_bill')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->update(['prrb_status' => 'lunas']);
+                                }
+                                $total_paid += $total;
+                            }
                             $total_paid += $pb->prrb_amount;
                         }
 

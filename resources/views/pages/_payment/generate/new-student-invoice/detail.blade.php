@@ -477,6 +477,12 @@
                             >
                                 <i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan
                             </a>
+                            <a
+                                onclick="_newStudentInvoiceDetailTableAction.regenerate(event)"
+                                class="dropdown-item ${invoiceStatus == 'Belum Digenerate' ? 'disabled' : ''}"
+                            >
+                                <i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan
+                            </a>
                         </div>
                     </div>
                 `
@@ -561,6 +567,42 @@
                 }
             });
         },
+        regenerate: function(e) {
+            const data = this.tableRef.getRowData(e.currentTarget);
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menggenerate ulang tagihan mahasiswa '+data.participant_fullname+' ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#356CFF',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log(data)
+                    $.post(
+                        // url
+                        _baseURL + '/api/payment/generate/new-student-invoice/regenerate/student/'+data.registration_id,
+                        // data send
+                        {
+                            payment_reregist_id: data.payment_reregist_id,
+                        },
+                        // data receive
+                        (data) => {
+                            if (data.success) {
+                                _toastr.success(data.message, 'Sukses');
+                            } else {
+                                _toastr.error(data.message, 'Gagal');
+                            }
+                            _newStudentInvoiceDetailTable.reload();
+                        }
+                    ).fail((error) => {
+                        _responseHandler.generalFailResponse(error);
+                    });
+                }
+            });
+        }
     }
 
     const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));

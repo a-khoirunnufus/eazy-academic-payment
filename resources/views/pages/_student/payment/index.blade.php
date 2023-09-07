@@ -77,7 +77,7 @@
         .line {
             text-decoration: line-through;
         }
-        #report-unpaid_wrapper {
+        #report-unpaid_wrapper, #report-paid_wrapper {
             display: none;
         }
     </style>

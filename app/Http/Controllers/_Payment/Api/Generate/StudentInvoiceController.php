@@ -358,23 +358,50 @@ class StudentInvoiceController extends Controller
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
     }
 
-    public function deleteByProdi($prodi_id){
+    public function deleteByProdi($prodi_id)
+    {
         return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
     }
 
-    public function regenerateByProdi($prodi_id){
+    public function regenerateByProdi($prodi_id)
+    {
         return json_encode($this->regenerateTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
     }
 
-    public function deleteByFaculty($faculty_id){
+    public function deleteInvoiceUniv()
+    {
+        $faculty = Faculty::all('faculty_id');
+
+        $dataSuccess = 0;
+        $dataFailed = 0;
+        foreach ($faculty as $list) {
+            $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id));
+
+            if (!$target_faculty['status']) {
+                return json_encode($target_faculty, JSON_PRETTY_PRINT);
+            }
+            $dataSuccess += $target_faculty['data_success'];
+            $dataFailed += $target_faculty['data_failed'];
+        }
+
+        return array(
+            'status' => true,
+            'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
+            'data_success' => $dataSuccess,
+            'data_failed' => $dataFailed
+        );
+    }
+
+    public function deleteByFaculty($faculty_id)
+    {
         $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
 
         $dataSuccess = 0;
         $dataFailed = 0;
-        foreach($studyprogram as $item){
+        foreach ($studyprogram as $item) {
             $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id));
-            
-            if(!$target_prodi['status']){
+
+            if (!$target_prodi['status']) {
                 return json_encode($target_prodi, JSON_PRETTY_PRINT);
             }
 
@@ -384,19 +411,20 @@ class StudentInvoiceController extends Controller
 
         return array(
             'status' => true,
-            'msg' => 'data sukses: '.$dataSuccess.', data gagal: '.$dataFailed,
+            'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
             'data_success' => $dataSuccess,
             'data_failed' => $dataFailed
         );
     }
 
-    public function regenerateByFaculty($faculty_id){
+    public function regenerateByFaculty($faculty_id)
+    {
         $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
 
-        foreach($studyprogram as $item){
+        foreach ($studyprogram as $item) {
             $target_prodi = json_decode($this->regenerateByProdi($item->studyprogram_id), true);
-            
-            if(!$target_prodi['status']){
+
+            if (!$target_prodi['status']) {
                 return json_encode($target_prodi, JSON_PRETTY_PRINT);
             }
         }
@@ -406,7 +434,7 @@ class StudentInvoiceController extends Controller
             'msg' => 'Berhasil menggenerate ulang'
         );
     }
-    
+
     public function logGenerate()
     {
         $data = MasterJob::with('detail', 'user')->get();
@@ -572,10 +600,102 @@ class StudentInvoiceController extends Controller
         } catch (QueryException $e) {
             return array(
                 'status' => false,
-                'msg' => 'error system: '.$e->getMessage()
+                'msg' => 'error system: ' . $e->getMessage()
             );
         }
 
+        return array(
+            'status' => true,
+            'msg' => 'Berhasil menggenerate ulang'
+        );
+    }
+
+    public function regenerateTagihanByStudent($student_number)
+    {
+        try {
+            $prr = DB::table('finance.payment_re_register as prr')
+                ->select('prr.prr_id', 'prr.student_number')
+                ->join('hr.ms_student as student', 'student.student_number', '=', 'prr.student_number')
+                ->whereNull('prr.deleted_at')
+                ->where('student.student_number', '=', $student_number)
+                ->get();
+
+            $list = $prr[0];
+
+            $payment_bill = DB::table('finance.payment_re_register_detail as prrd')
+                ->where('prr_id', '=', $list->prr_id)
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => date("Y-m-d H:i:s")]);
+
+            $component = DB::table('finance.component_detail as cd')
+                ->select('c.msc_name as component_name', 'cd.cd_fee as fee')
+                ->join('hr.ms_student as student', function ($join) {
+                    $join->on('student.studyprogram_id', '=', 'cd.mma_id')
+                        ->on('student.period_id', '=', 'cd.period_id')
+                        ->on('student.path_id', '=', 'cd.path_id')
+                        ->on('student.msy_id', '=', 'cd.msy_id');
+                })
+                ->join('finance.ms_component as c', 'c.msc_id', '=', 'cd.msc_id')
+                ->where('student.student_number', '=', $list->student_number)
+                ->get();
+
+            foreach ($component as $item) {
+                $prrd = PaymentRegisterDetail::create([
+                    'prr_id' => $list->prr_id,
+                    'prrd_component' => $item->component_name,
+                    'prrd_amount' => $item->fee,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'is_plus' => 1,
+                    'type' => 'component'
+                ]);
+            }
+
+            $scholarship = DB::table('finance.ms_scholarship_receiver')
+                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'ms_id')
+                ->where('student_number', '=', $list->student_number)
+                ->where('msr_status_generate', '=', 1)
+                ->where('msr_status', '=', '1')
+                ->where('prr_id', '=', $list->prr_id)
+                ->whereNull('deleted_at')
+                ->get('msr_nominal as fee', 'scholarship.ms_name as component_name');
+
+            foreach ($scholarship as $item) {
+                $prrd = PaymentRegisterDetail::create([
+                    'prr_id' => $list->prr_id,
+                    'prrd_component' => $item->component_name,
+                    'prrd_amount' => $item->fee,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'is_plus' => 0,
+                    'type' => 'scholarship'
+                ]);
+            }
+
+            $discount = DB::table('finance.ms_discount_receiver as mdr')
+                ->join('finance.ms_discount as md', 'md.md_id', '=', 'mdr.md_id')
+                ->where('student_number', '=', $list->student_number)
+                ->where('mdr_status_generate', '=', 1)
+                ->where('mdr_status', '=', '1')
+                ->where('prr_id', '=', $list->prr_id)
+                ->whereNull('deleted_at')
+                ->get('mdr_nominal as fee', 'md.md_name as component_name');
+
+            foreach ($discount as $item) {
+                $prrd = PaymentRegisterDetail::create([
+                    'prr_id' => $list->prr_id,
+                    'prrd_component' => $item->component_name,
+                    'prrd_amount' => $item->fee,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'is_plus' => 0,
+                    'type' => 'discount'
+                ]);
+            }
+        } catch (QueryException $e) {
+            return array(
+                'status' => false,
+                'msg' => 'error system: ' . $e->getMessage()
+            );
+        }
+        
         return array(
             'status' => true,
             'msg' => 'Berhasil menggenerate ulang'

@@ -404,8 +404,10 @@
         template: {
             rowAction: function(row) {
                 let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
+                var optional = ``;
                 if(row.payment){
                     action = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
+                    optional = `<a onclick="_studentInvoiceDetailTableAction.regenerate(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
                 }
                 return `
                     <div class="dropdown d-flex justify-content-center">
@@ -415,6 +417,7 @@
                         <div class="dropdown-menu">
                             <a onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
                             ${action}
+                            ${optional}
                         </div>
                     </div>
                 `
@@ -897,6 +900,55 @@
                     });
                 }
             });
+        },
+        regenerate: function(e) {
+            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: `Apakah anda yakin ingin menggenerate ulang tagihan mahasiswa ${data.fullname}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // ex: do ajax request
+                    if(data.payment){
+                        console.log(data);
+                        $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.student_number, {
+                            _method: 'DELETE'
+                        }, function(data){
+                            data = JSON.parse(data)
+                            if(data.status){
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: data.msg,
+                                }).then(() => {
+                                    _studentInvoiceDetailTable.reload()
+                                });
+                            }else{
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: data.msg,
+                                })
+                            }
+                        }).fail((error) => {
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            });
+                            _responseHandler.generalFailResponse(error)
+                        })
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            text: 'Data Tagihan Tidak Ditemukan',
+                        })
+                    }
+                }
+            })
         },
     }
 
