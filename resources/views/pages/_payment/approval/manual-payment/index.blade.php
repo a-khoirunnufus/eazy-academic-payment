@@ -33,8 +33,8 @@
                 <label class="form-label">Tipe Mahasiswa</label>
                 <select id="filter-student-type" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Tipe Mahasiswa</option>
-                    <option value="new_student">Mahasiswa Baru</option>
-                    <option value="student">Mahasiswa Lama</option>
+                    <option value="Mahasiswa Lama">Mahasiswa Baru</option>
+                    <option value="Mahasiswa Baru">Mahasiswa Lama</option>
                 </select>
             </div>
             <div>
@@ -42,7 +42,7 @@
                 <select id="path" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Jalur</option>
                     @foreach($path as $item)
-                    <option value="{{$item->path_id}}">{{$item->path_name}}</option>
+                    <option value="{{$item->path_name}}">{{$item->path_name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -51,7 +51,7 @@
                 <select id="period" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach($period as $item)
-                    <option value="{{$item->period_id}}">{{$item->period_name}}</option>
+                    <option value="{{$item->period_name}}">{{$item->period_name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -149,95 +149,16 @@
                 serverSide: true,
                 ajax: {
                     url: `${_baseURL}/api/payment/approval-manual-payment`,
-                    // data: function(d) {
-                    //     d.custom_filters = {
-                    //         'status': $('select#filter-status').val(),
-                    //         'student_type': $('select#filter-student-type').val(),
-                    //         'path': $('select#path').val(),
-                    //         'period': $('select#period').val(),
-                    //         'faculty': $('select#faculty').val(),
-                    //         'prodi': $('select#prodi').val(),
-                    //     };
-                    // },
-                    // dataSrc: function(json) {
-                    //     var data = [];
-                    //     if (search != '') {
-                    //         for (var i = 0; i < json.data.length; i++) {
-                    //             var isFound = false;
-
-                    //             var name = '' + json.data[i].student_name;
-                    //             if (!isFound && (name.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var student_type = '' + json.data[i].student_type == 'new_student' ? 'Mahasiswa Baru' : 'Mahasiswa Lama';
-                    //             if (!isFound && (student_type.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var participant = '' + json.data[i].par_number ?? '-';
-                    //             if (!isFound && (participant.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var nim = '' + json.data[i].student_id ?? '-';
-                    //             if (!isFound && (nim.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var bill = '' + json.data[i].bill_total;
-                    //             if (!isFound && (bill.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var bank = '' + json.data[i].bank_name;
-                    //             if (!isFound && (bank.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var sender = '' + json.data[i].sender_name;
-                    //             if (!isFound && (sender.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var bank_number = '' + json.data[i].sender_account_number;
-                    //             if (!isFound && (bank_number.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-
-                    //             var status = '';
-                    //             switch (json.data[i].approval_status) {
-                    //                 case 'waiting':
-                    //                     status = 'Menunggu Approval'
-                    //                     break;
-                    //                 case 'accepted':
-                    //                     status = 'Diterima'
-                    //                     break;
-                    //                 case 'rejected':
-                    //                     status = 'Ditolak'
-                    //                     break;
-                    //                 default:
-                    //                     status = 'N/A';
-                    //                     break;
-                    //             }
-                    //             if (!isFound && (status.toLowerCase().search(search.toLowerCase()) >= 0)) {
-                    //                 data.push(json.data[i]);
-                    //                 isFound = true;
-                    //             }
-                    //         }
-                    //         return json.data = data;
-                    //     } else {
-                    //         return json.data;
-                    //     }
-                    // }
+                    data: function(d) {
+                        d.custom_filters = {
+                            'status': $('select#filter-status').val(),
+                            'student_type': $('select#filter-student-type').val(),
+                            'path': $('select#path').val(),
+                            'period': $('select#period').val(),
+                            'faculty': $('select#faculty').val(),
+                            'prodi': $('select#prodi').val(),
+                        };
+                    },
                 },
                 stateSave: false,
                 columns: [
@@ -695,11 +616,11 @@
 
                 for (var i = 0; i < data.length; i++) {
                     $('#prodi').append(`
-                    <option value="${data[i].studyprogram_id}">${data[i].studyprogram_name}</option>
+                    <option value="${data[i].studyprogram_type + " " +data[i].studyprogram_name}">${data[i].studyprogram_type + " " + data[i].studyprogram_name}</option>
                     `)
                 }
             }
-            xhr.open("GET", `${_baseURL}/api/payment/approval/prodi/${faculty}`);
+            xhr.open("GET", `${_baseURL}/api/payment/approval-manual-payment/prodi/${faculty}`);
             xhr.send()
         }
 
