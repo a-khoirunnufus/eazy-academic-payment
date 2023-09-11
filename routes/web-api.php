@@ -82,6 +82,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('new-student-invoice/delete-all', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteAll');
         Route::delete('new-student-invoice/delete/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteByProdi');
         Route::delete('new-student-invoice/delete/faculty/{faculty_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteByFaculty');
+        Route::delete('new-student-invoice/delete/univ', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteInvoiceUniv');
         Route::delete('new-student-invoice/delete-tagihan/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteTagihanByProdi');
         Route::delete('new-student-invoice/regenerate/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByProdi');
         Route::delete('new-student-invoice/regenerate/faculty/{faculty_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByFaculty');

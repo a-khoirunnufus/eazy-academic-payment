@@ -843,7 +843,7 @@ class NewStudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateTagihanByStudent($reg_id)
+    public function regenerateByStudent($reg_id)
     {
         try {
             $prr = DB::table('finance.payment_re_register as prr')

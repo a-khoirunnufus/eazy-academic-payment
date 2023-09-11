@@ -590,10 +590,10 @@
                         },
                         // data receive
                         (data) => {
-                            if (data.success) {
-                                _toastr.success(data.message, 'Sukses');
+                            if (data.status) {
+                                _toastr.success(data.msg, 'Sukses');
                             } else {
-                                _toastr.error(data.message, 'Gagal');
+                                _toastr.error(data.msg, 'Gagal');
                             }
                             _newStudentInvoiceDetailTable.reload();
                         }
