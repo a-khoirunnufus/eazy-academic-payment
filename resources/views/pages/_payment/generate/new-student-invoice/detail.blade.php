@@ -547,7 +547,7 @@
                 if (result.isConfirmed) {
                     $.post(
                         // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/delete-one',
+                        _baseURL + '/api/payment/generate/new-student-invoice/delete-one/1',
                         // data send
                         {
                             payment_reregist_id: data.payment_reregist_id,

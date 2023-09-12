@@ -20,6 +20,7 @@ use App\Exceptions\GenerateInvoiceException;
 use App\Models\Payment\DiscountReceiver;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\ScholarshipReceiver;
+use App\Models\PMB\PaymentRegister;
 use App\Models\PMB\PaymentRegisterDetail;
 use App\Models\Student;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
@@ -37,6 +38,7 @@ use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
 use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
 use App\Services\ReRegistInvoice\GenerateTreeComplete;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Arr;
 use PhpParser\Node\Expr\FuncCall;
 
 class NewStudentInvoiceController extends Controller
@@ -226,13 +228,15 @@ class NewStudentInvoiceController extends Controller
     /**
      * Delete invoice for one participant.
      */
-    public function deleteOne(Request $request)
+    public function deleteOne($save = 0, Request $request)
     {
         $validated = $request->validate([
             'payment_reregist_id' => 'required',
         ]);
 
         try {
+            $prr = DB::table('finance.payment_re_register')->where('prr_id', '=', $validated['payment_reregist_id'])->get('reg_id');
+
             $payBill = PaymentBill::where('prr_id', '=', $validated['payment_reregist_id'])
                 ->whereNull('deleted_at')->get();
 
@@ -241,6 +245,16 @@ class NewStudentInvoiceController extends Controller
                 ->whereNull('deleted_at')->get();
 
             if (count($payBill) > 0) {
+                if($save){
+                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus permahasiswa',
+                                'student_success' => json_encode(array()),
+                                'student_fail' => json_encode(array_values($prr)),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.',
@@ -248,6 +262,16 @@ class NewStudentInvoiceController extends Controller
             }
 
             if (count($componentRules) > 0) {
+                if($save){
+                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus permahasiswa',
+                                'student_success' => json_encode(array()),
+                                'student_fail' => json_encode(array_values($prr)),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.',
@@ -255,6 +279,16 @@ class NewStudentInvoiceController extends Controller
             }
 
             if (count($componentRules) > 0) {
+                if($save){
+                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus permahasiswa',
+                                'student_success' => json_encode(array()),
+                                'student_fail' => json_encode(array_values($prr)),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+                }
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.',
@@ -262,6 +296,16 @@ class NewStudentInvoiceController extends Controller
             }
 
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
+            
+            if($save){
+                $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                        ->create([
+                            'action_type' => 'hapus permahasiswa',
+                            'student_success' => json_encode(array_values($prr)),
+                            'student_fail' => json_encode(array()),
+                            'created_at' => date('Ymd H:i:s')
+                        ]);
+            }
         } catch (DeleteInvoiceException $ex) {
             return response()->json([
                 'success' => false,
@@ -277,9 +321,21 @@ class NewStudentInvoiceController extends Controller
         ], 200);
     }
 
-    public function deleteByProdi($prodi_id)
+    public function deleteByProdi($prodi_id, $save = 0)
     {
-        return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
+        $data = $this->deleteTagihanByProdi($prodi_id);
+
+        if($save){
+           $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus perprodi',
+                                'student_success' => json_encode($data['list_success']),
+                                'student_fail' => json_encode($data['list_fail']),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+        }
+
+        return json_encode($data, JSON_PRETTY_PRINT);
     }
 
     public function regenerateByProdi($prodi_id)
@@ -287,12 +343,14 @@ class NewStudentInvoiceController extends Controller
         return json_encode($this->regenerateTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
     }
 
-    public function deleteByFaculty($faculty_id)
+    public function deleteByFaculty($faculty_id, $save = 0)
     {
         $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
 
         $dataSuccess = 0;
         $dataFailed = 0;
+        $list_success = array();
+        $list_fail = array();
         foreach ($studyprogram as $item) {
             $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id));
 
@@ -302,13 +360,27 @@ class NewStudentInvoiceController extends Controller
 
             $dataSuccess += $target_prodi['data_success'];
             $dataFailed += $target_prodi['data_failed'];
+            $list_success = array_merge($list_success, $target_prodi['list_success']);
+            $list_fail = array_merge($list_fail, $target_prodi['list_fail']);
+        }
+
+        if($save){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus perfakultas',
+                                'student_success' => json_encode($list_success),
+                                'student_fail' => json_encode($list_fail),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
         }
 
         return array(
             'status' => true,
             'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
             'data_success' => $dataSuccess,
-            'data_failed' => $dataFailed
+            'data_failed' => $dataFailed,
+            'list_success' => $list_success,
+            'list_fail' => $list_fail
         );
     }
 
@@ -330,12 +402,14 @@ class NewStudentInvoiceController extends Controller
         );
     }
 
-    public function deleteInvoiceUniv()
+    public function deleteInvoiceUniv($save = 0)
     {
         $faculty = Faculty::all('faculty_id');
 
         $dataSuccess = 0;
         $dataFailed = 0;
+        $list_success = array();
+        $list_fail = array();
         foreach ($faculty as $list) {
             $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id));
 
@@ -344,6 +418,18 @@ class NewStudentInvoiceController extends Controller
             }
             $dataSuccess += $target_faculty['data_success'];
             $dataFailed += $target_faculty['data_failed'];
+            $list_success = array_merge($list_success, $target_faculty['list_success']);
+            $list_fail = array_merge($list_fail, $target_faculty['list_fail']);
+        }
+
+        if($save){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->create([
+                                'action_type' => 'hapus peruniversitas',
+                                'student_success' => json_encode($list_success),
+                                'student_fail' => json_encode($list_fail),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
         }
 
         return array(
@@ -698,10 +784,12 @@ class NewStudentInvoiceController extends Controller
     {
         $dataSuccess = 0;
         $dataFailed = 0;
+        $list_success = array();
+        $list_fail = array();
         try {
             $data = DB::table('finance.payment_re_register as prr')
-                ->select('prr.prr_id')
-                ->join('pmb.register as r', 'r.reg_major_pass', '=', 'prr.reg_id')
+                ->select('prr.prr_id', 'prr.reg_id')
+                ->join('pmb.register as r', 'r.reg_id', '=', 'prr.reg_id')
                 ->where('r.reg_major_pass', '=', $prodi_id)
                 ->whereNull('prr.deleted_at')
                 ->get();
@@ -726,12 +814,15 @@ class NewStudentInvoiceController extends Controller
 
                 if (count($target_detail) > 0 || count($target_bill) > 0) {
                     $dataFailed++;
+                    array_push($list_fail, $item->reg_id);
+
                 } else {
                     $target_detail_update = DB::table('finance.payment_re_register')
                         ->where('prr_id', '=', $item->prr_id)
                         ->update(['deleted_at' => date("Y-m-d H:i:s")]);
 
                     $dataSuccess++;
+                    array_push($list_success, $item->reg_id);
                 }
             }
         } catch (QueryException $e) {
@@ -739,7 +830,9 @@ class NewStudentInvoiceController extends Controller
                 'status' => false,
                 'msg' => 'error system: ' . $e->getMessage(),
                 'data_success' => $dataSuccess,
-                'data_failed' => $dataFailed
+                'data_failed' => $dataFailed,
+                'list_success' => $list_success,
+                'list_fail' => $list_fail
             );
         }
 
@@ -747,12 +840,16 @@ class NewStudentInvoiceController extends Controller
             'status' => true,
             'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
             'data_success' => $dataSuccess,
-            'data_failed' => $dataFailed
+            'data_failed' => $dataFailed,
+            'list_success' => $list_success,
+            'list_fail' => $list_fail
         );
     }
 
     public function regenerateTagihanByProdi($prodi_id)
     {
+        $list_success = array();
+        $list_fail = array();
         try {
             $prr = DB::table('finance.payment_re_register as prr')
                 ->select('prr.prr_id', 'prr.reg_id')
@@ -829,6 +926,7 @@ class NewStudentInvoiceController extends Controller
                         'type' => 'discount'
                     ]);
                 }
+                array_push($list_success, $list->reg_id)
             }
         } catch (QueryException $e) {
             return array(
@@ -839,7 +937,9 @@ class NewStudentInvoiceController extends Controller
 
         return array(
             'status' => true,
-            'msg' => 'Berhasil menggenerate ulang'
+            'msg' => 'Berhasil menggenerate ulang',
+            'list_success' => $list_success,
+            'list_fail' => $list_fail
         );
     }
 

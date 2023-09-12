@@ -334,7 +334,7 @@
                         })
                         _newStudentInvoiceTable.reload();
                     }
-                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.open("DELETE", $url+unit_id+"/1", true);
                     xhr.send();
                 }
             })
@@ -387,7 +387,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/univ";
+                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/univ/1";
 
                     var xhr = new XMLHttpRequest();
                     xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
