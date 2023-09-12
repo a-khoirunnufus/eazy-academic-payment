@@ -123,6 +123,10 @@ class ScholarshipReceiverController extends Controller
             $data = Scholarship::findOrFail($validated["ms_id"]);
             if (array_key_exists("msc_id", $validated)) {
                 $receiver = ScholarshipReceiver::findOrFail($validated["msc_id"]);
+                if($receiver->msr_status_generate == 1){
+                    $text = "Data telah digenerate";
+                    return json_encode(array('success' => false, 'message' => $text));
+                }
                 if ($data->msr_nominal != $validated['msr_nominal']) {
                     $realization = $data->ms_realization - $receiver->msr_nominal + $validated["msr_nominal"];
                     $data->update(['ms_realization' => $realization]);

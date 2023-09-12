@@ -163,6 +163,10 @@ class DiscountReceiverNewStudentController extends Controller
             $data = Discount::findOrFail($validated["md_id"]);
             if(array_key_exists("msc_id",$validated)){
                 $receiver = DiscountReceiver::findOrFail($validated["msc_id"]);
+                if($receiver->mdr_status_generate == 1){
+                    $text = "Data telah digenerate";
+                    return json_encode(array('success' => false, 'message' => $text));
+                }
                 if($data->mdr_nominal != $validated['mdr_nominal']){
                     $realization = $data->md_realization-$receiver->mdr_nominal+$validated["mdr_nominal"];
                     $data->update(['md_realization' =>$realization]);
