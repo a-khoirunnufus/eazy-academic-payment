@@ -18,7 +18,7 @@
             font-size: 15px!important;
             font-weight: bold!important;
         }
-        
+
         .nested-checkbox ul {
             list-style-type: none;
             padding-left: 0px;
@@ -54,7 +54,7 @@
                 <th>Status Generate</th>
                 {{-- <th rowspan="2">Jumlah Total</th> --}}
             </tr>
-            
+
         </thead>
         <tbody></tbody>
     </table>
@@ -71,6 +71,11 @@
         $.get(_baseURL + '/api/payment/generate/student-invoice/headerall', (d) => {
             header = d;
         })
+        $(document).on('click', '.pagination a', function(event){
+            event.preventDefault();
+            var page = $(this).attr('href').split('page=')[1];
+            _studentInvoiceTableActions.fetchLogGenerate(page);
+        });
     })
 
     const _studentInvoiceTable = {
@@ -130,7 +135,7 @@
                         orderable: false,
                     },
                     {
-                        name: 'total_invoice', 
+                        name: 'total_invoice',
                         data: 'total_invoice',
                         searchable: false,
                         orderable: false,
@@ -139,7 +144,7 @@
                         }
                     },
                     {
-                        name: 'total_generate', 
+                        name: 'total_generate',
                         searchable: false,
                         orderable: false,
                         render: (data, _, row) => {
@@ -383,13 +388,13 @@
                                     <li id="choice" class="row">
                                         <div class="row border-bottom py-05" style="padding-left: 2%!important">
                                             <div class="col-6" style="padding-left: 0px!important">
-                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.university} 
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.university}
                                             </div>
                                             <div class="col-3">
                                             <div class="badge" id="badge_header">Belum Digenerate</div>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="from" value="detail">    
+                                        <input type="hidden" name="from" value="detail">
                                     </li>
                                 </ul>
                                 </div>
@@ -443,7 +448,7 @@
                         //     item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
                         //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                         //     item.period.period_name)
-                            
+
                         // _studentInvoiceTableActions.choiceRow(
                         //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                         //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
@@ -456,13 +461,13 @@
                         //     item.component_filter,
                         //     'last')
 
-                        // COUNTING 
+                        // COUNTING
                         // Study Program
                         let sp = item.faculty_id+'_spId_'+item.studyprogram_id;
                         let student = item.total_student;
                         let generate = item.total_generate;
                         _studentInvoiceTableActions.storeToArray(store,sp,student,generate)
-                        
+
                         // Faculty
                         let faculty = 'facultyId_'+item.faculty_id;
                         _studentInvoiceTableActions.storeToArray(store,faculty,student,generate)
@@ -503,7 +508,7 @@
                     text_color = "text-muted";
                 }
             }
-            
+
             if(!$("#choice").find("[id='" + grandparent + "']")[0]){
                 $('#'+tag).append(`
                     <ul id="${grandparent}" class="col-12" style="padding-left:calc(var(--bs-gutter-x) * .5)">
@@ -516,11 +521,11 @@
                     <li id="${parent}">
                         <div class="row border-bottom py-05">
                             <div class="col-6" style="padding-left: ${padding}%!important;">
-                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} /> 
+                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} />
                                 <span class="${text_color}"> ${data} </span>
                             </div>
                             <div class="col-3">
-                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div> 
+                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
                             </div>
                             <div class="col-3">
                                 ${status_component}
@@ -531,7 +536,7 @@
                     </li>
                 `);
             }
-            
+
             $('li :checkbox').on('click', function () {
                 console.log("hey");
                 var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
@@ -551,7 +556,7 @@
                     $li = $chk.closest('li');
                 } while ($ul.is(':not(.someclass)'));
             });
-            
+
         },
         badge(x,student,generate){
             if(generate == 0){
@@ -571,6 +576,11 @@
             }else{
                 store[key] = {'student' : student, 'generate' : generate}
             }
+        },
+        fetchLogGenerate: function(page){
+            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice?page='+page, (log) => {
+                $('#logList').html(log);
+            })
         },
         logGenerate: function(e) {
             Modal.show({
@@ -603,72 +613,15 @@
                             type: 'custom-field',
                             title: '',
                             content: {
-                                template: `
-                                <div id="logGenerate">
-                                </div>
-                                `
+                                template: `<div id="logList">@include('pages._payment.generate.student-invoice.log')</div>`
                             },
                         },
-                        
+
                     },
                     callback: function() {
                         feather.replace();
                     }
                 },
-            });
-            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice', (data) => {
-                if (Object.keys(data).length > 0) {
-                    var total_student = 0;
-                    var total_generate = 0;
-                    data.map(item => {
-                        var timestamp = (new Date(item.created_at)).toLocaleString("id-ID");
-                        $('#logGenerate').append(`
-                            <div class="accordion border" id="accordionBody${item.mj_id}">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.mj_id}" aria-expanded="false" aria-controls="collapse${item.mj_id}">
-                                            <div class="d-flex flex-column" style="gap: 1rem">
-                                                <div>${item.queue} (${timestamp}) <small class="fst-italic">by ${item.user.user_fullname}</small></div>
-                                            </div>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse${item.mj_id}" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionBody${item.mj_id}">
-                                        <div class="accordion-body p-0">
-                                            <ul class="list-group eazy-queue-list" id="list${item.mj_id}">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `);
-                        item.detail.map(d => {
-                            var timestamp = (new Date(d.updated_at)).toLocaleString("id-ID");
-                            var status = "";
-                            if(d.status === 1){
-                                status = "<small class='fst-italic fs-6'>"+timestamp+"</small> <span class='badge bg-success'>Selesai</span>";
-                            }else if(d.status === 0){
-                                status = "<span class='badge bg-danger'>Gagal</span>";
-                            }else{
-                                status = "<span class='badge bg-primary'>Dalam Proses</span>";
-                            }
-                            
-                            $('#list'+item.mj_id).append(`
-                                <li class="list-group-item">
-                                    <div class="queue-item d-flex justify-content-between">
-                                        <div>
-                                            <div class="d-flex flex-row">
-                                                <span class="d-inline-block me-1">${d.title}</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            ${status}
-                                        </div>
-                                    </div>
-                                </li>
-                            `);
-                        });
-                    });
-                }
             });
         },
         regenerate: function(faculty_id, studyprogram_id) {

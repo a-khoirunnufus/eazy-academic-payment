@@ -437,8 +437,8 @@ class StudentInvoiceController extends Controller
 
     public function logGenerate()
     {
-        $data = MasterJob::with('detail', 'user')->get();
-        return $data;
+        $log = MasterJob::with('detail', 'user')->latest()->paginate(10);
+        return view('pages._payment.generate.student-invoice.log', compact('log'))->render();
     }
 
     public function deleteBulk($f, $sp)
@@ -695,7 +695,7 @@ class StudentInvoiceController extends Controller
                 'msg' => 'error system: ' . $e->getMessage()
             );
         }
-        
+
         return array(
             'status' => true,
             'msg' => 'Berhasil menggenerate ulang'

@@ -7,6 +7,7 @@ use Illuminate\Auth\EloquentUserProvider;
 use App\Extensions\SessionGuardExtended;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
             \URL::forceRootUrl(env('APP_URL'));
             \URL::forceScheme('https');
         }
+        Paginator::useBootstrap();
     }
 }
