@@ -926,7 +926,7 @@ class NewStudentInvoiceController extends Controller
                         'type' => 'discount'
                     ]);
                 }
-                array_push($list_success, $list->reg_id)
+                array_push($list_success, $list->reg_id);
             }
         } catch (QueryException $e) {
             return array(
