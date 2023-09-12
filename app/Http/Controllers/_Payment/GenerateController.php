@@ -8,6 +8,7 @@ use App\Models\Period;
 use App\Models\Year;
 use App\Models\Faculty;
 use App\Models\Studyprogram;
+use App\Models\Payment\MasterJob;
 use Illuminate\Http\Request;
 use DB;
 
@@ -59,7 +60,8 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-        return view('pages._payment.generate.student-invoice.index', compact('year','path','period'));
+        $log = MasterJob::with('detail', 'user')->latest()->paginate(10);
+        return view('pages._payment.generate.student-invoice.index', compact('year','path','period','log'));
     }
 
     public function StudentInvoiceDetail(Request $request)
@@ -70,16 +72,16 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-
-        return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period'));
+        $log = MasterJob::with('detail', 'user')->latest()->paginate(10);
+        return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period','log'));
     }
-    
+
     public function discount()
     {
         $period = Year::all();
         return view('pages._payment.generate.discount.index',compact('period'));
     }
-    
+
     public function scholarship()
     {
         $period = Year::all();

@@ -22,7 +22,7 @@
             font-size: 15px!important;
             font-weight: bold!important;
         }
-        
+
         .nested-checkbox ul {
             list-style-type: none;
             padding-left: 0px;
@@ -63,7 +63,7 @@
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Program Studi</span>
                 <h5 class="fw-bolder" id="study_program"></h5>
             </div>
-            
+
             {{-- <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Sistem Kuliah</span>
                 <h5 class="fw-bolder">Reguler</h5>
@@ -157,6 +157,12 @@
         })
         _studentInvoiceDetailTable.init()
         dataTable.columns([6,7,8,9,10,11,12,13,14,15,16]).visible(false)
+
+        $(document).on('click', '.pagination a', function(event){
+            event.preventDefault();
+            var page = $(this).attr('href').split('page=')[1];
+            _studentInvoiceDetailTableAction.fetchLogGenerate(page);
+        });
     })
 
     const _studentInvoiceDetailTable = {
@@ -183,7 +189,7 @@
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'student',
                         render: (data, _, row) => {
                             let html = "";
                             if(row.student_type_id === 1) {
@@ -200,7 +206,7 @@
                         }
                     },
                     {
-                        name: 'year.msy_year', 
+                        name: 'year.msy_year',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -211,7 +217,7 @@
                         }
                     },
                     {
-                        name: 'period.period_name', 
+                        name: 'period.period_name',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -222,7 +228,7 @@
                         }
                     },
                     {
-                        name: 'payment.prr_id', 
+                        name: 'payment.prr_id',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -232,7 +238,7 @@
                         }
                     },
                     {
-                        name: 'payment.prr_id', 
+                        name: 'payment.prr_id',
                         render: (data, _, row) => {
                             var status = "";
                             if(row.payment){
@@ -254,47 +260,47 @@
                         data: 'fullname'
                     },
                     {
-                        name: 'student_id', 
+                        name: 'student_id',
                         data: 'student_id'
                     },
                     {
-                        name: 'study_program.faculty.faculty_name', 
+                        name: 'study_program.faculty.faculty_name',
                         data: 'study_program.faculty.faculty_name',
                         defaultContent: "-",
                     },
                     {
-                        name: 'study_program.studyprogram_name', 
+                        name: 'study_program.studyprogram_name',
                         data: 'study_program.studyprogram_name',
                         render: (data, _, row) => {
                             return (row.study_program)? (row.study_program.studyprogram_type +' '+row.study_program.studyprogram_name) : '-';
                         }
                     },
                     {
-                        name: 'year.msy_year', 
+                        name: 'year.msy_year',
                         render: (data, _, row) => {
                             return (row.year) ? ((row.year.msy_semester === 1)? row.year.msy_year + " Genap" : row.year.msy_year + " Ganjil") : "-";
                         }
                     },
                     {
-                        name: 'period.period_name', 
+                        name: 'period.period_name',
                         render: (data, _, row) => {
                             return (row.period)? row.period.period_name : '-';
                         }
                     },
                     {
-                        name: 'path.path_name', 
+                        name: 'path.path_name',
                         render: (data, _, row) => {
                             return (row.path)? row.path.path_name : '-';
                         }
                     },
                     {
-                        name: 'lecture_type.mlt_name', 
+                        name: 'lecture_type.mlt_name',
                         render: (data, _, row) => {
                             return (row.lecture_type)? row.lecture_type.mlt_name : '-';
                         }
                     },
                     {
-                        name: 'student_status', 
+                        name: 'student_status',
                         data: 'student_status',
                         render: (data, _, row) => {
                             if(row.student_type_id === 1) {
@@ -305,13 +311,13 @@
                         }
                     },
                     {
-                        name: 'payment.prr_id', 
+                        name: 'payment.prr_id',
                         render: (data, _, row) => {
                             return (row.payment) ? Rupiah.format(row.payment.prr_total) : "-";
                         }
                     },
                     {
-                        name: 'payment.prr_id', 
+                        name: 'payment.prr_id',
                         render: (data, _, row) => {
                             if(row.payment){
                                 if(row.payment.prr_status == 'lunas'){
@@ -426,7 +432,7 @@
                 let html = '<div class="d-flex flex-column" style="gap: .5rem">'
                 html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
                 html += '<div class="d-flex flex-row" style="gap: 1rem">';
-                
+
                 const minItemPerColumn = 2;
                 const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
                 let firstCol = invoiceItems.slice(0, half);
@@ -454,7 +460,7 @@
     }
 
     const _studentInvoiceDetailTableAction = {
-        
+
         generate: function(e) {
             let data = _studentInvoiceDetailTable.getRowData(e);
             Swal.fire({
@@ -487,7 +493,7 @@
                                 text: data.message,
                             })
                         }
-                        
+
                     }).fail((error) => {
                         _responseHandler.generalFailResponse(error)
                     })
@@ -603,13 +609,13 @@
                                     <li id="choice" class="row">
                                         <div class="row border-bottom py-05" style="padding-left: 2%!important">
                                             <div class="col-4" style="padding-left: 0px!important">
-                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.study_program} 
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.study_program}
                                             </div>
                                             <div class="col-4">
                                             <div class="badge" id="badge_header">Belum Digenerate</div>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="from" value="detail">    
+                                        <input type="hidden" name="from" value="detail">
                                     </li>
                                 </ul>
                                 </div>
@@ -659,7 +665,7 @@
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                             item.period.period_name,
                             4)
-                            
+
                         _studentInvoiceDetailTableAction.choiceRow(
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
@@ -673,13 +679,13 @@
                             item.component_filter,
                             'last')
 
-                        // COUNTING 
+                        // COUNTING
                         // Period
                         let period = item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id;
                         let student = item.total_student;
                         let generate = item.total_generate;
                         _studentInvoiceDetailTableAction.storeToArray(store,period,student,generate)
-                        
+
                         // Path
                         let path = item.msy_id+'_pathId_'+item.path_id;
                         _studentInvoiceDetailTableAction.storeToArray(store,path,student,generate)
@@ -691,7 +697,7 @@
                         // Mlt
                         let mlt = item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id;
                         _studentInvoiceDetailTableAction.storeToArray(store,mlt,student,generate)
-                        
+
                         // Sum
                         total_student = total_student+student;
                         total_generate = total_generate+generate;
@@ -728,7 +734,7 @@
                     text_color = "text-muted";
                 }
             }
-            
+
             if(!$("#choice").find("[id='" + grandparent + "']")[0]){
                 $('#'+tag).append(`
                     <ul id="${grandparent}" class="col-12" style="padding-left:calc(var(--bs-gutter-x) * .5)">
@@ -741,11 +747,11 @@
                     <li id="${parent}">
                         <div class="row border-bottom py-05">
                             <div class="col-4" style="padding-left: ${padding}%!important;">
-                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} /> 
+                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} />
                                 <span class="${text_color}"> ${data} </span>
                             </div>
                             <div class="col-4">
-                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div> 
+                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
                             </div>
                             <div class="col-4">
                                 ${status_component}
@@ -756,7 +762,7 @@
                     </li>
                 `);
             }
-            
+
             $('li :checkbox').on('click', function () {
                 console.log("hey");
                 var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
@@ -776,7 +782,7 @@
                     $li = $chk.closest('li');
                 } while ($ul.is(':not(.someclass)'));
             });
-            
+
         },
         badge(x,student,generate){
             if(generate == 0){
@@ -796,6 +802,11 @@
             }else{
                 store[key] = {'student' : student, 'generate' : generate}
             }
+        },
+        fetchLogGenerate: function(page){
+            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice?page='+page, (log) => {
+                $('#logList').html(log);
+            })
         },
         logGenerate: function(e) {
             Modal.show({
@@ -832,73 +843,15 @@
                             type: 'custom-field',
                             title: '',
                             content: {
-                                template: `
-                                <div id="logGenerate">
-                                </div>
-                                `
+                                template: `<div id="logList">@include('pages._payment.generate.student-invoice.log')</div>`
                             },
                         },
-                        
+
                     },
                     callback: function() {
                         feather.replace();
                     }
                 },
-            });
-            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice', (data) => {
-                console.log(data);
-                if (Object.keys(data).length > 0) {
-                    var total_student = 0;
-                    var total_generate = 0;
-                    data.map(item => {
-                        var timestamp = (new Date(item.created_at)).toLocaleString("id-ID");
-                        $('#logGenerate').append(`
-                            <div class="accordion border" id="accordionBody${item.mj_id}">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.mj_id}" aria-expanded="false" aria-controls="collapse${item.mj_id}">
-                                            <div class="d-flex flex-column" style="gap: 1rem">
-                                                <div>${item.queue} (${timestamp}) <small class="fst-italic">by ${item.user.user_fullname}</small></div>
-                                            </div>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse${item.mj_id}" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionBody${item.mj_id}">
-                                        <div class="accordion-body p-0">
-                                            <ul class="list-group eazy-queue-list" id="list${item.mj_id}">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `);
-                        item.detail.map(d => {
-                            var timestamp = (new Date(d.updated_at)).toLocaleString("id-ID");
-                            var status = "";
-                            if(d.status === 1){
-                                status = "<small class='fst-italic fs-6'>"+timestamp+"</small> <span class='badge bg-success'>Selesai</span>";
-                            }else if(d.status === 0){
-                                status = "<span class='badge bg-danger'>Gagal</span>";
-                            }else{
-                                status = "<span class='badge bg-primary'>Dalam Proses</span>";
-                            }
-                            
-                            $('#list'+item.mj_id).append(`
-                                <li class="list-group-item">
-                                    <div class="queue-item d-flex justify-content-between">
-                                        <div>
-                                            <div class="d-flex flex-row">
-                                                <span class="d-inline-block me-1">${d.title}</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            ${status}
-                                        </div>
-                                    </div>
-                                </li>
-                            `);
-                        });
-                    });
-                }
             });
         },
         regenerate: function(e) {

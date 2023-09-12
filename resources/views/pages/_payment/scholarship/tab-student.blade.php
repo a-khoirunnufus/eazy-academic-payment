@@ -17,6 +17,7 @@
             <th>PIC</th>
             <th>Nominal</th>
             <th>Status</th>
+            <th>Generate</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -62,7 +63,7 @@
                         searchable: false,
                         render: (data, _, row) => {
                             console.log(row);
-                            return this.template.rowAction(data)
+                            return this.template.rowAction(row)
                         }
                     },
                     {
@@ -204,6 +205,20 @@
                             return status;
                         }
                     },
+                    {
+                        name: 'msr_status_generate',
+                        data: 'msr_status_generate',
+                        searchable: false,
+                        render: (data, _, row) => {
+                            let status = "Belum Digenerate";
+                            let bg = "bg-danger";
+                            if (row.msr_status_generate === 1) {
+                                status = "Sudah Digenerate";
+                                bg = "bg-success";
+                            }
+                            return '<div class="badge ' + bg + '">' + status + '</div>'
+                        }
+                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -295,15 +310,28 @@
             this.implementSearchDelay()
         },
         template: {
-            rowAction: function(id) {
+            rowAction: function(row) {
+                let action = `
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip"
+                    data-placement="right" title="Data yang sudah digenerate tidak bisa diubah kembali" >
+                    <button class="dropdown-item" disabled><i data-feather="edit"></i>&nbsp;&nbsp;Edit</button>
+                </span>
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip"
+                    data-placement="right" title="Data yang sudah digenerate tidak bisa diubah kembali" >
+                    <button class="dropdown-item" disabled><i data-feather="trash"></i>&nbsp;&nbsp;Delete</button>
+                </span>
+                    `;
+                if(row.msr_status_generate === 0){
+                    action = `<a onclick="_scholarshipReceiverTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                    <a onclick="_scholarshipReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>`;
+                }
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_scholarshipReceiverTableActions.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_scholarshipReceiverTableActions.delete(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            ${action}
                         </div>
                     </div>
                 `
