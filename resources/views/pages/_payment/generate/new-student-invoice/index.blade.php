@@ -369,7 +369,7 @@
                         })
                         _newStudentInvoiceTable.reload();
                     }
-                    xhr.open("DELETE", $url+unit_id, true);
+                    xhr.open("DELETE", $url+unit_id+"/1", true);
                     xhr.send();
                 }
             })

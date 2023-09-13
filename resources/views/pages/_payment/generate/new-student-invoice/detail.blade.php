@@ -583,7 +583,7 @@
                     console.log(data)
                     $.post(
                         // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/regenerate/student/'+data.registration_id,
+                        _baseURL + '/api/payment/generate/new-student-invoice/regenerate/student/'+data.registration_id+'/1',
                         // data send
                         {
                             payment_reregist_id: data.payment_reregist_id,

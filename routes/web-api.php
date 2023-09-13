@@ -84,9 +84,9 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('new-student-invoice/delete/faculty/{faculty_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteByFaculty');
         Route::delete('new-student-invoice/delete/univ/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteInvoiceUniv');
         Route::delete('new-student-invoice/delete-tagihan/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteTagihanByProdi');
-        Route::delete('new-student-invoice/regenerate/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByProdi');
-        Route::delete('new-student-invoice/regenerate/faculty/{faculty_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByFaculty');
-        Route::delete('new-student-invoice/regenerate/student/{reg_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByStudent');
+        Route::delete('new-student-invoice/regenerate/prodi/{prodi_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByProdi');
+        Route::delete('new-student-invoice/regenerate/faculty/{faculty_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByFaculty');
+        Route::delete('new-student-invoice/regenerate/student/{reg_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByStudent');
         Route::get('new-student-invoice/get-tree-generate-university', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateUniversity');
         Route::get('new-student-invoice/get-tree-generate-faculty', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateFaculty');
         Route::get('new-student-invoice/get-tree-generate-studyprogram', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateStudyprogram');

@@ -247,10 +247,10 @@ class NewStudentInvoiceController extends Controller
             if (count($payBill) > 0) {
                 if($save){
                     $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
+                            ->insert([
                                 'action_type' => 'hapus permahasiswa',
                                 'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array_values($prr)),
+                                'student_fail' => json_encode(array_values($prr->toArray())),
                                 'created_at' => date('Ymd H:i:s')
                             ]);
                 }
@@ -261,30 +261,30 @@ class NewStudentInvoiceController extends Controller
                 ], 200);
             }
 
+            // if (count($componentRules) > 0) {
+            //     if($save){
+            //         $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+            //                 ->create([
+            //                     'action_type' => 'hapus permahasiswa',
+            //                     'student_success' => json_encode(array()),
+            //                     'student_fail' => json_encode(array_values($prr->toArray())),
+            //                     'created_at' => date('Ymd H:i:s')
+            //                 ]);
+            //     }
+
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.',
+            //     ], 200);
+            // }
+
             if (count($componentRules) > 0) {
                 if($save){
                     $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
+                            ->insert([
                                 'action_type' => 'hapus permahasiswa',
                                 'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array_values($prr)),
-                                'created_at' => date('Ymd H:i:s')
-                            ]);
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.',
-                ], 200);
-            }
-
-            if (count($componentRules) > 0) {
-                if($save){
-                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
-                                'action_type' => 'hapus permahasiswa',
-                                'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array_values($prr)),
+                                'student_fail' => json_encode(array_values($prr->toArray())),
                                 'created_at' => date('Ymd H:i:s')
                             ]);
                 }
@@ -299,9 +299,9 @@ class NewStudentInvoiceController extends Controller
             
             if($save){
                 $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                        ->create([
+                        ->insert([
                             'action_type' => 'hapus permahasiswa',
-                            'student_success' => json_encode(array_values($prr)),
+                            'student_success' => json_encode(array_values($prr->toArray())),
                             'student_fail' => json_encode(array()),
                             'created_at' => date('Ymd H:i:s')
                         ]);
@@ -325,9 +325,9 @@ class NewStudentInvoiceController extends Controller
     {
         $data = $this->deleteTagihanByProdi($prodi_id);
 
-        if($save){
+        if($save && $data['status'] && ($data['data_success'] > 0 || $data['data_failed'] > 0)){
            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
+                            ->insert([
                                 'action_type' => 'hapus perprodi',
                                 'student_success' => json_encode($data['list_success']),
                                 'student_fail' => json_encode($data['list_fail']),
@@ -338,9 +338,20 @@ class NewStudentInvoiceController extends Controller
         return json_encode($data, JSON_PRETTY_PRINT);
     }
 
-    public function regenerateByProdi($prodi_id)
+    public function regenerateByProdi($prodi_id, $save = 0)
     {
-        return json_encode($this->regenerateTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
+        $data = $this->regenerateTagihanByProdi($prodi_id);
+
+        if($save && (count($data['list_success']) > 0 || count($data['list_fail']) > 0)){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->insert([
+                                'action_type' => 'regenerate perprodi',
+                                'student_success' => json_encode($data['list_success']),
+                                'student_fail' => json_encode($data['list_fail']),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+        }
+        return json_encode($data, JSON_PRETTY_PRINT);
     }
 
     public function deleteByFaculty($faculty_id, $save = 0)
@@ -364,9 +375,9 @@ class NewStudentInvoiceController extends Controller
             $list_fail = array_merge($list_fail, $target_prodi['list_fail']);
         }
 
-        if($save){
+        if($save && ($dataSuccess > 0 || $dataFailed > 0)){
             $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
+                            ->insert([
                                 'action_type' => 'hapus perfakultas',
                                 'student_success' => json_encode($list_success),
                                 'student_fail' => json_encode($list_fail),
@@ -384,18 +395,34 @@ class NewStudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateByFaculty($faculty_id)
+    public function regenerateByFaculty($faculty_id, $save = 0)
     {
         $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
-
+        $data_success = 0;
+        $data_fail = 0;
+        $list_success = array();
+        $list_fail = array();
         foreach ($studyprogram as $item) {
             $target_prodi = json_decode($this->regenerateByProdi($item->studyprogram_id), true);
 
             if (!$target_prodi['status']) {
                 return json_encode($target_prodi, JSON_PRETTY_PRINT);
             }
+            $data_success += count($target_prodi['list_success']);
+            $data_fail += count($target_prodi['list_fail']);
+            $list_success = array_merge($list_success, $target_prodi['list_success']);
+            $list_fail = array_merge($list_fail, $target_prodi['list_fail']);
         }
 
+        if($save && ($data_success > 0 || $data_fail > 0)){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->insert([
+                                'action_type' => 'regenerate perfakultas',
+                                'student_success' => json_encode($list_success),
+                                'student_fail' => json_encode($list_fail),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+        }
         return array(
             'status' => true,
             'msg' => 'Berhasil menggenerate ulang'
@@ -943,7 +970,7 @@ class NewStudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateByStudent($reg_id)
+    public function regenerateByStudent($reg_id, $save = 0)
     {
         try {
             $prr = DB::table('finance.payment_re_register as prr')
@@ -1021,6 +1048,17 @@ class NewStudentInvoiceController extends Controller
                     'type' => 'discount'
                 ]);
             }
+
+            if($save && ($payment_bill > 0 || count($component) > 0)){
+                $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->insert([
+                                'action_type' => 'regenerate permahasiswa',
+                                'student_success' => json_encode(array($list->reg_id)),
+                                'student_fail' => json_encode(array()),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+            }
+
         } catch (QueryException $e) {
             return array(
                 'status' => false,
