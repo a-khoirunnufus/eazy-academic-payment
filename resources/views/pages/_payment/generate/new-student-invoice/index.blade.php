@@ -325,7 +325,6 @@
                     }
 
                     var xhr = new XMLHttpRequest();
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.onload = function() {
                         var data = JSON.parse(this.responseText);
                         Swal.fire({
@@ -335,6 +334,7 @@
                         _newStudentInvoiceTable.reload();
                     }
                     xhr.open("DELETE", $url+unit_id+"/1", true);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.send();
                 }
             })
@@ -360,7 +360,6 @@
                     }
 
                     var xhr = new XMLHttpRequest();
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.onload = function() {
                         var data = JSON.parse(this.responseText);
                         Swal.fire({
@@ -370,6 +369,7 @@
                         _newStudentInvoiceTable.reload();
                     }
                     xhr.open("DELETE", $url+unit_id+"/1", true);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.send();
                 }
             })
