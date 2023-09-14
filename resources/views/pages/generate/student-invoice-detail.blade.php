@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Detail Tagihan Mahasiswa Lama/Baru')
@@ -92,7 +92,7 @@
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'student',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -103,31 +103,31 @@
                         }
                     },
                     {
-                        name: 'invoice', 
+                        name: 'invoice',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.invoice_detail, row.invoice_total);
-                        }    
+                        }
                     },
                     {
-                        name: 'penalty', 
+                        name: 'penalty',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.penalty_detail, row.penalty_total);
-                        }    
+                        }
                     },
                     {
-                        name: 'scholarship', 
+                        name: 'scholarship',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.scholarship_detail, row.scholarship_total);
-                        }    
+                        }
                     },
                     {
-                        name: 'discount', 
+                        name: 'discount',
                         render: (data, _, row) => {
                             return this.template.invoiceDetailCell(row.discount_detail, row.discount_total);
-                        }    
+                        }
                     },
                     {
-                        name: 'student_status', 
+                        name: 'student_status',
                         data: 'student_status',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -182,7 +182,7 @@
                 let html = '<div class="d-flex flex-column" style="gap: .5rem">'
                 html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
                 html += '<div class="d-flex flex-row" style="gap: 1rem">';
-                
+
                 const minItemPerColumn = 2;
                 const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
                 let firstCol = invoiceItems.slice(0, half);

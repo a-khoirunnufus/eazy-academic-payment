@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Generate Tagihan')
@@ -125,7 +125,7 @@
                         }
                     },
                     {
-                        name: 'period_n_semester', 
+                        name: 'period_n_semester',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -136,7 +136,7 @@
                         }
                     },
                     {
-                        name: 'study_program_n_faculty', 
+                        name: 'study_program_n_faculty',
                         render: (data, _, row) => {
                             return `
                                 <div>

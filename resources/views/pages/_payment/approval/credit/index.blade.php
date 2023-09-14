@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Pengajuan Cicilan Pembayaran')
@@ -179,7 +179,7 @@
                                     case 0:
                                         status = 'Ditolak';
                                         break;
-                                    case 1: 
+                                    case 1:
                                         status = 'Disetujui';
                                         break;
                                     case 2:
@@ -243,7 +243,7 @@
                         }
                     },
                     {
-                        name: 'prr_id', 
+                        name: 'prr_id',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -302,7 +302,7 @@
                         }
                     },
                     {
-                        name: 'prr_id', 
+                        name: 'prr_id',
                         render: (data, _, row) => {
                             return (row.payment) ? row.payment.prr_total : "-"
                         }
@@ -758,7 +758,7 @@
                 let deadline = "";
                 if (percentage.credit_schema_deadline) {
                     deadline = percentage.credit_schema_deadline.cse_deadline;
-                } 
+                }
                 let amount_percentage = _creditSubmissionTableActions.amountOfPercentage(total,percentage.csd_percentage);
                 html += `
                 <div class="d-flex flex-wrap align-items-center mb-1 SchemaDeadlineField" style="gap:10px"
@@ -838,7 +838,7 @@
                                 text: data.message,
                             });
                         }
-                        
+
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
@@ -853,7 +853,7 @@
 
     function getProdi(val){
         console.log(val)
-        
+
         $('select[name="prodi"]').html(`
             <option value="#ALL" selected>Semua Program Study</option>
         `)
@@ -862,7 +862,7 @@
             var xhr = new XMLHttpRequest();
             xhr.onload = function(){
                 var data = JSON.parse(this.responseText);
-                
+
                 for(var i = 0; i < data.length; i++){
                     var item = data[i];
                     $('select[name="prodi"]').append(`

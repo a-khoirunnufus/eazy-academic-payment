@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Generate Tagihan')
@@ -129,7 +129,7 @@
                         }
                     },
                     {
-                        name: 'invoice_component', 
+                        name: 'invoice_component',
                         data: 'invoice_component',
                         orderable: false,
                         render: (data) => {
@@ -137,7 +137,7 @@
                         }
                     },
                     {
-                        name: 'invoice_total', 
+                        name: 'invoice_total',
                         data: 'invoice_total',
                         orderable: false,
                         render: (data) => {

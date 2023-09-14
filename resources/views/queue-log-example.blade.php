@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Contoh Log Queue')
 @section('sidebar-size', 'collapsed')

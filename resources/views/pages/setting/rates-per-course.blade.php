@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tarif Per Matakuliah')
@@ -150,28 +150,28 @@
                     },
                     {name: 'course_type', data: 'course_type'},
                     {
-                        name: 'sks', 
+                        name: 'sks',
                         data: 'sks',
                         render: (data) => {
                             return data+' SKS';
                         }
                     },
                     {
-                        name: 'semester', 
+                        name: 'semester',
                         data: 'semester',
                         render: (data) => {
                             return 'Semester '+data;
                         }
                     },
                     {
-                        name: 'rate', 
+                        name: 'rate',
                         data: 'rate',
                         render: (data) => {
                             return Rupiah.format(data);
                         }
                     },
                     {
-                        name: 'mandatory', 
+                        name: 'mandatory',
                         data: 'mandatory',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -185,7 +185,7 @@
                         }
                     },
                     {
-                        name: 'is_package', 
+                        name: 'is_package',
                         data: 'is_package',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -198,7 +198,7 @@
                             return html
                         }
                     },
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();

@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -82,39 +82,39 @@
                         }
                     },
                     {
-                        name: 'period', 
+                        name: 'period',
                         data: 'period',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
                         }
                     },
                     {
-                        name: 'rule', 
+                        name: 'rule',
                         data: 'rule_name'
                     },
                     {
-                        name: 'invoice_component', 
+                        name: 'invoice_component',
                         data: 'invoice_component',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
                         }
                     },
                     {
-                        name: 'instalment', 
+                        name: 'instalment',
                         data: 'instalment',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
                         }
                     },
                     {
-                        name: 'minimum_paid_percent', 
+                        name: 'minimum_paid_percent',
                         data: 'minimum_paid_percent',
                         render: (data) => {
                             return '<div class="text-center text-danger"><span class="fw-bold">'+data+'%</span></div>'
                         }
                     },
                     {
-                        name: 'is_active', 
+                        name: 'is_active',
                         data: 'is_active',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'

@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Data Potongan')
@@ -236,7 +236,7 @@
                                         ])
                                     }
 
-                                    //merge the data with CSV  
+                                    //merge the data with CSV
                                     csvFileData.forEach(function(row) {
                                         csv += row.join(',');
                                         csv += "\n";
@@ -246,7 +246,7 @@
                                     hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
                                     hiddenElement.target = '_blank';
 
-                                    //provide the name for the CSV file to be downloaded  
+                                    //provide the name for the CSV file to be downloaded
                                     hiddenElement.download = 'Laporan Data Potongan.csv';
                                     hiddenElement.click();
                                 }

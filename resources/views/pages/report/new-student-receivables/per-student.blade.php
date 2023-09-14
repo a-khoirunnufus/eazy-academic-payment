@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Laporan Piutang Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
@@ -286,7 +286,7 @@
                             $('#total_piutang').html(this.template.currencyCell(all_total_harus_bayar));
                             $('#piutang_terbayar').html(this.template.currencyCell(all_total_terbayar));
                             $('#sisa_piutang').html(all_total_piutang);
-                            
+
                             return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
                         }
                     },

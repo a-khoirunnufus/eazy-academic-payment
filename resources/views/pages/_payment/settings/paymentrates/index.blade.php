@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -201,7 +201,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
+
                             <a href="${_baseURL}/payment/settings/payment-rates/detail/${id}" class="dropdown-item"><i data-feather="dollar-sign"></i>&nbsp;&nbsp;Edit Komponen Biaya</a>
                             <!-- <a href="#" class="dropdown-item" onclick="salinData(${id})"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin Data</a> -->
                         </div>
@@ -734,7 +734,7 @@
                 count_data++;
             }
         }
-        
+
     }
 </script>
 @endsection

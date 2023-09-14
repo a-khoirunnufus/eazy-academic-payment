@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -142,7 +142,7 @@
                         }
                     },
                     {
-                        name: 'period.period_name', 
+                        name: 'period.period_name',
                         data: 'period.period_name',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
@@ -225,7 +225,7 @@
                             `;
                         }
                     }
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -262,7 +262,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
+
                             <a onclick="_ratesTableActions.edit(this)" class="dropdown-item"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_ratesTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>

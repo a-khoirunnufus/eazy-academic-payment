@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tarif Per Matakuliah')
@@ -531,7 +531,7 @@
                                     </button>
                                     <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>
                                     </div>
-                                    
+
                                 </div>
                                 <div id="courseRateInput">
                                 </div>
@@ -873,7 +873,7 @@
     function setProdiFilter(id) {
         $($('select[name="studyprogram-filter"]')[0]).html('');
         $($('select[name="studyprogram-filter"]')[0]).append(`
-            <option value="#ALL" selected>Semua Program Studi</option>    
+            <option value="#ALL" selected>Semua Program Studi</option>
         `)
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {

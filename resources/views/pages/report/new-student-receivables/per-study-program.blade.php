@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Laporan Piutang Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')

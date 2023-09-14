@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Generate Tagihan')
@@ -124,7 +124,7 @@
                         }
                     },
                     {
-                        name: 'period_n_semester', 
+                        name: 'period_n_semester',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -145,28 +145,28 @@
                         }
                     },
                     {
-                        name: 'invoice', 
+                        name: 'invoice',
                         data: 'invoice',
                         render: (data) => {
                             return Rupiah.format(data)
                         }
                     },
                     {
-                        name: 'penalty', 
+                        name: 'penalty',
                         data: 'penalty',
                         render: (data) => {
                             return Rupiah.format(data)
                         }
                     },
                     {
-                        name: 'discount', 
+                        name: 'discount',
                         data: 'discount',
                         render: (data) => {
                             return Rupiah.format(data)
                         }
                     },
                     {
-                        name: 'total', 
+                        name: 'total',
                         data: 'total',
                         render: (data) => {
                             return Rupiah.format(data)
