@@ -122,15 +122,44 @@
                 <h4 class="modal-title fw-bolder" id="invoiceDetailModalLabel">Tagihan Mahasiswa</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3 pt-0">
+            <div class="modal-body p-3 pt-0" id="detail-invoice">
             </div>
         </div>
     </div>
 </div>
 
+<div class="card" id="cicilan-invoice">
+    <div class="container">
+        <div class="row text-center">
+            <h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>
+        </div>
+        <div class="row">
+            <div class="col">
+                <p>Nomor Invoice : INV/459</p>
+                <p>Digenerate Pada : 17-08-2023</p>
+                <p>Status Tagihan : belum lunas</p>
+            </div>
+            <div class="col text-end">
+                <p>Kepada : Oman</p>
+                <p>S1 Informatika</p>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">TAGIHAN</th>
+                    <th scope="col">NOMINAL TAGIHAN</th>
+                    <th scope="col">BIAYA ADMIN</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
 @endsection
 
 @section('js_section')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 
     const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
@@ -364,11 +393,13 @@
                                 <th>Biaya Admin</th>
                                 <th>Dibayar Pada</th>
                                 <th>Status</th>
+                                <th class="cetak-cicilan-act">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${
                                 bills.map(bill => {
+                                    console.log(bill)
                                     var row = null;
                                     var xhr = new XMLHttpRequest()
                                     xhr.onload = function(){
@@ -391,6 +422,7 @@
                                                             '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
                                                             : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
                                                 }</td>
+                                                <td class="cetak-cicilan-act"><button class="btn btn-primary" onclick="cetakCicilan(${JSON.stringify(bill).replaceAll('"',"'")})"> <i data-feather="printer"></i> Cetak</button>
                                             </tr>
                                         `;
                                     }
@@ -428,6 +460,7 @@
                         <a type="button" id="btn-proceed-payment" data-eazy-prr-id="${prrId}" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
                             Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
                         </a>
+                        <button class="btn btn-primary" onclick="cetakSemua('${prrId}')"> <i data-feather="printer"></i> Cetak </button>
                     </div>
                 </div>
             `);
@@ -442,5 +475,251 @@
         window.location.href = `${_baseURL}/student/payment/proceed-payment/${prrId}?email=${email}&type=${type}`;
     }
 
+    function cetakCicilan(prrb){
+        console.log('cicilan :')
+        console.log(prrb)
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function(){
+            var data = JSON.parse(this.responseText)
+            console.log(data);
+
+            var student = {
+                name: '',
+                number: '',
+                studyprogram: '',
+            }
+
+            if('register' in data){
+                student.name = data.register.participant.par_fullname;
+                student.number = data.register.participant.par_number;
+                student.studyprogram = data.register.studyprogram.studyprogram_type + " " + data.register.studyprogram.studyprogram_name
+            }else {
+                student.name = data.student.fullname;
+                student.number = data.student.student_id;
+                student.studyprogram = data.student.studyprogram.studyprogram_type + " " + data.student.studyprogram.studyprogram_name
+            }
+            const date = new Date(data.created_at);
+            const dueDate = new Date(prrb.prrb_due_date);
+            $('#cicilan-invoice').html(`
+            <div class="container">
+                <div class="row text-center">
+                    <h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <p>Nomor Invoice : INV/${prrb.prr_id}</p>
+                        <p>Digenerate Pada : ${date.getDate()}-${date.getMonth()}-${date.getFullYear()}</p>
+                        <p>Status Tagihan : ${prrb.prrb_status}</p>
+                    </div>
+                    <div class="col text-end">
+                        <p>Kepada : ${student.name}</p>
+                        <p>id mahasiswa : ${student.number}</p>
+                        <p>program Studi : ${student.studyprogram}</p>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">TAGIHAN</th>
+                            <th scope="col">TENGGAT PEMBAYARAN</th>
+                            <th scope="col">NOMINAL TAGIHAN</th>
+                            <th scope="col">BIAYA ADMIN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cicilan ke-${prrb.prrb_order}</td>
+                            <td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>
+                            <td>${prrb.prrb_amount}</td>
+                            <td>${prrb.prrb_admin_cost}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            `)
+            var textContent = 
+            '<div class="container">'+
+                '<div class="row text-center">' +
+                    '<h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>'+
+                '</div>'+
+                '<div class="row">'+
+                    '<div class="col">'+
+                        `<p>Nomor Invoice : INV/${prrb.prr_id}</p>`+
+                        `<p>Digenerate Pada : ${date.getDate()}-${date.getMonth()}-${date.getFullYear()}</p>`+
+                        `<p>Status Tagihan : ${prrb.prrb_status}</p>`+
+                    '</div>'+
+                    '<div class="col text-end">'+
+                        `<p>Kepada : ${student.name}</p>`+
+                        `<p>id mahasiswa : ${student.number}</p>`+
+                        `<p>program Studi : ${student.studyprogram}</p>`+
+                    '</div>'+
+                '</div>'+
+                '<table class="table">'+
+                    '<thead>'+
+                        '<tr>'+
+                            '<th scope="col">TAGIHAN</th>'+
+                            '<th scope="col">TENGGAT PEMBAYARAN</th>'+
+                            '<th scope="col">NOMINAL TAGIHAN</th>'+
+                            '<th scope="col">BIAYA ADMIN</th>'+
+                        '</tr>'+
+                    '</thead>'+
+                    '<tbody>'+
+                        '<tr>'+
+                            `<td>Cicilan ke-${prrb.prrb_order}</td>`+
+                            `<td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>`+
+                            `<td>${prrb.prrb_amount}</td>`+
+                            `<td>${prrb.prrb_admin_cost}</td>`+
+                        '</tr>'+
+                    '</tbody>'+
+                '</table>'+
+            '</div>';
+            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+        }
+        xhr.open("GET", _baseURL+"/api/student/payment/"+prrb.prr_id);
+        xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
+        xhr.send();
+    }
+
+    function cetakSemua(prr_id){
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function(){
+            var data = JSON.parse(this.responseText)
+            console.log(data);
+
+            var student = {
+                name: '',
+                number: '',
+                studyprogram: '',
+            }
+
+            if('register' in data){
+                student.name = data.register.participant.par_fullname;
+                student.number = data.register.participant.par_number;
+                student.studyprogram = data.register.studyprogram.studyprogram_type + " " + data.register.studyprogram.studyprogram_name
+            }else {
+                student.name = data.student.fullname;
+                student.number = data.student.student_id;
+                student.studyprogram = data.student.studyprogram.studyprogram_type + " " + data.student.studyprogram.studyprogram_name
+            }
+            const date = new Date(data.created_at);
+
+            var total_komponen = 0;
+            var tableKomponen = 
+                '<table class="table">'+
+                    '<thead>'+
+                        '<tr>'+
+                            '<th scope="col">KOMPONEN TAGIHAN</th>'+
+                            '<th scope="col">BIAYA BAYAR</th>'+
+                        '</tr>'+
+                    '</thead>'+
+                    '<tbody>';
+            
+            data.payment_detail.forEach(item => {
+                tableKomponen += 
+                '<tr>'+
+                    '<td>'+ item.prrd_component + '</td>' +
+                    '<td>'+ item.prrd_amount + '</td>' +
+                '</tr>';
+
+                if(item.is_plus == 1){
+                    total_komponen += item.prrd_amount
+                }else {
+                    total_komponen -= item.prrd_amount
+                }
+            })
+
+            tableKomponen +=
+            '<tr>'+
+                '<td>TOTAL TAGIHAN</td>'+
+                '<td>' + total_komponen + '</td>'+
+            '</tr>'+
+            '</tbody>'+
+            '</table>'
+
+            var total_cicilan = 0;
+            var total_admin = 0;
+            var tableCicilan =
+            '<table class="table mt-2">'+
+                    '<thead>'+
+                        '<tr>'+
+                            '<th scope="col">TAGIHAN</th>'+
+                            '<th scope="col">TENGGAT PEMBAYARAN</th>'+
+                            '<th scope="col">NOMINAL TAGIHAN</th>'+
+                            '<th scope="col">BIAYA ADMIN</th>'+
+                        '</tr>'+
+                    '</thead>'+
+                    '<tbody>';
+            
+            data.payment_bill.forEach(item => {
+                var prrb = item;
+                const dueDate = new Date(prrb.prrb_due_date);
+                tableCicilan += 
+                    '<tr>'+
+                        `<td>Cicilan ke-${prrb.prrb_order}</td>`+
+                        `<td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>`+
+                        `<td>${prrb.prrb_amount}</td>`+
+                        `<td>${prrb.prrb_admin_cost}</td>`+
+                    '</tr>';
+
+                total_admin += prrb.prrb_admin_cost;
+                total_cicilan += prrb.prrb_amount;
+            })
+
+            tableCicilan +=
+                    '<tr>'+
+                        '<td colspan="2">TOTAL BIAYA</td>'+
+                        '<td>'+ total_cicilan +'</td>'+
+                        '<td>'+ total_admin +'</td>'+
+                    '</tr>'+
+                '</tbody>'+
+            '</table>';
+
+            $('#cicilan-invoice').html(`
+            <div class="container">
+                <div class="row text-center">
+                    <h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <p>Nomor Invoice : INV/${prr_id}</p>
+                        <p>Digenerate Pada : ${date.getDate()}-${date.getMonth()}-${date.getFullYear()}</p>
+                        <p>Status Tagihan : ${data.prr_status}</p>
+                    </div>
+                    <div class="col text-end">
+                        <p>Kepada : ${student.name}</p>
+                        <p>id mahasiswa : ${student.number}</p>
+                        <p>program Studi : ${student.studyprogram}</p>
+                    </div>
+                </div>
+                ${tableKomponen}
+                ${tableCicilan}
+            </div>
+            `)
+            var textContent = 
+            '<div class="container">'+
+                '<div class="row text-center">' +
+                    '<h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>'+
+                '</div>'+
+                '<div class="row">'+
+                    '<div class="col">'+
+                        `<p>Nomor Invoice : INV/${prr_id}</p>`+
+                        `<p>Digenerate Pada : ${date.getDate()}-${date.getMonth()}-${date.getFullYear()}</p>`+
+                        `<p>Status Tagihan : ${data.prr_status}</p>`+
+                    '</div>'+
+                    '<div class="col text-end">'+
+                        `<p>Kepada : ${student.name}</p>`+
+                        `<p>id mahasiswa : ${student.number}</p>`+
+                        `<p>program Studi : ${student.studyprogram}</p>`+
+                    '</div>'+
+                '</div>'+
+                tableKomponen +
+                tableCicilan +
+            '</div>';
+            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+        }
+        xhr.open("GET", _baseURL+"/api/student/payment/"+prr_id);
+        xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
+        xhr.send();
+    }
 </script>
 @endsection

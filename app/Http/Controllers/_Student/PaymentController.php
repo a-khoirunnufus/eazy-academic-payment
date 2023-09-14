@@ -45,4 +45,8 @@ class PaymentController extends Controller
 
         return view('pages._student.proceed-payment.index', compact('prr_id', 'user', 'email', 'type'));
     }
+
+    public function invoiceCicilan(Request $request){
+        return view('pages._student.payment.invoice-cicilan', ['content' => $request->get('content')]);
+    }
 }
