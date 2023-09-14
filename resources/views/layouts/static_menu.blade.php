@@ -87,14 +87,14 @@
                             <span class="menu-title text-truncate">Setting Tarif Per Mata Kuliah</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/registration-form' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/registration-form') }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.registration-form' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.registration-form') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Formulir<br>Pendaftaran(PMB)</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/academic-rules' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/academic-rules') }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.academic-rules' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.academic-rules') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Aturan<br>Akademik</span>
                         </a>

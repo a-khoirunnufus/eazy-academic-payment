@@ -39,6 +39,8 @@ Route::group(['prefix' => 'payment'], function () {
         Route::get('subject-rates', 'App\Http\Controllers\_Payment\SettingsController@subjectrates')->name('payment.settings.subject-rates');
         Route::get('courserates/template', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@template');
         Route::get('credit-schema', 'App\Http\Controllers\_Payment\SettingsController@creditSchema')->name('payment.settings.credit-schema');
+        Route::get('registration-form', 'App\Http\Controllers\_Payment\SettingsController@registrationForm')->name('payment.settings.registration-form');
+        Route::get('academic-rules', 'App\Http\Controllers\_Payment\AcademicRules@index')->name('payment.settings.academic-rules');
     });
 
     // Generate

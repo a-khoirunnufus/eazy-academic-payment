@@ -83,6 +83,6 @@ class SettingsController extends Controller
         $jalur_pendaftaran = DB::select("SELECT path_id, path_name from pmb.ms_path");
         $gelombang = DB::select("SELECT period_id, period_name from pmb.ms_period");
 
-        return view('pages.setting.registration-form', compact("periode", "jalur_pendaftaran", "gelombang"));
+        return view('pages._payment.settings.registration-form.index', compact("periode", "jalur_pendaftaran", "gelombang"));
     }
 }

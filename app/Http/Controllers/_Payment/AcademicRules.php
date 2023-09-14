@@ -15,6 +15,6 @@ class AcademicRules extends Controller
         $component = DB::select("select msc_id, msc_name from finance.ms_component");
         $credit_schema = DB::select("select cs_id, cs_name from finance.credit_schema");
 
-        return view('pages.setting.academic-rules', compact("periode_masuk", "aturan_akademik", "component", "credit_schema"));
+        return view('pages._payment.settings.academic-rules.index', compact("periode_masuk", "aturan_akademik", "component", "credit_schema"));
     }
 }
