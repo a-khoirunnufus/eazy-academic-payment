@@ -289,7 +289,7 @@
                 initComplete: function() {
                     $('.scholarship-new-student-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_scholarshipReceiverNewStudentTableActions.add()" class="btn btn-primary">
+                            <button onclick="_scholarshipReceiverNewStudentTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Penerima

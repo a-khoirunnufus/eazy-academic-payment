@@ -113,7 +113,7 @@
                 </select>
             </div>
             <div class="space align-self-end">
-                <button class="btn btn-primary" onclick="filter()">
+                <button class="btn btn-info" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>

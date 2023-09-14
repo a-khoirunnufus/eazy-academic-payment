@@ -49,7 +49,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="filter()">
+                <button class="btn btn-info" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>

@@ -593,7 +593,7 @@
             //                     <label class="form-label">File Bukti Bayar</label>
             //                     <input name="file_evidence" type="file" class="form-control">
             //                 </div>
-            //                 <button type="submit" class="btn btn-primary">Upload Bukti Pembayaran</button>
+            //                 <button type="submit" class="btn btn-info">Upload Bukti Pembayaran</button>
             //             </form>
             //         `);
             //     } else {
@@ -658,7 +658,7 @@
             //                         <label class="form-label">File Bukti Bayar</label>
             //                         <input name="file_evidence" type="file" class="form-control">
             //                     </div>
-            //                     <button type="submit" class="btn btn-primary">Upload Bukti Pembayaran</button>
+            //                     <button type="submit" class="btn btn-info">Upload Bukti Pembayaran</button>
             //                 </form>
             //             `);
             //         }

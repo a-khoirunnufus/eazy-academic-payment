@@ -451,7 +451,7 @@
     //             return `
     //                 <div class="input-group">
     //                     <input type="text" class="form-control" name="${name}" value="${value}">
-    //                     <button onclick="TransactionTypeTableActions.update(event)" class="btn btn-primary" type="button">
+    //                     <button onclick="TransactionTypeTableActions.update(event)" class="btn btn-info" type="button">
     //                         <i data-feather="save"></i>
     //                     </button>
     //                 </div>
@@ -582,7 +582,7 @@
     //                         </select>
     //                     </div>
     //                     <div style="margin-bottom: 7px">
-    //                         <button onclick="TransactionGroupTableActions.add()" class="btn btn-primary">
+    //                         <button onclick="TransactionGroupTableActions.add()" class="btn btn-info">
     //                             <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Jenis Transaksi
     //                         </button>
     //                     </div>
@@ -797,7 +797,7 @@
     //             return `
     //                 <div class="input-group">
     //                     <input type="number" class="form-control" name="${name}" value="${value}">
-    //                     <button onclick="PayPeriodTableActions.update(event)" class="btn btn-primary" type="button">
+    //                     <button onclick="PayPeriodTableActions.update(event)" class="btn btn-info" type="button">
     //                         <i data-feather="save"></i>
     //                     </button>
     //                 </div>
@@ -924,7 +924,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="InvoiceComponentTableActions.add()" class="btn btn-primary">
+                            <button onclick="InvoiceComponentTableActions.add()" class="btn btn-info">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Setting Komponen Tagihan
                             </button>
                         </div>

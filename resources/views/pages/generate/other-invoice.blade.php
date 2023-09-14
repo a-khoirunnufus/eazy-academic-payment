@@ -70,7 +70,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary d-inline-block">
+                <button class="btn btn-info d-inline-block">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>

@@ -39,7 +39,7 @@
                     </div>
                     <div class="mb-2">
                         <div class="mb-2 d-flex justify-content-end">
-                            <button class="btn btn-primary">
+                            <button class="btn btn-info">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Komponen
                             </button>
                         </div>
@@ -102,7 +102,7 @@
                     </div>
                     <div class="mb-2">
                         <div class="mb-2 d-flex justify-content-end">
-                            <button class="btn btn-primary">
+                            <button class="btn btn-info">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Komponen
                             </button>
                         </div>
@@ -280,7 +280,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInstallmentSchemeModal">
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addInstallmentSchemeModal">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Skema

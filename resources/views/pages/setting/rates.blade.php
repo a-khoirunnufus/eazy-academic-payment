@@ -87,7 +87,7 @@
                     </select>
                 </div>
                 <div class="d-flex align-items-end">
-                    <button class="btn btn-primary">
+                    <button class="btn btn-info">
                         <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                     </button>
                 </div>
@@ -156,7 +156,7 @@
                 <form id="frm-comp">
                     <input type="hidden" name="_token" value="pMBK0kMPXiiXpXKIBiPrFhi144CmMMclRsC4G84E">                        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:10px">
                         <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
-                        <button type="button" class="btn btn-primary text-white btn-sm edit-component waves-effect waves-float waves-light" onclick="addNewComp()"> <i class="bx bx-plus m-auto"></i>
+                        <button type="button" class="btn btn-info text-white btn-sm edit-component waves-effect waves-float waves-light" onclick="addNewComp()"> <i class="bx bx-plus m-auto"></i>
                         </button>
                     </div>
 
@@ -224,7 +224,7 @@
                     <small style="color:#163485">
                         *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
                     </small>
-                    <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button" onclick="save_comp()">
+                    <button class="btn btn-info edit-component waves-effect waves-float waves-light" type="button" onclick="save_comp()">
                         Simpan
                     </button>
                 </div>
@@ -327,7 +327,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_ratesTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Tarif

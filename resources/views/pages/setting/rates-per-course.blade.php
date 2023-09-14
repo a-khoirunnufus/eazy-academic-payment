@@ -86,7 +86,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-info">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -215,7 +215,7 @@
                 initComplete: function() {
                     $('.rate-per-course-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesPerCourseTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_ratesPerCourseTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Tarif Matakuliah

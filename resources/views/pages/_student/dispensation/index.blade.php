@@ -252,7 +252,7 @@
                             return '<div class="badge '+bg+'">'+status+'</div>'
                         }
                     },
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -269,7 +269,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_dispensationTableActions.add()" class="btn btn-primary">
+                            <button onclick="_dispensationTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Pengajuan Dispensasi

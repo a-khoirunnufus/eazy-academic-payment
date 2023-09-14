@@ -54,7 +54,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_dispensationSubmissionTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_dispensationSubmissionTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -408,7 +408,7 @@
                 initComplete: function() {
                     $('.submission-dispensation-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_dispensationSubmissionTableActions.add()" class="btn btn-primary">
+                            <button onclick="_dispensationSubmissionTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Pengajuan Dispensasi

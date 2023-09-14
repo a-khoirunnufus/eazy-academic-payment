@@ -243,7 +243,7 @@
                 initComplete: function() {
                     $('.student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-primary" href="javascript:void(0);">
+                            <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
                             <a onclick="_studentInvoiceTableActions.logGenerate()" class="btn btn-secondary" href="javascript:void(0);">
                             <i data-feather="book-open"></i> Log Generate</a>

@@ -55,7 +55,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountReceiverTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_discountReceiverTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>

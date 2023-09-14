@@ -30,7 +30,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="filter()">
+                <button class="btn btn-info" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -143,7 +143,7 @@
                 initComplete: function() {
                     $('.academic-rules-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_academicRulesTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_academicRulesTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Aturan
