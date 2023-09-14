@@ -22,7 +22,7 @@
 
 @section('content')
 
-@include('pages.report.old-student-invoice._shortcuts', ['active' => 'per-study-program'])
+@include('pages._payment.report.old-student-invoice._shortcuts', ['active' => 'per-study-program'])
 
 <div class="card">
     <div class="card-body">

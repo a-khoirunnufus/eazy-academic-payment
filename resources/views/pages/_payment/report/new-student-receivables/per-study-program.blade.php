@@ -1,10 +1,71 @@
 @extends('tpl.vuexy.master-payment')
 
+@section('page_title', 'Laporan Piutang Mahasiswa Baru')
+@section('sidebar-size', 'collapsed')
+@section('url_back', '')
+
 @section('css_section')
 <style>
+    .eazy-summary {
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+        justify-content: space-between;
+    }
+
+    .eazy-summary__item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .eazy-summary__item .item__icon {
+        color: blue;
+        background-color: lightblue;
+        border-radius: 50%;
+        height: 56px;
+        width: 56px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--blue {
+        color: #356CFF;
+        background-color: #F0F4FF;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--green {
+        color: #0BA44C;
+        background-color: #E1FFE0;
+    }
+
+    .eazy-summary__item .item__icon.item__icon--red {
+        color: #FF4949;
+        background-color: #FFF5F5;
+    }
+
+    .eazy-summary__item .item__icon svg {
+        height: 30px;
+        width: 30px;
+    }
+
+    .eazy-summary__item .item__text span:first-child {
+        display: block;
+        font-size: 1rem;
+    }
+
+    .eazy-summary__item .item__text span:last-child {
+        display: block;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
     .space {
         margin-left: 10px;
     }
+
     .filter-container {
         min-width: 200px !important;
     }
@@ -15,13 +76,9 @@
 </style>
 @endsection
 
-@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Baru')
-@section('sidebar-size', 'collapsed')
-@section('url_back', '')
-
 @section('content')
 
-@include('pages.report.new-student-invoice._shortcuts', ['active' => 'per-study-program'])
+@include('pages._payment.report.new-student-receivables._shortcuts', ['active' => 'per-study-program'])
 
 <div class="card">
     <div class="card-body">
@@ -54,6 +111,40 @@
                 <button class="btn btn-info" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div id="receivables-summary" class="eazy-summary">
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--blue">
+                    <i data-feather="activity"></i>
+                </div>
+                <div class="item__text">
+                    <span>Jumlah Piutang Keseluruhan</span>
+                    <span id="total_piutang">Rp 100,000,000,00</span>
+                </div>
+            </div>
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--green">
+                    <i data-feather="credit-card"></i>
+                </div>
+                <div class="item__text">
+                    <span>Jumlah Piutang Terbayar</span>
+                    <span id="piutang_terbayar">Rp 50,000,000,00</span>
+                </div>
+            </div>
+            <div class="eazy-summary__item">
+                <div class="item__icon item__icon--red">
+                    <i data-feather="percent"></i>
+                </div>
+                <div class="item__text">
+                    <span>Total Sisa Tagihan Keseluruhan</span>
+                    <span id="sisa_piutang">Rp 50,000,000,00</span>
+                </div>
             </div>
         </div>
     </div>
@@ -144,12 +235,11 @@
     });
 
     var target_column = [];
-
     $(function() {
         _oldStudentInvoiceTable.init()
 
         for(var i = 10; i <= 20; i++){
-            dt.column(i).visible(true)
+            dt.column(i).visible(false)
             target_column.push(i);
         }
     })
@@ -177,6 +267,49 @@
                         id_prodi: prodi
                     },
                     dataSrc: function(json) {
+                        var data = [];
+                        json.data.forEach(row => {
+                            var total_tagihan = 0;
+                            var total_denda = 0;
+                            var total_beasiswa = 0;
+                            var total_potongan = 0;
+                            var total_terbayar = 0;
+                            var total_harus_bayar = 0;
+                            var total_piutang = 0;
+                            var total_mahasiswa = 0;
+                            var total_mahasiswa_lunas = 0;
+                            var total_mahasiswa_belum_lunas = 0;
+
+                            total_mahasiswa = row.student.length;
+                            for (var i = 0; i < row.student.length; i++) {
+                                total_tagihan += row.student[i].payment.prr_amount;
+                                total_denda += row.student[i].payment.penalty;
+                                total_beasiswa += row.student[i].payment.schoolarsip;
+                                total_potongan += row.student[i].payment.discount;
+                                total_harus_bayar += row.student[i].payment.prr_total;
+                                total_terbayar += row.student[i].payment.prr_paid;
+                                total_piutang = total_harus_bayar - total_terbayar;
+
+                                if (row.student[i].payment.prr_total - row.student[i].payment.prr_paid > 0) {
+                                    total_mahasiswa_belum_lunas++;
+                                } else {
+                                    total_mahasiswa_lunas++;
+                                }
+                            }
+                            all_total_piutang += total_piutang;
+                            if (all_total_piutang > 0) {
+                                data.push(row);
+                            }
+                        })
+
+                        for (var i = 1; i <= 7; i++) {
+                            colsfoot[i].innerHTML = '0'
+                        }
+                        $('#total_piutang').html('0');
+                        $('#piutang_terbayar').html('0');
+                        $('#sisa_piutang').html('0');
+
+                        json.data = data;
                         setPrintTable(json.data)
                         dataPrint = json.data;
                         return json.data;
@@ -193,7 +326,7 @@
                         data: 'studyprogram_name',
                         render: (data, _, row) => {
                             return this.template.buttonLinkCell(data, {
-                                link: _baseURL + '/report/new-student-invoice/program-study/' + row.studyprogram_id
+                                link: _baseURL + '/report/new-student-receivables/program-study/' + row.studyprogram_id
                             });
                         }
                     },
@@ -237,10 +370,13 @@
                             all_total_potongan += total_potongan;
                             colsfoot[4].innerHTML = this.template.currencyCell(all_total_potongan);
                             all_total_harus_bayar += total_harus_bayar;
+                            $('#total_piutang').html(this.template.currencyCell(all_total_harus_bayar));
                             colsfoot[5].innerHTML = this.template.currencyCell(all_total_harus_bayar);
                             all_total_terbayar += total_terbayar;
+                            $('#piutang_terbayar').html(this.template.currencyCell(all_total_terbayar));
                             colsfoot[6].innerHTML = this.template.currencyCell(all_total_terbayar);
                             all_total_piutang += total_piutang;
+                            $('#sisa_piutang').html(this.template.currencyCell(all_total_piutang));
                             colsfoot[7].innerHTML = this.template.currencyCell(all_total_piutang);
 
                             const listHeader = [{

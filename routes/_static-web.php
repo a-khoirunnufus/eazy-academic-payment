@@ -25,30 +25,30 @@ Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-
 
 // Route::get('/report/old-student-invoice', function(Request $request) {
 //     if ($request->query('type') == 'student') {
-//         return view('pages.report.old-student-invoice.per-student');
+//         return view('pages._payment.report.old-student-invoice.per-student');
 //     } else {
-//         return view('pages.report.old-student-invoice.per-study-program');
+//         return view('pages._payment.report.old-student-invoice.per-study-program');
 //     }
 // });
 // Route::get('/report/new-student-invoice', function(Request $request) {
 //     if ($request->query('type') == 'student') {
-//         return view('pages.report.new-student-invoice.per-student');
+//         return view('pages._payment.report.new-student-invoice.per-student');
 //     } else {
-//         return view('pages.report.new-student-invoice.per-study-program');
+//         return view('pages._payment.report.new-student-invoice.per-study-program');
 //     }
 // });
-Route::get('/report/registrant-invoice', fn() => view('pages.report.registrant-invoice'));
+Route::get('/report/registrant-invoice', fn() => view('pages._payment.report.registrant-invoice'));
 // Route::get('/report/old-student-receivables', function(Request $request) {
 //     if ($request->query('type') == 'student') {
-//         return view('pages.report.old-student-receivables.per-student');
+//         return view('pages._payment.report.old-student-receivables.per-student');
 //     } else {
-//         return view('pages.report.old-student-receivables.per-study-program');
+//         return view('pages._payment.report.old-student-receivables.per-study-program');
 //     }
 // });
 // Route::get('/report/new-student-receivables', function(Request $request) {
 //     if ($request->query('type') == 'student') {
-//         return view('pages.report.new-student-receivables.per-student');
+//         return view('pages._payment.report.new-student-receivables.per-student');
 //     } else {
-//         return view('pages.report.new-student-receivables.per-study-program');
+//         return view('pages._payment.report.new-student-receivables.per-study-program');
 //     }
 // });

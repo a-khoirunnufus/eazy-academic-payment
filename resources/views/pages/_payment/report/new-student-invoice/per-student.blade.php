@@ -37,7 +37,7 @@
 
 @section('content')
 
-@include('pages.report.new-student-invoice._shortcuts', ['active' => 'per-student'])
+@include('pages._payment.report.new-student-invoice._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
     <div class="nav-tabs-shadow nav-align-top">

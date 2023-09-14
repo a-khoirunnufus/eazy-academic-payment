@@ -1,6 +1,6 @@
 @extends('tpl.vuexy.master-payment')
 
-@section('page_title', 'Laporan Piutang Mahasiswa Lama')
+@section('page_title', 'Laporan Piutang Mahasiswa Baru')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -80,7 +80,7 @@
 
 @section('content')
 
-@include('pages.report.old-student-receivables._shortcuts', ['active' => 'per-student'])
+@include('pages._payment.report.new-student-receivables._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
     <div class="card-body">
@@ -90,7 +90,7 @@
                 <select class="form-select select2 select-filter" id="filterData">
                     <option value="#ALL">Semua Tahun</option>
                     @foreach($angkatan as $item)
-                    <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
+                    <option value="{{ $item->msy_id }}">{{ substr($item->msy_year, 0, 4).' Semester '.$item->msy_semester }}</option>
                     @endforeach
                 </select>
             </div>
@@ -156,11 +156,11 @@
 </div>
 
 <div class="card">
-    <table id="old-student-invoice-detail-table" class="table table-striped">
+    <table id="new-student-invoice-detail-table" class="table table-striped">
         <thead>
             <tr>
                 <th rowspan="2">Program Studi / Fakultas</th>
-                <th rowspan="2">Nama / NIM</th>
+                <th rowspan="2">Nama / NIK</th>
                 <th rowspan="2">Total / Rincian Tagihan</th>
                 <th colspan="4" class="text-center">Jenis Tagihan</th>
                 <th rowspan="2">
@@ -189,16 +189,14 @@
                 <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
             </div>
             <div class="modal-body">
-                <table id="old-student-payment-history-table" class="table table-striped">
+                <table id="new-student-payment-history-table" class="table table-striped">
                     <thead>
-                        <tr>
-                            <th>Nomor Tagihan</th>
-                            <th>Biaya Admin</th>
-                            <th>Jumlah</th>
-                            <th>Batas Pembayaran</th>
-                            <th>Tanggal Pembayaran</th>
-                            <th>status</th>
-                        </tr>
+                        <th>Nomor Tagihan</th>
+                        <th>Biaya Admin</th>
+                        <th>Jumlah</th>
+                        <th>Batas Pembayaran</th>
+                        <th>Tanggal Pembayaran</th>
+                        <th>status</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -243,10 +241,10 @@
             all_total_harus_bayar = 0;
             all_total_piutang = 0;
 
-            dtDetail = this.instance = $('#old-student-invoice-detail-table').DataTable({
+            dtDetail = this.instance = $('#new-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/report/old-student-invoice',
+                    url: _baseURL + '/api/report/new-student-invoice',
                     data: {
                         prodi_filter_angkatan: byFilter,
                         prodi_search_filter: searchData,
@@ -264,8 +262,8 @@
                     {
                         name: 'student_name_n_id',
                         render: (data, _, row) => {
-                            var elm = `<div class="toHistory" onclick="toHistory('${row.student_number}')">`;
-                            elm += this.template.titleWithSubtitleCell(row.fullname, row.student_id);
+                            var elm = `<div class="toHistory" onclick="toHistory('${row.par_id}')">`;
+                            elm += this.template.titleWithSubtitleCell(row.par_fullname, row.par_nik);
                             elm += `</div>`;
                             return elm;
                         }
@@ -335,7 +333,7 @@
                             var payment = row.payment.payment_detail;
                             var totalHarga = 0;
                             for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'beasiswa') {
+                                if (payment[i].type == 'scholarship') {
                                     listData.push({
                                         name: payment[i].prrd_component,
                                         nominal: payment[i].prrd_amount
@@ -353,7 +351,7 @@
                             var payment = row.payment.payment_detail;
                             var totalHarga = 0;
                             for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'potongan') {
+                                if (payment[i].type == 'discount') {
                                     listData.push({
                                         name: payment[i].prrd_component,
                                         nominal: payment[i].prrd_amount
@@ -422,13 +420,13 @@
                     action: function(e, dt, node, config) {
                         window.open(
                             _baseURL +
-                            '/report/old-student-invoice/download-perstudent?' +
+                            '/report/new-student-invoice/download-perstudent?' +
                             'prodi_filter_angkatan=' + encodeURIComponent(byFilter) + '&' +
                             'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
                             'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
                             'prodi_path_filter=' + encodeURIComponent(path) + '&' +
                             'prodi_period_filter=' + encodeURIComponent(period) + '&' +
-                            'student_export=' + encodeURIComponent('old')
+                            'student_export=' + encodeURIComponent('new')
                         )
                     }
                 }],
@@ -451,10 +449,10 @@
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
         init: function(student_number, search = '#ALL') {
-            dtHistory = this.instance = $('#old-student-payment-history-table').DataTable({
+            dtHistory = this.instance = $('#new-student-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/report/old-student-invoice/student-history/' + student_number,
+                    url: _baseURL + '/api/report/new-student-invoice/student-history/' + student_number,
                     data: {
                         search_filter: search
                     }

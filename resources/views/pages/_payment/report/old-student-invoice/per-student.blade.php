@@ -1,65 +1,22 @@
 @extends('tpl.vuexy.master-payment')
 
-@section('page_title', 'Laporan Piutang Mahasiswa Baru')
+@section('page_title', 'Laporan Pembayaran Tagihan Mahasiswa Lama')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
 @section('css_section')
 <style>
-    .eazy-summary {
-        display: flex;
-        flex-direction: row;
-        gap: 2rem;
-        justify-content: space-between;
+    .nav-tabs.custom .nav-item {
+        flex-grow: 1;
     }
 
-    .eazy-summary__item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
+    .nav-tabs.custom .nav-link {
+        width: -webkit-fill-available !important;
+        height: 50px !important;
     }
 
-    .eazy-summary__item .item__icon {
-        color: blue;
-        background-color: lightblue;
-        border-radius: 50%;
-        height: 56px;
-        width: 56px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-right: 1rem;
-    }
-
-    .eazy-summary__item .item__icon.item__icon--blue {
-        color: #356CFF;
-        background-color: #F0F4FF;
-    }
-
-    .eazy-summary__item .item__icon.item__icon--green {
-        color: #0BA44C;
-        background-color: #E1FFE0;
-    }
-
-    .eazy-summary__item .item__icon.item__icon--red {
-        color: #FF4949;
-        background-color: #FFF5F5;
-    }
-
-    .eazy-summary__item .item__icon svg {
-        height: 30px;
-        width: 30px;
-    }
-
-    .eazy-summary__item .item__text span:first-child {
-        display: block;
-        font-size: 1rem;
-    }
-
-    .eazy-summary__item .item__text span:last-child {
-        display: block;
-        font-size: 18px;
-        font-weight: 700;
+    .nav-tabs.custom .nav-link.active {
+        background-color: #f2f2f2 !important;
     }
 
     .toHistory:hover,
@@ -80,106 +37,82 @@
 
 @section('content')
 
-@include('pages.report.new-student-receivables._shortcuts', ['active' => 'per-student'])
+@include('pages._payment.report.old-student-invoice._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
-    <div class="card-body">
-        <div class="d-flex">
-            <div class="select-filtering">
-                <label class="form-label">Angkatan</label>
-                <select class="form-select select2 select-filter" id="filterData">
-                    <option value="#ALL">Semua Tahun</option>
-                    @foreach($angkatan as $item)
-                    <option value="{{ $item->msy_id }}">{{ substr($item->msy_year, 0, 4).' Semester '.$item->msy_semester }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="space select-filtering">
-                <label class="form-label">Jalur Masuk</label>
-                <select class="form-select select2 select-filter" id="pathData">
-                    <option value="#ALL">Semua Jalur Masuk</option>
-                    @foreach($jalur as $item)
-                    <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="space select-filtering">
-                <label class="form-label">Periode Masuk</label>
-                <select class="form-select select2 select-filter" id="periodData">
-                    <option value="#ALL">Semua Periode Masuk</option>
-                    @foreach($periode as $item)
-                    <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="space align-self-end">
-                <button class="btn btn-info" onclick="filter()">
-                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                </button>
+    <div class="nav-tabs-shadow nav-align-top">
+        <ul class="nav nav-tabs custom border-bottom" role="tablist">
+            <li class="nav-item">
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
+            </li>
+        </ul>
+        <div class="tab-content">
+
+            <!-- OLD STUDENT INVOICE DETAIL -->
+            <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
+                <div class="px-1 py-2 border-bottom">
+                    <div class="d-flex">
+                        <div class="select-filtering">
+                            <label class="form-label">Angkatan</label>
+                            <select class="form-select select2 select-filter" id="filterData">
+                                <option value="#ALL">Semua Tahun</option>
+                                @foreach($angkatan as $item)
+                                <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space select-filtering">
+                            <label class="form-label">Jalur Masuk</label>
+                            <select class="form-select select2 select-filter" id="pathData">
+                                <option value="#ALL">Semua Jalur Masuk</option>
+                                @foreach($jalur as $item)
+                                <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space select-filtering">
+                            <label class="form-label">Periode Masuk</label>
+                            <select class="form-select select2 select-filter" id="periodData">
+                                <option value="#ALL">Semua Periode Masuk</option>
+                                @foreach($periode as $item)
+                                <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space align-self-end">
+                            <button class="btn btn-info" onclick="filter()">
+                                <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <table id="old-student-invoice-detail-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Program Studi / Fakultas</th>
+                            <th rowspan="2">Nama / NIM</th>
+                            <th rowspan="2">Total / Rincian Tagihan</th>
+                            <th colspan="4" class="text-center">Jenis Tagihan</th>
+                            <th rowspan="2">
+                                Total Harus Dibayar<br>
+                                (A+B)-(C+D)
+                            </th>
+                            <th rowspan="2">Total Terbayar</th>
+                            <th rowspan="2">Sisa Tagihan</th>
+                            <th rowspan="2">Status</th>
+                        </tr>
+                        <tr>
+                            <th>Tagihan(A)</th>
+                            <th>Denda(B)</th>
+                            <th>Beasiswa(C)</th>
+                            <th>Potongan(D)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div id="receivables-summary" class="eazy-summary">
-            <div class="eazy-summary__item">
-                <div class="item__icon item__icon--blue">
-                    <i data-feather="activity"></i>
-                </div>
-                <div class="item__text">
-                    <span>Jumlah Piutang Keseluruhan</span>
-                    <span id="total_piutang">Rp 100,000,000,00</span>
-                </div>
-            </div>
-            <div class="eazy-summary__item">
-                <div class="item__icon item__icon--green">
-                    <i data-feather="credit-card"></i>
-                </div>
-                <div class="item__text">
-                    <span>Jumlah Piutang Terbayar</span>
-                    <span id="piutang_terbayar">Rp 50,000,000,00</span>
-                </div>
-            </div>
-            <div class="eazy-summary__item">
-                <div class="item__icon item__icon--red">
-                    <i data-feather="percent"></i>
-                </div>
-                <div class="item__text">
-                    <span>Total Sisa Tagihan Keseluruhan</span>
-                    <span id="sisa_piutang">Rp 50,000,000,00</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <table id="new-student-invoice-detail-table" class="table table-striped">
-        <thead>
-            <tr>
-                <th rowspan="2">Program Studi / Fakultas</th>
-                <th rowspan="2">Nama / NIK</th>
-                <th rowspan="2">Total / Rincian Tagihan</th>
-                <th colspan="4" class="text-center">Jenis Tagihan</th>
-                <th rowspan="2">
-                    Total Harus Dibayar<br>
-                    (A+B)-(C+D)
-                </th>
-                <th rowspan="2">Total Terbayar</th>
-                <th rowspan="2">Sisa Tagihan</th>
-                <th rowspan="2">Status</th>
-            </tr>
-            <tr>
-                <th>Tagihan(A)</th>
-                <th>Denda(B)</th>
-                <th>Beasiswa(C)</th>
-                <th>Potongan(D)</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
 </div>
 
 <div class="modal" id="historPaymentModal" tabindex="-1" role="dialog">
@@ -189,14 +122,16 @@
                 <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
             </div>
             <div class="modal-body">
-                <table id="new-student-payment-history-table" class="table table-striped">
+                <table id="old-student-payment-history-table" class="table table-striped">
                     <thead>
-                        <th>Nomor Tagihan</th>
-                        <th>Biaya Admin</th>
-                        <th>Jumlah</th>
-                        <th>Batas Pembayaran</th>
-                        <th>Tanggal Pembayaran</th>
-                        <th>status</th>
+                        <tr>
+                            <th>Nomor Tagihan</th>
+                            <th>Biaya Admin</th>
+                            <th>Jumlah</th>
+                            <th>Batas Pembayaran</th>
+                            <th>Tanggal Pembayaran</th>
+                            <th>status</th>
+                        </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -211,16 +146,7 @@
 
 @section('js_section')
 <script>
-    var all_total_tagihan = 0;
-    var all_total_denda = 0;
-    var all_total_beasiswa = 0;
-    var all_total_potongan = 0;
-    var all_total_terbayar = 0;
-    var all_total_harus_bayar = 0;
-    var all_total_piutang = 0;
-
     var dtDetail, dtHistory, student = null;
-
     $(document).ready(function() {
         select2Replace();
     });
@@ -233,18 +159,10 @@
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
         init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
-            all_total_tagihan = 0;
-            all_total_denda = 0;
-            all_total_beasiswa = 0;
-            all_total_potongan = 0;
-            all_total_terbayar = 0;
-            all_total_harus_bayar = 0;
-            all_total_piutang = 0;
-
-            dtDetail = this.instance = $('#new-student-invoice-detail-table').DataTable({
+            dtDetail = this.instance = $('#old-student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/report/new-student-invoice',
+                    url: _baseURL + '/api/report/old-student-invoice',
                     data: {
                         prodi_filter_angkatan: byFilter,
                         prodi_search_filter: searchData,
@@ -262,8 +180,8 @@
                     {
                         name: 'student_name_n_id',
                         render: (data, _, row) => {
-                            var elm = `<div class="toHistory" onclick="toHistory('${row.par_id}')">`;
-                            elm += this.template.titleWithSubtitleCell(row.par_fullname, row.par_nik);
+                            var elm = `<div class="toHistory" onclick="toHistory('${row.student_number}')">`;
+                            elm += this.template.titleWithSubtitleCell(row.fullname, row.student_id);
                             elm += `</div>`;
                             return elm;
                         }
@@ -279,14 +197,6 @@
                                     nominal: payment[i].prrd_amount
                                 });
                             }
-
-                            all_total_harus_bayar += row.payment.prr_total;
-                            all_total_terbayar += row.payment.prr_paid;
-                            all_total_piutang += (all_total_harus_bayar - all_total_terbayar);
-                            $('#total_piutang').html(this.template.currencyCell(all_total_harus_bayar));
-                            $('#piutang_terbayar').html(this.template.currencyCell(all_total_terbayar));
-                            $('#sisa_piutang').html(all_total_piutang);
-
                             return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
                         }
                     },
@@ -420,13 +330,13 @@
                     action: function(e, dt, node, config) {
                         window.open(
                             _baseURL +
-                            '/report/new-student-invoice/download-perstudent?' +
+                            '/report/old-student-invoice/download-perstudent?' +
                             'prodi_filter_angkatan=' + encodeURIComponent(byFilter) + '&' +
                             'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
                             'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
                             'prodi_path_filter=' + encodeURIComponent(path) + '&' +
                             'prodi_period_filter=' + encodeURIComponent(period) + '&' +
-                            'student_export=' + encodeURIComponent('new')
+                            'student_export=' + encodeURIComponent('old')
                         )
                     }
                 }],
@@ -449,10 +359,10 @@
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
         init: function(student_number, search = '#ALL') {
-            dtHistory = this.instance = $('#new-student-payment-history-table').DataTable({
+            dtHistory = this.instance = $('#old-student-payment-history-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/report/new-student-invoice/student-history/' + student_number,
+                    url: _baseURL + '/api/report/old-student-invoice/student-history/' + student_number,
                     data: {
                         search_filter: search
                     }
@@ -550,6 +460,7 @@
         }
         // $('.nav-tabs button[data-bs-target="#navs-payment-history"]').tab('show');
         $('#historPaymentModal').modal('toggle');
+
     }
 
     function filter() {
