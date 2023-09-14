@@ -1,7 +1,7 @@
 @extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
+@section('page_title', 'Pengaturan Formulir Pendaftaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 

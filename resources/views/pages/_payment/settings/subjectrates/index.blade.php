@@ -1,7 +1,7 @@
 @extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tarif Per Matakuliah')
+@section('page_title', 'Pengaturan Tarif Per Matakuliah')
 @section('sidebar-size', 'collapsed')
 @section('url_back', url('setting/rates'))
 
