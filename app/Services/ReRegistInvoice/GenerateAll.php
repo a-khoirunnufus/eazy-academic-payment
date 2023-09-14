@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\ReRegistInvoice\GenerateOne;
 use App\Exceptions\GenerateInvoiceException;
-use App\Models\Year;
+use App\Models\Payment\Year;
 
 class GenerateAll {
 

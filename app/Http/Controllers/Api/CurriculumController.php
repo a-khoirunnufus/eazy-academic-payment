@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Curriculum;
+use App\Models\Payment\Curriculum;
 use App\Traits\Models\QueryFilterByRequest;
 use App\Traits\Models\LoadDataRelationByRequest;
 use App\Enums\Curriculum\DocumentFileName;
@@ -55,7 +55,7 @@ class CurriculumController extends Controller
             DB::rollback();
             return $e;
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -72,14 +72,14 @@ class CurriculumController extends Controller
             DB::rollback();
             return $e;
         }
-        
+
         return response()->json(['success' => true]);
     }
 
     public function destroy(Curriculum $curriculum)
     {
         $curriculum->delete();
-        
+
         return response()->json(['success' => true]);
     }
 

@@ -10,7 +10,7 @@ class Curriculum extends Model
     use HasResource;
 
     protected $table = "curriculums";
-    
+
     protected $fillable = [
         'name', 'applied_date', 'studyprogram_id'
     ];

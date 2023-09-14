@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
-use App\Models\Path;
-use App\Models\Period;
-use App\Models\Year;
-use App\Models\Faculty;
-use App\Models\Studyprogram;
+use App\Models\Payment\Path;
+use App\Models\Payment\Period;
+use App\Models\Payment\Year;
+use App\Models\Payment\Faculty;
+use App\Models\Payment\Studyprogram;
 use App\Models\Payment\MasterJob;
 use Illuminate\Http\Request;
 use DB;

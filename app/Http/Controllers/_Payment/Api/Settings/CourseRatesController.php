@@ -4,11 +4,11 @@ namespace App\Http\Controllers\_Payment\Api\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Studyprogram;
-use App\Models\Course;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Course;
 use App\Models\Payment\CourseRate;
 use App\Http\Requests\Payment\Settings\CourseRateRequest;
-use App\Models\Faculty;
+use App\Models\Payment\Faculty;
 use DB;
 use Exception;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -254,7 +254,7 @@ class CourseRatesController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet_info = new Worksheet($spreadsheet, 'Info');
         $sheet = $spreadsheet->getActiveSheet();
-        
+
         $sheet->setCellValue('A1', 'Program Studi');
         $sheet_info->setCellValue('A1', 'Program Studi');
         $sheet->mergeCells('A1:A2');

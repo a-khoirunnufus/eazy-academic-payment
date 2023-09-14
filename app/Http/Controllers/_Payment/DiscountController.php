@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faculty;
+use App\Models\Payment\Faculty;
 use App\Models\Payment\Discount;
 use Illuminate\Http\Request;
-use App\Models\Year;
+use App\Models\Payment\Year;
 
 class DiscountController extends Controller
 {

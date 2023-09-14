@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Studyprogram extends Model
 {
     use HasFactory;
-    
+
     protected $table = "masterdata.ms_studyprogram";
 
     protected $primaryKey = 'studyprogram_id';
@@ -16,7 +16,7 @@ class Studyprogram extends Model
     protected $fillable = [
         'faculty_id','studyprogram_name', 'studyprogram_name_english'
     ];
-    
+
     public function faculty()
     {
         return $this->belongsTo(Faculty::class, 'faculty_id','faculty_id');
@@ -26,5 +26,5 @@ class Studyprogram extends Model
     {
         return $this->belongsTo(Student::class, 'studyprogram_id', 'studyprogram_id')->with('payment');
     }
-    
+
 }

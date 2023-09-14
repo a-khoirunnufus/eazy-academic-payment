@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserHasRole extends Model
+class UserAssociateModel extends Model
 {
-    protected $table = "user_has_roles";
+    protected $table = "user_associate_models";
 
     protected $guarded = [];
 
@@ -15,8 +15,8 @@ class UserHasRole extends Model
 
     public $incrementing = false;
 
-    public function role()
+    public function user()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Users::class, 'user_id', 'user_id');
     }
 }

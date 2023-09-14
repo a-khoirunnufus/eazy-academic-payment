@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Path extends Model
 {
     use HasFactory;
-    
+
     protected $table = "masterdata.ms_path";
 
     protected $primaryKey = 'path_id';

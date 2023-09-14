@@ -1,7 +1,7 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
+@section('page_title', 'Pengaturan Komponen Tagihan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -53,7 +53,7 @@
                                 <label class="form-label">File Import</label>
                                 <div class="input-group" style="width: 500px">
                                     <input name="file" type="file" class="form-control">
-                                    <a onclick="_uploadFileForm.submit()" class="btn btn-primary" type="button">
+                                    <a onclick="_uploadFileForm.submit()" class="btn btn-info" type="button">
                                         <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
                                     </a>
                                 </div>
@@ -97,7 +97,7 @@
             <div class="modal-footer">
                 <div class="d-flex justify-content-end">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="importComponent()" class="btn btn-primary">Import Komponen</button>
+                    <button onclick="importComponent()" class="btn btn-info">Import Komponen</button>
                 </div>
             </div>
         </div>
@@ -198,7 +198,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_invoiceComponentTableActions.add()" class="btn btn-primary">
+                            <button onclick="_invoiceComponentTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Komponen Tagihan
@@ -206,7 +206,7 @@
                             </button>
                         </div>
                         <div class="ms-1" style="margin-bottom: 7px">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importComponentModal">
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importComponentModal">
                                 <span style="vertical-align: middle">
                                     <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Import Komponen Tagihan

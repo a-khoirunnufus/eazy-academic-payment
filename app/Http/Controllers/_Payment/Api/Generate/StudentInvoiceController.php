@@ -4,12 +4,12 @@ namespace App\Http\Controllers\_Payment\Api\Generate;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Studyprogram;
-use App\Models\Faculty;
-use App\Models\PeriodPath;
-use App\Models\Student;
-use App\Models\ActiveYear;
-use App\Models\Year;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Faculty;
+use App\Models\Payment\PeriodPath;
+use App\Models\Payment\Student;
+use App\Models\Payment\ActiveYear;
+use App\Models\Payment\Year;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;

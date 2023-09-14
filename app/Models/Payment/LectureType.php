@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class LectureType extends Model
 {
     use HasFactory;
-    
+
     protected $table = "masterdata.ms_lecture_type";
 
     protected $primaryKey = 'mlt_id';
@@ -16,5 +16,5 @@ class LectureType extends Model
     protected $fillable = [
         'mlt_name'
     ];
-    		
+
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\PMB\Register;
 use App\Models\HR\MsStudent;
-use App\Models\Year;
+use App\Models\Payment\Year;
 use App\Models\Masterdata\MsPaymentMethod;
 
 class Payment extends Model

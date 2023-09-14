@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faculty;
+use App\Models\Payment\Faculty;
 use Illuminate\Http\Request;
 use App\Models\Payment\ComponentType;
 use Illuminate\Support\Facades\DB;
-use App\Models\Studyprogram;
-use App\Models\PeriodPath;
-use App\Models\Period;
-use App\Models\Path;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\PeriodPath;
+use App\Models\Payment\Period;
+use App\Models\Payment\Path;
 
 class SettingsController extends Controller
 {
@@ -56,7 +56,7 @@ class SettingsController extends Controller
         $data['tahun'] = "";
         if($data->path){
             $data['jalur'] = $data->path->path_name;
-            
+
         }
         if($data->period){
             $data['periode'] = $data->period->period_name;
@@ -72,7 +72,7 @@ class SettingsController extends Controller
 
         return view('pages._payment.settings.paymentrates.detail',compact('data','id'));
     }
-    
+
     public function creditSchema()
     {
         return view('pages._payment.settings.credit-schema.index');

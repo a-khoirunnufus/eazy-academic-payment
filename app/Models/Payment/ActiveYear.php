@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ActiveYear extends Model
 {
     use HasFactory;
-    
+
     protected $table = "academic.school_year";
 
     protected $primaryKey = 'school_year_id';

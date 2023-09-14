@@ -5,9 +5,11 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Path;
-use App\Models\Period;
-use App\Models\LectureType;
+use App\Models\Payment\Path;
+use App\Models\Payment\Period;
+use App\Models\Payment\Component;
+use App\Models\Payment\LectureType;
+
 
 class ComponentDetail extends Model
 {

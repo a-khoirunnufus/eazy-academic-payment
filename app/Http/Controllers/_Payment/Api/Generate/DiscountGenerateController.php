@@ -9,8 +9,8 @@ use App\Models\Payment\DiscountReceiver;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Http\Requests\Payment\Discount\DiscountReceiverRequest;
-use App\Models\Student;
-use App\Models\Year;
+use App\Models\Payment\Student;
+use App\Models\Payment\Year;
 use DB;
 
 class DiscountGenerateController extends Controller

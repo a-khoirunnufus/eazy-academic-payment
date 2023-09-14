@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\Scholarship;
 use App\Http\Requests\Payment\Scholarship\ScholarshipRequest;
-use App\Models\Year;
+use App\Models\Payment\Year;
 use DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;

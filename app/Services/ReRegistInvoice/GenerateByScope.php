@@ -7,7 +7,7 @@ use App\Contracts\GenerateReRegistInvoiceScope;
 use App\Exceptions\GenerateInvoiceException;
 use App\Services\ReRegistInvoice\GenerateOne;
 use App\Services\Queries\ReRegistration\ReRegistInvWithFilter;
-use App\Models\Year;
+use App\Models\Payment\Year;
 
 class GenerateByScope {
 
