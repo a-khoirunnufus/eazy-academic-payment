@@ -115,12 +115,6 @@
                     <span class="menu-title text-truncate">Generate</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="menu__item nav-item {{ 'generate/registrant-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('generate/registrant-invoice') }}">
-                            <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Generate Tagihan<br>Pendaftar</span>
-                        </a>
-                    </li>
                     <li class="menu__item nav-item {{ 'payment.generate.student-invoice' == request()->path() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.student-invoice') }}">
                             <i data-feather="circle"></i>
