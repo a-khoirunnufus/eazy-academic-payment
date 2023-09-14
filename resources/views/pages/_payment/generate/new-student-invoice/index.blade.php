@@ -7,6 +7,23 @@
 @section('css_section')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
 <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
+<style>
+    .item-log {
+        width: 100%;
+        display: grid;
+        column-gap: 10px;
+        grid-template-columns: auto auto;
+        padding: 5px 10px 6px 10px;
+        border-radius: 10px;
+        margin-top: 5px;
+    }
+    .item-log p {
+        margin: 0;
+    }
+    .item-log .type-action {
+        text-align: right;
+    }
+</style>
 @endsection
 
 @section('content')
@@ -74,6 +91,56 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal Log -->
+<div class="modal fade" id="logModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Riwayat Aktivitas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="bodyLogActivity">
+        <div class="d-flex flex-column">
+            <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('1')">
+                <p>2023/09/13</p>
+                <p class="type-action">Hapus Perprodi</p>
+            </div>
+            <div class="collapse p-1" id="logActivityItem-1">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">NAMA</th>
+                            <th scope="col">PROGRAM STUDY</th>
+                            <th scope="col">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>user1</td>
+                            <td>informatika</td>
+                            <td>berhasil</td>
+                        </tr>
+                        <tr>
+                            <td>user2</td>
+                            <td>informatika</td>
+                            <td>berhasil</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('2')">
+                <p>2023/09/13</p>
+                <p class="type-action">Hapus Perprodi</p>
+            </div>
+            <div class="collapse" id="logActivityItem-2">
+                <p>data testing 1</p>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection
 
@@ -246,6 +313,9 @@
                             <button onclick="_newStudentInvoiceTableActions.deleteUniv()" class="btn btn-danger">
                                 Hapus Tagihan Universitas
                             </button>
+                            <button onclick="LogActivity.log()" class="btn btn-secondary" >
+                                Log Aktivitas
+                            </button>
                         </div>
                     `)
                     feather.replace()
@@ -347,7 +417,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
                 cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
+                confirmButtonText: 'Regenerate',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -390,7 +460,6 @@
                     $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/univ/1";
 
                     var xhr = new XMLHttpRequest();
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.onload = function() {
                         var data = JSON.parse(this.responseText);
                         Swal.fire({
@@ -400,10 +469,74 @@
                         _newStudentInvoiceTable.reload();
                     }
                     xhr.open("DELETE", $url, true);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.send();
                 }
             })
         },
+    }
+
+    const LogActivity = {
+        log: function(){
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function(){
+                var data = JSON.parse(this.responseText);
+                console.log(data);
+
+                $('#bodyLogActivity').html(``)
+                data.forEach(item => {
+                    var row_success = ``;
+                    item.list_success.forEach(list => {
+                        row_success += `
+                                <tr>
+                                    <td>${list.par_fullname}</td>
+                                    <td>${list.studyprogram_type} ${list.studyprogram_name}</td>
+                                    <td>Berhasil</td>
+                                </tr>
+                        `
+                    });
+
+                    var row_fail = ``;
+                    item.list_fail.forEach(list => {
+                        row_fail += `
+                                <tr>
+                                    <td>${list.par_fullname}</td>
+                                    <td>${list.studyprogram_type} ${list.studyprogram_name}</td>
+                                    <td>Gagal</td>
+                                </tr>
+                        `
+                    })
+                    $('#bodyLogActivity').append(`
+                    <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('${item.id}')">
+                        <p>${item.action_date}</p>
+                        <p class="type-action">${item.type}</p>
+                    </div>
+                    <div class="collapse p-1" id="logActivityItem-${item.id}">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">NAMA</th>
+                                    <th scope="col">PROGRAM STUDY</th>
+                                    <th scope="col">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${row_success}
+                                ${row_fail}
+                            </tbody>
+                        </table>
+                    </div>
+                    `)
+                })
+                $('#logModal').modal('show');
+            }
+            xhr.open("GET", _baseURL+"/api/payment/generate/new-student-invoice/log");
+            xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+            xhr.send();
+        },
+        showData: function(id){
+            $('#logActivityItem-'+id).collapse('toggle');
+        }
     }
 
     const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));

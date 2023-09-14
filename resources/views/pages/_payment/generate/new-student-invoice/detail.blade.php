@@ -511,7 +511,7 @@
                 if (result.isConfirmed) {
                     $.post(
                         // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/generate-one',
+                        _baseURL + '/api/payment/generate/new-student-invoice/generate-one/1',
                         // data send
                         {
                             invoice_period_code: invoicePeriodCode,
@@ -576,7 +576,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#356CFF',
                 cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
+                confirmButtonText: 'Regenerate',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {

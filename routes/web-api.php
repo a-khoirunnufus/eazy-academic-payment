@@ -73,7 +73,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('new-student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@detail');
         Route::get('new-student-invoice/show-invoice/{prr_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@invoiceDetail');
         Route::get('new-student-invoice/show-invoice-component/{prr_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@invoiceComponentDetail');
-        Route::post('new-student-invoice/generate-one', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@generateOne');
+        Route::post('new-student-invoice/generate-one/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@generateOne');
         Route::post('new-student-invoice/generate-by-scope', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@generateByScope');
         Route::post('new-student-invoice/generate-by-scopes', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@generateByScopes');
         Route::post('new-student-invoice/generate-all', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@generateAll');
@@ -86,10 +86,11 @@ Route::group(['prefix' => 'payment'], function(){
         Route::delete('new-student-invoice/delete-tagihan/prodi/{prodi_id}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@deleteTagihanByProdi');
         Route::delete('new-student-invoice/regenerate/prodi/{prodi_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByProdi');
         Route::delete('new-student-invoice/regenerate/faculty/{faculty_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByFaculty');
-        Route::delete('new-student-invoice/regenerate/student/{reg_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByStudent');
+        Route::post('new-student-invoice/regenerate/student/{reg_id}/{save?}', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@regenerateByStudent');
         Route::get('new-student-invoice/get-tree-generate-university', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateUniversity');
         Route::get('new-student-invoice/get-tree-generate-faculty', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateFaculty');
         Route::get('new-student-invoice/get-tree-generate-studyprogram', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@getTreeGenerateStudyprogram');
+        Route::get('new-student-invoice/log', 'App\Http\Controllers\_Payment\Api\Generate\NewStudentInvoiceController@LogActivity');
 
         Route::get('student-invoice/index', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@index');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController@detail');

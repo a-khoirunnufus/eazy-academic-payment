@@ -201,7 +201,7 @@ class NewStudentInvoiceController extends Controller
     /**
      * Generate invoice for one participant.
      */
-    public function generateOne(Request $request)
+    public function generateOne(Request $request, $save = 0)
     {
         $validated = $request->validate([
             'invoice_period_code' => 'required',
@@ -219,6 +219,15 @@ class NewStudentInvoiceController extends Controller
             ], 500);
         }
 
+        if($save){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                            ->insert([
+                                'action_type' => 'generate permahasiswa',
+                                'student_success' => json_encode(array(intval($validated['register_id']))),
+                                'student_fail' => json_encode(array()),
+                                'created_at' => date('Ymd H:i:s')
+                            ]);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Berhasil generate tagihan mahasiswa.',
@@ -250,7 +259,7 @@ class NewStudentInvoiceController extends Controller
                             ->insert([
                                 'action_type' => 'hapus permahasiswa',
                                 'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array_values($prr->toArray())),
+                                'student_fail' => json_encode(array($prr[0]->reg_id)),
                                 'created_at' => date('Ymd H:i:s')
                             ]);
                 }
@@ -284,7 +293,7 @@ class NewStudentInvoiceController extends Controller
                             ->insert([
                                 'action_type' => 'hapus permahasiswa',
                                 'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array_values($prr->toArray())),
+                                'student_fail' => json_encode(array($prr[0]->reg_id)),
                                 'created_at' => date('Ymd H:i:s')
                             ]);
                 }
@@ -301,7 +310,7 @@ class NewStudentInvoiceController extends Controller
                 $insert_data =  DB::table('finance.log_generate_invoice_new_student')
                         ->insert([
                             'action_type' => 'hapus permahasiswa',
-                            'student_success' => json_encode(array_values($prr->toArray())),
+                            'student_success' => json_encode(array($prr[0]->reg_id)),
                             'student_fail' => json_encode(array()),
                             'created_at' => date('Ymd H:i:s')
                         ]);
@@ -363,7 +372,7 @@ class NewStudentInvoiceController extends Controller
         $list_success = array();
         $list_fail = array();
         foreach ($studyprogram as $item) {
-            $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id));
+            $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id), true);
 
             if (!$target_prodi['status']) {
                 return json_encode($target_prodi, JSON_PRETTY_PRINT);
@@ -438,7 +447,7 @@ class NewStudentInvoiceController extends Controller
         $list_success = array();
         $list_fail = array();
         foreach ($faculty as $list) {
-            $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id));
+            $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id), true);
 
             if (!$target_faculty['status']) {
                 return json_encode($target_faculty, JSON_PRETTY_PRINT);
@@ -827,7 +836,7 @@ class NewStudentInvoiceController extends Controller
             */
             foreach ($data as $item) {
                 $target_detail = DB::table('finance.payment_re_register_detail')
-                    ->select('pprd_id')
+                    ->select('prrd_id')
                     ->where('prr_id', '=', $item->prr_id)
                     ->whereNull('deleted_at')
                     ->whereIn('type', ['scholarship', 'discount'])
@@ -904,7 +913,7 @@ class NewStudentInvoiceController extends Controller
                     ->get();
 
                 foreach ($component as $item) {
-                    $prrd = PaymentRegisterDetail::create([
+                    $prrd = PaymentDetail::create([
                         'prr_id' => $list->prr_id,
                         'prrd_component' => $item->component_name,
                         'prrd_amount' => $item->fee,
@@ -914,17 +923,17 @@ class NewStudentInvoiceController extends Controller
                     ]);
                 }
 
-                $scholarship = DB::table('finance.ms_scholarship_receiver')
-                    ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'ms_id')
+                $scholarship = DB::table('finance.ms_scholarship_receiver as msr')
+                    ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'msr.ms_id')
                     ->where('reg_id', '=', $list->reg_id)
                     ->where('msr_status_generate', '=', 1)
                     ->where('msr_status', '=', '1')
                     ->where('prr_id', '=', $list->prr_id)
-                    ->whereNull('deleted_at')
-                    ->get('msr_nominal as fee', 'scholarship.ms_name as component_name');
+                    ->whereNull('msr.deleted_at')
+                    ->get('msr.msr_nominal as fee', 'scholarship.ms_name as component_name');
 
                 foreach ($scholarship as $item) {
-                    $prrd = PaymentRegisterDetail::create([
+                    $prrd = PaymentDetail::create([
                         'prr_id' => $list->prr_id,
                         'prrd_component' => $item->component_name,
                         'prrd_amount' => $item->fee,
@@ -940,11 +949,11 @@ class NewStudentInvoiceController extends Controller
                     ->where('mdr_status_generate', '=', 1)
                     ->where('mdr_status', '=', '1')
                     ->where('prr_id', '=', $list->prr_id)
-                    ->whereNull('deleted_at')
+                    ->whereNull('mdr.deleted_at')
                     ->get('mdr_nominal as fee', 'md.md_name as component_name');
 
                 foreach ($discount as $item) {
-                    $prrd = PaymentRegisterDetail::create([
+                    $prrd = PaymentDetail::create([
                         'prr_id' => $list->prr_id,
                         'prrd_component' => $item->component_name,
                         'prrd_amount' => $item->fee,
@@ -999,7 +1008,7 @@ class NewStudentInvoiceController extends Controller
                 ->get();
 
             foreach ($component as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,
@@ -1009,17 +1018,17 @@ class NewStudentInvoiceController extends Controller
                 ]);
             }
 
-            $scholarship = DB::table('finance.ms_scholarship_receiver')
-                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'ms_id')
+            $scholarship = DB::table('finance.ms_scholarship_receiver as msr')
+                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'msr.ms_id')
                 ->where('reg_id', '=', $list->reg_id)
                 ->where('msr_status_generate', '=', 1)
                 ->where('msr_status', '=', '1')
                 ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('deleted_at')
-                ->get('msr_nominal as fee', 'scholarship.ms_name as component_name');
+                ->whereNull('msr.deleted_at')
+                ->get('msr.msr_nominal as fee', 'scholarship.ms_name as component_name');
 
             foreach ($scholarship as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,
@@ -1035,11 +1044,11 @@ class NewStudentInvoiceController extends Controller
                 ->where('mdr_status_generate', '=', 1)
                 ->where('mdr_status', '=', '1')
                 ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('deleted_at')
+                ->whereNull('mdr.deleted_at')
                 ->get('mdr_nominal as fee', 'md.md_name as component_name');
 
             foreach ($discount as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,
@@ -1070,5 +1079,57 @@ class NewStudentInvoiceController extends Controller
             'status' => true,
             'msg' => 'Berhasil menggenerate ulang'
         );
+    }
+
+    public function LogActivity(){
+        $log = DB::table('finance.log_generate_invoice_new_student')
+            ->whereNull('deleted_at')
+            ->get();
+
+        $list_activity = array();
+
+        foreach($log as $list){
+            $student_success = array();
+            $list_success = json_decode($list->student_success, true);
+            foreach($list_success as $item){
+                $student = DB::table('pmb.register as r')
+                        ->select('p.par_fullname', 'ms.studyprogram_type', 'ms.studyprogram_name')
+                        ->join('pmb.participant as p', 'p.par_id', '=', 'r.par_id')
+                        ->join('masterdata.ms_studyprogram as ms', 'ms.studyprogram_id', '=', 'r.reg_major_pass')
+                        ->where('r.reg_id', '=', $item)
+                        ->get();
+                
+                if(count($student) > 0){
+                    $student = $student[0];
+                    array_push($student_success, $student);
+                }
+            }
+            
+            $student_fail = array();
+            $list_fail = json_decode($list->student_fail, true);
+            foreach($list_fail as $item){
+                $student = DB::table('pmb.register as r')
+                        ->select('p.par_fullname', 'ms.studyprogram_type', 'ms.studyprogram_name')
+                        ->join('pmb.participant as p', 'p.par_id', '=', 'r.par_id')
+                        ->join('masterdata.ms_studyprogram as ms', 'ms.studyprogram_id', '=', 'r.reg_major_pass')
+                        ->where('r.reg_id', '=', $item)
+                        ->get();
+                
+                if(count($student) > 0){
+                    $student = $student[0];
+                    array_push($student_fail, $student);
+                }
+            }
+
+            array_push($list_activity, array(
+                'id' => $list->id,
+                'type' => $list->action_type,
+                'action_date' => $list->created_at,
+                'list_success' => $student_success,
+                'list_fail' => $student_fail
+            ));
+        }
+
+        return json_encode($list_activity, JSON_PRETTY_PRINT);
     }
 }
