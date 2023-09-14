@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -53,7 +53,7 @@
                     {name: 'code', data: 'code'},
                     {name: 'name', data: 'name'},
                     {
-                        name: 'old_student', 
+                        name: 'old_student',
                         data: 'old_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -67,7 +67,7 @@
                         }
                     },
                     {
-                        name: 'new_student', 
+                        name: 'new_student',
                         data: 'new_student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -81,7 +81,7 @@
                         }
                     },
                     {
-                        name: 'registrant', 
+                        name: 'registrant',
                         data: 'registrant',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -110,7 +110,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_invoiceComponentTableActions.add()" class="btn btn-primary">
+                            <button onclick="_invoiceComponentTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Komponen Tagihan
@@ -154,10 +154,10 @@
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="invoice_component_code" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="invoice_component_code"
                                         class="form-control"
                                     >`,
                             },
@@ -165,10 +165,10 @@
                         invoice_component_name: {
                             title: 'Nama Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="invoice_component_name" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="invoice_component_name"
                                         class="form-control"
                                     >`,
                             },
@@ -220,10 +220,10 @@
                         invoice_component_code: {
                             title: 'Kode Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="invoice_component_code" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="invoice_component_code"
                                         class="form-control"
                                         value="BPP"
                                     >`,
@@ -232,10 +232,10 @@
                         invoice_component_name: {
                             title: 'Nama Komponen Tagihan',
                             content: {
-                                template: 
-                                    `<input 
-                                        type="text" 
-                                        name="invoice_component_name" 
+                                template:
+                                    `<input
+                                        type="text"
+                                        name="invoice_component_name"
                                         class="form-control"
                                         value="Biaya Perkuliahan"
                                     >`,

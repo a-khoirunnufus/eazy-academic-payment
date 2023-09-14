@@ -8,8 +8,8 @@ use App\Models\Student\CreditSubmission;
 use App\Http\Requests\Payment\Credit\CreditSubmission as CreditRequest;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Payment;
-use App\Models\Studyprogram;
-use App\Models\Student;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Student;
 use DB;
 
 class CreditSubmissionController extends Controller
@@ -23,7 +23,7 @@ class CreditSubmissionController extends Controller
 
         $query = CreditSubmission::query();
         $query = $query->with('period','student','payment');
-        
+
         if(isset($filters['year'])){
             $query = $query->where('mcs_school_year', '=', $filters['year']);
         }
@@ -43,14 +43,14 @@ class CreditSubmissionController extends Controller
         if(isset($filters['status'])){
             $query = $query->where('mcs_status', '=', $filters['status']);
         }
-        
+
         $query = $query->whereHas('payment', function($q){
             $q->whereColumn('finance.payment_re_register.prr_school_year', 'finance.ms_credit_submission.mcs_school_year');
         })->orderBy('finance.ms_credit_submission.mcs_id');
         // dd($query->get());
         return datatables($query)->toJson();
     }
-    
+
     public function store(CreditRequest $request)
     {
         $validated = $request->validated();
@@ -91,7 +91,7 @@ class CreditSubmissionController extends Controller
 
             $data->update(['mcs_status' => 1,'prr_id'=> $data->payment->prr_id,'cs_id'=> $validated['cs_id']]);
             $text = "Berhasil mengupdate pengajuan cicilan";
-            
+
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
@@ -104,7 +104,7 @@ class CreditSubmissionController extends Controller
     {
         $data = CreditSubmission::findorfail($request->mcs_id);
         $data->update(['mcs_status' => 0,'mcs_decline_reason' => $request->mcs_decline_reason]);
-        
+
         $text = "Berhasil menolak pengajuan cicilan";
         return json_encode(array('success' => true, 'message' => $text));
     }
@@ -114,7 +114,7 @@ class CreditSubmissionController extends Controller
 
         return $study_program->get();
     }
-    
+
     public function getStudent(){
         $data = Student::all();
         return $data->toJson();

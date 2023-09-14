@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
-use App\Models\Studyprogram;
+use App\Models\Payment\Studyprogram;
 use App\Models\Payment\PaymentManualApproval;
 use App\Models\Payment\PaymentTransaction;
 use Carbon\Carbon;

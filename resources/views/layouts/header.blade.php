@@ -31,8 +31,8 @@
                         </div>
                     </li>
                     <li class="scrollable-container media-list">
-                        @foreach (auth()->getAvailableRoles() as $role)   
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}"> 
+                        @foreach (auth()->getAvailableRoles() as $role)
+                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}">
                             <div class="list-item d-flex align-items-start">
                                 <div class="me-1">
                                     <div class="avatar bg-light-danger">
@@ -48,7 +48,7 @@
                         @endforeach
                     </li>
                 </ul>
-            </li>            
+            </li>
             <li class="nav-item dropdown dropdown-notification me-25"><a class="nav-link" href="#"
                     data-bs-toggle="dropdown"><i class="ficon" data-feather="bell"></i><span
                         class="badge rounded-pill bg-danger badge-up">5</span></a>
@@ -74,7 +74,7 @@
                             </div>
                         </a>
                     </li>
-                    <li class="dropdown-menu-footer"><a class="btn btn-primary w-100" href="#">Read all notifications</a></li>
+                    <li class="dropdown-menu-footer"><a class="btn btn-info w-100" href="#">Read all notifications</a></li>
                 </ul>
             </li>
             <li class="nav-item nav-search"><a class="nav-link nav-link-search"><i class="ficon"

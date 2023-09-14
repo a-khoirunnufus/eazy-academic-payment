@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -49,7 +49,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="filter()">
+                <button class="btn btn-info" onclick="filter()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -226,7 +226,7 @@
                                         @foreach($jalur_pendaftaran as $jalur)
                                             <option value="{{ $jalur->path_id }}">{{ $jalur->path_name }}</option>
                                         @endforeach
-                                    </select>  
+                                    </select>
                                 `,
                             },
                         },
@@ -239,7 +239,7 @@
                                         @foreach($gelombang as $kloter)
                                             <option value="{{ $kloter->period_id }}">{{ $kloter->period_name }}</option>
                                         @endforeach
-                                    </select>    
+                                    </select>
                                 `,
                             },
                         },

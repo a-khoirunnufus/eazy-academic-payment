@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -87,7 +87,7 @@
                     </select>
                 </div>
                 <div class="d-flex align-items-end">
-                    <button class="btn btn-primary">
+                    <button class="btn btn-info">
                         <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                     </button>
                 </div>
@@ -156,7 +156,7 @@
                 <form id="frm-comp">
                     <input type="hidden" name="_token" value="pMBK0kMPXiiXpXKIBiPrFhi144CmMMclRsC4G84E">                        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:10px">
                         <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
-                        <button type="button" class="btn btn-primary text-white btn-sm edit-component waves-effect waves-float waves-light" onclick="addNewComp()"> <i class="bx bx-plus m-auto"></i>
+                        <button type="button" class="btn btn-info text-white btn-sm edit-component waves-effect waves-float waves-light" onclick="addNewComp()"> <i class="bx bx-plus m-auto"></i>
                         </button>
                     </div>
 
@@ -181,7 +181,7 @@
                     <button class="btn btn-danger text-white btn-sm d-flex" style="height: 36px" onclick="del_comp('0')"> <i class="bx bx-trash m-auto"></i> </button>
                 </div>
             </div>
-            
+
             <div class="d-flex flex-wrap align-items-center mb-1" style="gap:10px" id="comp-order-preview-1">
                 <input type="hidden" name="cd_id[]" value="108">
                 <div class="flex-fill" style="width:40%">
@@ -224,7 +224,7 @@
                     <small style="color:#163485">
                         *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
                     </small>
-                    <button class="btn btn-primary edit-component waves-effect waves-float waves-light" type="button" onclick="save_comp()">
+                    <button class="btn btn-info edit-component waves-effect waves-float waves-light" type="button" onclick="save_comp()">
                         Simpan
                     </button>
                 </div>
@@ -261,7 +261,7 @@
                         }
                     },
                     {
-                        name: 'entry_period', 
+                        name: 'entry_period',
                         data: 'entry_period',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
@@ -291,21 +291,21 @@
                     },
                     {name: 'study_system', data: 'study_system'},
                     // {
-                    //     name: 'invoice_component', 
+                    //     name: 'invoice_component',
                     //     data: 'invoice_component',
                     //     render: (data) => {
                     //         return `<span class="fw-bold">${data}</span>`;
                     //     }
                     // },
                     // {
-                    //     name: 'rate', 
+                    //     name: 'rate',
                     //     data: 'rate',
                     //     render: (data) => {
                     //         return Rupiah.format(data);
                     //     }
                     // },
                     {
-                        name: 'instalment', 
+                        name: 'instalment',
                         data: 'instalment',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
@@ -327,7 +327,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_ratesTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Tarif
@@ -353,7 +353,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
+
                             <a onclick="_ratesTableActions.edit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_ratesTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
@@ -397,7 +397,7 @@
                                         @foreach($static_registration_periods as $registration_period)
                                             <option value="{{ $registration_period }}">{{ $registration_period }}</option>
                                         @endforeach
-                                    </select>    
+                                    </select>
                                 `,
                             },
                         },
@@ -410,7 +410,7 @@
                                         @foreach($static_registration_paths as $registration_path)
                                             <option value="{{ $registration_path }}">{{ $registration_path }}</option>
                                         @endforeach
-                                    </select>  
+                                    </select>
                                 `,
                             },
                         },
@@ -423,7 +423,7 @@
                                         @foreach($static_study_systems as $study_system)
                                             <option value="{{ $study_system }}">{{ $study_system }}</option>
                                         @endforeach
-                                    </select>  
+                                    </select>
                                 `,
                             },
                         },

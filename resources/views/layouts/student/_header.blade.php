@@ -47,7 +47,7 @@
                             </div>
                         </a>
                     </li>
-                    <li class="dropdown-menu-footer"><a class="btn btn-primary w-100" href="#">Read all notifications</a></li>
+                    <li class="dropdown-menu-footer"><a class="btn btn-info w-100" href="#">Read all notifications</a></li>
                 </ul>
             </li>
 

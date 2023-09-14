@@ -47,7 +47,7 @@
                             </div>
                         </a>
                     </li>
-                    <li class="dropdown-menu-footer"><a class="btn btn-primary w-100" href="#">Read all notifications</a></li>
+                    <li class="dropdown-menu-footer"><a class="btn btn-info w-100" href="#">Read all notifications</a></li>
                 </ul>
             </li>
 
@@ -63,8 +63,8 @@
                         </div>
                     </li>
                     <li class="scrollable-container media-list">
-                        {{-- @foreach (auth()->getAvailableRoles() as $role)  
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}"> 
+                        {{-- @foreach (auth()->getAvailableRoles() as $role)
+                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}">
                             <div class="list-item d-flex align-items-start">
                                 <div class="me-1">
                                     <div class="avatar bg-light-danger">
@@ -78,7 +78,7 @@
                             </div>
                         </a>
                         @endforeach --}}
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . 'test') }}"> 
+                        <a class="d-flex" href="{{ url('switchrole' . '/' . 'test') }}">
                             <div class="list-item d-flex align-items-start">
                                 <div class="me-1">
                                     <div class="avatar bg-light-danger">
@@ -93,8 +93,8 @@
                         </a>
                     </li>
                 </ul>
-            </li>            
-            
+            </li>
+
             <!-- <li class="nav-item nav-search"><a class="nav-link nav-link-search"><i class="ficon"
                         data-feather="search"></i></a>
                 <div class="search-input">

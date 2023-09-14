@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Masterdata\MsInstitution as Institution;
-use App\Models\Studyprogram;
-use App\Models\Faculty;
-use App\Models\Year;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Faculty;
+use App\Models\Payment\Year;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\ComponentDetail;
@@ -22,7 +22,7 @@ use App\Models\Payment\PaymentBill;
 use App\Models\Payment\ScholarshipReceiver;
 use App\Models\PMB\PaymentRegister;
 use App\Models\PMB\PaymentRegisterDetail;
-use App\Models\Student;
+use App\Models\Payment\Student;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\UniversityScope;
 use App\Services\Queries\ReRegistration\GenerateInvoiceScopes\FacultyScope;
@@ -297,7 +297,7 @@ class NewStudentInvoiceController extends Controller
                                 'created_at' => date('Ymd H:i:s')
                             ]);
                 }
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.',
@@ -305,7 +305,7 @@ class NewStudentInvoiceController extends Controller
             }
 
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
-            
+
             if($save){
                 $insert_data =  DB::table('finance.log_generate_invoice_new_student')
                         ->insert([

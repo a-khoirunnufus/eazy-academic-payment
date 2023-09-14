@@ -4,11 +4,11 @@ namespace App\Models\HR;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Studyprogram;
-use App\Models\LectureType;
-use App\Models\Year;
-use App\Models\Period;
-use App\Models\Path;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\LectureType;
+use App\Models\Payment\Year;
+use App\Models\Payment\Period;
+use App\Models\Payment\Path;
 use App\Models\Masterdata\MsUser;
 
 class MsStudent extends Model

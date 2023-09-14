@@ -31,7 +31,7 @@
             <span>Tarif Per<br>Mata Kuliah</span>
         </div>
     </a>
-    <a href="{{ url('setting/registration-form') }}" class="eazy-shortcut-item {{ $active == 'registration-form' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.registration-form') }}" class="eazy-shortcut-item {{ $active == 'registration-form' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="file-text"></i>
         </div>
@@ -39,7 +39,7 @@
             <span>Formulir<br>Pendaftaran</span>
         </div>
     </a>
-    <a href="{{ url('setting/academic-rules') }}" class="eazy-shortcut-item {{ $active == 'academic-rules' ? 'active' : '' }}">
+    <a href="{{ route('payment.settings.academic-rules') }}" class="eazy-shortcut-item {{ $active == 'academic-rules' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="pocket"></i>
         </div>

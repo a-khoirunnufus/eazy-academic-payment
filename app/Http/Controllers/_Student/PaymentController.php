@@ -4,7 +4,7 @@ namespace App\Http\Controllers\_Student;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student;
+use App\Models\Payment\Student;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Masterdata\MsPaymentMethod;
@@ -42,7 +42,7 @@ class PaymentController extends Controller
         if(!$user) {
             return 'User with email: '.$email.' not found!';
         }
-        
+
         return view('pages._student.proceed-payment.index', compact('prr_id', 'user', 'email', 'type'));
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting')
@@ -31,8 +31,8 @@
     }
 
     .tab-content.tab-content-custom {
-        width: -moz-available;          
-        width: -webkit-fill-available;  
+        width: -moz-available;
+        width: -webkit-fill-available;
         width: fill-available;
     }
     .eazy-shortcut {
@@ -142,35 +142,35 @@
             data-bs-target="#transaction-type-tabpanel">
             Jenis Transaksi
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#transaction-group-tabpanel">
             Kelompok Transaksi
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#pay-period-tabpanel">
             Periode Bayar
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#invoice-component-tabpanel">
             Komponen Tagihan
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#empty-tabpanel">
             Template Cicilan
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#empty-tabpanel">
             Tarif
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#empty-tabpanel">
             Tarif per Matakuliah
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#empty-tabpanel">
             Formulir Pendaftaran (PMB)
         </button>
-        <button class="nav-link" role="tab" data-bs-toggle="tab" 
+        <button class="nav-link" role="tab" data-bs-toggle="tab"
             data-bs-target="#empty-tabpanel">
             Aturan Akademik
         </button>
@@ -313,23 +313,23 @@
 
     <div class="bs-stepper-content">
         <div id="transaction-type-step-content" class="content">
-            
+
         </div>
 
         <div id="transaction-group-step-content" class="content">
-            
+
         </div>
 
         <div id="pay-period-step-content" class="content">
-            
+
         </div>
 
         <div id="invoice-component-step-content" class="content">
-            
+
         </div>
 
         <div id="setting-biaya-transaksi" class="content">
-            
+
         </div>
     </div>
 </div> -->
@@ -390,7 +390,7 @@
     //                 },
     //                 {name: 'code', data: 'code'},
     //                 {
-    //                     name: 'name', 
+    //                     name: 'name',
     //                     data: 'name',
     //                     render: (data, _, row) => {
     //                         if(row.id == this.state.editId) {
@@ -401,7 +401,7 @@
     //                     }
     //                 },
     //                 {
-    //                     name: 'format', 
+    //                     name: 'format',
     //                     data: 'format',
     //                     render: (data, _, row) => {
     //                         if(row.id == this.state.editId) {
@@ -438,8 +438,8 @@
     //                     </button>
     //                     <div class="dropdown-menu">
     //                         ${
-    //                             TransactionTypeTable.state.editId != id ? 
-    //                                 '<a onclick="TransactionTypeTableActions.openEdit(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>' 
+    //                             TransactionTypeTable.state.editId != id ?
+    //                                 '<a onclick="TransactionTypeTableActions.openEdit(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>'
     //                                 : '<a onclick="TransactionTypeTableActions.closeEdit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="x"></i>&nbsp;&nbsp;Close Edit</a>'
     //                         }
     //                         <a onclick="TransactionTypeTableActions.delete()" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
@@ -451,7 +451,7 @@
     //             return `
     //                 <div class="input-group">
     //                     <input type="text" class="form-control" name="${name}" value="${value}">
-    //                     <button onclick="TransactionTypeTableActions.update(event)" class="btn btn-primary" type="button">
+    //                     <button onclick="TransactionTypeTableActions.update(event)" class="btn btn-info" type="button">
     //                         <i data-feather="save"></i>
     //                     </button>
     //                 </div>
@@ -582,7 +582,7 @@
     //                         </select>
     //                     </div>
     //                     <div style="margin-bottom: 7px">
-    //                         <button onclick="TransactionGroupTableActions.add()" class="btn btn-primary">
+    //                         <button onclick="TransactionGroupTableActions.add()" class="btn btn-info">
     //                             <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Jenis Transaksi
     //                         </button>
     //                     </div>
@@ -748,7 +748,7 @@
     //                 {name: 'code', data: 'code'},
     //                 {name: 'name', data: 'name'},
     //                 {
-    //                     name: 'frequency', 
+    //                     name: 'frequency',
     //                     data: 'frequency',
     //                     render: (data, _, row) => {
     //                         if(row.id == this.state.editId) {
@@ -785,8 +785,8 @@
     //                     </button>
     //                     <div class="dropdown-menu">
     //                         ${
-    //                             PayPeriodTable.state.editId != id ? 
-    //                                 '<a onclick="PayPeriodTableActions.openEdit(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>' 
+    //                             PayPeriodTable.state.editId != id ?
+    //                                 '<a onclick="PayPeriodTableActions.openEdit(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>'
     //                                 : '<a onclick="PayPeriodTableActions.closeEdit()" class="dropdown-item" href="javascript:void(0);"><i data-feather="x"></i>&nbsp;&nbsp;Close Edit</a>'
     //                         }
     //                     </div>
@@ -797,7 +797,7 @@
     //             return `
     //                 <div class="input-group">
     //                     <input type="number" class="form-control" name="${name}" value="${value}">
-    //                     <button onclick="PayPeriodTableActions.update(event)" class="btn btn-primary" type="button">
+    //                     <button onclick="PayPeriodTableActions.update(event)" class="btn btn-info" type="button">
     //                         <i data-feather="save"></i>
     //                     </button>
     //                 </div>
@@ -881,7 +881,7 @@
                     {name: 'code', data: 'code'},
                     {name: 'name', data: 'name'},
                     {
-                        name: 'student', 
+                        name: 'student',
                         data: 'student',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -895,7 +895,7 @@
                         }
                     },
                     {
-                        name: 'registrant', 
+                        name: 'registrant',
                         data: 'registrant',
                         render: (data, _, row) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -924,7 +924,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="InvoiceComponentTableActions.add()" class="btn btn-primary">
+                            <button onclick="InvoiceComponentTableActions.add()" class="btn btn-info">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Setting Komponen Tagihan
                             </button>
                         </div>

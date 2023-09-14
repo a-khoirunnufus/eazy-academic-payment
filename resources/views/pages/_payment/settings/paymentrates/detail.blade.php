@@ -1,7 +1,7 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
+@section('page_title', 'Pengaturan Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -54,7 +54,7 @@
                 <h4 id="head-period">{{ $data->periode }}</h4>
             </div>
             <div class="col-lg-2">
-                <a href="{{ route('payment.settings.payment-rates')}}" class="btn btn-primary waves-effect waves-float waves-light w-100"><i class='bx bx-arrow-back m-auto'></i> Kembali</a>
+                <a href="{{ route('payment.settings.payment-rates')}}" class="btn btn-info waves-effect waves-float waves-light w-100"><i class='bx bx-arrow-back m-auto'></i> Kembali</a>
             </div>
         </div>
     </div>
@@ -112,7 +112,7 @@
                                 <label class="form-label">File Import</label>
                                 <div class="input-group" style="width: 500px">
                                     <input name="file" type="file" class="form-control">
-                                    <a onclick="_uploadFileForm.submit()" class="btn btn-primary" type="button">
+                                    <a onclick="_uploadFileForm.submit()" class="btn btn-info" type="button">
                                         <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
                                     </a>
                                 </div>
@@ -155,7 +155,7 @@
             <div class="modal-footer">
                 <div class="d-flex justify-content-end">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="importSettingFee()" class="btn btn-primary">Import Komponen</button>
+                    <button onclick="importSettingFee()" class="btn btn-info">Import Komponen</button>
                 </div>
             </div>
         </div>
@@ -271,7 +271,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importInvoiceComponentModal">
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importInvoiceComponentModal">
                                 <span style="vertical-align: middle">
                                     <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Import Komponen Tagihan
@@ -421,11 +421,11 @@
                                     <h4 class="fw-bolder mb-0">Komponen Tagihan</h4>
                                     <div>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.paste(${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> Paste
                                     </button>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                     </div>

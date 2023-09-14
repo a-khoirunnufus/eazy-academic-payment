@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Pengajuan Dispensasi Pembayaran')
@@ -54,7 +54,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_dispensationSubmissionTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_dispensationSubmissionTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -187,7 +187,7 @@
                                     case 0:
                                         status = 'Ditolak';
                                         break;
-                                    case 1: 
+                                    case 1:
                                         status = 'Disetujui';
                                         break;
                                     case 2:
@@ -251,7 +251,7 @@
                         }
                     },
                     {
-                        name: 'prr_id', 
+                        name: 'prr_id',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -322,7 +322,7 @@
                         }
                     },
                     {
-                        name: 'prr_id', 
+                        name: 'prr_id',
                         render: (data, _, row) => {
                             return (row.payment) ? row.payment.prr_total : "-"
                         }
@@ -408,7 +408,7 @@
                 initComplete: function() {
                     $('.submission-dispensation-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_dispensationSubmissionTableActions.add()" class="btn btn-primary">
+                            <button onclick="_dispensationSubmissionTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Pengajuan Dispensasi
@@ -780,7 +780,7 @@
                                 text: data.message,
                             });
                         }
-                        
+
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
@@ -795,7 +795,7 @@
 
     function getProdi(val){
         console.log(val)
-        
+
         $('select[name="prodi"]').html(`
             <option value="#ALL" selected>Semua Program Study</option>
         `)
@@ -804,7 +804,7 @@
             var xhr = new XMLHttpRequest();
             xhr.onload = function(){
                 var data = JSON.parse(this.responseText);
-                
+
                 for(var i = 0; i < data.length; i++){
                     var item = data[i];
                     $('select[name="prodi"]').append(`

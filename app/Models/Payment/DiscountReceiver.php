@@ -5,8 +5,8 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Year;
-use App\Models\Student;
+use App\Models\Payment\Year;
+use App\Models\Payment\Student;
 use App\Models\Payment\Discount;
 use App\Models\PMB\Register;
 

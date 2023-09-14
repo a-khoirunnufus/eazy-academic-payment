@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Detail Tagihan Mahasiswa Baru')
@@ -129,7 +129,7 @@
                 </div>
                 <div class="d-flex justify-content-end mt-3">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-primary">Generate</button>
+                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-info">Generate</button>
                 </div>
             </div>
         </div>
@@ -446,7 +446,7 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="TreeGenerate.openModal()" class="btn btn-primary">
+                            <button onclick="TreeGenerate.openModal()" class="btn btn-info">
                                 Generate Tagihan
                             </button>
                         </div>

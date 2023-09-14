@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Queries\ReRegistration\ReRegistrationInvoice;
 use App\Services\ReRegistInvoice\DeleteOne;
 use App\Exceptions\DeleteInvoiceException;
-use App\Models\Year;
+use App\Models\Payment\Year;
 
 class DeleteAll {
 

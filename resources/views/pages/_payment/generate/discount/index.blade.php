@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Generate Potongan Mahasiswa')
@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountReceiverTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_discountReceiverTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -200,7 +200,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_discountReceiverTableActions.generateBulk()" class="btn btn-primary">
+                            <button onclick="_discountReceiverTableActions.generateBulk()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="command" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Generate All

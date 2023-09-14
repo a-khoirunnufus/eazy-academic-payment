@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faculty;
-use App\Models\Path;
-use App\Models\Period;
-use App\Models\Year;
+use App\Models\Payment\Faculty;
+use App\Models\Payment\Path;
+use App\Models\Payment\Period;
+use App\Models\Payment\Year;
 use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
@@ -33,7 +33,7 @@ class ApprovalController extends Controller
         $faculty = Faculty::all();
         return view('pages._payment.approval.index', compact('path', 'period', 'faculty'));
     }
-    
+
     public function dispensation()
     {
         $year = Year::all();
@@ -48,7 +48,7 @@ class ApprovalController extends Controller
     {
         $year = Year::all();
         $faculty = Faculty::all();
-        
+
         $activeYear = $this->getActiveSchoolYear();
         $yearCode = $this->getActiveSchoolYearCode();
         return view('pages._payment.approval.credit.index', compact('year', 'faculty','activeYear', 'yearCode'));

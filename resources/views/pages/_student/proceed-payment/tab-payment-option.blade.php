@@ -33,7 +33,7 @@
             <div class="input-group" style="width: 400px">
                 <select id="select-payment-option" class="form-select">
                 </select>
-                <button onclick="paymentOptionTab.selectPaymentOption()" id="btn-select-payment-option" class="btn btn-primary" type="button">Pilih Opsi</button>
+                <button onclick="paymentOptionTab.selectPaymentOption()" id="btn-select-payment-option" class="btn btn-info" type="button">Pilih Opsi</button>
             </div>
         </div>
 

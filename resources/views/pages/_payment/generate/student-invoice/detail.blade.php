@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Detail Tagihan Mahasiswa Lama')
@@ -107,7 +107,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="filters()">
+                <button class="btn btn-info" onclick="filters()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -397,7 +397,7 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-primary" href="javascript:void(0);">
+                            <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-info" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
                             <a onclick="_studentInvoiceDetailTableAction.logGenerate()" class="btn btn-secondary" href="javascript:void(0);">
                             <i data-feather="book-open"></i> Log Generate</a>

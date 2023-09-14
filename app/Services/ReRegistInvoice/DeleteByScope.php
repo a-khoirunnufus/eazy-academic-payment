@@ -7,7 +7,7 @@ use App\Contracts\GenerateReRegistInvoiceScope;
 use App\Exceptions\DeleteInvoiceException;
 use App\Services\ReRegistInvoice\DeleteOne;
 use App\Services\Queries\ReRegistration\ReRegistInvWithFilter;
-use App\Models\Year;
+use App\Models\Payment\Year;
 
 class DeleteByScope {
 

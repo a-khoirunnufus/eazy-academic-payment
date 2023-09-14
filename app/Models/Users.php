@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Users extends Model
 {
     use HasFactory;
-    
+
     protected $table = "masterdata.ms_users";
 
     protected $primaryKey = 'user_id';

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\_Payment\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faculty;
+use App\Models\Payment\Faculty;
 use App\Models\Payment\Payment;
 use App\Models\PMB\Register;
-use App\Models\Studyprogram;
-use App\Models\Year;
+use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Year;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -932,7 +932,7 @@ class ReportControllerApi extends Controller
 
     function studentRegistrant(Request $request){
         $data = Register::with('participant', 'studyprogram', 'lectureType', 'period', 'path' ,'payment', 'year');
-        
+
         if($request->get('angkatan', '#ALL') !== '#ALL'){
             $data = $data->whereHas('year', function($q) use($request) {
                 $q->where('msy_id', '=', $request->get('angkatan'));

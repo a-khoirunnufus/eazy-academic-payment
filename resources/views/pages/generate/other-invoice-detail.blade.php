@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Detail Tagihan Lainnya')
@@ -90,7 +90,7 @@
                         }
                     },
                     {
-                        name: 'student', 
+                        name: 'student',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -101,21 +101,21 @@
                         }
                     },
                     {
-                        name: 'invoice_detail', 
+                        name: 'invoice_detail',
                         data: 'invoice_detail',
                         render: (data) => {
                             return this.template.invoiceDetailCell(data);
-                        }    
+                        }
                     },
                     {
-                        name: 'invoice_total', 
+                        name: 'invoice_total',
                         data: 'invoice_total',
                         render: (data) => {
                             return `<span class="text-nowrap fw-bold">${Rupiah.format(data)}</span>`;
                         }
                     },
                     {
-                        name: 'student_status', 
+                        name: 'student_status',
                         data: 'student_status',
                         render: (data) => {
                             var html = '<div class="d-flex justify-content-center">'
@@ -168,7 +168,7 @@
             },
             invoiceDetailCell: function(invoiceItems, invoiceTotal) {
                 let html = '<div class="d-flex flex-row" style="gap: 1rem">';
-                
+
                 const minItemPerColumn = 2;
                 const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
                 let firstCol = invoiceItems.slice(0, half);

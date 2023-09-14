@@ -1,7 +1,7 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tarif Per Matakuliah')
+@section('page_title', 'Pengaturan Tarif Per Matakuliah')
 @section('sidebar-size', 'collapsed')
 @section('url_back', url('setting/rates'))
 
@@ -117,7 +117,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary" onclick="_ratesPerCourseTable.reload()">
+                <button class="btn btn-info" onclick="_ratesPerCourseTable.reload()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -172,7 +172,7 @@
                                 <div class="input-group" style="width: 500px">
                                     <!-- <input name="file" type="file" class="form-control"> -->
                                     <input type="file" name="file" id="MyFile" class="form-control">
-                                    <a onclick="myImport('preview')" class="btn btn-primary" type="button">
+                                    <a onclick="myImport('preview')" class="btn btn-info" type="button">
                                         <i data-feather="upload"></i>&nbsp;&nbsp;Upload File Import
                                     </a>
                                 </div>
@@ -213,7 +213,7 @@
             <div class="modal-footer">
                 <div class="d-flex justify-content-end">
                     <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="myImport('import')" class="btn btn-primary">Import Komponen</button>
+                    <button onclick="myImport('import')" class="btn btn-info">Import Komponen</button>
                 </div>
             </div>
         </div>
@@ -364,7 +364,7 @@
                 initComplete: function() {
                     $('.rate-per-course-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesPerCourseTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_ratesPerCourseTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Tarif Matakuliah
@@ -526,12 +526,12 @@
                                     <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
                                     <div>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
                                     <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>
                                     </div>
-                                    
+
                                 </div>
                                 <div id="courseRateInput">
                                 </div>
@@ -637,7 +637,7 @@
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
                                 </div>
@@ -873,7 +873,7 @@
     function setProdiFilter(id) {
         $($('select[name="studyprogram-filter"]')[0]).html('');
         $($('select[name="studyprogram-filter"]')[0]).append(`
-            <option value="#ALL" selected>Semua Program Studi</option>    
+            <option value="#ALL" selected>Semua Program Studi</option>
         `)
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {

@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Generate Tagihan')
@@ -70,7 +70,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-info">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -125,7 +125,7 @@
                         }
                     },
                     {
-                        name: 'period_n_semester', 
+                        name: 'period_n_semester',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -136,7 +136,7 @@
                         }
                     },
                     {
-                        name: 'study_program_n_faculty', 
+                        name: 'study_program_n_faculty',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -183,7 +183,7 @@
                 initComplete: function() {
                     $('.registrant-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_registrantInvoiceTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_registrantInvoiceTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Pengaturan Tagihan

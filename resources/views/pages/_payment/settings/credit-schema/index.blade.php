@@ -1,7 +1,7 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
+@section('page_title', 'Pengaturan Template Cicilan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -140,7 +140,7 @@
                                 <ul id="credit-schema-component-list"></ul>
                             </div>
                             <div class="d-flex justify-content-end mt-2">
-                                <a onclick="creditSchemaForm.addPaymentComponent()" id="btn-add-credit-schema-component" class="btn btn-sm btn-primary">
+                                <a onclick="creditSchemaForm.addPaymentComponent()" id="btn-add-credit-schema-component" class="btn btn-sm btn-info">
                                     <i data-feather="plus"></i>&nbsp;&nbsp;Tambah Komponen
                                 </a>
                             </div>
@@ -313,7 +313,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="creditSchemaActions.add()" class="btn btn-primary">
+                            <button onclick="creditSchemaActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Skema

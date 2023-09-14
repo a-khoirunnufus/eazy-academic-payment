@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Data Potongan')
@@ -48,7 +48,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_discountTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -236,7 +236,7 @@
                                         ])
                                     }
 
-                                    //merge the data with CSV  
+                                    //merge the data with CSV
                                     csvFileData.forEach(function(row) {
                                         csv += row.join(',');
                                         csv += "\n";
@@ -246,7 +246,7 @@
                                     hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
                                     hiddenElement.target = '_blank';
 
-                                    //provide the name for the CSV file to be downloaded  
+                                    //provide the name for the CSV file to be downloaded
                                     hiddenElement.download = 'Laporan Data Potongan.csv';
                                     hiddenElement.click();
                                 }
@@ -265,7 +265,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_discountTableActions.add()" class="btn btn-primary">
+                            <button onclick="_discountTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Potongan

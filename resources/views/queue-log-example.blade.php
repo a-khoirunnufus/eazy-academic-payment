@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Contoh Log Queue')
 @section('sidebar-size', 'collapsed')
@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mainModal">
+    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#mainModal">
         Log Generate
     </button>
 

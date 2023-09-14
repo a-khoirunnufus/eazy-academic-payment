@@ -10,7 +10,7 @@ use App\Traits\Models\HasResource;
 class Resource extends Model
 {
     use HasUuid, HasResource;
-    
+
     protected $fillable = [
         'filepath'
     ];

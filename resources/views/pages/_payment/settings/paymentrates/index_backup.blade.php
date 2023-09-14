@@ -1,4 +1,4 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
 @section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
@@ -87,7 +87,7 @@
                     </select>
                 </div>
                 <div class="d-flex align-items-end">
-                    <button class="btn btn-primary">
+                    <button class="btn btn-info">
                         <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                     </button>
                 </div>
@@ -142,7 +142,7 @@
                         }
                     },
                     {
-                        name: 'period.period_name', 
+                        name: 'period.period_name',
                         data: 'period.period_name',
                         render: (data) => {
                             return `<span class="fw-bold">${data}</span>`;
@@ -225,7 +225,7 @@
                             `;
                         }
                     }
-                    
+
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -242,7 +242,7 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
+                            <button onclick="_ratesTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Komponen Baru
@@ -262,7 +262,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
+
                             <a onclick="_ratesTableActions.edit(this)" class="dropdown-item"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
                             <a onclick="_ratesTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
@@ -386,7 +386,7 @@
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                 </div>
@@ -495,7 +495,7 @@
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                 </div>

@@ -87,14 +87,14 @@
                             <span class="menu-title text-truncate">Setting Tarif Per Mata Kuliah</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/registration-form' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/registration-form') }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.registration-form' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.registration-form') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Formulir<br>Pendaftaran(PMB)</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'setting/academic-rules' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('setting/academic-rules') }}">
+                    <li class="menu__item nav-item {{ 'payment.settings.academic-rules' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.academic-rules') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Setting Aturan<br>Akademik</span>
                         </a>
@@ -115,12 +115,6 @@
                     <span class="menu-title text-truncate">Generate</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="menu__item nav-item {{ 'generate/registrant-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('generate/registrant-invoice') }}">
-                            <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Generate Tagihan<br>Pendaftar</span>
-                        </a>
-                    </li>
                     <li class="menu__item nav-item {{ 'payment.generate.student-invoice' == request()->path() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.generate.student-invoice') }}">
                             <i data-feather="circle"></i>
@@ -216,31 +210,31 @@
                 </a>
                 <ul class="menu-content">
                     <li class="menu__item nav-item {{ 'report/old-student-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/old-student-invoice') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/old-student-invoice') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Lama</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'report/new-student-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/new-student-invoice') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/new-student-invoice') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Baru</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'report/registrant-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/registrant-invoice') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/registrant-invoice') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Pendaftar</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'report/old-student-receivables' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/old-student-receivables') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/old-student-receivables') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Lama</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'report/new-student-receivables' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('report/new-student-receivables') }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/new-student-receivables') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Piutang<br>Mahasiswa Baru</span>
                         </a>

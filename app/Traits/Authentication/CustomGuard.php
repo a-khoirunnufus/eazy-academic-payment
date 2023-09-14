@@ -19,7 +19,7 @@ trait CustomGuard
             return true;
 
         $modules = Module::where('path', $path)->get();
-    
+
         $able = false;
         foreach ($modules as $module) {
             $access = "access_".$module->name;
@@ -28,7 +28,7 @@ trait CustomGuard
 
         if($modules->count() == 0)
             $able = true;
-            
+
         if($able){
             $allowedRoutes[] = $path;
             $this->session->put('allowedRoutes', $allowedRoutes);
@@ -48,7 +48,7 @@ trait CustomGuard
         $default = $user->roles->filter(function($item){
             return $item->is_default_role == true;
         })->first();
-        
+
         if($default){
             $activeRole = $default->role;
         } else {
@@ -85,7 +85,7 @@ trait CustomGuard
         $this->session->put("allowedRoutes", []);
 
         $role->load('permissions.permission');
-        
+
         $this->setPermissions($role->permissions->map(function($item){
             return $item->permission->name;
         })->toArray());
@@ -115,22 +115,22 @@ trait CustomGuard
                 foreach($group['modules'] as $module){
                     if(in_array('access_'.$module['name'], $permissions))
                         $modules[] = $module;
-                    
+
                 }
 
                 if(count($modules) == 0)
                     continue;
-                
+
                 $groups[] = [
                     'name' => $group['name'],
                     'icon' => $group['icon'],
                     'modules' => $modules
                 ];
             }
-            
+
             if(count($groups) == 0)
                 continue;
-            
+
             $result[] = [
                 'name' => $category['name'],
                 'groups' => $groups

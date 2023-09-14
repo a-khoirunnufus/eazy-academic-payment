@@ -15,6 +15,21 @@ Route::group(['middleware' => ['auth']], function(){
 // Static Routes
 include __DIR__.DIRECTORY_SEPARATOR.'_static-web-api.php';
 
+Route::prefix('dt/academic-rules')->group(function () {
+    Route::get('/', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@academicRules');
+    Route::get('/id/{id}','App\Http\Controllers\_Payment\Api\AcademicRulesApi@getDataById');
+    Route::post('/add', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@addData');
+    Route::post('/edit/id/{id}', 'App\Http\Controllers\_Payment\Api\AcademicRulesApi@editData');
+    Route::delete('/delete/id/{id}','App\Http\Controllers\_Payment\Api\AcademicRulesApi@deleteData');
+});
+
+Route::prefix('dt/registration-form')->group(function() {
+    Route::get("/",'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@registrationForm');
+    Route::post("/create", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@create');
+    Route::get("/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@byId');
+    Route::post("edit/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@setFee');
+});
+
 // Payment
 Route::group(['prefix' => 'payment'], function(){
     // Settings

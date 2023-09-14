@@ -1,7 +1,7 @@
-@extends('layouts.static_master')
+@extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Setting Tagihan, Tarif, dan Pembayaran')
+@section('page_title', 'Pengaturan Tagihan, Tarif, dan Pembayaran')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_ratesTable.reload()" class="btn btn-primary text-nowrap">
+                <button onclick="_ratesTable.reload()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -181,7 +181,7 @@
                 initComplete: function() {
                     // $('.invoice-component-actions').html(`
                     //     <div style="margin-bottom: 7px">
-                    //         <button onclick="_ratesTableActions.add()" class="btn btn-primary me-1">
+                    //         <button onclick="_ratesTableActions.add()" class="btn btn-info me-1">
                     //             <span style="vertical-align: middle">
                     //                 <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                     //                 Tambah Komponen Baru
@@ -201,7 +201,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            
+
                             <a href="${_baseURL}/payment/settings/payment-rates/detail/${id}" class="dropdown-item"><i data-feather="dollar-sign"></i>&nbsp;&nbsp;Edit Komponen Biaya</a>
                             <!-- <a href="#" class="dropdown-item" onclick="salinData(${id})"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin Data</a> -->
                         </div>
@@ -336,7 +336,7 @@
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                 </div>
@@ -498,7 +498,7 @@
                                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
                                     <h4 class="fw-bolder mb-0">Tambah Komponen Baru</h4>
                                     <button type="button"
-                                        class="btn btn-primary text-white edit-component waves-effect waves-float waves-light"
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                 </div>
@@ -734,7 +734,7 @@
                 count_data++;
             }
         }
-        
+
     }
 </script>
 @endsection
