@@ -80,6 +80,9 @@
         #report-unpaid_wrapper, #report-paid_wrapper {
             display: none;
         }
+        #cicilan-invoice {
+            display: none;
+        }
     </style>
 @endsection
 
@@ -429,22 +432,6 @@
                                     xhr.open("GET", _baseURL+`/api/student/dispensation/spesific-payment/${bill.prr_id}`, false);
                                     xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                                     xhr.send();
-                                    // return `
-                                    //     <tr>
-                                    //         <td>Cicilan ke-${bill.prrb_order}</td>
-                                    //         <td>${moment(bill.prrb_due_date).format('DD-MM-YYYY')}</td>
-                                    //         <td>${Rupiah.format(bill.prrb_amount)}</td>
-                                    //         <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
-                                    //         <td>${bill.prrb_paid_date != null ? moment(bill.prrb_paid_date).format('DD-MM-YYYY HH:mm') : '-'}</td>
-                                    //         <td>${
-                                    //             bill.prrb_status == 'belum lunas' ?
-                                    //                 '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
-                                    //                 : bill.prrb_status == 'lunas' ?
-                                    //                     '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
-                                    //                     : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
-                                    //         }</td>
-                                    //     </tr>
-                                    // `;
                                     return row;
                                 }).join('')
                             }
