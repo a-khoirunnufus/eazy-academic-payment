@@ -30,6 +30,11 @@
         .line {
             text-decoration: line-through;
         }
+        .section-border {
+            border: 1px solid gainsboro;
+            border-radius: 6px;
+            padding: 1rem;
+        }
     </style>
 @endpush
 
@@ -45,8 +50,8 @@
                 <th>Nama</th>
                 <th>Jumlah Tagihan</th>
                 <th>Tenggat Pembayaran</th>
-                <th>Status Pembayaran</th>
-                <th>Aksi</th>
+                <th class="text-center">Status Pembayaran</th>
+                <th class="text-center">Aksi</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -69,6 +74,18 @@
                         <div class="accordion border" id="accordionPaymentMethod">
                         </div>
                     </form>
+                </div>
+
+                <div class="mt-3 alert alert-info border p-1 d-flex flex-column" style="gap: 1rem">
+                    <div class="text-dark fw-normal">
+                        Anda memiliki saldo kelebihan bayar.<br>
+                        Total Saldo : <strong>Rp 2.500.000,00</strong>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">Rp</span>
+                        <input type="number" class="form-control" placeholder="Masukan nominal">
+                        <button class="btn btn-primary" type="button">Pakai Saldo</button>
+                    </div>
                 </div>
 
                 <div class="mt-3">
@@ -112,30 +129,26 @@
                     <tbody></tbody>
                 </table>
 
-                <div id="payment-evidence-section">
-                </div>
-
-                <div class="mt-3">
-                    <div class="d-flex flex-row align-items-center justify-content-between mb-1">
-                        <h5 class="mb-0">Riwayat Bukti Pembayaran</h5>
-                        <button id="btn-open-upload-evidence-modal" class="btn btn-success">Unggah Bukti Pembayaran</button>
-                    </div>
-                    <table id="table-approval-history" class="table table-bordered">
+                <div class="section-border mt-3">
+                    <h4 class="mb-0">Riwayat Bukti Pembayaran</h4>
+                    <table id="table-approval-history" class="table table-bordered mt-1">
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Total Bayar</th>
                                 <th>Waktu Bayar</th>
-                                <th>Status Approval</th>
-                                <th>Detail</th>
+                                <th class="text-center">Status Approval</th>
+                                <th class="text-center">Detail</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                        </tbody>
                     </table>
+                    <div id="upload-payment-evidence-section"></div>
                 </div>
 
-                <div class="mt-3">
-                    <h5 class="mb-1">Riwayat Transaksi</h5>
+                <div class="section-border mt-3">
+                    <h4 class="mb-1">Riwayat Transaksi</h4>
                     <table id="table-transaction-history" class="table table-bordered">
                         <thead>
                             <tr>
@@ -145,12 +158,28 @@
                                 <th>Detail</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                        </tbody>
                     </table>
                 </div>
 
-                <div class="mt-3">
-                    <h5 class="mb-1">Petunjuk Pembayaran</h5>
+                <div class="section-border mt-3">
+                    <h4 class="mb-1">Riwayat Kelebihan Bayar</h4>
+                    <table id="table-overpayment-history" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Saldo Masuk</th>
+                                <th>Keterangan</th>
+                                <th>Waktu Transaksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section-border mt-3">
+                    <h4 class="mb-1">Petunjuk Pembayaran</h4>
                     <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatem quis sapiente repellendus dignissimos quam aliquam reprehenderit dolorum? Libero, totam magnam iusto reprehenderit consequuntur ullam ipsam modi hic! Eaque, officia. Ratione!</p>
                     <ul>
                         <li><a href="https://simulator.sandbox.midtrans.com/bca/va/index" target="_blank">BCA Virtual Account Payment Simulator</a></li>
@@ -160,21 +189,6 @@
                 </div>
             </div>
             <div class="modal-footer px-3 py-2"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Payment Detail Modal -->
-<div class="modal fade" id="paymentDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
-                <h4 class="modal-title fw-bolder" id="paymentDetailModalLabel">Detail Pembayaran</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3 pt-0">
-                ...
-            </div>
         </div>
     </div>
 </div>
@@ -218,6 +232,7 @@
                 !payBillTab.alwaysAllowReset && $('#reset-payment-section').removeClass('show');
             }
 
+            // render index table
             $('#table-pay-bill tbody').html(`
                 ${payment.payment_bill.map(item => {
                     var row = null;
@@ -247,8 +262,8 @@
                                     Semester ${payment.year.msy_semester}
                                 </td>
                                 <td>${Rupiah.format(item.prrb_amount)}</td>
-                                <td>${ response == null ? moment(item.prrb_due_date).format('DD-MM-YYYY') : '<p class="line">'+moment(item.prrb_due_date).format('DD-MM-YYYY')+'</p><br><p>'+moment(response.mds_deadline).format('DD-MM-YYYY')}</td>
-                                <td>
+                                <td>${ response == null ? moment(item.prrb_due_date).format('DD/MM/YYYY') : '<p class="line">'+moment(item.prrb_due_date).format('DD/MM/YYYY')+'</p><br><p>'+moment(response.mds_deadline).format('DD/MM/YYYY')}</td>
+                                <td class="text-center">
                                     ${item.prrb_status == 'lunas' ?
                                         '<span class="badge bg-success">Lunas</span>'
                                         : item.prrb_status == 'belum lunas' ?
@@ -256,18 +271,10 @@
                                             : 'N/A'
                                     }
                                 </td>
-                                <td>
-                                    ${
-                                        item.prrb_status == 'belum lunas' ? `
-                                            <button class="btn btn-sm btn-success" onclick="payBillModal.open(${item.prrb_id})">
-                                                Bayar
-                                            </button>
-                                        ` : `
-                                            <button class="btn btn-sm btn-info text-nowrap" onclick="paymentDetailModal.open(${item.prrb_id})">
-                                                Detail Pembayaran
-                                            </button>
-                                        `
-                                    }
+                                <td class="text-center">
+                                    <button class="btn btn-${item.prrb_status == 'belum lunas' ? `success` : `primary`}" onclick="payBillModal.open(${item.prrb_id})" style="white-space: nowrap;">
+                                        ${item.prrb_status == 'belum lunas' ? `Bayar` : `Detail Pembayaran`}
+                                    </button>
                                 </td>
                             </tr>
                         `;
@@ -276,49 +283,6 @@
                     xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.send();
                     return row;
-                    // return `
-                    //     <tr>
-                    //         <td>${item.prrb_order}</td>
-                    //         <td>
-                    //             Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
-                    //             Program Studi ${ studentType == 'new_student' ? `
-                    //                     ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
-                    //                     ${payment.register.studyprogram.studyprogram_name}
-                    //                     ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
-                    //                 ` : `
-                    //                     ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
-                    //                     ${payment.student.studyprogram.studyprogram_name}
-                    //                     ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
-                    //                 `
-                    //             }
-                    //             Tahun Ajaran ${payment.year.msy_year}
-                    //             Semester ${payment.year.msy_semester}
-                    //         </td>
-                    //         <td>${Rupiah.format(item.prrb_amount)}</td>
-                    //         <td>${moment(item.prrb_due_date).format('DD-MM-YYYY')}</td>
-                    //         <td>
-                    //             ${item.prrb_status == 'lunas' ?
-                    //                 '<span class="badge bg-success">Lunas</span>'
-                    //                 : item.prrb_status == 'belum lunas' ?
-                    //                     '<span class="badge bg-danger">Belum Lunas</span>'
-                    //                     : 'N/A'
-                    //             }
-                    //         </td>
-                    //         <td>
-                    //             ${
-                    //                 item.prrb_status == 'belum lunas' ? `
-                    //                     <button class="btn btn-sm btn-success" onclick="payBillModal.open(${item.prrb_id})">
-                    //                         Bayar
-                    //                     </button>
-                    //                 ` : `
-                    //                     <button class="btn btn-sm btn-info text-nowrap" onclick="paymentDetailModal.open(${item.prrb_id})">
-                    //                         Detail Pembayaran
-                    //                     </button>
-                    //                 `
-                    //             }
-                    //         </td>
-                    //     </tr>
-                    // `;
                 })}
             `);
         },
@@ -347,101 +311,102 @@
                 _toastr.error('Gagal mengganti metode pembayaran!', 'Gagal');
             }
         },
-        openUploadEvidenceModal: function(e) {
-            const target = $(e.currentTarget);
-            const prrIdValue = target.attr('data-eazy-prrId');
-            const prrbIdValue = target.attr('data-eazy-prrbId');
-            $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prr_id"]').val(prrIdValue);
-            $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prrb_id"]').val(prrbIdValue);
-            uploadPaymentEvidenceModal.show();
-        },
-        openDetailEvidenceModal: async function(e) {
-            const target = $(e.currentTarget);
-            const prrIdValue = target.attr('data-eazy-prrId');
-            const prrbIdValue = target.attr('data-eazy-prrbId');
+        // openUploadEvidenceModal: function(e) {
+        //     const target = $(e.currentTarget);
+        //     const prrIdValue = target.attr('data-eazy-prrId');
+        //     const prrbIdValue = target.attr('data-eazy-prrbId');
+        //     $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prr_id"]').val(prrIdValue);
+        //     $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prrb_id"]').val(prrbIdValue);
+        //     uploadPaymentEvidenceModal.show();
+        // },
+        // openDetailEvidenceModal: async function(e) {
+        //     const target = $(e.currentTarget);
+        //     const prrIdValue = target.attr('data-eazy-prrId');
+        //     const prrbIdValue = target.attr('data-eazy-prrbId');
 
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrIdValue}`);
-            let paymentBill = {};
+        //     const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrIdValue}`);
+        //     let paymentBill = {};
 
-            for (const bill of payment.payment_bill) {
-                if (bill.prrb_id == parseInt(prrbIdValue)) {
-                    paymentBill = bill;
-                    break;
-                }
-            }
+        //     for (const bill of payment.payment_bill) {
+        //         if (bill.prrb_id == parseInt(prrbIdValue)) {
+        //             paymentBill = bill;
+        //             break;
+        //         }
+        //     }
 
-            Modal.show({
-                type: 'detail',
-                modalTitle: 'Detail Bukti Pembayaran',
-                modalSize: 'md',
-                config: {
-                    fields: {
-                        prrb_manual_name: {
-                            title: 'Nama Pemilik Rekening',
-                            content: {
-                                template: ':name',
-                                name: paymentBill.prrb_manual_name
-                            },
-                        },
-                        prrb_manual_norek: {
-                            title: 'Nomor Rekening',
-                            content: {
-                                template: ':number',
-                                number: paymentBill.prrb_manual_norek
-                            },
-                        },
-                        prrb_paid_date: {
-                            title: 'Dibayar Pada Tanggal',
-                            content: {
-                                template: ':text',
-                                text: moment(paymentBill.prrb_paid_date).format('DD-MM-YYYY')
-                            },
-                        },
-                        prrb_manual_evidence: {
-                            title: 'File Bukti Pembayaran',
-                            content: {
-                                template: `
-                                    <a href="${_baseURL}/api/download-cloud?path=:path" class="p-0 btn btn-link btn-sm">
-                                        <i data-feather="download"></i>&nbsp;&nbsp;
-                                        Download Bukti Pembayaran
-                                    </a>
-                                `,
-                                path: paymentBill.prrb_manual_evidence
-                            }
-                        },
-                        prrb_manual_status: {
-                            title: 'Status Approval',
-                            content: {
-                                template: `
-                                    ${
-                                        paymentBill.prrb_manual_status == 'waiting' ?
-                                            '<span class="badge bg-warning">Menunggu Approval</span>'
-                                            : paymentBill.prrb_manual_status == 'rejected' ?
-                                                '<span class="badge bg-danger">Ditolak</span>'
-                                                : paymentBill.prrb_manual_status == 'accepted' ?
-                                                    '<span class="badge bg-success">Disetujui</span>'
-                                                    : 'N/A'
-                                    }
-                                `,
-                            },
-                        },
-                        prrb_manual_note: {
-                            title: 'Catatan',
-                            content: {
-                                template: ':text',
-                                text: paymentBill.prrb_manual_note ?? '-'
-                            },
-                        },
-                    },
-                    callback: function() {
-                        feather.replace();
-                    }
-                },
-            });
-        },
+        //     Modal.show({
+        //         type: 'detail',
+        //         modalTitle: 'Detail Bukti Pembayaran',
+        //         modalSize: 'md',
+        //         config: {
+        //             fields: {
+        //                 prrb_manual_name: {
+        //                     title: 'Nama Pemilik Rekening',
+        //                     content: {
+        //                         template: ':name',
+        //                         name: paymentBill.prrb_manual_name
+        //                     },
+        //                 },
+        //                 prrb_manual_norek: {
+        //                     title: 'Nomor Rekening',
+        //                     content: {
+        //                         template: ':number',
+        //                         number: paymentBill.prrb_manual_norek
+        //                     },
+        //                 },
+        //                 prrb_paid_date: {
+        //                     title: 'Dibayar Pada Tanggal',
+        //                     content: {
+        //                         template: ':text',
+        //                         text: moment(paymentBill.prrb_paid_date).format('DD-MM-YYYY')
+        //                     },
+        //                 },
+        //                 prrb_manual_evidence: {
+        //                     title: 'File Bukti Pembayaran',
+        //                     content: {
+        //                         template: `
+        //                             <a href="${_baseURL}/api/download-cloud?path=:path" class="p-0 btn btn-link btn-sm">
+        //                                 <i data-feather="download"></i>&nbsp;&nbsp;
+        //                                 Download Bukti Pembayaran
+        //                             </a>
+        //                         `,
+        //                         path: paymentBill.prrb_manual_evidence
+        //                     }
+        //                 },
+        //                 prrb_manual_status: {
+        //                     title: 'Status Approval',
+        //                     content: {
+        //                         template: `
+        //                             ${
+        //                                 paymentBill.prrb_manual_status == 'waiting' ?
+        //                                     '<span class="badge bg-warning">Menunggu Approval</span>'
+        //                                     : paymentBill.prrb_manual_status == 'rejected' ?
+        //                                         '<span class="badge bg-danger">Ditolak</span>'
+        //                                         : paymentBill.prrb_manual_status == 'accepted' ?
+        //                                             '<span class="badge bg-success">Disetujui</span>'
+        //                                             : 'N/A'
+        //                             }
+        //                         `,
+        //                     },
+        //                 },
+        //                 prrb_manual_note: {
+        //                     title: 'Catatan',
+        //                     content: {
+        //                         template: ':text',
+        //                         text: paymentBill.prrb_manual_note ?? '-'
+        //                     },
+        //                 },
+        //             },
+        //             callback: function() {
+        //                 feather.replace();
+        //             }
+        //         },
+        //     });
+        // },
     };
 
     const payBillModal = {
+        alwaysAllowUploadEvidence: true,
         open: async function(prrbId) {
             const bill = await $.ajax({
                 async: true,
@@ -526,6 +491,19 @@
                 type: 'get',
             });
 
+            const paymentOverpayments = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/student/payment/${prrId}/bill/${bill.prrb_id}/overpayment`,
+                type: 'get',
+            });
+
+            const nominalPaid = paymentTransactions.reduce((accumulator, transaction) => {
+                return (accumulator + transaction.prrt_amount);
+            }, 0);
+
+            let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - nominalPaid;
+            if (nominalUnpaid < 0) nominalUnpaid = 0;
+
             if (paymentMethod.mpm_type != 'bank_transfer_manual') {
                 $('#paymentInstructionModal #va-number-exp-warning').html(`
                     <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
@@ -541,180 +519,170 @@
                 $('#paymentInstructionModal #va-number-exp-warning').html('');
             }
 
+            // RENDER PAYMENT INFORMATION
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
-                    <td style="width: 50%">Metode Pembayaran</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
                     <td>${paymentMethod.mpm_name}</td>
                 </tr>
-                ${
-                    paymentMethod.mpm_type == 'bank_transfer_va' ? `
-                        <tr>
-                            <td style="width: 50%">Nomor Virtual Account</td>
-                            <td>${bill.prrb_va_number}</td>
-                        </tr>
-                    ` : paymentMethod.mpm_type == 'bank_transfer_manual' ? `
-                            <tr>
-                                <td style="width: 50%">Nomor Rekening</td>
-                                <td>${bill.prrb_account_number}</td>
-                            </tr>
-                        ` : paymentMethod.mpm_type == 'bank_transfer_bill_payment' ? `
-                                <tr>
-                                    <td style="width: 50%">Biller Code</td>
-                                    <td>${bill.prrb_mandiri_biller_code}</td>
-                                </tr>
-                                <tr>
-                                    <td style="width: 50%">Bill Key</td>
-                                    <td>${bill.prrb_mandiri_bill_key}</td>
-                                </tr>
-                            ` : ''
-                }
+
+                ${paymentMethod.mpm_type == 'bank_transfer_va' ? `
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Nomor Virtual Account</td>
+                        <td>${bill.prrb_va_number}</td>
+                    </tr>
+                ` : ''}
+
+                ${paymentMethod.mpm_type == 'bank_transfer_manual' ? `
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Nomor Rekening</td>
+                        <td>${bill.prrb_account_number}</td>
+                    </tr>
+                ` : ''}
+
+                ${paymentMethod.mpm_type == 'bank_transfer_bill_payment' ? `
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Biller Code</td>
+                        <td>${bill.prrb_mandiri_biller_code}</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Bill Key</td>
+                        <td>${bill.prrb_mandiri_bill_key}</td>
+                    </tr>
+                ` : ''}
+
                 <tr>
-                    <td style="width: 50%">Jumlah Total Tagihan</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Jumlah Total Tagihan</td>
                     <td>${Rupiah.format(bill.prrb_amount + bill.prrb_admin_cost)}</td>
+                </tr>
+                <tr>
+                    <td style="width: 300px; color: #0BA44C !important;" class="table-success text-success fw-bolder">Jumlah yang Telah Dibayar</td>
+                    <td style="color: #0BA44C !important;" class="text-success fw-bolder">${Rupiah.format(nominalPaid)}</td>
+                </tr>
+                <tr>
+                    <td style="width: 300px; color: #ff9f43 !important;" class="table-warning text-warning fw-bolder">Jumlah yang Belum Dibayar</td>
+                    <td style="color: #ff9f43 !important;" class="text-warning fw-bolder">${Rupiah.format(nominalUnpaid)}</td>
                 </tr>
             `);
 
-            // if (paymentMethod.mpm_type == 'bank_transfer_manual') {
-            //     if (!bill.prrb_manual_name) {
-            //         $('#paymentInstructionModal #payment-evidence-section').html(`
-            //             <h5 class="mt-3 mb-1">Upload Bukti Pembayaran</h5>
-            //             <form onsubmit="payBillModal.uploadPaymentEvidence(event)" style="width: 400px">
-            //                 <input type="hidden" name="prr_id" value="${prrId}">
-            //                 <input type="hidden" name="prrb_id" value="${bill.prrb_id}">
-            //                 <div class="mb-1">
-            //                     <label class="form-label">Nama Pemilik Rekening</label>
-            //                     <input name="account_owner_name" type="text" class="form-control">
-            //                 </div>
-            //                 <div class="mb-1">
-            //                     <label class="form-label">Nomor Rekening</label>
-            //                     <input name="account_number" type="text" class="form-control">
-            //                 </div>
-            //                 <div class="mb-1">
-            //                     <label class="form-label">File Bukti Bayar</label>
-            //                     <input name="file_evidence" type="file" class="form-control">
-            //                 </div>
-            //                 <button type="submit" class="btn btn-info">Upload Bukti Pembayaran</button>
-            //             </form>
-            //         `);
-            //     } else {
-            //         $('#paymentInstructionModal #payment-evidence-section').html(`
-            //             <h5 class="mt-3 mb-1">Bukti Pembayaran</h5>
-            //             <table class="table table-bordered">
-            //                 <tbody>
-            //                     <tr>
-            //                         <td style="width: 50%">Nama Pengirim</td>
-            //                         <td>${bill.prrb_manual_name}</td>
-            //                         </tr>
-            //                     <tr>
-            //                         <td style="width: 50%">Nomor Rekening Pengirim</td>
-            //                         <td>${bill.prrb_manual_norek}</td>
-            //                     </tr>
-            //                     <tr>
-            //                         <td style="width: 50%">File Bukti Pembayaran</td>
-            //                         <td>
-            //                             <a href="${_baseURL}/api/download-cloud?path=${bill.prrb_manual_evidence}" class="p-0 btn btn-link btn-sm">
-            //                                 <i data-feather="download"></i>&nbsp;&nbsp;
-            //                                 Download Bukti Pembayaran
-            //                             </a>
-            //                         </td>
-            //                     </tr>
-            //                     <tr>
-            //                         <td style="width: 50%">Status Approval</td>
-            //                         <td>
-            //                             ${
-            //                                 bill.prrb_manual_status == 'waiting' ?
-            //                                     '<span class="badge bg-warning">Menunggu Approval</span>'
-            //                                     : bill.prrb_manual_status == 'rejected' ?
-            //                                         '<span class="badge bg-danger">Ditolak</span>'
-            //                                         : bill.prrb_manual_status == 'accepted' ?
-            //                                             '<span class="badge bg-success">Disetujui</span>'
-            //                                             : 'N/A'
-            //                             }
-            //                         </td>
-            //                     </tr>
-            //                     <tr>
-            //                         <td style="width: 50%">Catatan Approval</td>
-            //                         <td>${bill.prrb_manual_note ?? ''}</td>
-            //                     </tr>
-            //                 </tbody>
-            //             </table>
-            //         `);
-
-            //         if (bill.prrb_manual_status == 'rejected') {
-            //             $('#paymentInstructionModal #payment-evidence-section').append(`
-            //                 <h5 class="mt-3 mb-1">Upload Kembali Bukti Pembayaran</h5>
-            //                 <form onsubmit="payBillModal.uploadPaymentEvidence(event)" style="width: 400px">
-            //                     <input type="hidden" name="prr_id" value="${prrId}">
-            //                     <input type="hidden" name="prrb_id" value="${bill.prrb_id}">
-            //                     <div class="mb-1">
-            //                         <label class="form-label">Nama Pemilik Rekening</label>
-            //                         <input name="account_owner_name" type="text" class="form-control">
-            //                     </div>
-            //                     <div class="mb-1">
-            //                         <label class="form-label">Nomor Rekening</label>
-            //                         <input name="account_number" type="text" class="form-control">
-            //                     </div>
-            //                     <div class="mb-1">
-            //                         <label class="form-label">File Bukti Bayar</label>
-            //                         <input name="file_evidence" type="file" class="form-control">
-            //                     </div>
-            //                     <button type="submit" class="btn btn-info">Upload Bukti Pembayaran</button>
-            //                 </form>
-            //             `);
-            //         }
-            //     }
-            // }
-
-            $('#paymentInstructionModal #btn-open-upload-evidence-modal').attr('onclick', `payBillModal.openUploadEvidenceModal(${bill.prrb_id})`);
-
+            // RENDER PAYMENT HISTORY
             $('#paymentInstructionModal #table-approval-history tbody').html(`
-                ${
-                    paymentApprovals.map((item, index) => {
-                        return `
-                            <tr>
-                                <td>${index+1}</td>
-                                <td>${Rupiah.format(item.pma_amount)}</td>
-                                <td>${item.pma_payment_time}</td>
-                                <td>${item.pma_approval_status}</td>
-                                <td>
-                                    <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.pma_id})">
-                                        <i data-feather="eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `
-                    }).join('')
-                }
+                <tr>
+                    <td colspan="5" class="text-center">Belum ada bukti pembayaran</td>
+                </tr>
             `);
+            if (paymentApprovals.length > 0) {
+                $('#paymentInstructionModal #table-approval-history tbody').html(`
+                    ${
+                        paymentApprovals.map((item, index) => {
+                            let status = '';
+                            if (item.pma_approval_status == 'accepted') status = '<span class="badge bg-success">Diterima</span>';
+                            if (item.pma_approval_status == 'rejected') status = '<span class="badge bg-danger">Ditolak</span>';
+                            if (item.pma_approval_status == 'waiting') status = '<span class="badge bg-warning">Menunggu</span>';
 
+                            return `
+                                <tr>
+                                    <td>${index+1}</td>
+                                    <td>${Rupiah.format(item.pma_amount)}</td>
+                                    <td>${moment(item.pma_payment_time).format('DD/MM/YYYY HH:mm')}</td>
+                                    <td class="text-center">${status}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.pma_id})">
+                                            <i data-feather="eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `
+                        }).join('')
+                    }
+                `);
+            }
+            $('#paymentInstructionModal #upload-payment-evidence-section').html('');
+            if (bill.prrb_status == 'belum lunas' || payBillModal.alwaysAllowUploadEvidence) {
+                $('#paymentInstructionModal #upload-payment-evidence-section').html(`
+                    <div class="d-flex justify-content-center mt-1">
+                        <button onclick="payBillModal.openUploadEvidenceModal(${bill.prrb_id})" class="btn btn-success">Unggah Bukti Pembayaran</button>
+                    </div>
+                `);
+            }
+
+            // RENDER TRANSACTION HISTORY
             $('#paymentInstructionModal #table-transaction-history tbody').html(`
-                ${
-                    paymentTransactions.map((item, index) => {
-                        return `
-                            <tr>
-                                <td>${index+1}</td>
-                                <td>${Rupiah.format(item.prrt_amount)}</td>
-                                <td>${item.prrt_time}</td>
-                                <td>
-                                    Metode Pembayaran: ${item.prrt_payment_method}<br>
-                                    Nomor Virtual Account: ${item.prrt_va_number}<br>
-                                    Nomor Rekening Tujuan: ${item.prrt_account_number}<br>
-                                    Kode Billing: ${item.prrt_mandiri_bill_key}<br>
-                                    Kode Biller: ${item.prrt_mandiri_biller_code}
-                                </td>
-                            </tr>
-                        `
-                    }).join('')
-                }
+                <tr>
+                    <td colspan="4" class="text-center">Belum ada transaksi</td>
+                </tr>
             `);
+            if (paymentTransactions.length > 0) {
+                $('#paymentInstructionModal #table-transaction-history tbody').html(`
+                    ${
+                        paymentTransactions.map((item, index) => {
+                            let desc = '';
+                            const payment_type = item.payment_method.mpm_type;
 
-            if (!bill.prrb_manual_name) {
+                            if (payment_type == 'bank_transfer_manual') {
+                                desc = _datatableTemplates.listCell([
+                                    {text: `Metode Pembayaran : ${nullSafeView(item.payment_method.mpm_name)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Nomor Rekening Pengirim : ${nullSafeView(item.prrt_sender_account_number)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Nomor Rekening Tujuan : ${nullSafeView(item.prrt_receiver_account_number)}`, bold: true, small: true, nowrap: true},
+                                ]);
+                            }
+                            else {
+                                // bank_transfer_va
+                                // bank_transfer_bill_payment
+                                desc = 'Descrpition not available yet!';
+                            }
+
+                            return `
+                                <tr>
+                                    <td>${index+1}</td>
+                                    <td>${Rupiah.format(item.prrt_amount)}</td>
+                                    <td>${moment(item.prrt_time).format('DD/MM/YYYY HH:mm')}</td>
+                                    <td>${desc}</td>
+                                </tr>
+                            `
+                        }).join('')
+                    }
+                `);
+            }
+
+            // RENDER OVERPAYMENT HISTORY
+            $('#paymentInstructionModal #table-overpayment-history tbody').html(`
+                <tr>
+                    <td colspan="4" class="text-center">Belum ada kelebihan bayar</td>
+                </tr>
+            `);
+            if (paymentOverpayments.length > 0) {
+                $('#paymentInstructionModal #table-overpayment-history tbody').html(`
+                    ${
+                        paymentOverpayments.map((item, index) => {
+                            return `
+                                <tr>
+                                    <td>${Rupiah.format(item.ovrt_cash_in)}</td>
+                                    <td>${item.ovrt_remark}</td>
+                                    <td>${moment(item.ovrt_time).format('DD/MM/YYYY HH:mm')}</td>
+                                </tr>
+                            `
+                        }).join('')
+                    }
+                `);
+            }
+
+            // RENDER RESET PAYMENT METHOD BUTTON
+            if (paymentMethod.mpm_type == 'bank_transfer_va' && bill.prrb_status == 'belum lunas') {
                 $('#paymentInstructionModal .modal-footer').html(`
                     <div class="d-flex justify-content-end">
                         <button onclick="payBillModal.resetPaymentMethod(${bill.prrb_id})" class="btn btn-outline-warning">Ganti Metode Pembayaran</button>
                     </div>
                 `);
-            } else {
+            }
+            else if (paymentMethod.mpm_type == 'bank_transfer_manual' && bill.payment_manual_approval.length == 0) {
+                $('#paymentInstructionModal .modal-footer').html(`
+                    <div class="d-flex justify-content-end">
+                        <button onclick="payBillModal.resetPaymentMethod(${bill.prrb_id})" class="btn btn-outline-warning">Ganti Metode Pembayaran</button>
+                    </div>
+                `);
+            }
+            else {
                 $('#paymentInstructionModal .modal-footer').html('');
             }
 
@@ -815,9 +783,9 @@
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Approval Pembayaran',
-                modalSize: 'lg',
+                modalSize: 'xl',
                 config: {
-                    isTwoColumn: true,
+                    isThreeColumn: true,
                     fields: {
                         student_name: {
                             title: 'Nama Mahasiswa',
@@ -1071,134 +1039,11 @@
         },
     }
 
-    const paymentDetailModal = {
-        bsModal: new bootstrap.Modal(document.getElementById('paymentDetailModal')),
-        open: async function(prrbId) {
-            const bill = await $.ajax({
-                async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}`,
-                type: 'get',
-            });
-
-            const paymentMethod = await $.ajax({
-                async: true,
-                url: `${_baseURL}/api/student/payment-method/${bill.prrb_payment_method}`,
-                type: 'get',
-            });
-
-            $('#paymentDetailModal .modal-body').html(`
-                <table class="table table-bordered mb-3">
-                    <tbody>
-                        <tr>
-                            <td style="width: 50%">Metode Pembayaran</td>
-                            <td>${paymentMethod.mpm_name}</td>
-                        </tr>
-                        ${
-                            paymentMethod.mpm_type == 'bank_transfer_va' ? `
-                                <tr>
-                                    <td>Nomor Virtual Account</td>
-                                    <td>${bill.prrb_va_number}</td>
-                                </tr>
-                            ` : paymentMethod.mpm_type == 'bank_transfer_manual' ? `
-                                    <tr>
-                                        <td>Nomor Rekening</td>
-                                        <td>${bill.prrb_account_number}</td>
-                                    </tr>
-                                ` : paymentMethod.mpm_type == 'bank_transfer_bill_payment' ? `
-                                        <tr>
-                                            <td>Biller Code</td>
-                                            <td>${bill.prrb_mandiri_biller_code}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Bill Key</td>
-                                            <td>${bill.prrb_mandiri_bill_key}</td>
-                                        </tr>
-                                    ` : ''
-                        }
-                        <tr>
-                            <td style="width: 50%">Dibayar Pada</td>
-                            <td>${moment(bill.prrb_paid_date).format('DD-MM-YYYY HH:mm')}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                ${
-                    paymentMethod.mpm_type == 'bank_transfer_manual' ? `
-                        <div class="mb-3">
-                            <h5 class="mb-1">Bukti Pembayaran</h5>
-                            <table class="table table-bordered">
-                                <tbody>
-                                    <tr>
-                                        <td style="width: 50%">Nama Pengirim</td>
-                                        <td>${bill.prrb_manual_name}</td>
-                                        </tr>
-                                    <tr>
-                                        <td style="width: 50%">Nomor Rekening Pengirim</td>
-                                        <td>${bill.prrb_manual_norek}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="width: 50%">File Bukti Pembayaran</td>
-                                        <td>
-                                            <a href="${_baseURL}/api/download-cloud?path=${bill.prrb_manual_evidence}" class="p-0 btn btn-link btn-sm">
-                                                <i data-feather="download"></i>&nbsp;&nbsp;
-                                                Download Bukti Pembayaran
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="width: 50%">Status Approval</td>
-                                        <td>
-                                            ${
-                                                bill.prrb_manual_status == 'waiting' ?
-                                                    '<span class="badge bg-warning">Menunggu Approval</span>'
-                                                    : bill.prrb_manual_status == 'rejected' ?
-                                                        '<span class="badge bg-danger">Ditolak</span>'
-                                                        : bill.prrb_manual_status == 'accepted' ?
-                                                            '<span class="badge bg-success">Disetujui</span>'
-                                                            : 'N/A'
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="width: 50%">Catatan Approval</td>
-                                        <td>${bill.prrb_manual_note ?? ''}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    ` : ''
-                }
-
-                <div>
-                    <h5 class="mb-1">Rincian Pembayaran</h5>
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <td style="width: 50%">
-                                    Cicilan ke-${bill.prrb_order}
-                                </td>
-                                <td>${Rupiah.format(bill.prrb_amount)}</td>
-                            </tr>
-                            <tr>
-                                <td style="width: 50%">Biaya Admin</td>
-                                <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
-                            </tr>
-                            <tr>
-                                <th style="width: 50%">Total Bayar</th>
-                                <th>${Rupiah.format(bill.prrb_amount + bill.prrb_admin_cost)}</th>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            `);
-
-            feather.replace();
-            paymentDetailModal.bsModal.show();
-        },
-    }
-
     const paymentMethodModal = new bootstrap.Modal(document.getElementById('paymentMethodModal'));
     const paymentInstructionModal = new bootstrap.Modal(document.getElementById('paymentInstructionModal'));
 
+    function nullSafeView(value) {
+        return value ?? '<span class="badge bg-secondary">n/a</span>';
+    }
 </script>
 @endprepend

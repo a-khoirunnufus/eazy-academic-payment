@@ -262,6 +262,7 @@ Route::group(['prefix' => 'student'], function(){
         Route::get('{prr_id}/bill/{prrb_id}/approval/{pma_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailApproval');
         Route::get('{prr_id}/bill/{prrb_id}/transaction', 'App\Http\Controllers\_Student\Api\PaymentController@getTransaction');
         Route::get('{prr_id}/bill/{prrb_id}/transaction/{prrt_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailTransaction');
+        Route::get('{prr_id}/bill/{prrb_id}/overpayment', 'App\Http\Controllers\_Student\Api\PaymentController@getOverpayment');
         Route::post('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@storeApproval');
         Route::post('{prr_id}/bill/{prrb_id}/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentMethod');
         Route::post('{prr_id}/bill/{prrb_id}/reset-method', 'App\Http\Controllers\_Student\Api\PaymentController@resetPaymentMethod');

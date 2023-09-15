@@ -16,6 +16,7 @@ use App\Models\Payment\MasterPaymentMethod;
 use App\Models\Payment\PaymentManualApproval;
 use App\Models\Payment\CreditSchemaPeriodPath;
 use App\Models\Payment\PaymentTransaction;
+use App\Models\Payment\OverpaymentTransaction;
 use App\Models\PMB\Setting;
 use App\Models\PMB\Participant as NewStudent;
 use App\Models\PMB\Participant;
@@ -180,7 +181,17 @@ class PaymentController extends Controller
 
     public function billDetail($prr_id, $prrb_id)
     {
-        $bill = PaymentBill::find($prrb_id);
+        // TODO:
+        // - throw 404 exception if bill not exist
+        // - exception will return 404 response
+
+        $bill = PaymentBill::with([
+                'paymentTransaction',
+                'paymentManualApproval',
+            ])
+            ->where('prrb_id', $prrb_id)
+            ->first();
+
         return response()->json($bill, 200);
     }
 
@@ -823,15 +834,23 @@ class PaymentController extends Controller
 
     public function getTransaction($prr_id, $prrb_id)
     {
-        $data = PaymentTransaction::where('prrb_id', $prrb_id)
+        $data = PaymentTransaction::with('paymentMethod')
+            ->where('prrb_id', $prrb_id)
             ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($data, 200);
     }
 
-    public function detailTransaction($prr_id, $prrb_id, $prrt_id)
-    {
+    public function detailTransaction($prr_id, $prrb_id, $prrt_id) {}
 
+    public function getOverpayment($prr_id, $prrb_id)
+    {
+        $data = OverpaymentTransaction::where('prrb_id', $prrb_id)
+            ->whereNull('ovrt_cash_out')
+            ->orderBy('ovrt_time', 'asc')
+            ->get();
+
+        return response()->json($data, 200);
     }
 }

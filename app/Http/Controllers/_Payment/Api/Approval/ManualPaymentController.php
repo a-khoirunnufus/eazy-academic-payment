@@ -9,6 +9,8 @@ use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\PaymentManualApproval;
 use App\Models\Payment\PaymentTransaction;
+use App\Models\Payment\OverpaymentBalance;
+use App\Models\Payment\OverpaymentTransaction;
 use Carbon\Carbon;
 use DB;
 
@@ -62,14 +64,30 @@ class ManualPaymentController extends Controller
             $approval->save();
 
             $bill = PaymentBill::with('paymentMethod')->where('prrb_id', $approval->prrb_id)->first();
+            $bill_master = $bill->payment;
+            $student_type = $bill_master->student_number ? 'student' : 'new_student';
 
             if ($validated['status'] == 'accepted') {
+                $total_paid = PaymentTransaction::where('prrb_id', $approval->prrb_id)->sum('prrt_amount');
+                $total_bill = $bill->prrb_amount + $bill->prrb_admin_cost;
+                $total_payment = $approval->pma_amount;
+                $paid_nominal = $total_payment;
+                $overpayment_nominal = 0;
+
+                $is_overpayment = ($total_paid + $total_payment) > $total_bill;
+                if ($is_overpayment) {
+                    $total_unpaid = $total_bill - $total_paid;
+                    $paid_nominal = $total_unpaid;
+                    $overpayment_nominal = $total_payment - $paid_nominal;
+                }
+
                 // create transaction record
                 $payment_transaction = new PaymentTransaction();
                 $payment_transaction->prrb_id = $bill->prrb_id;
                 $payment_transaction->prrt_payment_method = $bill->prrb_payment_method;
                 if ($bill->paymentMethod->mpm_type == 'bank_transfer_manual') {
-                    $payment_transaction->prrt_account_number = $bill->prrb_account_number;
+                    $payment_transaction->prrt_sender_account_number = $approval->pma_sender_account_number;
+                    $payment_transaction->prrt_receiver_account_number = $approval->pma_receiver_account_number;
                 }
                 elseif ($bill->paymentMethod->mpm_type == 'bank_transfer_va') {
                     $payment_transaction->prrt_va_number = $bill->prrb_va_number;
@@ -78,16 +96,38 @@ class ManualPaymentController extends Controller
                     $payment_transaction->prrt_biller_code = $bill->prrb_biller_code;
                     $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
                 }
-                $payment_transaction->prrt_amount = $approval->pma_amount;
+                $payment_transaction->prrt_amount = $total_payment;
                 $payment_transaction->prrt_time = $approval->pma_payment_time;
                 $payment_transaction->save();
 
+                if ($overpayment_nominal > 0) {
+                    OverpaymentTransaction::create([
+                        'ovrt_cash_in' => $overpayment_nominal,
+                        'prrb_id' => $bill->prrb_id,
+                        'ovrt_remark' => 'Kelebihan Pembayaran Tagihan',
+                        'ovrt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                    ]);
+
+                    $op_balance = OverpaymentBalance::where(
+                        $student_type == 'student' ? ['student_number' => $bill_master->student_number]
+                            : ['participant_id' => $bill_master->par_id]
+                    )->first();
+                    if (!$op_balance) $op_balance = new OverpaymentBalance();
+                    $op_balance->student_type = $student_type;
+                    if ($student_type == 'student') $op_balance->student_number = $bill_master->student_number;
+                    if ($student_type == 'new_student') $op_balance->participant_id = $bill_master->par_id;
+                    if ($op_balance->ovrb_balance) {
+                        $op_balance->ovrb_balance += $overpayment_nominal;
+                    } else {
+                        $op_balance->ovrb_balance = $overpayment_nominal;
+                    }
+                    $op_balance->save();
+                }
+
                 // check if bill fully paid
-                $total_paid = PaymentManualApproval::where('prrb_id', $approval->prrb_id)->sum('pma_amount');
-                $bill = PaymentBill::find($approval->prrb_id);
                 if (
                     $bill->prrb_status == 'belum lunas'
-                    && $total_paid >= ($bill->prrb_amount + $bill->prrb_admin_cost)
+                    && $total_paid >= $total_bill
                 ) {
                     $bill->prrb_paid_date = $approval->pma_payment_time;
                     $bill->prrb_status = 'lunas';
