@@ -113,6 +113,7 @@ Route::group(['prefix' => 'student'], function () {
     Route::group(['prefix' => 'payment'], function() {
         Route::get('/', 'App\Http\Controllers\_Student\PaymentController@index')->name('student.payment.index');
         Route::get('proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment')->name('student.payment.proceed-payment');
+        Route::get('invoice-cicilan', 'App\Http\Controllers\_Student\PaymentController@invoiceCicilan');
     });
 
     Route::group(['prefix' => 'dispensation'], function () {

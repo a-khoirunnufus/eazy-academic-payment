@@ -146,6 +146,7 @@ class PaymentController extends Controller
                     'paymentMethod',
                     'year',
                     'register',
+                    'register.participant',
                     'register.studyprogram',
                     'register.lectureType',
                 ])
