@@ -122,6 +122,10 @@ Route::group(['prefix' => 'student'], function () {
     Route::group(['prefix' => 'credit'], function () {
         Route::get('index', 'App\Http\Controllers\_Student\CreditController@index')->name('student.credit.index');
     });
+
+    Route::group(['prefix' => 'overpayment'], function() {
+        Route::get('/', 'App\Http\Controllers\_Student\OverpaymentController@index')->name('student.overpayment.index');
+    });
 });
 
 

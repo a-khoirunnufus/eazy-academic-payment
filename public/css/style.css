@@ -450,3 +450,37 @@ div.table-responsive div.dataTables_wrapper div.row {
         width: auto !important;
     }
 }
+
+.detail-group.one-column > div {
+    border: 1px solid gainsboro;
+    padding: 1rem;
+    border-bottom: unset;
+}
+.detail-group.one-column > div:last-child {
+    border-bottom: 1px solid gainsboro;
+}
+
+.detail-group.two-column > div {
+    border: 1px solid gainsboro;
+    padding: 1rem;
+    border-top: unset;
+}
+.detail-group.two-column > div:nth-child(even) {
+    border-left: unset;
+}
+.detail-group.two-column > div:nth-child(-n+2) {
+    border-top: 1px solid gainsboro;
+}
+
+.detail-group.three-column > div {
+    border: 1px solid gainsboro;
+    padding: 1rem;
+    border-top: unset;
+}
+.detail-group.three-column > div:nth-child(3n),
+.detail-group.three-column > div:nth-child(3n-1) {
+    border-left: unset;
+}
+.detail-group.three-column > div:nth-child(-n+3) {
+    border-top: 1px solid gainsboro;
+}

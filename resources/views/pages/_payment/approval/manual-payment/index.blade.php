@@ -401,9 +401,9 @@
             Modal.show({
                 type: 'detail',
                 modalTitle: 'Detail Approval Pembayaran',
-                modalSize: 'lg',
+                modalSize: 'xl',
                 config: {
-                    isTwoColumn: true,
+                    isThreeColumn: true,
                     fields: {
                         student_name: {
                             title: 'Nama Mahasiswa',

@@ -4,6 +4,7 @@ namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Payment\MasterPaymentMethod;
 
 class PaymentTransaction extends Model
 {
@@ -18,8 +19,14 @@ class PaymentTransaction extends Model
         'prrt_payment_method',
         'prrt_va_number',
         'prrt_mandiri_bill_key',
-        'prrt_account_number',
+        'prrt_sender_account_number',
+        'prrt_receiver_account_number',
         'prrt_amount',
         'prrt_time',
     ];
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(MasterPaymentMethod::class, 'prrt_payment_method', 'mpm_key');
+    }
 }

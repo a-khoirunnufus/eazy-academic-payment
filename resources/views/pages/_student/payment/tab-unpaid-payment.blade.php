@@ -44,7 +44,7 @@
         ..._datatable,
         init: function() {
             this.instance = $('#table-unpaid-payment').DataTable({
-                serverSide: true,
+                // serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/student/payment',
                     data: function(d) {

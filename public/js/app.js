@@ -760,17 +760,20 @@ class Modal {
         }
 
         feather.replace();
-        $('.flatpickr-basic').flatpickr();
+        // $('.flatpickr-basic').flatpickr();
         select2Replace();
         mainModalElm.show();
     }
 
     static generateModalDetailBody(config) {
         var fieldConfig = config.fields;
-        let html = '<div class="d-flex flex-column" style="gap: 1.5rem">';
+        let html = '<div class="detail-group one-column d-flex flex-column">';
 
         if (config.isTwoColumn) {
-            html = '<div style="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 1.5rem">';
+            html = '<div class="detail-group two-column" style="display: grid; grid-template-columns: 1fr 1fr;">';
+        }
+        if (config.isThreeColumn) {
+            html = '<div class="detail-group three-column" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">';
         }
 
         for (var key in fieldConfig) {
