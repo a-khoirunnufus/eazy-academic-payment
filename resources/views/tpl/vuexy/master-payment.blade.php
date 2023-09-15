@@ -179,6 +179,7 @@
     </script>
 
     @yield('js_section')
+    @stack('scripts')
 </body>
 
 </html>
