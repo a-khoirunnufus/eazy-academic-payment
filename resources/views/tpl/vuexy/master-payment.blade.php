@@ -44,6 +44,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url('css/custom.css') }}?version={{ config('version.css_style') }}">
 
     @yield('css_section')
+    @stack('styles')
 </head>
 
 <body class="vertical-layout vertical-menu-modern  navbar-floating footer-static menu-@yield('sidebar-size')" data-open="click" data-menu="vertical-menu-modern" data-col="">
