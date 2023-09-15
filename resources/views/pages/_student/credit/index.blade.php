@@ -1,4 +1,4 @@
-@extends('layouts.student.layout-master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Pengajuan Cicilan Pembayaran')
 @section('sidebar-size', 'collapsed')

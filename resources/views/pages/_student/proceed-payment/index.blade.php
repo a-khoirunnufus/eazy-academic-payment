@@ -1,4 +1,4 @@
-@extends('layouts.student.layout-master')
+@extends('tpl.vuexy.master-payment')
 
 @section('page_title', 'Proses Pembayaran')
 @section('sidebar-size', 'collapsed')
