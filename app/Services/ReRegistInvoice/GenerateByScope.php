@@ -24,14 +24,18 @@ class GenerateByScope {
             ->get();
 
         $generated_count = 0;
+        $list_success = array();
+        $list_fail = array();
 
         // foreach registrant generate invoice
         foreach ($registrants as $registrant) {
             if ($skip_on_error) {
                 try {
                     GenerateOne::generate($invoice_period_code, $registrant->registration_id);
+                    array_push($list_success, $registrant->registration_id);
                     $generated_count++;
                 } catch (GenerateInvoiceException $ex) {
+                    array_push($list_fail, $registrant->registration_id);
                     continue;
                 }
             } else {
@@ -40,6 +44,10 @@ class GenerateByScope {
             }
         }
 
-        return $generated_count;
+        return array(
+            'count_success' => $generated_count,
+            'list_success' => $list_success,
+            'list_fail' => $list_fail
+        );
     }
 }

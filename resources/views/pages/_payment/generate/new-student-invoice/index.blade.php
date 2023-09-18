@@ -828,7 +828,7 @@
             }
 
             $.ajax({
-                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scope',
+                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scope/1',
                 type: 'post',
                 data: requestData,
                 success: (res) => {

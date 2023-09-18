@@ -504,7 +504,7 @@ class NewStudentInvoiceController extends Controller
         ], 200);
     }
 
-    public function generateByScope(Request $request)
+    public function generateByScope(Request $request, $save = 0)
     {
         $validated = $request->validate([
             'invoice_period_code' => 'required',
@@ -517,11 +517,13 @@ class NewStudentInvoiceController extends Controller
         ]);
 
         $scope = null;
-
+        $type = '';
         if ($validated['scope'] == 'faculty') {
             $scope = new FacultyScope($validated['faculty_id']);
+            $type = 'generate perfakultas';
         } elseif ($validated['scope'] == 'studyprogram') {
             $scope = new StudyprogramScope($validated['faculty_id'], $validated['studyprogram_id']);
+            $type = 'generate perprodi';
         } elseif ($validated['scope'] == 'path') {
             $scope = new PathScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id']);
         } elseif ($validated['scope'] == 'period') {
@@ -530,7 +532,18 @@ class NewStudentInvoiceController extends Controller
             $scope = new LectureTypeScope($validated['faculty_id'], $validated['studyprogram_id'], $validated['path_id'], $validated['period_id'], $validated['lecture_type_id']);
         }
 
-        $generated_count = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+        $generate = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scope, true);
+        $generated_count = $generate['count_success'];
+
+        if($save && (count($generate['list_success']) > 0 || count($generate['list_fail']) > 0)){
+            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
+                        ->insert([
+                            'action_type' => $type,
+                            'student_success' => json_encode($generate['list_success']),
+                            'student_fail' => json_encode($generate['list_fail']),
+                            'created_at' => date('Ymd H:i:s')
+                        ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -564,7 +577,8 @@ class NewStudentInvoiceController extends Controller
                 $scopeObj = new LectureTypeScope($data['faculty_id'], $data['studyprogram_id'], $data['path_id'], $data['period_id'], $data['lecture_type_id']);
             }
 
-            $generated_count += GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scopeObj, true);
+            $generate = GenerateInvoiceByScope::generate($validated['invoice_period_code'], $scopeObj, true);
+            $generated_count += $generate['count_success'];
         }
 
         return response()->json([
