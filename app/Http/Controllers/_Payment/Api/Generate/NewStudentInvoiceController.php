@@ -447,7 +447,7 @@ class NewStudentInvoiceController extends Controller
         $list_success = array();
         $list_fail = array();
         foreach ($faculty as $list) {
-            $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id), true);
+            $target_faculty = $this->deleteByFaculty($list->faculty_id);
 
             if (!$target_faculty['status']) {
                 return json_encode($target_faculty, JSON_PRETTY_PRINT);
@@ -460,7 +460,7 @@ class NewStudentInvoiceController extends Controller
 
         if($save){
             $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->create([
+                            ->insert([
                                 'action_type' => 'hapus peruniversitas',
                                 'student_success' => json_encode($list_success),
                                 'student_fail' => json_encode($list_fail),
