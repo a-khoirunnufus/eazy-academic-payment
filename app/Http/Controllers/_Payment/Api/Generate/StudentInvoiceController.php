@@ -640,7 +640,7 @@ class StudentInvoiceController extends Controller
                 ->get();
 
             foreach ($component as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,
@@ -650,17 +650,17 @@ class StudentInvoiceController extends Controller
                 ]);
             }
 
-            $scholarship = DB::table('finance.ms_scholarship_receiver')
-                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'ms_id')
+            $scholarship = DB::table('finance.ms_scholarship_receiver as msr')
+                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'msr.ms_id')
                 ->where('student_number', '=', $list->student_number)
                 ->where('msr_status_generate', '=', 1)
                 ->where('msr_status', '=', '1')
                 ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('deleted_at')
-                ->get('msr_nominal as fee', 'scholarship.ms_name as component_name');
+                ->whereNull('msr.deleted_at')
+                ->get('msr.msr_nominal as fee', 'scholarship.ms_name as component_name');
 
             foreach ($scholarship as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,
@@ -676,11 +676,11 @@ class StudentInvoiceController extends Controller
                 ->where('mdr_status_generate', '=', 1)
                 ->where('mdr_status', '=', '1')
                 ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('deleted_at')
+                ->whereNull('mdr.deleted_at')
                 ->get('mdr_nominal as fee', 'md.md_name as component_name');
 
             foreach ($discount as $item) {
-                $prrd = PaymentRegisterDetail::create([
+                $prrd = PaymentDetail::create([
                     'prr_id' => $list->prr_id,
                     'prrd_component' => $item->component_name,
                     'prrd_amount' => $item->fee,

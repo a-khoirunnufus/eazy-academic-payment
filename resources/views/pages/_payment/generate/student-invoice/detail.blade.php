@@ -863,7 +863,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
                 cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
+                confirmButtonText: 'Regenerate',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -873,7 +873,7 @@
                         $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.student_number, {
                             _method: 'DELETE'
                         }, function(data){
-                            data = JSON.parse(data)
+                            // data = JSON.parse(data)
                             if(data.status){
                                 Swal.fire({
                                     icon: 'success',
