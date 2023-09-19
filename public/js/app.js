@@ -1144,3 +1144,43 @@ function deleteRequestCache(url) {
         });
     });
 }
+
+/**
+ * Log Activity
+ */
+
+function logActivity(header,body) {
+    Modal.show({
+        type: 'detail',
+        modalTitle: 'Log Activity',
+        modalSize: 'lg',
+        config: {
+            fields: {
+                // header: {
+                //     type: 'custom-field',
+                //     title: 'Log Activity',
+                //     content: {
+                //         template: header
+                //     },
+                // },
+                tagihan: {
+                    type: 'custom-field',
+                    title: 'Log Activity',
+                    content: {
+                        template: body
+                    },
+                },
+
+            },
+            callback: function() {
+                feather.replace();
+            }
+        },
+    });
+}
+
+function fetchLogActivity(url){
+    $.get(_baseURL + url, (log) => {
+        $('#logList').html(log);
+    })
+}

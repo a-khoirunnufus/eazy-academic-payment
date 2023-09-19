@@ -24,9 +24,12 @@ use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\DB;
+use App\Traits\Payment\LogActivity;
 
 class StudentInvoiceController extends Controller
 {
+    use LogActivity;
+
     public function index(Request $request)
     {
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
@@ -160,7 +163,12 @@ class StudentInvoiceController extends Controller
     public function studentGenerate(Request $request)
     {
         $student = Student::with('getComponent')->findorfail($request['student_number']);
-        $result = $this->storeStudentGenerate($student);
+        $log = $this->addToLog('Generate Tagihan Mahasiswa Lama',1,2,$request['url']);
+        $result = $this->storeStudentGenerate($student,$log->log_id);
+        if(json_decode($result)){
+            $log->log_status = json_decode($result)->success ? 1 : 3;
+            $log->update();
+        }
         return $result;
     }
 
@@ -234,7 +242,7 @@ class StudentInvoiceController extends Controller
         return $student;
     }
 
-    public function storeStudentGenerate($student)
+    public function storeStudentGenerate($student,$log_id)
     {
 
         $components = $student->getComponent()
@@ -268,6 +276,7 @@ class StudentInvoiceController extends Controller
                         'type' => 'component',
                     ]);
                 }
+                $this->addToLogDetail($log_id,$student->fullname.' - '.$student->student_id,1);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
@@ -435,11 +444,6 @@ class StudentInvoiceController extends Controller
         );
     }
 
-    public function logGenerate()
-    {
-        $log = MasterJob::with('detail', 'user')->latest()->paginate(10);
-        return view('pages._payment.generate.student-invoice.log', compact('log'))->render();
-    }
 
     public function deleteBulk($f, $sp)
     {

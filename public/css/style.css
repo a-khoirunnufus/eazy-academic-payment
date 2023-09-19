@@ -452,12 +452,12 @@ div.table-responsive div.dataTables_wrapper div.row {
 }
 
 .detail-group.one-column > div {
-    border: 1px solid gainsboro;
+    /* border: 1px solid gainsboro; */
     padding: 1rem;
     border-bottom: unset;
 }
 .detail-group.one-column > div:last-child {
-    border-bottom: 1px solid gainsboro;
+    /* border-bottom: 1px solid gainsboro; */
 }
 
 .detail-group.two-column > div {

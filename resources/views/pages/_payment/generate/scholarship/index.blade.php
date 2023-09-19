@@ -72,6 +72,12 @@
 <script>
     $(function(){
         _scholarshipReceiverTable.init();
+
+        $(document).on('click', '.pagination a', function(event){
+            event.preventDefault();
+            var page = $(this).attr('href').split('page=')[1];
+            fetchLogActivity('/api/payment/log/activity?url={{ request()->path() }}&page='+page);
+        });
     })
 
     const _scholarshipReceiverTable = {
@@ -212,6 +218,8 @@
                                     Delete All
                                 </span>
                             </button>
+                            <a onclick="_scholarshipReceiverTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
                     feather.replace()
@@ -274,6 +282,7 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/generate/scholarship/generate', {
                             msr_id: data.msr_id,
+                            url: `{{ request()->path() }}`
                         }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -312,7 +321,9 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/scholarship/generateBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/scholarship/generateBulk', {
+                            url: `{{ request()->path() }}`
+                        }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
@@ -420,6 +431,11 @@
                     })
                 }
             })
+        },
+        logActivityModal: function(e) {
+            header = ``;
+            body = `<div id="logList">@include('pages._payment.log.activity')</div>`;
+            logActivity(header,body);
         },
     }
 

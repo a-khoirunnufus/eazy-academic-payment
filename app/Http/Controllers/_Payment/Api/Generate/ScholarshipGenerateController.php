@@ -11,10 +11,12 @@ use App\Models\Payment\PaymentDetail;
 use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Year;
+use App\Traits\Payment\LogActivity;
 use DB;
 
 class ScholarshipGenerateController extends Controller
 {
+    use LogActivity;
 
     public function getActiveSchoolYearCode(){
         return 22231;
@@ -31,18 +33,34 @@ class ScholarshipGenerateController extends Controller
         return datatables($query)->toJson();
     }
 
-    public function store($id){
+    public function store($id,$log_id){
         $data = ScholarshipReceiver::with('period','scholarship','student','newStudent')->findorfail($id);
+        if($data->student){
+            $fullname = $data->student->fullname;
+            $student_id = $data->student->student_id;
+        }else{
+            $fullname = $data->newStudent->participant->par_fullname;
+            $student_id = $data->newStudent->reg_number;
+        }
+
+        if($data->msr_status_generate){
+            $text = "Sudah Tergenerate";
+            $this->addToLogDetail($log_id,$fullname.' - '.$text,3);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
+
         if(!$data->student){
             $payment = Payment::where('reg_id',$data->reg_id)->where('prr_school_year',$data->period->msy_code)->first();
         }else{
             $payment = Payment::where('student_number',$data->student_number)->where('prr_school_year',$data->period->msy_code)->first();
         }
-        // dd($data->reg_id);
+
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
+            $this->addToLogDetail($log_id,$fullname.' - '.$text,3);
             return json_encode(array('success' => false, 'message' => $text));
         }
+
         DB::beginTransaction();
         try{
             PaymentDetail::create([
@@ -62,31 +80,42 @@ class ScholarshipGenerateController extends Controller
 
             $data->update(['msr_status_generate' => 1,'prr_id'=> $payment->prr_id]);
 
+            $this->addToLogDetail($log_id,$fullname.' - '.$student_id,1);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
+            $this->addToLogDetail($log_id,$fullname.' - '.$e->getMessage(),3);
             return response()->json($e->getMessage());
         }
-        if($data->student){
-            $fullname = $data->student->fullname;
-        }else{
-            $fullname = $data->newStudent->participant->par_fullname;
-        }
+
         $text = "Berhasil generate beasiswa mahasiswa ".$fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
 
     public function generate(Request $request)
     {
-        return $this->store($request->msr_id);
+        $log = $this->addToLog('Generate Beasiswa',1,2,$request->url);
+        $result = $this->store($request->msr_id,$log->log_id);
+        if(json_decode($result)){
+            $log->log_status = json_decode($result)->success ? 1 : 3;
+        }else{
+            $log->log_status = 3;
+        }
+        $log->update();
+        return $result;
     }
 
-    public function generateBulk()
+    public function generateBulk(Request $request)
     {
         $query = ScholarshipReceiver::where('msr_status',1)->get();
         foreach($query as $item){
-            $this->store($item->msr_id);
+            $log = $this->addToLog('Generate Beasiswa',1,2,$request->url);
+            $result = $this->store($item->msr_id,$log->log_id);
+            if(json_decode($result)){
+                $log->log_status = json_decode($result)->success ? 1 : 3;
+                $log->update();
+            }
         }
         $text = "Generate beasiswa mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));

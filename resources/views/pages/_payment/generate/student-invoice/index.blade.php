@@ -71,10 +71,11 @@
         $.get(_baseURL + '/api/payment/generate/student-invoice/headerall', (d) => {
             header = d;
         })
+
         $(document).on('click', '.pagination a', function(event){
             event.preventDefault();
             var page = $(this).attr('href').split('page=')[1];
-            _studentInvoiceTableActions.fetchLogGenerate(page);
+            fetchLogActivity('/api/payment/log/activity?url={{ request()->path() }}&page='+page);
         });
     })
 
@@ -245,7 +246,7 @@
                         <div style="margin-bottom: 7px">
                             <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
-                            <a onclick="_studentInvoiceTableActions.logGenerate()" class="btn btn-secondary" href="javascript:void(0);">
+                            <a onclick="_studentInvoiceTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
                             <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
@@ -577,52 +578,23 @@
                 store[key] = {'student' : student, 'generate' : generate}
             }
         },
-        fetchLogGenerate: function(page){
-            $.get(_baseURL + '/api/payment/generate/student-invoice/log-invoice?page='+page, (log) => {
-                $('#logList').html(log);
-            })
-        },
-        logGenerate: function(e) {
-            Modal.show({
-                type: 'detail',
-                modalTitle: 'Log Generate',
-                modalSize: 'lg',
-                config: {
-                    fields: {
-                        header: {
-                            type: 'custom-field',
-                            title: '',
-                            content: {
-                                template: `<div>
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-lg-6 col-md-6">
-                                            <h6>Periode Tagihan</h6>
-                                            <h1 class="h6 fw-bolder">${header.active}</h1>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6">
-                                            <h6>Universitas</h6>
-                                            <h1 class="h6 fw-bolder">${header.university}</h1>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                </div>`
-                            },
-                        },
-                        tagihan: {
-                            type: 'custom-field',
-                            title: '',
-                            content: {
-                                template: `<div id="logList">@include('pages._payment.generate.student-invoice.log')</div>`
-                            },
-                        },
-
-                    },
-                    callback: function() {
-                        feather.replace();
-                    }
-                },
-            });
+        logActivityModal: function(e) {
+            header = `<div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6">
+                                <h6>Periode Tagihan</h6>
+                                <h1 class="h6 fw-bolder">${header.active}</h1>
+                            </div>
+                            <div class="col-lg-6 col-md-6">
+                                <h6>Universitas</h6>
+                                <h1 class="h6 fw-bolder">${header.university}</h1>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>`;
+            body = `<div id="logList">@include('pages._payment.log.activity')</div>`;
+            logActivity(header,body);
         },
         regenerate: function(faculty_id, studyprogram_id) {
             Swal.fire({
