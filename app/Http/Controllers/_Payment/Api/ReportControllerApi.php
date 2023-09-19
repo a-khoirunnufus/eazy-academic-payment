@@ -113,12 +113,14 @@ class ReportControllerApi extends Controller
 
                         $listPaymentBill = $this->getColomns('prrb.*')
                             ->where('prrb.prr_id', '=', $list_payment->prr_id)
+                            ->whereNull('prrb.deleted_at')
                             ->distinct()
                             ->get();
                         $total_paid = 0;
                         foreach ($listPaymentBill as $pb) {
                             $manual_payment = DB::table('finance.payment_re_register_transaction')
                                                 ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->whereNull('deleted_at')
                                                 ->get();
                             if(count($manual_payment) > 0){
                                 $total = 0;
@@ -132,7 +134,9 @@ class ReportControllerApi extends Controller
                                 }
                                 $total_paid += $total;
                             }
-                            $total_paid += $pb->prrb_amount;
+                            if(count($manual_payment) < 1){
+                                $total_paid += $pb->prrb_status == 'lunas' ? $pb->prrb_amount : 0;
+                            }
                         }
 
                         $list_payment->payment_detail = $listPaymentDetail;
@@ -293,7 +297,25 @@ class ReportControllerApi extends Controller
                             ->get();
                         $total_paid = 0;
                         foreach ($listPaymentBill as $pb) {
-                            $total_paid += $pb->prrb_amount;
+                            $manual_payment = DB::table('finance.payment_re_register_transaction')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->whereNull('deleted_at')
+                                                ->get();
+                            if(count($manual_payment) > 0){
+                                $total = 0;
+                                foreach($manual_payment as $mp){
+                                    $total += $mp->prrt_amount;
+                                }
+                                if($total >= $pb->prrb_amount){
+                                    $pb_update = DB::table('finance.payment_re_register_bill')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->update(['prrb_status' => 'lunas']);
+                                }
+                                $total_paid += $total;
+                            }
+                            if(count($manual_payment) < 1){
+                                $total_paid += $pb->prrb_status == 'lunas' ? $pb->prrb_amount : 0;
+                            }
                         }
 
                         $list_payment->payment_detail = $listPaymentDetail;
@@ -962,7 +984,10 @@ class ReportControllerApi extends Controller
             ->join('finance.payment_re_register as prr', 'prr.student_number', '=', 'ms2.student_number')
             ->join('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'ms2.msy_id')
             ->join('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
-            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id');
+            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
+            ->whereNull('prr.deleted_at')
+            ->whereNull('prrd.deleted_at')
+            ->whereNull('prrb.deleted_at');
     }
 
     function getNew()
@@ -975,7 +1000,10 @@ class ReportControllerApi extends Controller
             ->join('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'r.ms_school_year_id')
             ->join('finance.payment_re_register as prr', 'prr.reg_id', '=', 'r.reg_id')
             ->join('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
-            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id');
+            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
+            ->whereNull('prr.deleted_at')
+            ->whereNull('prrd.deleted_at')
+            ->whereNull('prrb.deleted_at');
     }
 
     function getProdi($faculty)
