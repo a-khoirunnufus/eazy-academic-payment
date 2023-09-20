@@ -277,6 +277,11 @@ Route::group(['prefix' => 'student'], function(){
         Route::get('{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
     });
 
+    Route::group(['prefix' => 'overpayment'], function() {
+        Route::get('/dt-transaction', 'App\Http\Controllers\_Student\Api\OverpaymentController@dtTransaction');
+        Route::get('/balance', 'App\Http\Controllers\_Student\Api\OverpaymentController@balance');
+    });
+
     Route::group(['prefix' => 'credit'], function(){
         Route::get('index', 'App\Http\Controllers\_Student\Api\CreditController@index');
         Route::post('store', 'App\Http\Controllers\_Student\Api\CreditController@store');
