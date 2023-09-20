@@ -193,7 +193,7 @@
                         data: 'studyprogram_name',
                         render: (data, _, row) => {
                             return this.template.buttonLinkCell(data, {
-                                link: _baseURL + '/report/new-student-invoice/program-study/' + row.studyprogram_id
+                                link: _baseURL + '/payment/report/new-student-invoice/program-study/' + row.studyprogram_id
                             });
                         }
                     },
