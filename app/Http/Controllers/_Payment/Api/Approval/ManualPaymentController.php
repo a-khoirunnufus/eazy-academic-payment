@@ -68,19 +68,6 @@ class ManualPaymentController extends Controller
             $student_type = $bill_master->student_number ? 'student' : 'new_student';
 
             if ($validated['status'] == 'accepted') {
-                $total_paid = PaymentTransaction::where('prrb_id', $approval->prrb_id)->sum('prrt_amount');
-                $total_bill = $bill->prrb_amount + $bill->prrb_admin_cost;
-                $total_payment = $approval->pma_amount;
-                $paid_nominal = $total_payment;
-                $overpayment_nominal = 0;
-
-                $is_overpayment = ($total_paid + $total_payment) > $total_bill;
-                if ($is_overpayment) {
-                    $total_unpaid = $total_bill - $total_paid;
-                    $paid_nominal = $total_unpaid;
-                    $overpayment_nominal = $total_payment - $paid_nominal;
-                }
-
                 // create transaction record
                 $payment_transaction = new PaymentTransaction();
                 $payment_transaction->prrb_id = $bill->prrb_id;
@@ -96,9 +83,21 @@ class ManualPaymentController extends Controller
                     $payment_transaction->prrt_biller_code = $bill->prrb_biller_code;
                     $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
                 }
-                $payment_transaction->prrt_amount = $total_payment;
+                $payment_transaction->prrt_amount = $approval->pma_amount;
                 $payment_transaction->prrt_time = $approval->pma_payment_time;
                 $payment_transaction->save();
+
+                $total_paid = PaymentTransaction::where('prrb_id', '=', $approval->prrb_id)->sum('prrt_amount');
+                $total_bill = $bill->prrb_amount + $bill->prrb_admin_cost;
+                $total_payment = $approval->pma_amount;
+                $overpayment_nominal = 0;
+
+                $is_overpayment = ($total_paid + $total_payment) > $total_bill;
+                if ($is_overpayment) {
+                    $total_unpaid = $total_bill - $total_paid;
+                    if ($total_unpaid < 0) $total_unpaid = 0;
+                    $overpayment_nominal = $total_payment - $total_unpaid;
+                }
 
                 if ($overpayment_nominal > 0) {
                     OverpaymentTransaction::create([
