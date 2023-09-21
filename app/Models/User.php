@@ -8,21 +8,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Traits\HasAssociateData;
+use App\Models\Payment\UserAssociateModel;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasAssociateData;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $table = 'masterdata.ms_users';
+    protected $primaryKey = 'user_id';
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -30,8 +24,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'user_password',
     ];
 
     /**
@@ -45,6 +38,16 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->hasMany(UserHasRole::class);
+        return $this->hasMany(\App\Models\Payment\UserHasRole::class);
+    }
+
+    public function getIdAttribute()
+    {
+        return $this->user_id;
+    }
+
+    public function associateModels()
+    {
+        return $this->hasMany(UserAssociateModel::class, 'user_id', 'user_id');
     }
 }

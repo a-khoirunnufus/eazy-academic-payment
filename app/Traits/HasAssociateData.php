@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 use App\Helpers\AssociateData;
-use App\Models\UserAssociateModel;
+use App\Models\Payment\UserAssociateModel;
 
 trait HasAssociateData
 {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RoleAssociateModel extends Model
 {
-    protected $table = "role_associate_models";
+    protected $table = "masterdata.role_associate_models";
 
     protected $guarded = [];
 
