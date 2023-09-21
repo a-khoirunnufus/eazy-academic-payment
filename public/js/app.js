@@ -788,12 +788,18 @@ class Modal {
                 }
             }
 
+            var htmlTitle = ``;
+
+            if(title){
+                htmlTitle = `<div class="fw-bold" style="margin-bottom: .5rem">${title}</div>`;
+            }
+
             if (fieldConfig[key].isHidden) {
                 html += '';
             } else {
                 html += `
                     <div>
-                        <div class="fw-bold" style="margin-bottom: .5rem">${title}</div>
+                        ${htmlTitle}
                         <div style="word-break: break-word">${contentHtml}</div>
                     </div>
                 `;
@@ -1149,31 +1155,28 @@ function deleteRequestCache(url) {
  * Log Activity
  */
 
-function logActivity(header,body) {
+function logActivity(title,url) {
     Modal.show({
         type: 'detail',
-        modalTitle: 'Log Activity',
+        modalTitle: title,
         modalSize: 'lg',
         config: {
             fields: {
-                // header: {
-                //     type: 'custom-field',
-                //     title: 'Log Activity',
-                //     content: {
-                //         template: header
-                //     },
-                // },
                 tagihan: {
                     type: 'custom-field',
-                    title: 'Log Activity',
                     content: {
-                        template: body
+                        template: `<div id="logList"></div>`
                     },
                 },
-
             },
             callback: function() {
                 feather.replace();
+                fetchLogActivity(`/api/payment/log/activity?url=`+url+`&page=1`);
+                $(document).on('click', '.pagination a', function(event){
+                    event.preventDefault();
+                    var page = $(this).attr('href').split('page=')[1];
+                    fetchLogActivity(`/api/payment/log/activity?url=`+url+`&page=`+page);
+                });
             }
         },
     });

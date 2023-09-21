@@ -12,15 +12,13 @@ use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Year;
 use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 use DB;
 
 class ScholarshipGenerateController extends Controller
 {
-    use LogActivity;
-
-    public function getActiveSchoolYearCode(){
-        return 22231;
-    }
+    use LogActivity, General;
 
     public function getReferenceTable(){
         return 'ms_scholarship_receiver';
@@ -35,17 +33,10 @@ class ScholarshipGenerateController extends Controller
 
     public function store($id,$log_id){
         $data = ScholarshipReceiver::with('period','scholarship','student','newStudent')->findorfail($id);
-        if($data->student){
-            $fullname = $data->student->fullname;
-            $student_id = $data->student->student_id;
-        }else{
-            $fullname = $data->newStudent->participant->par_fullname;
-            $student_id = $data->newStudent->reg_number;
-        }
 
         if($data->msr_status_generate){
             $text = "Sudah Tergenerate";
-            $this->addToLogDetail($log_id,$fullname.' - '.$text,3);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
 
@@ -57,7 +48,7 @@ class ScholarshipGenerateController extends Controller
 
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
-            $this->addToLogDetail($log_id,$fullname.' - '.$text,3);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
 
@@ -80,53 +71,65 @@ class ScholarshipGenerateController extends Controller
 
             $data->update(['msr_status_generate' => 1,'prr_id'=> $payment->prr_id]);
 
-            $this->addToLogDetail($log_id,$fullname.' - '.$student_id,1);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            $this->addToLogDetail($log_id,$fullname.' - '.$e->getMessage(),3);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
 
-        $text = "Berhasil generate beasiswa mahasiswa ".$fullname;
+        $text = "Berhasil generate beasiswa mahasiswa ".$this->getStudentName($data->student,$data->newStudent);
         return json_encode(array('success' => true, 'message' => $text));
     }
 
     public function generate(Request $request)
     {
-        $log = $this->addToLog('Generate Beasiswa',1,2,$request->url);
+        $log = $this->addToLog('Generate Beasiswa',$this->getAuthId(),LogStatus::Process,$request->url);
         $result = $this->store($request->msr_id,$log->log_id);
-        if(json_decode($result)){
-            $log->log_status = json_decode($result)->success ? 1 : 3;
-        }else{
-            $log->log_status = 3;
-        }
-        $log->update();
+        $this->updateLogStatus($log,$result);
         return $result;
     }
 
     public function generateBulk(Request $request)
     {
         $query = ScholarshipReceiver::where('msr_status',1)->get();
+        $log = $this->addToLog('Generate Bulk Beasiswa',$this->getAuthId(),LogStatus::Process,$request->url);
         foreach($query as $item){
-            $log = $this->addToLog('Generate Beasiswa',1,2,$request->url);
             $result = $this->store($item->msr_id,$log->log_id);
-            if(json_decode($result)){
-                $log->log_status = json_decode($result)->success ? 1 : 3;
-                $log->update();
-            }
         }
+        $this->updateLogStatus($log,LogStatus::Success);
         $text = "Generate beasiswa mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public function delete($id)
+    public function delete(Request $request,$id)
     {
-        $data = ScholarshipReceiver::with('period','scholarship','student')->findorfail($id);
+        $log = $this->addToLog('Delete Beasiswa',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->deleteProcess($id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function deleteBulk(Request $request)
+    {
+        $log = $this->addToLog('Delete Bulk Beasiswa',$this->getAuthId(),LogStatus::Process,$request->url);
+        $query = ScholarshipReceiver::where('msr_status',1)->get();
+        foreach($query as $item){
+            $this->deleteProcess($item->msr_id,$log->log_id);
+        }
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Delete beasiswa mahasiswa berhasil dieksekusi";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteProcess($id,$log_id){
+        $data = ScholarshipReceiver::with('period','scholarship','student','newStudent')->findorfail($id);
         $payment = Payment::where('prr_id',$data->prr_id)->first();
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         DB::beginTransaction();
@@ -137,33 +140,20 @@ class ScholarshipGenerateController extends Controller
                     'prr_total' => $payment->prr_total+$paymentDetail->prrd_amount,
                     'prr_paid_net' => $payment->prr_paid_net+$paymentDetail->prrd_amount,
                 ]);
+                $paymentDetail->delete();
             }
-            $paymentDetail->delete();
 
             $data->update(['msr_status_generate' => 0]);
-
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
-        if($data->student){
-            $fullname = $data->student->fullname;
-        }else{
-            $fullname = $data->newStudent->participant->par_fullname;
-        }
-        $text = "Berhasil menghapus beasiswa mahasiswa ".$fullname;
-        return json_encode(array('success' => true, 'message' => $text));
-    }
 
-    public function deleteBulk()
-    {
-        $query = ScholarshipReceiver::where('msr_status',1)->get();
-        foreach($query as $item){
-            $this->delete($item->msr_id);
-        }
-        $text = "Delete beasiswa mahasiswa berhasil dieksekusi";
+        $text = "Berhasil menghapus beasiswa mahasiswa ".$this->getStudentName($data->student,$data->newStudent);
         return json_encode(array('success' => true, 'message' => $text));
     }
 

@@ -10,10 +10,15 @@ class PaymentDetail extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = "finance.payment_re_register_detail";
 
     protected $primaryKey = 'prrd_id';
 
     protected $fillable = ['prr_id', 'prrd_component','prrd_amount','is_plus','type','reference_table','reference_id'];
+
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class, 'prr_id', 'prr_id')->with('student');
+    }
 }

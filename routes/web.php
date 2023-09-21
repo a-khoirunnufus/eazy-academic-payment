@@ -29,7 +29,7 @@ Route::group(['middleware' => ['auth', 'access']], function () {
 include __DIR__ . DIRECTORY_SEPARATOR . '_static-web.php';
 
 // Payment
-Route::group(['prefix' => 'payment'], function () {
+Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], function () {
     // Settings
     Route::group(['prefix' => 'settings'], function () {
         // Component Invoices
@@ -109,7 +109,7 @@ Route::group(['prefix' => 'payment'], function () {
 
 
 // STUDENT ROUTE
-Route::group(['prefix' => 'student'], function () {
+Route::group(['prefix' => 'student', 'middleware' => ['auth', 'student_access']], function () {
     Route::group(['prefix' => 'payment'], function() {
         Route::get('/', 'App\Http\Controllers\_Student\PaymentController@index')->name('student.payment.index');
         Route::get('proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment')->name('student.payment.proceed-payment');

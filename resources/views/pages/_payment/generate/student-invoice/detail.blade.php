@@ -158,11 +158,7 @@
         _studentInvoiceDetailTable.init()
         dataTable.columns([6,7,8,9,10,11,12,13,14,15,16]).visible(false)
 
-        $(document).on('click', '.pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            fetchLogActivity('/api/payment/log/activity?url={{ request()->path() }}&page='+page);
-        });
+
     })
 
     const _studentInvoiceDetailTable = {
@@ -518,7 +514,8 @@
                     if(data.payment){
                         console.log(data);
                         $.post(_baseURL + '/api/payment/generate/student-invoice/delete-one/' + data.payment.prr_id, {
-                            _method: 'DELETE'
+                            _method: 'DELETE',
+                            url: `{{ request()->path() }}`
                         }, function(data){
                             data = JSON.parse(data)
                             if(data.success){
@@ -617,6 +614,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="from" value="detail">
+                                        <input type="hidden" name="url" value="{{ request()->path() }}">
                                     </li>
                                 </ul>
                                 </div>
@@ -804,27 +802,10 @@
                 store[key] = {'student' : student, 'generate' : generate}
             }
         },
-        logActivityModal: function(e) {
-            header = `<div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-4">
-                                <h6>Periode Tagihan</h6>
-                                <h1 class="h6 fw-bolder">${header.active}</h1>
-                            </div>
-                            <div class="col-lg-4 col-md-4">
-                                <h6>Fakultas</h6>
-                                <h1 class="h6 fw-bolder">${header.faculty}</h1>
-                            </div>
-                            <div class="col-lg-4 col-md-4">
-                                <h6>Program Studi</h6>
-                                <h1 class="h6 fw-bolder">${header.study_program}</h1>
-                            </div>
-                        </div>
-                        <hr>
-                    </div>`;
-            body = `<div id="logList">@include('pages._payment.log.activity')</div>`;
-            logActivity(header,body);
+        logActivityModal: function() {
+            title = `Log Tagihan Mahasiswa Lama`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
         regenerate: function(e) {
             const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);

@@ -10,12 +10,10 @@ use App\Models\Payment\Faculty;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\MasterJob;
 use Illuminate\Http\Request;
-use App\Traits\Payment\LogActivity;
 use DB;
 
 class GenerateController extends Controller
 {
-    use LogActivity;
 
     public function newStudentInvoice()
     {
@@ -63,8 +61,7 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-        $log = $this->logActivityLists(request()->path());
-        return view('pages._payment.generate.student-invoice.index', compact('year','path','period','log'));
+        return view('pages._payment.generate.student-invoice.index', compact('year','path','period'));
     }
 
     public function StudentInvoiceDetail(Request $request)
@@ -75,8 +72,7 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-        $log = $this->logActivityLists(request()->path());
-        return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period','log'));
+        return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period'));
     }
 
     public function discount()
@@ -88,7 +84,6 @@ class GenerateController extends Controller
     public function scholarship()
     {
         $period = Year::all();
-        $log = $this->logActivityLists(request()->path());
-        return view('pages._payment.generate.scholarship.index',compact('period','log'));
+        return view('pages._payment.generate.scholarship.index',compact('period'));
     }
 }

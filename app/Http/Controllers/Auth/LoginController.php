@@ -76,19 +76,24 @@ class LoginController extends Controller
         $password = $request->post('password');
         $pass 	  = '$EAZYBANGET$' . substr(md5('$EAZYBANGET$'. $password).md5($password), 0, 50);
 
-        $user = User::where('email', $username)->first();
+        $user = User::where('user_username', $username)->first();
 
         if(!$user)
             return $this->sendFailedLoginResponse($request, [
                 $this->username() => [trans('auth.failed')]
             ]);
 
-        if($user->password != $pass)
+        if($user->user_status != "AKTIF")
+            return $this->sendFailedLoginResponse($request, [
+                $this->username() => ["Akun dinonaktifkan oleh admin"]
+            ]);
+
+        if($user->user_password != $pass)
             return $this->sendFailedLoginResponse($request, [
                 'password' => [trans('auth.password')]
             ]);
 
-        return Auth::loginUsingId($user->id);;
+        return Auth::loginUsingId($user->user_id);
     }
 
     protected function sendFailedLoginResponse(Request $request, $messages = null)
