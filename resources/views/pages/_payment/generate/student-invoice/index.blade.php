@@ -66,17 +66,13 @@
 <script>
     var dataTable = null;
     var header = null;
+
     $(function(){
         _studentInvoiceTable.init()
         $.get(_baseURL + '/api/payment/generate/student-invoice/headerall', (d) => {
             header = d;
         })
 
-        $(document).on('click', '.pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            fetchLogActivity('/api/payment/log/activity?url={{ request()->path() }}&page='+page);
-        });
     })
 
     const _studentInvoiceTable = {
@@ -578,23 +574,10 @@
                 store[key] = {'student' : student, 'generate' : generate}
             }
         },
-        logActivityModal: function(e) {
-            header = `<div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-lg-6 col-md-6">
-                                <h6>Periode Tagihan</h6>
-                                <h1 class="h6 fw-bolder">${header.active}</h1>
-                            </div>
-                            <div class="col-lg-6 col-md-6">
-                                <h6>Universitas</h6>
-                                <h1 class="h6 fw-bolder">${header.university}</h1>
-                            </div>
-                        </div>
-                        <hr>
-                    </div>`;
-            body = `<div id="logList">@include('pages._payment.log.activity')</div>`;
-            logActivity(header,body);
+        logActivityModal: function() {
+            title = `Log Tagihan Mahasiswa Lama`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
         regenerate: function(faculty_id, studyprogram_id) {
             Swal.fire({

@@ -72,12 +72,6 @@
 <script>
     $(function(){
         _scholarshipReceiverTable.init();
-
-        $(document).on('click', '.pagination a', function(event){
-            event.preventDefault();
-            var page = $(this).attr('href').split('page=')[1];
-            fetchLogActivity('/api/payment/log/activity?url={{ request()->path() }}&page='+page);
-        });
     })
 
     const _scholarshipReceiverTable = {
@@ -206,18 +200,10 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_scholarshipReceiverTableActions.generateBulk()" class="btn btn-info">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="command" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Generate All
-                                </span>
-                            </button>
-                            <button onclick="_scholarshipReceiverTableActions.deleteBulk()" class="btn btn-danger">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="trash" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Delete All
-                                </span>
-                            </button>
+                            <a onclick="_scholarshipReceiverTableActions.generateBulk()" class="btn btn-info" href="javascript:void(0);">
+                            <i data-feather="command"></i> Generate All</a>
+                            <a onclick="_scholarshipReceiverTableActions.deleteBulk()" class="btn btn-danger" href="javascript:void(0);">
+                            <i data-feather="trash"></i> Delete All</a>
                             <a onclick="_scholarshipReceiverTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
                             <i data-feather="book-open"></i> Log Generate</a>
                         </div>
@@ -368,7 +354,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/generate/scholarship/delete/' + data.msr_id, {
-                        _method: 'DELETE'
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
                     }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -406,7 +393,9 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/scholarship/deleteBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/scholarship/deleteBulk', {
+                        url: `{{ request()->path() }}`
+                    }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
@@ -432,10 +421,10 @@
                 }
             })
         },
-        logActivityModal: function(e) {
-            header = ``;
-            body = `<div id="logList">@include('pages._payment.log.activity')</div>`;
-            logActivity(header,body);
+        logActivityModal: function() {
+            title = `Log Generate Beasiswa`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
     }
 

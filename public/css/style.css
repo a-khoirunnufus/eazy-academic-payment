@@ -453,7 +453,7 @@ div.table-responsive div.dataTables_wrapper div.row {
 
 .detail-group.one-column > div {
     /* border: 1px solid gainsboro; */
-    padding: 1rem;
+    /* padding: 1rem; */
     border-bottom: unset;
 }
 .detail-group.one-column > div:last-child {

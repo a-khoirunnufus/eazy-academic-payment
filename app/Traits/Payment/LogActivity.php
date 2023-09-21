@@ -5,10 +5,14 @@ namespace App\Traits\Payment;
 use App\Providers\RouteServiceProvider;
 use App\Models\Payment\LogActivity as LogActivityModel;
 use App\Models\Payment\LogActivityDetail as LogActivityDetailModel;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 
 trait LogActivity
 {
-    public static function addToLog($activity,$user_id,$status,$route = 'default', $parameter = null)
+    use General;
+
+    public function addToLog($activity,$user_id,$status,$route = 'default', $parameter = null)
     {
         $log = LogActivityModel::create([
             'log_activity' => $activity,
@@ -20,7 +24,7 @@ trait LogActivity
         return $log;
     }
 
-    public static function addToLogDetail($log_id,$title,$status)
+    public function addToLogDetail($log_id,$title,$status)
     {
         $log = LogActivityDetailModel::create([
             'log_id' => $log_id,
@@ -30,8 +34,34 @@ trait LogActivity
         return $log;
     }
 
-    public static function logActivityLists($route = 'default')
+    public function logActivityLists($route = 'default')
     {
     	return LogActivityModel::with('detail', 'user')->where('log_route',$route)->latest()->paginate(10);
     }
+
+    public function getLogTitle($student = null, $newStudent = null,$message = null)
+    {
+        $name = $this->getStudentName($student,$newStudent);
+        $number = $this->getStudentNumber($student,$newStudent);
+        if($message){
+            $text = $this->getMessage($message);
+        }else{
+            $text = "";
+        }
+        return $name.' ('.$number.')'.$text;
+    }
+
+    public static function updateLogStatus($log,$result){
+        if(json_decode($result)){
+            $log->log_status = json_decode($result)->success ? LogStatus::Success : LogStatus::Failed;
+        }else{
+            if(is_int($result)){
+                $log->log_status = $result;
+            }else{
+                $log->log_status = LogStatus::Failed;
+            }
+        }
+        $log->update();
+    }
+
 }
