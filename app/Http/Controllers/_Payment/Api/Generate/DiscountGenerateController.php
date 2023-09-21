@@ -11,14 +11,14 @@ use App\Models\Payment\PaymentDetail;
 use App\Http\Requests\Payment\Discount\DiscountReceiverRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Year;
+use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 use DB;
 
 class DiscountGenerateController extends Controller
 {
-
-    public function getActiveSchoolYearCode(){
-        return 22231;
-    }
+    use LogActivity, General;
 
     public function getReferenceTable(){
         return 'ms_discount_receiver';
@@ -31,7 +31,7 @@ class DiscountGenerateController extends Controller
         return datatables($query)->toJson();
     }
 
-    public function store($id){
+    public function store($id,$log_id){
         $data = DiscountReceiver::with('period','discount','student','newStudent')->findorfail($id);
         if(!$data->student){
             $payment = Payment::where('reg_id',$data->reg_id)->where('prr_school_year',$data->period->msy_code)->first();
@@ -40,10 +40,12 @@ class DiscountGenerateController extends Controller
         }
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         if($data->mdr_status_generate == 1){
             $text = "Potongan telah digenerate";
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         DB::beginTransaction();
@@ -64,43 +66,65 @@ class DiscountGenerateController extends Controller
             ]);
 
             $data->update(['mdr_status_generate' => 1,'prr_id'=> $payment->prr_id]);
-
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
-        if($data->student){
-            $fullname = $data->student->fullname;
-        }else{
-            $fullname = $data->newStudent->participant->par_fullname;
-        }
-        $text = "Berhasil generate potongan mahasiswa ".$fullname;
+
+        $text = "Berhasil generate potongan mahasiswa ".$this->getStudentName($data->student,$data->newStudent);
         return json_encode(array('success' => true, 'message' => $text));
     }
 
     public function generate(Request $request)
     {
-        return $this->store($request->mdr_id);
+        $log = $this->addToLog('Generate Potongan',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->store($request->mdr_id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
     }
 
-    public function generateBulk()
+    public function generateBulk(Request $request)
     {
         $query = DiscountReceiver::where('mdr_status',1)->get();
+        $log = $this->addToLog('Generate Bulk Potongan',$this->getAuthId(),LogStatus::Process,$request->url);
         foreach($query as $item){
-            $this->store($item->mdr_id);
+            $this->store($item->mdr_id,$log->log_id);
         }
+        $this->updateLogStatus($log,LogStatus::Success);
         $text = "Generate potongan mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public function delete($id)
+    public function delete(Request $request,$id)
     {
+        $log = $this->addToLog('Delete Potongan',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->deleteProcess($id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function deleteBulk(Request $request)
+    {
+        $log = $this->addToLog('Delete Bulk Potongan',$this->getAuthId(),LogStatus::Process,$request->url);
+        $query = DiscountReceiver::where('mdr_status',1)->get();
+        foreach($query as $item){
+            $this->deleteProcess($item->mdr_id,$log->log_id);
+        }
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Delete potongan mahasiswa berhasil dieksekusi";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteProcess($id,$log_id){
         $data = DiscountReceiver::with('period','discount','student','newStudent')->findorfail($id);
         $payment = Payment::where('prr_id',$data->prr_id)->first();
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         DB::beginTransaction();
@@ -111,34 +135,20 @@ class DiscountGenerateController extends Controller
                     'prr_total' => $payment->prr_total+$paymentDetail->prrd_amount,
                     'prr_paid_net' => $payment->prr_paid_net+$paymentDetail->prrd_amount,
                 ]);
+                $paymentDetail->delete();
             }
 
-            $paymentDetail->delete();
-
             $data->update(['mdr_status_generate' => 0]);
-
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
-        if($data->student){
-            $fullname = $data->student->fullname;
-        }else{
-            $fullname = $data->newStudent->participant->par_fullname;
-        }
-        $text = "Berhasil menghapus potongan mahasiswa ".$fullname;
-        return json_encode(array('success' => true, 'message' => $text));
-    }
 
-    public function deleteBulk()
-    {
-        $query = DiscountReceiver::where('mdr_status',1)->get();
-        foreach($query as $item){
-            $this->delete($item->mdr_id);
-        }
-        $text = "Delete potongan mahasiswa berhasil dieksekusi";
+        $text = "Berhasil menghapus potongan mahasiswa ".$this->getStudentName($data->student,$data->newStudent);
         return json_encode(array('success' => true, 'message' => $text));
     }
 

@@ -200,18 +200,12 @@
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_discountReceiverTableActions.generateBulk()" class="btn btn-info">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="command" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Generate All
-                                </span>
-                            </button>
-                            <button onclick="_discountReceiverTableActions.deleteBulk()" class="btn btn-danger">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="trash" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Delete All
-                                </span>
-                            </button>
+                            <a onclick="_discountReceiverTableActions.generateBulk()" class="btn btn-info" href="javascript:void(0);">
+                            <i data-feather="command"></i> Generate All</a>
+                            <a onclick="_discountReceiverTableActions.deleteBulk()" class="btn btn-danger" href="javascript:void(0);">
+                            <i data-feather="trash"></i> Delete All</a>
+                            <a onclick="_discountReceiverTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
                     feather.replace()
@@ -274,6 +268,7 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/generate/discount/generate', {
                             mdr_id: data.mdr_id,
+                            url: `{{ request()->path() }}`
                         }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -312,7 +307,9 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/generateBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/discount/generateBulk', {
+                            url: `{{ request()->path() }}`
+                        }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
@@ -358,7 +355,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/generate/discount/delete/' + data.mdr_id, {
-                        _method: 'DELETE'
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
                     }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -396,7 +394,9 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/generate/discount/deleteBulk', function(data){
+                    $.post(_baseURL + '/api/payment/generate/discount/deleteBulk', {
+                        url: `{{ request()->path() }}`
+                    },function(data){
                         data = JSON.parse(data)
                         if(data.success){
                             Swal.fire({
@@ -421,6 +421,11 @@
                     })
                 }
             })
+        },
+        logActivityModal: function() {
+            title = `Log Generate Potongan`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
     }
 

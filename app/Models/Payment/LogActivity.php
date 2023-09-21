@@ -4,7 +4,7 @@ namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Users;
+use App\Models\User;
 
 class LogActivity extends Model
 {
