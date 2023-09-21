@@ -33,7 +33,7 @@ class Payment extends Model
 
     public function register()
     {
-        return $this->hasOne(Register::class, 'reg_id', 'reg_id');
+        return $this->hasOne(Register::class, 'reg_id', 'reg_id')->with('participant');
     }
 
     public function student()

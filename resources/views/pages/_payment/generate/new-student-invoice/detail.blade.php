@@ -446,9 +446,10 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="TreeGenerate.openModal()" class="btn btn-info">
-                                Generate Tagihan
-                            </button>
+                            <a onclick="TreeGenerate.openModal()" class="btn btn-info" href="javascript:void(0);">
+                            <i data-feather="command"></i> Generate All</a>
+                            <a onclick="_newStudentInvoiceDetailTableAction.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Generate</a>
                         </div>
                     `)
                     feather.replace()
@@ -511,11 +512,12 @@
                 if (result.isConfirmed) {
                     $.post(
                         // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/generate-one/1',
+                        _baseURL + '/api/payment/generate/new-student-invoice/generate-one',
                         // data send
                         {
                             invoice_period_code: invoicePeriodCode,
                             register_id: data.registration_id,
+                            url: `{{ request()->path() }}`,
                         },
                         // data receive
                         (data) => {
@@ -547,10 +549,11 @@
                 if (result.isConfirmed) {
                     $.post(
                         // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/delete-one/1',
+                        _baseURL + '/api/payment/generate/new-student-invoice/delete-one',
                         // data send
                         {
                             payment_reregist_id: data.payment_reregist_id,
+                            url: `{{ request()->path() }}`,
                         },
                         // data receive
                         (data) => {
@@ -602,7 +605,12 @@
                     });
                 }
             });
-        }
+        },
+        logActivityModal: function() {
+            title = `Log Generate Tagihan Mahasiswa Baru`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
+        },
     }
 
     const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));
@@ -982,7 +990,8 @@
             $('#invoice-data').addClass('hide');
             $('#invoice-detail').addClass('hide');
             $('#transaction-history').addClass('hide');
-        }
+        },
+
     }
 
     function areArrayEqual(array1, array2) {

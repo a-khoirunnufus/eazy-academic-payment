@@ -37,12 +37,17 @@ use App\Services\ReRegistInvoice\DeleteOne as DeleteOneInvoice;
 use App\Services\ReRegistInvoice\DeleteByScope as DeleteInvoiceByScope;
 use App\Services\ReRegistInvoice\DeleteAll as DeleteAllInvoice;
 use App\Services\ReRegistInvoice\GenerateTreeComplete;
+use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use PhpParser\Node\Expr\FuncCall;
 
 class NewStudentInvoiceController extends Controller
 {
+    use LogActivity, General;
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -201,16 +206,27 @@ class NewStudentInvoiceController extends Controller
     /**
      * Generate invoice for one participant.
      */
-    public function generateOne(Request $request, $save = 0)
+    public function generateOne(Request $request)
     {
+        $log = $this->addToLog('Generate Tagihan Mahasiswa Baru',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->storeOne($request,$log->log_id);
+        $this->updateLogStatus($log,$result->getContent());
+        return $result;
+    }
+
+    public function storeOne(Request $request,$log_id){
         $validated = $request->validate([
             'invoice_period_code' => 'required',
             'register_id' => 'required',
         ]);
 
+        $data = Register::with('participant')->findorfail($request->register_id);
+
         try {
             GenerateOneInvoice::generate($validated['invoice_period_code'], $validated['register_id']);
+            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data),LogStatus::Success);
         } catch (GenerateInvoiceException $ex) {
+            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data,$e->getMessage()),LogStatus::Failed);
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?
@@ -219,15 +235,6 @@ class NewStudentInvoiceController extends Controller
             ], 500);
         }
 
-        if($save){
-            $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->insert([
-                                'action_type' => 'generate permahasiswa',
-                                'student_success' => json_encode(array(intval($validated['register_id']))),
-                                'student_fail' => json_encode(array()),
-                                'created_at' => date('Ymd H:i:s')
-                            ]);
-        }
         return response()->json([
             'success' => true,
             'message' => 'Berhasil generate tagihan mahasiswa.',
@@ -237,14 +244,22 @@ class NewStudentInvoiceController extends Controller
     /**
      * Delete invoice for one participant.
      */
-    public function deleteOne($save = 0, Request $request)
+    public function deleteOne(Request $request)
+    {
+        $log = $this->addToLog('Delete Tagihan Mahasiswa Baru',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->deleteOneProcess($request,$log->log_id);
+        $this->updateLogStatus($log,$result->getContent());
+        return $result;
+    }
+
+    public function deleteOneProcess(Request $request,$log_id)
     {
         $validated = $request->validate([
             'payment_reregist_id' => 'required',
         ]);
 
         try {
-            $prr = DB::table('finance.payment_re_register')->where('prr_id', '=', $validated['payment_reregist_id'])->get('reg_id');
+            $data = Payment::with('register')->findorfail($validated['payment_reregist_id']);
 
             $payBill = PaymentBill::where('prr_id', '=', $validated['payment_reregist_id'])
                 ->whereNull('deleted_at')->get();
@@ -254,19 +269,11 @@ class NewStudentInvoiceController extends Controller
                 ->whereNull('deleted_at')->get();
 
             if (count($payBill) > 0) {
-                if($save){
-                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->insert([
-                                'action_type' => 'hapus permahasiswa',
-                                'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array($prr[0]->reg_id)),
-                                'created_at' => date('Ymd H:i:s')
-                            ]);
-                }
-
+                $text= 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.';
+                $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$text),LogStatus::Failed);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.',
+                    'message' => $text,
                 ], 200);
             }
 
@@ -288,34 +295,19 @@ class NewStudentInvoiceController extends Controller
             // }
 
             if (count($componentRules) > 0) {
-                if($save){
-                    $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                            ->insert([
-                                'action_type' => 'hapus permahasiswa',
-                                'student_success' => json_encode(array()),
-                                'student_fail' => json_encode(array($prr[0]->reg_id)),
-                                'created_at' => date('Ymd H:i:s')
-                            ]);
-                }
-
+                $text = 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.';
+                $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$text),LogStatus::Failed);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.',
+                    'message' => $text,
                 ], 200);
             }
 
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
+            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register),LogStatus::Success);
 
-            if($save){
-                $insert_data =  DB::table('finance.log_generate_invoice_new_student')
-                        ->insert([
-                            'action_type' => 'hapus permahasiswa',
-                            'student_success' => json_encode(array($prr[0]->reg_id)),
-                            'student_fail' => json_encode(array()),
-                            'created_at' => date('Ymd H:i:s')
-                        ]);
-            }
         } catch (DeleteInvoiceException $ex) {
+            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$ex->getMessage()),LogStatus::Failed);
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?
@@ -1112,13 +1104,13 @@ class NewStudentInvoiceController extends Controller
                         ->join('masterdata.ms_studyprogram as ms', 'ms.studyprogram_id', '=', 'r.reg_major_pass')
                         ->where('r.reg_id', '=', $item)
                         ->get();
-                
+
                 if(count($student) > 0){
                     $student = $student[0];
                     array_push($student_success, $student);
                 }
             }
-            
+
             $student_fail = array();
             $list_fail = json_decode($list->student_fail, true);
             foreach($list_fail as $item){
@@ -1128,7 +1120,7 @@ class NewStudentInvoiceController extends Controller
                         ->join('masterdata.ms_studyprogram as ms', 'ms.studyprogram_id', '=', 'r.reg_major_pass')
                         ->where('r.reg_id', '=', $item)
                         ->get();
-                
+
                 if(count($student) > 0){
                     $student = $student[0];
                     array_push($student_fail, $student);
