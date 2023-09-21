@@ -9,7 +9,7 @@ class CreditRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    
+
      public function attributes()
      {
          return [
@@ -35,6 +35,7 @@ class CreditRequest extends FormRequest
             'mcs_reason' => 'required',
             'mcs_proof' => 'required|file|mimes:jpg,png,pdf',
             'msc_id' => 'nullable',
+            'url' => 'nullable',
         ];
     }
 }

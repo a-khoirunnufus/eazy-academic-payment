@@ -26,6 +26,7 @@ class DispensationSubmission extends FormRequest
         return [
             'prr_dispensation_date' => 'required',
             'msc_id' => 'required',
+            'url' => 'nullable',
         ];
     }
 }

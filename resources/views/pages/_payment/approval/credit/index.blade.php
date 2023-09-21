@@ -376,12 +376,10 @@
                 initComplete: function() {
                     $('.submission-credit-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_creditSubmissionTableActions.add()" class="btn btn-info">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Pengajuan Cicilan
-                                </span>
-                            </button>
+                            <a onclick="_creditSubmissionTableActions.add()" class="btn btn-info" href="javascript:void(0);">
+                            <i data-feather="plus"></i> Tambah Pengajuan Cicilan</a>
+                            <a onclick="_creditSubmissionTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Approval</a>
                         </div>
                     `)
 
@@ -553,7 +551,9 @@
                                         name="academic_year"
                                         class="form-control" value="{{ $activeYear }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="mcs_school_year" value="{{$yearCode}}">`,
+                                    <input type="hidden" name="mcs_school_year" value="{{$yearCode}}">
+                                    <input type="hidden" name="url" value="{{ request()->path() }}">
+                                    `,
                             },
                         },
                         no_telp: {
@@ -700,6 +700,7 @@
                                             <select class="form-select select2" eazy-select2-active id="csId" name="cs_id">
                                                 <option value="">Pilih Skema</option>
                                             </select>
+                                            <input type="hidden" name="url" value="{{ request()->path() }}">
                                         </div>
                                     </div>
                                     <div id="schemaDeadline">
@@ -822,7 +823,8 @@
                     // console.log(result);
                     $.post(_baseURL + '/api/payment/approval-credit/decline', {
                             mcs_id: mcs_id,
-                            mcs_decline_reason: result.value
+                            mcs_decline_reason: result.value,
+                            url: `{{ request()->path() }}`
                         }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -848,6 +850,11 @@
                     })
                 }
             })
+        },
+        logActivityModal: function() {
+            title = `Log Approval Potongan`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
     }
 

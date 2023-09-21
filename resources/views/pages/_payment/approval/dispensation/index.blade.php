@@ -408,12 +408,10 @@
                 initComplete: function() {
                     $('.submission-dispensation-action').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_dispensationSubmissionTableActions.add()" class="btn btn-info">
-                                <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
-                                    Tambah Pengajuan Dispensasi
-                                </span>
-                            </button>
+                            <a onclick="_dispensationSubmissionTableActions.add()" class="btn btn-info" href="javascript:void(0);">
+                            <i data-feather="plus"></i> Tambah Pengajuan Dispensasi</a>
+                            <a onclick="_dispensationSubmissionTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <i data-feather="book-open"></i> Log Approval</a>
                         </div>
                     `)
 
@@ -585,7 +583,9 @@
                                         name="academic_year"
                                         class="form-control" value="{{ $activeYear }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="mds_school_year" value="{{$yearCode}}">`,
+                                    <input type="hidden" name="mds_school_year" value="{{$yearCode}}">
+                                    <input type="hidden" name="url" value="{{ request()->path() }}">
+                                    `,
                             },
                         },
                         no_telp: {
@@ -730,6 +730,7 @@
                                         <div class="col-lg-12 col-md-12">
                                             <label class="form-label">Tanggal Dispensasi</label>
                                             <input type="date" class="form-control" name="prr_dispensation_date" required></input>
+                                            <input type="hidden" name="url" value="{{ request()->path() }}">
                                         </div>
                                     </div>
                                 </div>`
@@ -764,7 +765,8 @@
                     // console.log(result);
                     $.post(_baseURL + '/api/payment/approval-dispensation/decline', {
                             mds_id: mds_id,
-                            mds_decline_reason: result.value
+                            mds_decline_reason: result.value,
+                            url: `{{ request()->path() }}`
                         }, function(data){
                         data = JSON.parse(data)
                         if(data.success){
@@ -790,6 +792,11 @@
                     })
                 }
             })
+        },
+        logActivityModal: function() {
+            title = `Log Approval Potongan`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
     }
 

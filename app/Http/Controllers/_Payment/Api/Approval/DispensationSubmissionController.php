@@ -9,10 +9,15 @@ use App\Http\Requests\Payment\Dispensation\DispensationSubmission as RequestDisp
 use App\Models\Payment\Payment;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Student;
+use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 use DB;
 
 class DispensationSubmissionController extends Controller
 {
+    use LogActivity, General;
+
     public function index(Request $request)
     {
         $filters = $request->input('custom_filters');
@@ -52,14 +57,24 @@ class DispensationSubmissionController extends Controller
 
     public function store(RequestDispensation $request)
     {
+        $log = $this->addToLog('Approve Pengajuan Dispensasi',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->storeProcess($request,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function storeProcess(RequestDispensation $request,$log_id)
+    {
         $validated = $request->validated();
 
-        $data = DispensationSubmission::with('payment')->whereHas('payment', function($q){
+        $data = DispensationSubmission::with('payment','student')->whereHas('payment', function($q){
             $q->whereColumn('finance.payment_re_register.prr_school_year', 'finance.ms_dispensation_submission.mds_school_year');
         })->where('mds_id',$validated['msc_id'])->first();
 
         if(!$data->payment){
-            return json_encode(array('success' => false, 'message' => 'Data tagihan tidak ditemukan'));
+            $text = 'Data tagihan tidak ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }
 
         DB::beginTransaction();
@@ -70,9 +85,11 @@ class DispensationSubmissionController extends Controller
             $data->update(['mds_deadline' => $validated['prr_dispensation_date'],'mds_status' => 1,'prr_id'=> $data->payment->prr_id]);
             $text = "Berhasil mengupdate pengajuan dispensasi";
 
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
@@ -80,10 +97,12 @@ class DispensationSubmissionController extends Controller
 
     public function decline(request $request)
     {
-        $data = DispensationSubmission::findorfail($request->mds_id);
+        $log = $this->addToLog('Decline Pengajuan Dispensasi',$this->getAuthId(),LogStatus::Process,$request->url);
+        $data = DispensationSubmission::with('student')->findorfail($request->mds_id);
         $data->update(['mds_status' => 0,'mds_decline_reason' => $request->mds_decline_reason]);
-
+        $this->addToLogDetail($log->log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
         $text = "Berhasil menolak pengajuan dispensasi";
+        $this->updateLogStatus($log,LogStatus::Success);
         return json_encode(array('success' => true, 'message' => $text));
     }
 
