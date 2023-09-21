@@ -10,8 +10,14 @@ trait General
         return 1;
     }
 
-    public function getActiveSchoolYearCode(){
-        return 22231;
+    public function getActiveSchoolYear()
+    {
+        return "2022/2023 - Ganjil";
+    }
+
+    public function getActiveSchoolYearCode()
+    {
+        return 20221;
     }
 
     public function getStudentName($student, $newStudent){

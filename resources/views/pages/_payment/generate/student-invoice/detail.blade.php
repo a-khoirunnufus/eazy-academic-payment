@@ -514,7 +514,8 @@
                     if(data.payment){
                         console.log(data);
                         $.post(_baseURL + '/api/payment/generate/student-invoice/delete-one/' + data.payment.prr_id, {
-                            _method: 'DELETE'
+                            _method: 'DELETE',
+                            url: `{{ request()->path() }}`
                         }, function(data){
                             data = JSON.parse(data)
                             if(data.success){
@@ -613,6 +614,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="from" value="detail">
+                                        <input type="hidden" name="url" value="{{ request()->path() }}">
                                     </li>
                                 </ul>
                                 </div>

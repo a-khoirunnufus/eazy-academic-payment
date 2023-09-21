@@ -88,12 +88,7 @@ class ScholarshipGenerateController extends Controller
     {
         $log = $this->addToLog('Generate Beasiswa',$this->getAuthId(),LogStatus::Process,$request->url);
         $result = $this->store($request->msr_id,$log->log_id);
-        if(json_decode($result)){
-            $log->log_status = json_decode($result)->success ? LogStatus::Success : LogStatus::Failed;
-        }else{
-            $log->log_status = LogStatus::Failed;
-        }
-        $log->update();
+        $this->updateLogStatus($log,$result);
         return $result;
     }
 
@@ -104,8 +99,7 @@ class ScholarshipGenerateController extends Controller
         foreach($query as $item){
             $result = $this->store($item->msr_id,$log->log_id);
         }
-        $log->log_status = LogStatus::Success;
-        $log->update();
+        $this->updateLogStatus($log,LogStatus::Success);
         $text = "Generate beasiswa mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));
     }
@@ -125,8 +119,7 @@ class ScholarshipGenerateController extends Controller
         foreach($query as $item){
             $this->deleteProcess($item->msr_id,$log->log_id);
         }
-        $log->log_status = LogStatus::Success;
-        $log->update();
+        $this->updateLogStatus($log,LogStatus::Success);
         $text = "Delete beasiswa mahasiswa berhasil dieksekusi";
         return json_encode(array('success' => true, 'message' => $text));
     }

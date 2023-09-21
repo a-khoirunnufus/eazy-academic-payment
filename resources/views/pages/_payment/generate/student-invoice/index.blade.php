@@ -392,6 +392,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="from" value="detail">
+                                        <input type="hidden" name="url" value="{{ request()->path() }}">
                                     </li>
                                 </ul>
                                 </div>

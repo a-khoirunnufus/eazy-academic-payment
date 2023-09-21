@@ -25,11 +25,17 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\DB;
 use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 
 class StudentInvoiceController extends Controller
 {
-    use LogActivity;
+    use LogActivity, General;
 
+    /**
+     * View Only
+     */
+    // DT Fakultas & Prodi
     public function index(Request $request)
     {
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
@@ -81,6 +87,7 @@ class StudentInvoiceController extends Controller
         return datatables($result)->toJson();
     }
 
+    // DT Per Prodi / Fakultas
     public function detail(Request $request)
     {
         // dd($request);
@@ -111,17 +118,7 @@ class StudentInvoiceController extends Controller
         return datatables($query->get())->toJson();
     }
 
-    // MANUAL
-    public function getActiveSchoolYear()
-    {
-        return "2022/2023 - Ganjil";
-    }
-
-    public function getActiveSchoolYearCode()
-    {
-        return 20221;
-    }
-
+    // Header Per Prodi / Fakultas
     public function header(Request $request)
     {
         // dd($request);
@@ -150,6 +147,7 @@ class StudentInvoiceController extends Controller
         return $header;
     }
 
+    // Header Fakultas & Prodi
     public function headerAll()
     {
         $activeSchoolYear = $this->getActiveSchoolYear();
@@ -158,18 +156,6 @@ class StudentInvoiceController extends Controller
         $header['active'] = $activeSchoolYear;
 
         return $header;
-    }
-
-    public function studentGenerate(Request $request)
-    {
-        $student = Student::with('getComponent')->findorfail($request['student_number']);
-        $log = $this->addToLog('Generate Tagihan Mahasiswa Lama',1,2,$request['url']);
-        $result = $this->storeStudentGenerate($student,$log->log_id);
-        if(json_decode($result)){
-            $log->log_status = json_decode($result)->success ? 1 : 3;
-            $log->update();
-        }
-        return $result;
     }
 
     public function choice($f, $sp)
@@ -242,9 +228,20 @@ class StudentInvoiceController extends Controller
         return $student;
     }
 
+     /**
+     * Function
+     */
+    public function studentGenerate(Request $request)
+    {
+        $student = Student::with('getComponent')->findorfail($request['student_number']);
+        $log = $this->addToLog('Generate Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->storeStudentGenerate($student,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
     public function storeStudentGenerate($student,$log_id)
     {
-
         $components = $student->getComponent()
             ->where('path_id', $student->path_id)
             ->where('period_id', $student->period_id)
@@ -276,20 +273,34 @@ class StudentInvoiceController extends Controller
                         'type' => 'component',
                     ]);
                 }
-                $this->addToLogDetail($log_id,$student->fullname.' - '.$student->student_id,1);
+                $this->addToLogDetail($log_id,$this->getLogTitle($student),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
+                $this->addToLogDetail($log_id,$this->getLogTitle($student,null,$e->getMessage()),LogStatus::Failed);
                 return response()->json($e->getMessage());
             }
         } else {
-            return json_encode(array('success' => false, 'message' => 'Komponen Tagihan Tidak Ditemukan'));
+            $text= 'Komponen Tagihan Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitle($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }
         $text = "Berhasil generate tagihan mahasiswa " . $student->fullname;
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public function storeBulkStudentGenerate($generate_checkbox, $from, $mj_id)
+    public function studentBulkGenerate(Request $request)
+    {
+        if ($request->generate_checkbox) {
+            $log = $this->addToLog('Generate Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from,$log)->onQueue('bulk');
+            return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
+        } else {
+            return json_encode(array('success' => false, 'message' => "Belum ada data yang dipilih!"));
+        }
+    }
+
+    public function storeBulkStudentGenerate($generate_checkbox, $from, $log)
     {
         foreach ($generate_checkbox as $item) {
             if ($item != "null") {
@@ -320,53 +331,61 @@ class StudentInvoiceController extends Controller
                 foreach ($students as $student) {
                     $payment = Payment::where('student_number', $student->student_number)->where('prr_school_year', $this->getActiveSchoolYearCode())->first();
                     if (!$payment) {
-                        GenerateInvoice::dispatch($student, $mj_id)->onQueue('invoice');
+                        GenerateInvoice::dispatch($student, $log)->onQueue('invoice');
                     }
                 }
+                GenerateInvoice::dispatch(null, $log)->onQueue('invoice');
             }
         }
         return true;
     }
 
-    public function studentBulkGenerate(Request $request)
-    {
-        if ($request->generate_checkbox) {
-            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from)->onQueue('bulk');
-            return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
-        } else {
-            return json_encode(array('success' => false, 'message' => "Belum ada data yang dipilih!"));
-        }
-    }
-
-    public function delete($prr_id)
+    public function delete(Request $request,$prr_id)
     {
         // Deleting Detail invoice
-        DB::beginTransaction();
+        $log = $this->addToLog('Delete Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->deleteProcess($request,$prr_id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function deleteProcess(Request $request,$prr_id,$log_id)
+    {
+        // Deleting Detail invoice
         try {
-            $detail = PaymentDetail::where('prr_id', $prr_id)->get();
+            $detail = PaymentDetail::with('payment')->where('prr_id', $prr_id)->get();
             if ($detail) {
                 foreach ($detail as $item) {
                     if ($item->type == 'discount' or $item->type == 'scholarship') {
-                        return json_encode(array('success' => false, 'message' => "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini."));
+                        $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
+                        $this->addToLogDetail($log_id,$this->getLogTitle($item->payment->student,null,$text),LogStatus::Failed);
+                        return json_encode(array('success' => false, 'message' => $text));
                     }
                 }
             }
             // Deleting Detail Bill
-            $data = Payment::findorfail($prr_id);
+            $data = Payment::with('student')->findorfail($prr_id);
             if ($data->prr_status == 'kredit') {
-                return json_encode(array('success' => false, 'message' => "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini."));
+                $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
+                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                return json_encode(array('success' => false, 'message' => $text));
             }
+            DB::beginTransaction();
             $data->delete();
             PaymentDetail::where('prr_id', $prr_id)->delete();
             PaymentBill::where('prr_id', $prr_id)->delete();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student),LogStatus::Success);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
     }
 
+
+    // Mas sukri
     public function deleteByProdi($prodi_id)
     {
         return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);

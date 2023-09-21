@@ -52,11 +52,11 @@ trait LogActivity
     }
 
     public static function updateLogStatus($log,$result){
-        if(json_decode($result)){
-            $log->log_status = json_decode($result)->success ? LogStatus::Success : LogStatus::Failed;
+        if(is_object($result)){
+            $log->log_status = $result;
         }else{
-            if(is_int($result)){
-                $log->log_status = $result;
+            if(json_decode($result)){
+                $log->log_status = json_decode($result)->success ? LogStatus::Success : LogStatus::Failed;
             }else{
                 $log->log_status = LogStatus::Failed;
             }
