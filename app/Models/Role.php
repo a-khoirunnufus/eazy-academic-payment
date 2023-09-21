@@ -9,7 +9,7 @@ class Role extends Model
 {
     use HasPermissions;
 
-    protected $table = "roles";
+    protected $table = "masterdata.roles";
 
     protected $fillable = [
         'name', 'homepage_path'

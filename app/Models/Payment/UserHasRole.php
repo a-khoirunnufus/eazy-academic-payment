@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserHasRole extends Model
 {
-    protected $table = "user_has_roles";
+    protected $table = "masterdata.user_has_roles";
 
     protected $guarded = [];
 
@@ -17,6 +17,6 @@ class UserHasRole extends Model
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(\App\Models\Role::class);
     }
 }
