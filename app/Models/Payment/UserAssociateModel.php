@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserAssociateModel extends Model
 {
-    protected $table = "user_associate_models";
+    protected $table = "masterdata.user_associate_models";
 
     protected $guarded = [];
 
@@ -17,6 +17,6 @@ class UserAssociateModel extends Model
 
     public function user()
     {
-        return $this->belongsTo(Users::class, 'user_id', 'user_id');
+        return $this->belongsTo(\App\Models\User::class, 'user_id', 'user_id');
     }
 }
