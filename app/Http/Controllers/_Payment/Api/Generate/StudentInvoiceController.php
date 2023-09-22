@@ -39,7 +39,6 @@ class StudentInvoiceController extends Controller
     public function index(Request $request)
     {
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
-        dd($activeSchoolYearCode);
         $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
         $student = Student::with(['payment' => function ($query) use ($activeSchoolYearCode) {
             $query->where('prr_school_year', $activeSchoolYearCode);
