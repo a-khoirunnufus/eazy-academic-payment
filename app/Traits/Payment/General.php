@@ -3,6 +3,7 @@
 namespace App\Traits\Payment;
 
 use App\Providers\RouteServiceProvider;
+use App\Services\SchoolYearService;
 
 trait General
 {
@@ -17,7 +18,8 @@ trait General
 
     public function getActiveSchoolYearCode()
     {
-        return 20221;
+        $schoolYear = SchoolYearService::getActiveByDate();
+        return $schoolYear['msy_code'];
     }
 
     public function getStudentName($student, $newStudent){
