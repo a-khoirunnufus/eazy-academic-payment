@@ -46,7 +46,7 @@ class PaymentBill extends Model
 
     public function paymentMethod()
     {
-        return $this->hasOne(MasterPaymentMethod::class, 'mpm_key', 'prrb_payment_method');
+        return $this->hasOne(PaymentMethod::class, 'mpm_key', 'prrb_payment_method');
     }
 
     public function paymentManualApproval()
