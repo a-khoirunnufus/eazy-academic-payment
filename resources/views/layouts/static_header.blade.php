@@ -116,7 +116,7 @@
                         <span class="avatar-status-online"></span>
                     </span>
                     <div class="user-nav d-sm-flex d-none m-0">
-                        <span class="user-name fw-bolder m-0">Joo Malacia Ahmad</span>
+                        <span class="user-name fw-bolder m-0">{{ auth()->user()->user_fullname }}</span>
                         <!-- <span class="user-status">Admin Keuangan</span> -->
                     </div>
                 </a>

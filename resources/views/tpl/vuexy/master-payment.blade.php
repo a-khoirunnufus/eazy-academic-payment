@@ -76,7 +76,11 @@
 
     @include('layouts.static_header')
 
-    @include('layouts.static_menu')
+    @if(auth()->user()->hasAssociateData('student'))
+        @include('layouts.static_student_menu')
+    @else
+        @include('layouts.static_menu')
+    @endif
 
     <div class="app-content content">
         <div class="content-overlay"></div>

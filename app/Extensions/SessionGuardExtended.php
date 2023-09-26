@@ -5,9 +5,12 @@ namespace App\Extensions;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
+use App\Traits\Authentication\CustomGuard;
 
 class SessionGuardExtended extends SessionGuard
 {
+    use CustomGuard;
+
     /**
      * Get the currently authenticated user.
      *

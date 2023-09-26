@@ -19,7 +19,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public const HOME = '/';
     public const ADMIN_HOMEPAGE = "/payment/settings/component";
-    public const STUDENT_HOMEPAGE = "/student/payment";
+    public const STUDENT_HOMEPAGE = "/payment/student-invoice";
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.

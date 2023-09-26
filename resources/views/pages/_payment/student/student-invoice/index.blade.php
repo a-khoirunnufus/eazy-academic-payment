@@ -88,14 +88,6 @@
 
 @section('content')
 
-<div id="student-info" class="card mb-3">
-    <div class="card-body" style="width: 100%">
-        <div id="header-info-student">
-            ...
-        </div>
-    </div>
-</div>
-
 <div class="card">
     <div class="nav-tabs-shadow nav-align-top">
         <ul class="nav nav-tabs custom border-bottom" role="tablist">
@@ -108,10 +100,10 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="navs-invoice_n_va" role="tabpanel">
-                @include('pages._student.payment.tab-unpaid-payment')
+                @include('pages._payment.student.student-invoice.tab-unpaid-invoice')
             </div>
             <div class="tab-pane fade" id="navs-payment" role="tabpanel">
-                @include('pages._student.payment.tab-paid-payment')
+                @include('pages._payment.student.student-invoice.tab-paid-invoice')
             </div>
         </div>
     </div>
@@ -165,81 +157,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 
-    const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
-
-    $(function(){
-        renderHeaderInfo();
-    });
-
-    async function renderHeaderInfo() {
-        const studentType = userMaster.participant ? 'new_student' : 'student';
-        const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
-        const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
-
-        const studentDetail = await $.ajax({
-            async: true,
-            url: `${_baseURL}/api/student/detail?${queryParam}`,
-            type: 'get'
-        });
-
-        if (studentType == 'new_student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap</small>
-                            <span class="text__title">${studentDetail.par_fullname}</span>
-                        </div>
-                    </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-hash"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">NIK</small>
-                            <span class="text__title">${studentDetail.par_nik}</span>
-                        </div>
-                    </div>
-                </div>
-            `);
-        } else if (studentType == 'student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap dan NIM</small>
-                            <span class="text__title">${studentDetail.fullname}</span>
-                            <span class="d-block">${studentDetail.student_id}</span>
-                        </div>
-                    </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Fakultas</small>
-                            <span class="text__title">${studentDetail.studyprogram.faculty.faculty_name}</span>
-                        </div>
-                    </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Program Studi</small>
-                            <span class="text__title">${studentDetail.studyprogram.studyprogram_name}</span>
-                        </div>
-                    </div>
-                </div>
-            `);
-        }
-    }
+    const studentMaster =  JSON.parse(`{!! json_encode($student, true) !!}`);
 
     const invoiceDetailModal = {
         bsModal: new bootstrap.Modal(document.getElementById('invoiceDetailModal')),
@@ -258,7 +176,7 @@
 
             const bills = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${data.prr_id}/bill`,
+                url: `${_baseURL}/api/payment/student-invoice/${data.prr_id}/bill`,
                 type: 'get',
             });
             if (bills.length > 0) {
@@ -456,10 +374,7 @@
 
     function proceedPayment(e) {
         const prrId = $(e.currentTarget).attr('data-eazy-prr-id');
-        const email = userMaster.user_email;
-        const type = userMaster.participant ? 'new_student' : 'student';
-
-        window.location.href = `${_baseURL}/student/payment/proceed-payment/${prrId}?email=${email}&type=${type}`;
+        window.location.href = `${_baseURL}/payment/student-invoice/${prrId}/proceed-payment`;
     }
 
     function cetakCicilan(prrb){
@@ -524,7 +439,7 @@
                 </table>
             </div>
             `)
-            var textContent = 
+            var textContent =
             '<div class="container">'+
                 '<div class="row text-center">' +
                     '<h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>'+
@@ -560,9 +475,9 @@
                     '</tbody>'+
                 '</table>'+
             '</div>';
-            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+            var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
-        xhr.open("GET", _baseURL+"/api/student/payment/"+prrb.prr_id);
+        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prrb.prr_id);
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
         xhr.send();
     }
@@ -591,7 +506,7 @@
             const date = new Date(data.created_at);
 
             var total_komponen = 0;
-            var tableKomponen = 
+            var tableKomponen =
                 '<table class="table">'+
                     '<thead>'+
                         '<tr>'+
@@ -600,9 +515,9 @@
                         '</tr>'+
                     '</thead>'+
                     '<tbody>';
-            
+
             data.payment_detail.forEach(item => {
-                tableKomponen += 
+                tableKomponen +=
                 '<tr>'+
                     '<td>'+ item.prrd_component + '</td>' +
                     '<td>'+ item.prrd_amount + '</td>' +
@@ -636,11 +551,11 @@
                         '</tr>'+
                     '</thead>'+
                     '<tbody>';
-            
+
             data.payment_bill.forEach(item => {
                 var prrb = item;
                 const dueDate = new Date(prrb.prrb_due_date);
-                tableCicilan += 
+                tableCicilan +=
                     '<tr>'+
                         `<td>Cicilan ke-${prrb.prrb_order}</td>`+
                         `<td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>`+
@@ -682,7 +597,7 @@
                 ${tableCicilan}
             </div>
             `)
-            var textContent = 
+            var textContent =
             '<div class="container">'+
                 '<div class="row text-center">' +
                     '<h3 class="text-uppercase text-center mt-3" style="font-size: 40px;">Invoice</h3>'+
@@ -702,11 +617,81 @@
                 tableKomponen +
                 tableCicilan +
             '</div>';
-            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+            var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
-        xhr.open("GET", _baseURL+"/api/student/payment/"+prr_id);
+        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prr_id);
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
         xhr.send();
     }
+
+    // async function renderHeaderInfo() {
+    //     const studentType = userMaster.participant ? 'new_student' : 'student';
+    //     const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
+    //     const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
+
+    //     const studentDetail = await $.ajax({
+    //         async: true,
+    //         url: `${_baseURL}/api/student/detail?${queryParam}`,
+    //         type: 'get'
+    //     });
+
+    //     if (studentType == 'new_student') {
+    //         $('#header-info-student').html(`
+    //             <div class="eazy-header">
+    //                 <div class="eazy-header__item">
+    //                     <div class="item__icon">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    //                     </div>
+    //                     <div class="item__text">
+    //                         <small class="text__subtitle">Nama Lengkap</small>
+    //                         <span class="text__title">${studentDetail.par_fullname}</span>
+    //                     </div>
+    //                 </div>
+    //                 <div class="eazy-header__item">
+    //                     <div class="item__icon">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-hash"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+    //                     </div>
+    //                     <div class="item__text">
+    //                         <small class="text__subtitle">NIK</small>
+    //                         <span class="text__title">${studentDetail.par_nik}</span>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         `);
+    //     } else if (studentType == 'student') {
+    //         $('#header-info-student').html(`
+    //             <div class="eazy-header">
+    //                 <div class="eazy-header__item">
+    //                     <div class="item__icon">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    //                     </div>
+    //                     <div class="item__text">
+    //                         <small class="text__subtitle">Nama Lengkap dan NIM</small>
+    //                         <span class="text__title">${studentDetail.fullname}</span>
+    //                         <span class="d-block">${studentDetail.student_id}</span>
+    //                     </div>
+    //                 </div>
+    //                 <div class="eazy-header__item">
+    //                     <div class="item__icon">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+    //                     </div>
+    //                     <div class="item__text">
+    //                         <small class="text__subtitle">Fakultas</small>
+    //                         <span class="text__title">${studentDetail.studyprogram.faculty.faculty_name}</span>
+    //                     </div>
+    //                 </div>
+    //                 <div class="eazy-header__item">
+    //                     <div class="item__icon">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+    //                     </div>
+    //                     <div class="item__text">
+    //                         <small class="text__subtitle">Program Studi</small>
+    //                         <span class="text__title">${studentDetail.studyprogram.studyprogram_name}</span>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         `);
+    //     }
+    // }
 </script>
 @endsection

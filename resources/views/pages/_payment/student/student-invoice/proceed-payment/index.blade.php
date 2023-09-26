@@ -2,7 +2,7 @@
 
 @section('page_title', 'Proses Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', url('student/payment').'?email='.request()->query('email').'&type='.request()->query('type'))
+@section('url_back', url('payment/student-invoice'))
 
 @section('css_section')
     <style>
@@ -93,15 +93,15 @@
         </nav>
         <div class="tab-content pt-2 pb-3 px-3" id="nav-tabContent" style="min-height: 400px">
             <div class="tab-pane fade" id="nav-invoice-data" role="tabpanel">
-                @include('pages._student.proceed-payment.tab-invoice-data')
+                @include('pages._payment.student.student-invoice.proceed-payment.tab-invoice-data')
             </div>
 
             <div class="tab-pane fade" id="nav-payment-option" role="tabpanel">
-                @include('pages._student.proceed-payment.tab-payment-option')
+                @include('pages._payment.student.student-invoice.proceed-payment.tab-payment-option')
             </div>
 
             <div class="tab-pane fade" id="nav-pay-bill" role="tabpanel">
-                @include('pages._student.proceed-payment.tab-pay-bill')
+                @include('pages._payment.student.student-invoice.proceed-payment.tab-pay-bill')
             </div>
         </div>
     </div>
@@ -111,8 +111,8 @@
 @push('scripts')
 <script>
 
-    const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
     const prrId = parseInt("{{ $prr_id }}");
+    const studentMaster = JSON.parse(`{!! json_encode($student, true) !!}`);
 
     /**
      * @var object invoiceDataTab
@@ -134,69 +134,38 @@
     });
 
     async function renderHeaderInfo() {
-        const studentType = userMaster.participant ? 'new_student' : 'student';
-        const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
-        const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
-
-        const studentDetail = await getRequestCache(`${_baseURL}/api/student/detail?${queryParam}`);
-
-        if (studentType == 'new_student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap</small>
-                            <span class="text__title">${studentDetail.par_fullname}</span>
-                        </div>
+        $('#header-info-student').html(`
+            <div class="eazy-header">
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-hash"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">NIK</small>
-                            <span class="text__title">${studentDetail.par_nik}</span>
-                        </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Nama Lengkap dan NIM</small>
+                        <span class="text__title">${studentMaster.fullname}</span>
+                        <span class="d-block">${studentMaster.student_id}</span>
                     </div>
                 </div>
-            `);
-        } else if (studentType == 'student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap dan NIM</small>
-                            <span class="text__title">${studentDetail.fullname}</span>
-                            <span class="d-block">${studentDetail.student_id}</span>
-                        </div>
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
                     </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Fakultas</small>
-                            <span class="text__title">${studentDetail.studyprogram.faculty.faculty_name}</span>
-                        </div>
-                    </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Program Studi</small>
-                            <span class="text__title">${studentDetail.studyprogram.studyprogram_name}</span>
-                        </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Fakultas</small>
+                        <span class="text__title">${studentMaster.study_program.faculty.faculty_name}</span>
                     </div>
                 </div>
-            `);
-        }
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                    </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Program Studi</small>
+                        <span class="text__title">${studentMaster.study_program.studyprogram_type} ${studentMaster.study_program.studyprogram_name}</span>
+                    </div>
+                </div>
+            </div>
+        `);
     }
 
     const tabManager = {
@@ -236,8 +205,8 @@
             // $('#nav-tab #nav-payment-option-tab').removeClass('disabled');
             $('#nav-tab #nav-pay-bill-tab').removeClass('disabled');
 
-            await deleteRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            await deleteRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
 
             let openTabId = 'nav-payment-option';
 

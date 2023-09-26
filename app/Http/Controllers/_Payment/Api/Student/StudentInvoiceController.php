@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\_Student\Api;
+namespace App\Http\Controllers\_Payment\Api\Student;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -9,25 +9,25 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Traits\Authentication\StaticStudentUser;
+use App\Models\Payment\CreditSchemaPeriodPath;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\PaymentBill;
-use App\Models\Payment\MasterPaymentMethod;
+use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\PaymentManualApproval;
-use App\Models\Payment\CreditSchemaPeriodPath;
 use App\Models\Payment\PaymentTransaction;
-use App\Models\Payment\OverpaymentTransaction;
+use App\Models\Payment\Student;
+use App\Models\Payment\StudentBalanceTrans;
+use App\Models\Payment\StudentBalanceSpent;
 use App\Models\PMB\Setting;
 use App\Models\PMB\Participant as NewStudent;
 use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
-use App\Models\Masterdata\MsPaymentMethod; // old
-use App\Models\HR\MsStudent as Student;
 use App\Services\Payment\PaymentService;
 use App\Exceptions\MidtransException;
 use Carbon\Carbon;
 
-class PaymentController extends Controller
+class StudentInvoiceController extends Controller
 {
     /**
      * @var $default_user_email
@@ -45,7 +45,7 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'student_type' => 'required|in:new_student,student',
             'participant_id' => 'required_if:student_type,new_student',
-            'student_id' => 'required_if:student_type,student',
+            'student_number' => 'required_if:student_type,student',
             'status' => 'required|in:paid,unpaid',
         ]);
 
@@ -61,7 +61,7 @@ class PaymentController extends Controller
         }
 
         if ($validated['student_type'] == 'student') {
-            $student = Student::find($validated['student_id']);
+            $student = Student::find($validated['student_number']);
             $invoices = $invoices->where('prr.student_number', '=', $student->student_number);
         }
 
@@ -199,13 +199,17 @@ class PaymentController extends Controller
     {
         $validated = $request->validate([
             'payment_method' => 'required',
+            'use_student_balance' => 'nullable',
+            'student_balance_spend' => 'required_with:use_student_balance',
         ]);
+
+        // dd(intval($validated['student_balance_spend']));
 
         try {
             DB::beginTransaction();
 
             $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
-            $payment_method = MasterPaymentMethod::where('mpm_key', $validated['payment_method'])->first();
+            $payment_method = PaymentMethod::where('mpm_key', $validated['payment_method'])->first();
             $bill = PaymentBill::find($prrb_id);
 
             // check if previous payment already paid
@@ -236,27 +240,21 @@ class PaymentController extends Controller
 
                 $order_id = (string) Str::uuid();
 
-                $student_type = Payment::find($prr_id)->reg_id ? 'new_student' : 'student';
-                $student = null;
-                if ($student_type == 'new_student') {
-                    $student = NewStudent::with('user')->where('par_id', $payment->par_id)->first();
-                }
-                elseif ($student_type == 'student') {
-                    $student = Student::with('user')->where('student_number', $payment->student_number)->first();
-                }
+                $student = Student::find($payment->student_number);
+                $student_type = 'student';
 
                 // charge transaction
                 $charge_result = (new PaymentService())->chargeTransaction([
                     "order_id" => $order_id,
                     "payment_type" => $payment_method->mpm_key,
-                    "amount_total" => $bill->prrb_amount + $payment_method->mpm_fee,
-                    "name" => $student_type == 'new_student' ? $student->par_fullname : $student->user->user_fullname,
-                    "email" => $student->user->user_email,
-                    "phone" => $student_type == 'new_student' ? $student->par_phone : $student->phone_number,
+                    "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
+                    "name" => $student->fullname,
+                    "email" => $student->email,
+                    "phone" => $student->phone_number,
                     "item_details" => [
                         0 => [
                             "name" => "Cicilan ke-".$bill->prrb_order,
-                            "price" => $bill->prrb_amount + $payment_method->mpm_fee,
+                            "price" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
                         ]
                     ]
                 ]);
@@ -282,6 +280,55 @@ class PaymentController extends Controller
             // save bill
             $bill->save();
 
+            // Use student balance
+            if ($validated['use_student_balance'] == '1') {
+
+                $opening_balance = StudentBalanceTrans::where('student_number', $payment->student_number)
+                    ->orderBy('sbt_time', 'desc')
+                    ->first()
+                    ?->sbt_closing_balance?? 0;
+
+                $closing_balance = $opening_balance - intval($validated['student_balance_spend']);
+
+                StudentBalanceTrans::create([
+                    'student_number' => $payment->student_number,
+                    'sbt_opening_balance' => $opening_balance,
+                    'sbt_amount' => intval($validated['student_balance_spend']) * -1,
+                    'sbtt_name' => 'pay_bill',
+                    'sbtt_associate_id' => $bill->prrb_id,
+                    'sbt_closing_balance' => $closing_balance,
+                    'sbt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                ]);
+
+                StudentBalanceSpent::create([
+                    'student_number' => $payment->student_number,
+                    'sbs_amount' => intval($validated['student_balance_spend']),
+                    'sbs_remark' => 'Pembayaran Tagihan',
+                    'prrb_id' => $bill->prrb_id,
+                    'sbs_status' => 'reserved',
+                    'sbs_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                ]);
+
+                // check is already full paid using student balance
+                if (intval($validated['student_balance_spend']) >= ($bill->prrb_amout + $bill->prrb_admin_cost)) {
+                    $bill->prrb_status = 'lunas';
+                    $bill->save();
+                }
+
+                /**
+                 * Set master bill(payment_re_register) to lunas if all of this bill child
+                 * status are lunas.
+                 */
+                $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
+                    ->where('prrb_status', 'belum lunas')
+                    ->get();
+                if ($unpaid_bills->count() == 0) {
+                    $payment = Payment::find($bill->prr_id);
+                    $payment->prr_status = 'lunas';
+                    $payment->save();
+                }
+            }
+
             DB::commit();
 
             return response()->json([
@@ -301,22 +348,28 @@ class PaymentController extends Controller
 
     public function resetPaymentMethod($prr_id, $prrb_id)
     {
+        $force_reset = false;
+
         try {
             DB::beginTransaction();
 
+            $bill_master = Payment::find($prr_id);
             $bill = PaymentBill::find($prrb_id);
-            $payment_method = MasterPaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
+            $payment_method = PaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
 
             if (!$bill) {
                 throw new \Exception('Bill not found!');
             }
 
-            if ($bill->prrb_status == 'lunas') {
+            if (
+                $bill->prrb_status == 'lunas'
+                && !$force_reset
+            ) {
                 throw new \Exception('Bill already paid!');
             }
 
+            // Cancel midtrans transaction
             if (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
-                // cancel midtrans transaction
                 $cancel_result = (new PaymentService())->cancelTransaction($bill->prrb_order_id);
 
                 if ($cancel_result->status == 'error') {
@@ -324,6 +377,7 @@ class PaymentController extends Controller
                 }
             }
 
+            // Reset bill columns
             $bill->prrb_admin_cost = null;
             $bill->prrb_payment_method = null;
             $bill->prrb_order_id = null;
@@ -333,8 +387,39 @@ class PaymentController extends Controller
             $bill->prrb_account_number = null;
             $bill->prrb_midtrans_transaction_id = null;
             $bill->prrb_midtrans_transaction_exp = null;
-
             $bill->save();
+
+            // Restore student_balance_spent if exists
+            $condition = ['prrb_id' => $bill->prrb_id, 'sbs_status' => 'reserved'];
+            if (StudentBalanceSpent::where($condition)->exists()) {
+
+                $balance_spends = StudentBalanceSpent::where($condition)->get();
+                StudentBalanceSpent::where($condition)->update(['sbs_status' => 'canceled']);
+
+                $opening_balance = StudentBalanceTrans::where('student_number', $bill_master->student_number)
+                    ->orderBy('sbt_time', 'desc')
+                    ->first()
+                    ?->sbt_closing_balance ?? 0;
+
+                $closing_balance = $opening_balance;
+
+                foreach ($balance_spends as $spend) {
+                    $closing_balance += $spend->sbs_amount;
+
+                    StudentBalanceTrans::create([
+                        'student_number' => $bill_master->student_number,
+                        'sbt_opening_balance' => $opening_balance,
+                        'sbt_amount' => $spend->sbs_amount,
+                        'sbtt_name' => 'cancel_pay_bill',
+                        'sbtt_associate_id' => $spend->sbs_id,
+                        'sbt_closing_balance' => $closing_balance,
+                        'sbt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                    ]);
+
+                    $opening_balance = $closing_balance;
+                }
+
+            }
 
             DB::commit();
 
@@ -599,21 +684,25 @@ class PaymentController extends Controller
 
     public function resetPayment($prr_id)
     {
+        $force_reset = true;
+
         try {
             DB::beginTransaction();
 
-            // cancel if there are bills that already paid
-            $has_paid_bill = PaymentBill::where('prr_id', '=', $prr_id)
-                ->where('prrb_status', 'lunas')
-                ->exists();
-            if ($has_paid_bill) {
-                throw new \Exception('Sudah ada tagihan yang terbayar!');
+            if (!$force_reset) {
+                // cancel if there are bills that already paid
+                $has_paid_bill = PaymentBill::where('prr_id', '=', $prr_id)
+                    ->where('prrb_status', 'lunas')
+                    ->exists();
+                if ($has_paid_bill) {
+                    throw new \Exception('Sudah ada tagihan yang terbayar!');
+                }
             }
 
-            // delete payment bill
+            // Delete Payment Bill
             $bills = PaymentBill::where('prr_id', '=', $prr_id)->get();
             foreach ($bills as $bill) {
-                // if($bill->prrb_manual_evidence && !config('app.disable_cloud_storage')) {
+                // if ($bill->prrb_manual_evidence && !config('app.disable_cloud_storage')) {
                 //     Storage::disk('minio')->delete($bill->prrb_manual_evidence);
                 // }
                 PaymentBill::destroy($bill->prrb_id);
@@ -664,6 +753,7 @@ class PaymentController extends Controller
         return response()->json($data, 200);
     }
 
+    // DELETE!!
     public function uploadEvidence($prr_id, $prrb_id, Request $request)
     {
         dd($request->all());
@@ -846,11 +936,26 @@ class PaymentController extends Controller
 
     public function getOverpayment($prr_id, $prrb_id)
     {
-        $data = OverpaymentTransaction::where('prrb_id', $prrb_id)
-            ->whereNull('ovrt_cash_out')
-            ->orderBy('ovrt_time', 'asc')
+        $data = StudentBalanceTrans::with('type')
+            ->where([
+                'sbtt_name' => 'overpaid_bill',
+                'sbtt_associate_id' => $prrb_id,
+            ])
+            ->orderBy('sbt_time', 'asc')
             ->get();
 
-        return response()->json($data, 200);
+        return response()->json($data);
+    }
+
+    public function getStudentBalanceUsed($prr_id, $prrb_id)
+    {
+        $amount = StudentBalanceSpent::where('prrb_id', $prrb_id)
+            ->where(function ($query) {
+                $query->where('sbs_status', 'reserved')
+                    ->orWhere('sbs_status', 'used');
+            })
+            ->sum('sbs_amount');
+
+        return response()->json(['amount' => $amount]);
     }
 }

@@ -5,11 +5,11 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class MasterPaymentMethod extends Model
+class PaymentMethod extends Model
 {
     use SoftDeletes;
 
-    protected $table = "finance.temp_payment_method";
+    protected $table = "finance.ms_payment_method";
 
     protected $primaryKey = 'mpm_id';
 

@@ -269,19 +269,6 @@
                 </ul>
             </li>
 
-            <li class="nav-item mb-50 {{ 'student.payment.index' == request()->route()->getName() ? 'active' : '' }}">
-                <a class="d-flex align-items-center fw-bold" href="{{ url('student/payment') }}">
-                    <i data-feather="circle"></i>
-                    <span class="menu-title text-truncate">Tagihan (Mahasiswa)</span>
-                </a>
-            </li>
-            <li class="nav-item mb-50 {{ 'student.overpayment.index' == request()->route()->getName() ? 'active' : '' }}">
-                <a class="d-flex align-items-center fw-bold" href="{{ url('student/overpayment') }}">
-                    <i data-feather="circle"></i>
-                    <span class="menu-title text-truncate">Kelebihan Bayar<br>(Mahasiswa)</span>
-                </a>
-            </li>
-
 	    </ul>
     </div>
 </div>
