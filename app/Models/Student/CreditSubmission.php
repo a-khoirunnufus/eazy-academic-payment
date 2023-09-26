@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Payment\Year;
 use App\Models\Payment\Student;
-use App\Models\Payment\payment;
+use App\Models\Payment\Payment;
 
 class CreditSubmission extends Model
 {

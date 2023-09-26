@@ -9,6 +9,7 @@ use App\Models\Payment\LectureType;
 use App\Models\Payment\Year;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
+use App\Models\Payment\ComponentDetail;
 use App\Models\Masterdata\MsUser;
 
 class MsStudent extends Model
@@ -47,5 +48,12 @@ class MsStudent extends Model
     public function year()
     {
         return $this->belongsTo(Year::class, 'msy_id','msy_id');
+    }
+
+    public function getComponent()
+    {
+        return $this->hasMany(ComponentDetail::class, 'mma_id','studyprogram_id')
+
+        ->orderBy('cd_id','asc')->with('component');
     }
 }

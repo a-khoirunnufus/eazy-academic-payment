@@ -38,7 +38,7 @@ class Payment extends Model
 
     public function student()
     {
-        return $this->hasOne(MsStudent::class, 'student_number', 'student_number');
+        return $this->hasOne(MsStudent::class, 'student_number', 'student_number')->with('getComponent');
     }
 
     public function year()

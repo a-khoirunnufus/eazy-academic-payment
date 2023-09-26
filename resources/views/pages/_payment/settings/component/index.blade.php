@@ -27,7 +27,6 @@
                 <th>Komponen Tagihan</th>
                 <th class="text-center">Mahasiswa Lama</th>
                 <th class="text-center">Mahasiswa Baru</th>
-                <th class="text-center">Pendaftar</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -168,20 +167,6 @@
                             return html
                         }
                     },
-                    {
-                        name: 'msc_is_participant',
-                        data: 'msc_is_participant',
-                        render: (data, _, row) => {
-                            var html = '<div class="d-flex justify-content-center">'
-                            if(data == 1) {
-                                html += '<div class="eazy-badge blue"><i data-feather="check"></i></div>'
-                            } else {
-                                html += '<div class="eazy-badge red"><i data-feather="x"></i></div>'
-                            }
-                            html += '</div>'
-                            return html
-                        }
-                    },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
@@ -254,7 +239,6 @@
             });
             data.msc_is_new_student == 1 ? $('[name=msc_is_new_student]').prop('checked', true) : '';
             data.msc_is_student == 1 ? $('[name=msc_is_student]').prop('checked', true) : '';
-            data.msc_is_participant == 1 ? $('[name=msc_is_participant]').prop('checked', true) : '';
         }
     }
 
@@ -314,7 +298,6 @@
                                         <tr>
                                             <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
                                             <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
                                         </tr>
                                     </table>
                                 `
@@ -393,7 +376,6 @@
                                         <tr>
                                             <td class="text-center"><input type="checkbox" name="msc_is_student" class="form-check-input" /></td>
                                             <td class="text-center"><input type="checkbox" name="msc_is_new_student" class="form-check-input" /></td>
-                                            <td class="text-center"><input type="checkbox" name="msc_is_participant" class="form-check-input" /></td>
                                         </tr>
                                     </table>
                                 `

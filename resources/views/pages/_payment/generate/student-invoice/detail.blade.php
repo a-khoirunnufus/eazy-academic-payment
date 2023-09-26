@@ -823,21 +823,23 @@
                     // ex: do ajax request
                     if(data.payment){
                         console.log(data);
-                        $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.student_number, {
-                            _method: 'DELETE'
+                        $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.payment.prr_id, {
+                            _method: 'DELETE',
+                            url: `{{ request()->path() }}`,
                         }, function(data){
-                            // data = JSON.parse(data)
-                            if(data.status){
+                            console.log(data);
+                            data = JSON.parse(data)
+                            if(data.success){
                                 Swal.fire({
                                     icon: 'success',
-                                    text: data.msg,
+                                    text: data.message,
                                 }).then(() => {
                                     _studentInvoiceDetailTable.reload()
                                 });
                             }else{
                                 Swal.fire({
                                     icon: 'error',
-                                    text: data.msg,
+                                    text: data.message,
                                 })
                             }
                         }).fail((error) => {

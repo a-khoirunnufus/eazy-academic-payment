@@ -17,6 +17,11 @@ use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\MasterJob;
 use App\Jobs\Payment\GenerateInvoice;
 use App\Jobs\Payment\GenerateBulkInvoice;
+use App\Models\Payment\DiscountReceiver;
+use App\Models\Payment\ScholarshipReceiver;
+use App\Models\Payment\CreditSchema;
+use App\Models\Student\DispensationSubmission;
+use App\Models\Student\CreditSubmission;
 use App\Models\PMB\PaymentRegisterDetail;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -27,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
 use App\Enums\Payment\LogStatus;
+use Config;
 
 class StudentInvoiceController extends Controller
 {
@@ -364,6 +370,11 @@ class StudentInvoiceController extends Controller
             }
             // Deleting Detail Bill
             $data = Payment::with('student')->findorfail($prr_id);
+            if(Carbon::createFromFormat('Y-m-d', Config::get('app.payment_delete_lock')) <= Carbon::now()){
+                $text = "Sudah melebihi batas waktu penghapusan data";
+                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                return json_encode(array('success' => false, 'message' => $text));
+            }
             if ($data->prr_status == 'kredit') {
                 $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
                 $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
@@ -632,96 +643,131 @@ class StudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateTagihanByStudent($student_number)
+    public function regenerateTagihanByStudent(Request $request, $prr_id)
     {
-        try {
-            $prr = DB::table('finance.payment_re_register as prr')
-                ->select('prr.prr_id', 'prr.student_number')
-                ->join('hr.ms_student as student', 'student.student_number', '=', 'prr.student_number')
-                ->whereNull('prr.deleted_at')
-                ->where('student.student_number', '=', $student_number)
-                ->get();
+        $log = $this->addToLog('Regenerate Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->regenerateProcess($prr_id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
 
-            $list = $prr[0];
-
-            $payment_bill = DB::table('finance.payment_re_register_detail as prrd')
-                ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('deleted_at')
-                ->update(['deleted_at' => date("Y-m-d H:i:s")]);
-
-            $component = DB::table('finance.component_detail as cd')
-                ->select('c.msc_name as component_name', 'cd.cd_fee as fee')
-                ->join('hr.ms_student as student', function ($join) {
-                    $join->on('student.studyprogram_id', '=', 'cd.mma_id')
-                        ->on('student.period_id', '=', 'cd.period_id')
-                        ->on('student.path_id', '=', 'cd.path_id')
-                        ->on('student.msy_id', '=', 'cd.msy_id');
-                })
-                ->join('finance.ms_component as c', 'c.msc_id', '=', 'cd.msc_id')
-                ->where('student.student_number', '=', $list->student_number)
-                ->get();
-
-            foreach ($component as $item) {
-                $prrd = PaymentDetail::create([
-                    'prr_id' => $list->prr_id,
-                    'prrd_component' => $item->component_name,
-                    'prrd_amount' => $item->fee,
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'is_plus' => 1,
-                    'type' => 'component'
-                ]);
+    public function regenerateProcess($prr_id, $log_id){
+        $data = Payment::with('student','paymentDetail','paymentBill')->findorfail($prr_id);
+        if($data->paymentBill){
+            foreach($data->paymentBill as $item){
+                if($item->prrb_status == 'lunas'){
+                    $text= 'Terdapat tagihan yang sudah dilunasi';
+                    $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                    return json_encode(array('success' => false, 'message' => $text));
+                }
             }
-
-            $scholarship = DB::table('finance.ms_scholarship_receiver as msr')
-                ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'msr.ms_id')
-                ->where('student_number', '=', $list->student_number)
-                ->where('msr_status_generate', '=', 1)
-                ->where('msr_status', '=', '1')
-                ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('msr.deleted_at')
-                ->get('msr.msr_nominal as fee', 'scholarship.ms_name as component_name');
-
-            foreach ($scholarship as $item) {
-                $prrd = PaymentDetail::create([
-                    'prr_id' => $list->prr_id,
-                    'prrd_component' => $item->component_name,
-                    'prrd_amount' => $item->fee,
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'is_plus' => 0,
-                    'type' => 'scholarship'
-                ]);
-            }
-
-            $discount = DB::table('finance.ms_discount_receiver as mdr')
-                ->join('finance.ms_discount as md', 'md.md_id', '=', 'mdr.md_id')
-                ->where('student_number', '=', $list->student_number)
-                ->where('mdr_status_generate', '=', 1)
-                ->where('mdr_status', '=', '1')
-                ->where('prr_id', '=', $list->prr_id)
-                ->whereNull('mdr.deleted_at')
-                ->get('mdr_nominal as fee', 'md.md_name as component_name');
-
-            foreach ($discount as $item) {
-                $prrd = PaymentDetail::create([
-                    'prr_id' => $list->prr_id,
-                    'prrd_component' => $item->component_name,
-                    'prrd_amount' => $item->fee,
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'is_plus' => 0,
-                    'type' => 'discount'
-                ]);
-            }
-        } catch (QueryException $e) {
-            return array(
-                'status' => false,
-                'msg' => 'error system: ' . $e->getMessage()
-            );
         }
+        $components = $data->student->getComponent()
+        ->where('path_id', $data->student->path_id)
+        ->where('period_id', $data->student->period_id)
+        ->where('msy_id', $data->student->msy_id)
+        ->where('mlt_id', $data->student->mlt_id)
+        ->get();
 
-        return array(
-            'status' => true,
-            'msg' => 'Berhasil menggenerate ulang'
-        );
+        if ($components) {
+            $prr_total = 0;
+            foreach ($components as $item) {
+                $prr_total = $prr_total + $item->cd_fee;
+            }
+            DB::beginTransaction();
+            try {
+                $payment = Payment::create([
+                    'prr_status' => 'belum lunas',
+                    'prr_total' => $prr_total,
+                    'prr_paid_net' => $prr_total,
+                    'student_number' => $data->student->student_number,
+                    'prr_school_year' => $this->getActiveSchoolYearCode(),
+                    'prr_dispensation_date' => $data->prr_dispensation_date,
+                ]);
+
+                foreach ($components as $item) {
+                    PaymentDetail::create([
+                        'prr_id' => $payment->prr_id,
+                        'prrd_component' => $item->component->msc_name,
+                        'prrd_amount' => $item->cd_fee,
+                        'is_plus' => 1,
+                        'type' => 'component',
+                    ]);
+                }
+                if($data->paymentDetail){
+                    foreach($data->paymentDetail as $item){
+                        if($item->type == 'scholarship' || $item->type == 'discount'){
+                            PaymentDetail::create([
+                                'prr_id' => $payment->prr_id,
+                                'prrd_component' => $item->prrd_component,
+                                'prrd_amount' => $item->prrd_amount,
+                                'is_plus' => $item->is_plus,
+                                'type' => $item->type,
+                                'reference_table' => $item->reference_table,
+                                'reference_id' => $item->reference_id,
+                            ]);
+                            $prr_total = $prr_total - $item->prrd_amount;
+                            $payment->update(['prr_total' => $prr_total,'prr_paid_net' => $prr_total]);
+                        }
+                    }
+                }
+                $scholarship = ScholarshipReceiver::where('prr_id',$prr_id)->get();
+                if($scholarship){
+                    foreach($scholarship as $item){
+                        ScholarshipReceiver::where('msr_id',$item->msr_id)->update(['prr_id'=> $payment->prr_id]);
+                    }
+                }
+
+                $discount = DiscountReceiver::where('prr_id',$prr_id)->get();
+                if($discount){
+                    foreach($discount as $item){
+                        DiscountReceiver::where('mdr_id',$item->mdr_id)->update(['prr_id'=> $payment->prr_id]);
+                    }
+                }
+
+                $dispensation = DispensationSubmission::where('prr_id',$prr_id)->first();
+                if($dispensation){
+                    $dispensation->update(['prr_id'=> $payment->prr_id]);
+                }
+
+                $credit = CreditSubmission::where('prr_id',$prr_id)->first();
+                if($credit){
+                    if($credit->cs_id){
+                        $credit->update(['prr_id'=> $payment->prr_id]);
+                        $schema = CreditSchema::with('creditSchemaDetail')->findorfail($credit->cs_id);
+                        if($schema->creditSchemaDetail){
+                            foreach($schema->creditSchemaDetail as $item){
+                                $temp_amount = $prr_total*$item->csd_percentage/100;
+                                PaymentBill::create([
+                                    'prr_id' => $payment->prr_id,
+                                    'prrb_status' => 'belum lunas',
+                                    'prrb_due_date' => $item->creditSchemaDeadline->cse_deadline,
+                                    'prrb_amount' => $temp_amount,
+                                    'prrb_order' => $item->csd_order,
+                                ]);
+                            }
+                        }else{
+                        $credit->update(['mcs_status'=> 0]);
+                        $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                        }
+                    }else{
+                        $credit->update(['mcs_status'=> 0]);
+                        $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                    }
+                }
+                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollback();
+                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
+                return response()->json($e->getMessage());
+            }
+            return json_encode(array('success' => true, 'message' => "Berhasil regenerate tagihan mahasiswa"));
+        } else {
+            $text= 'Komponen Tagihan Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
     }
 }
 

@@ -39,7 +39,7 @@ class ComponentInvoiceController extends Controller
     public function store(ComponentRequest $request)
     {
         $validated = $request->validated();
-        $arr = ['msc_is_student','msc_is_new_student','msc_is_participant'];
+        $arr = ['msc_is_student','msc_is_new_student'];
         foreach($arr as $item){
             if(array_key_exists($item,$validated)){
                 $validated[$item] = 1;
@@ -149,7 +149,6 @@ class ComponentInvoiceController extends Controller
                     'msct_id' => $item->msct_id,
                     'msc_is_student' => $item->is_student,
                     'msc_is_new_student' => $item->is_new_student,
-                    'msc_is_participant' => $item->is_participant,
                     'active_status' => $item->component_active_status
                 ]);
             }

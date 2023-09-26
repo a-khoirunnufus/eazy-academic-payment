@@ -17,6 +17,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'payment_delete_lock' => env('PAYMENT_DELETE_LOCK', '2023-09-25'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
