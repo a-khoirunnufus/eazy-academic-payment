@@ -110,7 +110,10 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
     });
 
     // Student Routes
-    Route::withoutMiddleware(['admin_access'])->group(['middleware' => ['student_access']], function () {
+    Route::group([
+        'middleware' => ['student_access'],
+        'excluded_middleware' => ['admin_access'],
+    ], function () {
         Route::group(['prefix' => 'student-invoice'], function () {
             Route::get('/', 'App\Http\Controllers\_Payment\StudentInvoiceController@index')->name('student.invoice.index');
             Route::get('{prr_id}/proceed-payment', 'App\Http\Controllers\_Payment\StudentInvoiceController@proceedPayment')->name('student.invoice.proceed-payment');
