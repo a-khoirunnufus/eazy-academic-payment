@@ -1,4 +1,4 @@
-<table id="table-paid-payment" class="table table-striped">
+<table id="table-unpaid-invoice" class="table table-striped">
     <thead>
         <tr>
             <th>Aksi</th>
@@ -15,7 +15,7 @@
     <tbody></tbody>
 </table>
 
-<table id="report-paid">
+<table id="report-unpaid">
     <thead>
         <tr>
             <th>Kode Tagihan</th>
@@ -30,61 +30,57 @@
 <script>
 
     /**
-     * @var object userMaster
+     * @var object studentMaster
      */
 
-     var paidData = [];
-     var reportPaidTable = $('#report-paid').DataTable({
-        data: [],
-        buttons: ['pdf', 'excel', 'csv', 'copy']
+    var unpaidData = [];
+    var reportUnpaidTable = $('#report-unpaid').DataTable({
+        data: []
     })
 
-     $(function(){
-        _paidPaymentTable.init();
+    $(function() {
+        _unpaidInvoiceTable.init();
     });
 
-    const _paidPaymentTable = {
+    const _unpaidInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#table-paid-payment').DataTable({
+            this.instance = $('#table-unpaid-invoice').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/student/payment',
+                    url: _baseURL + '/api/payment/student-invoice',
                     data: function(d) {
-                        d.student_type = userMaster.participant ? 'new_student' : 'student';
-                        d.participant_id = userMaster.participant?.par_id;
-                        d.student_id = userMaster.student?.student_id;
-                        d.status = 'paid';
+                        d.student_type = 'student';
+                        d.participant_id = null;
+                        d.student_number = studentMaster.student_number;
+                        d.status = 'unpaid';
                     },
                     dataSrc: function(json) {
-                        paidData = [];
+                        unpaidData = [];
                         return json.data;
                     }
                 },
                 stateSave: false,
-                columnDefs: [
-                    {
-                        targets: [8],
-                        visible: 'participant' in userMaster,
-                        searchable: 'participant' in userMaster,
-                    },
-                ],
-                columns: [
-                    {
+                // columnDefs: [{
+                //     targets: [8],
+                //     visible: 'participant' in userMaster,
+                //     searchable: 'participant' in userMaster,
+                // }, ],
+                columns: [{
                         name: 'action',
                         data: 'prr_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            var xhrD = new XMLHttpRequest()
-                            xhrD.onload = function() {
-                                var payment = JSON.parse(this.responseText);
-                                payment.payment_detail.forEach(element => {
-                                    paidData.push(element);
-                                });
-                            }
-                            xhrD.open("GET", _baseURL + `/api/student/payment/${data}`, false);
-                            xhrD.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                            xhrD.send();
+                            // var xhrD = new XMLHttpRequest()
+                            // xhrD.onload = function() {
+                            //     var payment = JSON.parse(this.responseText);
+                            //     payment.payment_detail.forEach(element => {
+                            //         unpaidData.push(element);
+                            //     });
+                            // }
+                            // xhrD.open("GET", _baseURL + `/api/payment/student-invoice/${data}`, false);
+                            // xhrD.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                            // xhrD.send();
                             return this.template.rowAction(data)
                         }
                     },
@@ -93,7 +89,7 @@
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(
                                 row.invoice_school_year_year,
-                                'Semester '+row.invoice_school_year_semester
+                                'Semester ' + row.invoice_school_year_semester
                             );
                         }
                     },
@@ -101,7 +97,9 @@
                         name: 'invoice_number',
                         data: 'invoice_number',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
@@ -120,8 +118,8 @@
                             const discountDetail = JSON.parse(unescapeHtml(discountDetailJson));
                             const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return discountDetail.length > 0 ?
-                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal) :
+                                '-';
                         }
                     },
                     {
@@ -131,8 +129,8 @@
                             const scholarshipDetail = JSON.parse(unescapeHtml(scholarshipDetailJson));
                             const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return scholarshipDetail.length > 0 ?
-                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal) :
+                                '-';
                         }
                     },
                     {
@@ -142,22 +140,26 @@
                             const penaltyDetail = JSON.parse(unescapeHtml(penaltyDetailJson));
                             const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
                             return penaltyDetail.length > 0 ?
-                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal)
-                                : '-';
+                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal) :
+                                '-';
                         }
                     },
                     {
                         name: 'total_amount',
                         data: 'total_amount',
                         render: (data) => {
-                            return this.template.currencyCell(data, {bold: true});
+                            return this.template.currencyCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
                         name: 'notes',
                         data: 'notes',
                         render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
+                            return this.template.defaultCell(data, {
+                                nowrap: false
+                            });
                         }
                     },
                 ],
@@ -173,47 +175,60 @@
                             text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
                             className: 'dropdown-item',
                             action: function(e, dt, node, config){
-                                exportPaid('excel');
+                                exportUnpaid('excel');
                             }
                         },
                         {
                             text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
                             className: 'dropdown-item',
                             action: function(e, dt, node, config){
-                                exportPaid('pdf');
+                                exportUnpaid('pdf');
                             }
                         },
                         {
                             text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
                             className: 'dropdown-item',
                             action: function(e, dt, node, config){
-                                exportPaid('csv');
+                                exportUnpaid('csv');
                             }
                         },
                         {
                             text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy font-small-4 me-50"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</span>',
                             className: 'dropdown-item',
                             action: function(e, dt, node, config){
-                                exportPaid('copy');
+                                exportUnpaid('copy');
                             }
                         },
                     ]
                 }, ],
-                dom:
-                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-actions d-flex align-items-end">>' +
+                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                    '>t' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-actions">>' +
+                    '>' +
+                    '<"eazy-table-wrapper" t>' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
                 initComplete: function() {
-                    // feather.replace();
-                    reportPaidTable.clear().destroy();
+                    $('.invoice-actions').html(`
+                        <div class="d-flex flex-row px-1 justify-content-end" style="gap: 1rem">
+                            <button class="btn btn-success" onclick="printUnpaid()">
+                                <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
+                            </button>
+                            <a href="{{ route('student.credit.index') }}" class="btn btn-outline-warning">
+                                <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
+                            </a>
+                            <a href="{{ route('student.dispensation.index') }}" class="btn btn-outline-primary">
+                                <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
+                            </a>
+                        </div>
+                    `)
+                    console.log(unpaidData);
+                    reportUnpaidTable.clear().destroy();
                     var counter = 0;
-                    reportPaidTable = $('#report-paid').DataTable({
-                        data: paidData,
+                    reportUnpaidTable = $('#report-unpaid').DataTable({
+                        data: unpaidData,
                         serverSide: false,
                         paging: false,
                         columns: [{
@@ -233,6 +248,8 @@
                         ],
                         buttons: ['pdf', 'excel', 'csv', 'copy']
                     })
+
+                    feather.replace()
                 }
             })
         },
@@ -245,7 +262,7 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" onclick="_paidPaymentTableAction.detail(event)"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
+                            <a class="dropdown-item" onclick="_unpaidInvoiceTableAction.detail(event)"><i data-feather="eye"></i>&nbsp;&nbsp;Detail</a>
                         </div>
                     </div>
                 `
@@ -253,14 +270,20 @@
         }
     }
 
-    const _paidPaymentTableAction = {
+    const _unpaidInvoiceTableAction = {
         detail: function(e) {
-            invoiceDetailModal.open(e, _paidPaymentTable);
+            console.log(e);
+            invoiceDetailModal.open(e, _unpaidInvoiceTable);
         }
     }
 
-    function exportPaid(type){
-        var btn = $('#report-paid_wrapper .buttons-'+type);
+    function printUnpaid() {
+        var btn = $('#report-unpaid_wrapper .buttons-pdf');
+        btn.click();
+    }
+
+    function exportUnpaid(type) {
+        var btn = $('#report-unpaid_wrapper .buttons-'+type);
         btn.click();
     }
 </script>

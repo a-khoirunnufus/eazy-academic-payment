@@ -71,7 +71,7 @@
     const invoiceDataTab = {
         showHandler: async function() {
             try {
-                const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+                const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
 
                 const studentType = payment.register ? 'new_student' : 'student';
 

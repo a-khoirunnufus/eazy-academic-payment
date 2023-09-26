@@ -30,6 +30,7 @@ include __DIR__ . DIRECTORY_SEPARATOR . '_static-web.php';
 
 // Payment
 Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], function () {
+
     // Settings
     Route::group(['prefix' => 'settings'], function () {
         // Component Invoices
@@ -56,18 +57,21 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 
     });
 
+    // Discount
     Route::group(['prefix' => 'discount'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\DiscountController@index')->name('payment.discount.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\DiscountController@receiver')->name('payment.discount.receiver');
 
     });
 
+    // Scholarship
     Route::group(['prefix' => 'scholarship'], function () {
         Route::get('index', 'App\Http\Controllers\_Payment\ScholarshipController@index')->name('payment.scholarship.index');
         Route::get('receiver', 'App\Http\Controllers\_Payment\ScholarshipController@receiver')->name('payment.scholarship.receiver');
         Route::get('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
     });
 
+    // Approval
     Route::group(['prefix' => 'approval'], function () {
         Route::get('manual-payment', 'App\Http\Controllers\_Payment\ApprovalController@manualPayment')->name('payment.approval.manual-payment.index');
 
@@ -80,6 +84,7 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         });
     });
 
+    // Report
     Route::group(['prefix' => 'report'], function () {
         Route::group(['prefix' => 'old-student-invoice'], function () {
             Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
@@ -104,30 +109,27 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         });
     });
 
+    // Student Routes
+    Route::withoutMiddleware(['admin_access'])->group(['middleware' => ['student_access']], function () {
+        Route::group(['prefix' => 'student-invoice'], function () {
+            Route::get('/', 'App\Http\Controllers\_Payment\StudentInvoiceController@index')->name('student.invoice.index');
+            Route::get('{prr_id}/proceed-payment', 'App\Http\Controllers\_Payment\StudentInvoiceController@proceedPayment')->name('student.invoice.proceed-payment');
+            Route::get('invoice-cicilan', 'App\Http\Controllers\_Payment\StudentInvoiceController@invoiceCicilan');
+        });
+
+        Route::get('/student-balance', 'App\Http\Controllers\_Payment\StudentBalanceController@index')->name('student.balance.index');
+    });
+
 });
-
-
 
 // STUDENT ROUTE
 Route::group(['prefix' => 'student', 'middleware' => ['auth', 'student_access']], function () {
-    Route::group(['prefix' => 'payment'], function() {
-        Route::get('/', 'App\Http\Controllers\_Student\PaymentController@index')->name('student.payment.index');
-        Route::get('proceed-payment/{prr_id}', 'App\Http\Controllers\_Student\PaymentController@proceedPayment')->name('student.payment.proceed-payment');
-        Route::get('invoice-cicilan', 'App\Http\Controllers\_Student\PaymentController@invoiceCicilan');
-    });
-
     Route::group(['prefix' => 'dispensation'], function () {
         Route::get('index', 'App\Http\Controllers\_Student\DispensationController@index')->name('student.dispensation.index');
     });
     Route::group(['prefix' => 'credit'], function () {
         Route::get('index', 'App\Http\Controllers\_Student\CreditController@index')->name('student.credit.index');
     });
-
-    Route::group(['prefix' => 'overpayment'], function() {
-        Route::get('/', 'App\Http\Controllers\_Student\OverpaymentController@index')->name('student.overpayment.index');
-    });
 });
 
-
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
-

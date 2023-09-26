@@ -10,6 +10,7 @@ use App\Models\Payment\LectureType;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
 use App\Models\Payment\Year;
+use App\Models\User;
 
 class Student extends Model
 {
@@ -63,5 +64,10 @@ class Student extends Model
     public function studyProgram()
     {
         return $this->belongsTo(Studyprogram::class, 'studyprogram_id','studyprogram_id')->with('faculty');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'email', 'user_email');
     }
 }

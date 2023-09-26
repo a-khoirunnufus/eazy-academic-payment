@@ -226,6 +226,50 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('/prodi/{faculty}', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@getProdi');
         Route::post('{pma_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
     });
+
+    // Student Group Routes
+    Route::group([], function() {
+
+        Route::group(['prefix' => 'student-invoice'], function() {
+            Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@index');
+
+            Route::group(['prefix' => '{prr_id}'], function() {
+                Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@detail');
+                Route::get('ppm', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getPpm');
+                Route::get('credit-schemas', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@creditSchemas');
+                Route::get('payment-option-preview', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@paymentOptionPreview');
+                Route::post('select-option', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@selectPaymentOption');
+                Route::post('reset-payment', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@resetPayment');
+
+                Route::group(['prefix' => 'bill'], function() {
+                    Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getBills');
+                    Route::get('{prrb_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@billDetail');
+                    Route::get('{prrb_id}/evidence', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getEvidence');
+                    Route::get('{prrb_id}/approval', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getApproval');
+                    Route::get('{prrb_id}/approval/{pma_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@detailApproval');
+                    Route::get('{prrb_id}/transaction', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getTransaction');
+                    Route::get('{prrb_id}/transaction/{prrt_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@detailTransaction');
+                    Route::get('{prrb_id}/overpayment', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getOverpayment');
+                    Route::get('{prrb_id}/balance-use', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getStudentBalanceUsed');
+                    Route::post('{prrb_id}/evidence', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@storeApproval');
+                    Route::post('{prrb_id}/select-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@selectPaymentMethod');
+                    Route::post('{prrb_id}/reset-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@resetPaymentMethod');
+                });
+            });
+        });
+
+        Route::group(['prefix' => 'student-balance'], function() {
+            Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@balance');
+            Route::get('/dt-transaction', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@dtTransaction');
+        });
+
+    });
+
+    Route::group(['prefix' => 'payment-method'], function() {
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@index');
+        Route::get('/type-group', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@typeGroup');
+        Route::get('/{key}', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@show');
+    });
 });
 
 // REPORT GROUP ROUTE
@@ -248,39 +292,6 @@ Route::group(['prefix' => 'report'], function(){
 // STUDENT GROUP ROUTE
 Route::group(['prefix' => 'student'], function(){
     Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@detail');
-
-    Route::group(['prefix' => 'payment'], function() {
-        Route::get('/', 'App\Http\Controllers\_Student\Api\PaymentController@index');
-        Route::get('{prr_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detail');
-
-        Route::get('{prr_id}/ppm', 'App\Http\Controllers\_Student\Api\PaymentController@getPpm');
-        Route::get('{prr_id}/credit-schemas', 'App\Http\Controllers\_Student\Api\PaymentController@creditSchemas');
-        Route::get('{prr_id}/payment-option-preview', 'App\Http\Controllers\_Student\Api\PaymentController@paymentOptionPreview');
-        Route::post('{prr_id}/select-option', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentOption');
-        Route::post('{prr_id}/reset-payment', 'App\Http\Controllers\_Student\Api\PaymentController@resetPayment');
-
-        Route::get('{prr_id}/bill', 'App\Http\Controllers\_Student\Api\PaymentController@getBills');
-        Route::get('{prr_id}/bill/{prrb_id}', 'App\Http\Controllers\_Student\Api\PaymentController@billDetail');
-        Route::get('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@getEvidence');
-        Route::get('{prr_id}/bill/{prrb_id}/approval', 'App\Http\Controllers\_Student\Api\PaymentController@getApproval');
-        Route::get('{prr_id}/bill/{prrb_id}/approval/{pma_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailApproval');
-        Route::get('{prr_id}/bill/{prrb_id}/transaction', 'App\Http\Controllers\_Student\Api\PaymentController@getTransaction');
-        Route::get('{prr_id}/bill/{prrb_id}/transaction/{prrt_id}', 'App\Http\Controllers\_Student\Api\PaymentController@detailTransaction');
-        Route::get('{prr_id}/bill/{prrb_id}/overpayment', 'App\Http\Controllers\_Student\Api\PaymentController@getOverpayment');
-        Route::post('{prr_id}/bill/{prrb_id}/evidence', 'App\Http\Controllers\_Student\Api\PaymentController@storeApproval');
-        Route::post('{prr_id}/bill/{prrb_id}/select-method', 'App\Http\Controllers\_Student\Api\PaymentController@selectPaymentMethod');
-        Route::post('{prr_id}/bill/{prrb_id}/reset-method', 'App\Http\Controllers\_Student\Api\PaymentController@resetPaymentMethod');
-    });
-
-    Route::group(['prefix' => 'payment-method'], function() {
-        Route::get('/', 'App\Http\Controllers\_Student\Api\PaymentMethodController@index');
-        Route::get('{method_code}', 'App\Http\Controllers\_Student\Api\PaymentMethodController@detail');
-    });
-
-    Route::group(['prefix' => 'overpayment'], function() {
-        Route::get('/dt-transaction', 'App\Http\Controllers\_Student\Api\OverpaymentController@dtTransaction');
-        Route::get('/balance', 'App\Http\Controllers\_Student\Api\OverpaymentController@balance');
-    });
 
     Route::group(['prefix' => 'credit'], function(){
         Route::get('index', 'App\Http\Controllers\_Student\Api\CreditController@index');

@@ -9,8 +9,9 @@ use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\PaymentManualApproval;
 use App\Models\Payment\PaymentTransaction;
-use App\Models\Payment\OverpaymentBalance;
-use App\Models\Payment\OverpaymentTransaction;
+use App\Models\Payment\StudentBalanceTrans;
+use App\Models\Payment\StudentBalanceSpent;
+use App\Models\Payment\Student;
 use Carbon\Carbon;
 use DB;
 
@@ -65,10 +66,55 @@ class ManualPaymentController extends Controller
 
             $bill = PaymentBill::with('paymentMethod')->where('prrb_id', $approval->prrb_id)->first();
             $bill_master = $bill->payment;
-            $student_type = $bill_master->student_number ? 'student' : 'new_student';
+            $student = Student::find($bill_master->student_number);
+            $student_type = 'student';
 
             if ($validated['status'] == 'accepted') {
-                // create transaction record
+
+                $total_bill = $bill->prrb_amount + $bill->prrb_admin_cost;
+
+                $total_discount = StudentBalanceSpent::where('prrb_id', $approval->prrb_id)
+                    ->where(function ($query) {
+                        $query->where('sbs_status', 'reserved')
+                            ->orWhere('sbs_status', 'used');
+                    })
+                    ->sum('sbs_amount');
+
+                $total_paid = PaymentTransaction::where('prrb_id', '=', $approval->prrb_id)->sum('prrt_amount');
+                $total_paid += $total_discount;
+
+                $total_payment = $approval->pma_amount;
+                $overpayment_nominal = 0;
+
+                $is_overpayment = ($total_paid + $total_payment) > $total_bill;
+                if ($is_overpayment) {
+                    $total_unpaid = $total_bill - $total_paid;
+                    if ($total_unpaid < 0) $total_unpaid = 0;
+                    $overpayment_nominal = $total_payment - $total_unpaid;
+                }
+
+                // Store overpayment balance
+                if ($overpayment_nominal > 0) {
+
+                    $opening_balance = StudentBalanceTrans::where('student_number', $student->student_number)
+                        ->orderBy('sbt_time', 'desc')
+                        ->first()
+                        ?->sbt_closing_balance?? 0;
+
+                    $closing_balance = $opening_balance + $overpayment_nominal;
+
+                    StudentBalanceTrans::create([
+                        'student_number' => $student->student_number,
+                        'sbt_opening_balance' => $opening_balance,
+                        'sbt_amount' => $overpayment_nominal,
+                        'sbtt_name' => 'overpaid_bill',
+                        'sbtt_associate_id' => $bill->prrb_id,
+                        'sbt_closing_balance' => $closing_balance,
+                        'sbt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                    ]);
+                }
+
+                // Create Transaction Record
                 $payment_transaction = new PaymentTransaction();
                 $payment_transaction->prrb_id = $bill->prrb_id;
                 $payment_transaction->prrt_payment_method = $bill->prrb_payment_method;
@@ -87,43 +133,12 @@ class ManualPaymentController extends Controller
                 $payment_transaction->prrt_time = $approval->pma_payment_time;
                 $payment_transaction->save();
 
+                /**
+                 * Set bill to lunas if sum on transaction nominal belong this bill is equal
+                 * or greater than bill nominal.
+                 */
                 $total_paid = PaymentTransaction::where('prrb_id', '=', $approval->prrb_id)->sum('prrt_amount');
-                $total_bill = $bill->prrb_amount + $bill->prrb_admin_cost;
-                $total_payment = $approval->pma_amount;
-                $overpayment_nominal = 0;
-
-                $is_overpayment = ($total_paid + $total_payment) > $total_bill;
-                if ($is_overpayment) {
-                    $total_unpaid = $total_bill - $total_paid;
-                    if ($total_unpaid < 0) $total_unpaid = 0;
-                    $overpayment_nominal = $total_payment - $total_unpaid;
-                }
-
-                if ($overpayment_nominal > 0) {
-                    OverpaymentTransaction::create([
-                        'ovrt_cash_in' => $overpayment_nominal,
-                        'prrb_id' => $bill->prrb_id,
-                        'ovrt_remark' => 'Kelebihan Pembayaran Tagihan',
-                        'ovrt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
-                    ]);
-
-                    $op_balance = OverpaymentBalance::where(
-                        $student_type == 'student' ? ['student_number' => $bill_master->student_number]
-                            : ['participant_id' => $bill_master->par_id]
-                    )->first();
-                    if (!$op_balance) $op_balance = new OverpaymentBalance();
-                    $op_balance->student_type = $student_type;
-                    if ($student_type == 'student') $op_balance->student_number = $bill_master->student_number;
-                    if ($student_type == 'new_student') $op_balance->participant_id = $bill_master->par_id;
-                    if ($op_balance->ovrb_balance) {
-                        $op_balance->ovrb_balance += $overpayment_nominal;
-                    } else {
-                        $op_balance->ovrb_balance = $overpayment_nominal;
-                    }
-                    $op_balance->save();
-                }
-
-                // check if bill fully paid
+                $total_paid += $total_discount;
                 if (
                     $bill->prrb_status == 'belum lunas'
                     && $total_paid >= $total_bill
@@ -133,6 +148,10 @@ class ManualPaymentController extends Controller
                     $bill->save();
                 }
 
+                /**
+                 * Set master bill(payment_re_register) to lunas if all of this bill child
+                 * status are lunas.
+                 */
                 $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
                     ->where('prrb_status', 'belum lunas')
                     ->get();
@@ -141,6 +160,13 @@ class ManualPaymentController extends Controller
                     $payment->prr_status = 'lunas';
                     $payment->save();
                 }
+
+                // Update student_balance_spent status to used
+                StudentBalanceSpent::where([
+                        'prrb_id' => $bill->prrb_id,
+                        'sbs_status' => 'reserved',
+                    ])
+                    ->update(['sbs_status' => 'used']);
             }
 
             DB::commit();

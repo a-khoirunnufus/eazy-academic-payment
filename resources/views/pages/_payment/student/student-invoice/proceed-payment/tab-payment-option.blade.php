@@ -68,7 +68,7 @@
 
     const paymentOptionTab = {
         showHandler: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
 
             const studentType = payment.register ? 'new_student' : 'student';
 
@@ -94,7 +94,7 @@
             else {
                 const creditSchemas = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/${prrId}/credit-schemas?student_type=${studentType}`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}/credit-schemas?student_type=${studentType}`,
                     type: 'get',
                 });
                 $('#select-payment-option').html(`
@@ -114,11 +114,11 @@
             }
         },
         renderOptionPreview: async function(cs_id) {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
-            const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}/ppm`);
+            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+            const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}/ppm`);
             const optionPreview = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/payment-option-preview?ppm_id=${ppmId ?? 0}&cs_id=${cs_id}`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/payment-option-preview?ppm_id=${ppmId ?? 0}&cs_id=${cs_id}`,
                 type: 'get',
             });
 
@@ -151,14 +151,14 @@
 
             if(!confirmed) return;
 
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
 
             const selectedCreditSchemaId = $('#select-payment-option').val();
 
             try {
                 const res = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/${prrId}/select-option`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}/select-option`,
                     type: 'post',
                     data: {
                         cs_id: selectedCreditSchemaId,

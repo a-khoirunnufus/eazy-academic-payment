@@ -1,6 +1,6 @@
-@extends('layouts.student.layout-master')
+@extends('tpl.vuexy.master-payment')
 
-@section('page_title', 'Kelebihan Bayar')
+@section('page_title', 'Saldo Mahasiswa')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -12,12 +12,12 @@
     <div class="card">
         <div class="card-body">
             <p>Total Saldo</p>
-            <h1 id="overpayment-balance-amount">...</h1>
+            <h1 id="student-balance-amount">...</h1>
         </div>
     </div>
 
     <div class="card">
-        <table id="table-overpayment-transaction" class="table table-striped">
+        <table id="table-balance-transaction" class="table table-striped">
             <thead>
                 <tr>
                     <th>Saldo Masuk</th>
@@ -35,23 +35,33 @@
 @section('js_section')
 <script>
 
-    const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
+    const studentMaster = JSON.parse(`{!! json_encode($student, true) !!}`);
 
     $(function(){
         renderBalanceInfo();
-        _overpaymentTransactionTable.init();
+        _balanceTransactionTable.init();
     });
 
-    const _overpaymentTransactionTable = {
+    async function renderBalanceInfo() {
+        const {balance} = await $.ajax({
+            url: `${_baseURL}/api/payment/student-balance`,
+            data: {student_number: studentMaster.student_number},
+            processData: true,
+            type: 'get'
+        });
+
+        $('#student-balance-amount').text(Rupiah.format(balance));
+    }
+
+    const _balanceTransactionTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#table-overpayment-transaction').DataTable({
+            this.instance = $('#table-balance-transaction').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/student/overpayment/dt-transaction',
+                    url: _baseURL+'/api/payment/student-balance/dt-transaction',
                     data: function(d) {
-                        d.student_type = userMaster.participant ? 'new_student' : 'student';
-                        d.student_email = userMaster.user_email;
+                        d.student_number = studentMaster.student_number;
                     },
                 },
                 stateSave: false,
@@ -59,22 +69,28 @@
                 searching: false,
                 columns: [
                     {
-                        data: 'ovrt_cash_in',
-                        render: (data) => {
-                            return data ? this.template.currencyCell(data) : '-';
+                        render: (data, _, row) => {
+                            const cashIn = row.type.sbtt_is_cash_in;
+                            if (cashIn) {
+                                return this.template.currencyCell(row.sbt_amount)
+                            }
+                            return '-';
                         }
                     },
                     {
-                        data: 'ovrt_cash_out',
-                        render: (data) => {
-                            return data ? this.template.currencyCell(data) : '-';
+                        render: (data, _, row) => {
+                            const cashOut = !row.type.sbtt_is_cash_in;
+                            if (cashOut) {
+                                return this.template.currencyCell(row.sbt_amount)
+                            }
+                            return '-';
                         }
                     },
                     {
-                        data: 'ovrt_remark',
+                        data: 'type.sbtt_description',
                     },
                     {
-                        data: 'ovrt_time',
+                        data: 'sbt_time',
                         render: (data) => {
                             return this.template.dateTimeCell(data);
                         }
@@ -115,31 +131,6 @@
                 `
             },
         }
-    }
-
-    async function renderBalanceInfo() {
-        let reqData = {};
-        if (userMaster.student) {
-            reqData = {
-                student_number: userMaster.student.student_number,
-                student_type: 'student',
-            };
-        }
-        else if (userMaster.participant) {
-            reqData = {
-                participant_id: userMaster.participant.par_id,
-                student_type: 'new_student',
-            };
-        }
-
-        const balance = await $.ajax({
-            url: `${_baseURL}/api/student/overpayment/balance`,
-            data: reqData,
-            processData: true,
-            type: 'get'
-        });
-
-        $('#overpayment-balance-amount').text(Rupiah.format(balance.ovrb_balance));
     }
 
 </script>

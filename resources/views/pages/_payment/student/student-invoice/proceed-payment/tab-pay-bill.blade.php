@@ -58,6 +58,8 @@
     </table>
 </div>
 
+<div id="paymentMethodManager"></div>
+
 <!-- Payment Method Modal -->
 <div class="modal fade" id="paymentMethodModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -69,24 +71,17 @@
             <div class="modal-body p-3 pt-0">
                 <div>
                     <h4 class="mb-1">Metode Pembayaran</h4>
+                    <form class="accordion border" id="accordionPaymentMethod">
+                    </form>
                     <form id="form-payment-method">
                         <input type="hidden" name="prrb_id" value="" />
-                        <div class="accordion border" id="accordionPaymentMethod">
-                        </div>
+                        <input type="hidden" name="use_student_balance" value="0" />
+                        <input type="hidden" name="student_balance_spend" value="0" />
+                        <input type="hidden" name="payment_method" value="" />
                     </form>
                 </div>
 
-                <div class="mt-3 alert alert-info border p-1 d-flex flex-column" style="gap: 1rem">
-                    <div class="text-dark fw-normal">
-                        Anda memiliki saldo kelebihan bayar.<br>
-                        Total Saldo : <strong>Rp 2.500.000,00</strong>
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light">Rp</span>
-                        <input type="number" class="form-control" placeholder="Masukan nominal">
-                        <button class="btn btn-primary" type="button">Pakai Saldo</button>
-                    </div>
-                </div>
+                <div id="use-student-balance"></div>
 
                 <div class="mt-3">
                     <h4 class="mb-1">Ringkasan Pembayaran</h4>
@@ -96,15 +91,7 @@
                 </div>
             </div>
             <div class="modal-footer px-3 py-2">
-                <div class="d-flex flex-row justify-content-between w-100 align-items-center">
-                    <div>
-                        <p class="mb-0">Metode Pembayaran</p>
-                        <h5 id="footer-payment-method">...</h5>
-                    </div>
-                    <div>
-                        <p class="mb-0">Total Tagihan</p>
-                        <h5 id="footer-bill-total-amount">...</h5>
-                    </div>
+                <div class="d-flex flex-row justify-content-end w-100">
                     <button onclick="payBillModal.selectPaymentMethod()" class="d-block btn btn-success" style="width: 200px">Bayar</button>
                 </div>
             </div>
@@ -129,23 +116,7 @@
                     <tbody></tbody>
                 </table>
 
-                <div class="section-border mt-3">
-                    <h4 class="mb-0">Riwayat Bukti Pembayaran</h4>
-                    <table id="table-approval-history" class="table table-bordered mt-1">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Total Bayar</th>
-                                <th>Waktu Bayar</th>
-                                <th class="text-center">Status Approval</th>
-                                <th class="text-center">Detail</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                    <div id="upload-payment-evidence-section"></div>
-                </div>
+                <div id="payment-evidence-section"></div>
 
                 <div class="section-border mt-3">
                     <h4 class="mb-1">Riwayat Transaksi</h4>
@@ -163,20 +134,7 @@
                     </table>
                 </div>
 
-                <div class="section-border mt-3">
-                    <h4 class="mb-1">Riwayat Kelebihan Bayar</h4>
-                    <table id="table-overpayment-history" class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Saldo Masuk</th>
-                                <th>Keterangan</th>
-                                <th>Waktu Transaksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
+                <div id="overpayment-history-section"></div>
 
                 <div class="section-border mt-3">
                     <h4 class="mb-1">Petunjuk Pembayaran</h4>
@@ -211,14 +169,15 @@
     });
 
     $(function(){
-        $('#form-payment-method').change(payBillModal.paymentMethodChangeHandler);
+        $('#accordionPaymentMethod').change(payBillModal.paymentMethodChangeHandler);
+        paymentMethodMaster.setupManager();
         feather.replace();
     });
 
     const payBillTab = {
-        alwaysAllowReset: false,
+        alwaysAllowReset: true,
         showHandler: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
             const studentType = payment.register ? 'new_student' : 'student';
 
             let hasPaid = false;
@@ -297,7 +256,7 @@
             try {
                 const res = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/${prrId}/reset-payment`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}/reset-payment`,
                     type: 'post',
                 });
 
@@ -311,98 +270,68 @@
                 _toastr.error('Gagal mengganti metode pembayaran!', 'Gagal');
             }
         },
-        // openUploadEvidenceModal: function(e) {
-        //     const target = $(e.currentTarget);
-        //     const prrIdValue = target.attr('data-eazy-prrId');
-        //     const prrbIdValue = target.attr('data-eazy-prrbId');
-        //     $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prr_id"]').val(prrIdValue);
-        //     $('#multiple-bills #uploadPaymentEvidenceModal .form-upload-evidence input[name="prrb_id"]').val(prrbIdValue);
-        //     uploadPaymentEvidenceModal.show();
-        // },
-        // openDetailEvidenceModal: async function(e) {
-        //     const target = $(e.currentTarget);
-        //     const prrIdValue = target.attr('data-eazy-prrId');
-        //     const prrbIdValue = target.attr('data-eazy-prrbId');
+    };
 
-        //     const payment = await getRequestCache(`${_baseURL}/api/student/payment/${prrIdValue}`);
-        //     let paymentBill = {};
+    const paymentMethodMaster = {
+        state: {
+            bill: null,
+            paymentMethod: null,
+            studentBalanceSpend: 0,
+        },
+        managerElm: document.querySelector('#paymentMethodManager'),
+        setupManager: function() {
+            this.managerElm.addEventListener('paymentMethodChange', (event) => {
+                console.log('event payload', event.detail);
 
-        //     for (const bill of payment.payment_bill) {
-        //         if (bill.prrb_id == parseInt(prrbIdValue)) {
-        //             paymentBill = bill;
-        //             break;
-        //         }
-        //     }
+                const paymentMethodKey = event.detail.paymentMethod.mpm_key;
+                const paymentMethodName = event.detail.paymentMethod.mpm_name;
+                const billAmount = event.detail.bill.prrb_amount;
+                const adminFee = event.detail.paymentMethod.mpm_fee;
+                const studentBalanceSpend = event.detail.studentBalanceSpend;
+                const totalBill = billAmount + adminFee - studentBalanceSpend;
 
-        //     Modal.show({
-        //         type: 'detail',
-        //         modalTitle: 'Detail Bukti Pembayaran',
-        //         modalSize: 'md',
-        //         config: {
-        //             fields: {
-        //                 prrb_manual_name: {
-        //                     title: 'Nama Pemilik Rekening',
-        //                     content: {
-        //                         template: ':name',
-        //                         name: paymentBill.prrb_manual_name
-        //                     },
-        //                 },
-        //                 prrb_manual_norek: {
-        //                     title: 'Nomor Rekening',
-        //                     content: {
-        //                         template: ':number',
-        //                         number: paymentBill.prrb_manual_norek
-        //                     },
-        //                 },
-        //                 prrb_paid_date: {
-        //                     title: 'Dibayar Pada Tanggal',
-        //                     content: {
-        //                         template: ':text',
-        //                         text: moment(paymentBill.prrb_paid_date).format('DD-MM-YYYY')
-        //                     },
-        //                 },
-        //                 prrb_manual_evidence: {
-        //                     title: 'File Bukti Pembayaran',
-        //                     content: {
-        //                         template: `
-        //                             <a href="${_baseURL}/api/download-cloud?path=:path" class="p-0 btn btn-link btn-sm">
-        //                                 <i data-feather="download"></i>&nbsp;&nbsp;
-        //                                 Download Bukti Pembayaran
-        //                             </a>
-        //                         `,
-        //                         path: paymentBill.prrb_manual_evidence
-        //                     }
-        //                 },
-        //                 prrb_manual_status: {
-        //                     title: 'Status Approval',
-        //                     content: {
-        //                         template: `
-        //                             ${
-        //                                 paymentBill.prrb_manual_status == 'waiting' ?
-        //                                     '<span class="badge bg-warning">Menunggu Approval</span>'
-        //                                     : paymentBill.prrb_manual_status == 'rejected' ?
-        //                                         '<span class="badge bg-danger">Ditolak</span>'
-        //                                         : paymentBill.prrb_manual_status == 'accepted' ?
-        //                                             '<span class="badge bg-success">Disetujui</span>'
-        //                                             : 'N/A'
-        //                             }
-        //                         `,
-        //                     },
-        //                 },
-        //                 prrb_manual_note: {
-        //                     title: 'Catatan',
-        //                     content: {
-        //                         template: ':text',
-        //                         text: paymentBill.prrb_manual_note ?? '-'
-        //                     },
-        //                 },
-        //             },
-        //             callback: function() {
-        //                 feather.replace();
-        //             }
-        //         },
-        //     });
-        // },
+                FormDataJson.fromJson('#form-payment-method', {
+                    payment_method: paymentMethodKey,
+                    use_student_balance: (studentBalanceSpend ? 1 : 0),
+                    student_balance_spend: studentBalanceSpend,
+                });
+
+                $('#paymentMethodModal #payment-summary').html(`
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td style="width: 50%">Metode Pembayaran</td>
+                                <td>${paymentMethodName}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 50%">Tagihan Daftar Ulang</td>
+                                <td>${Rupiah.format(billAmount)}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 50%">Biaya Admin</td>
+                                <td>${Rupiah.format(adminFee)}</td>
+                            </tr>
+                            ${
+                                studentBalanceSpend ? `
+                                    <tr>
+                                        <td style="width: 50%">Pemakaian Saldo Mahasiswa</td>
+                                        <td>${Rupiah.format(studentBalanceSpend)}</td>
+                                    </tr>
+                                ` : ''
+                            }
+                            <tr>
+                                <th style="width: 50%">Total Tagihan Akhir</th>
+                                <th>${Rupiah.format(totalBill)}</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                `);
+            });
+        },
+        createChangeEvent: function() {
+            const options = { detail: this.state };
+            return new CustomEvent('paymentMethodChange', options);
+        },
     };
 
     const payBillModal = {
@@ -410,7 +339,7 @@
         open: async function(prrbId) {
             const bill = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}`,
                 type: 'get',
             });
 
@@ -432,7 +361,7 @@
 
             let paymentMethods = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment-method`,
+                url: `${_baseURL}/api/payment/payment-method/type-group`,
                 type: 'get',
             });
             paymentMethods = paymentMethods.filter(item => item.payment_methods.length > 0);
@@ -469,39 +398,51 @@
                 }
             `);
 
+            // clear 'use student balance' section
+            $('#paymentMethodModal #use-student-balance').html('');
+
             $('#paymentMethodModal #form-payment-method input[name="prrb_id"]').val(prrbId);
             paymentMethodModal.show();
         },
         openPaymentInstructionModal: async function(bill) {
             const paymentMethod = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment-method/${bill.prrb_payment_method}`,
+                url: `${_baseURL}/api/payment/payment-method/${bill.prrb_payment_method}`,
                 type: 'get',
             });
 
             const paymentApprovals = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${bill.prrb_id}/approval`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/approval`,
                 type: 'get',
             });
 
             const paymentTransactions = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${bill.prrb_id}/transaction`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/transaction`,
                 type: 'get',
             });
 
             const paymentOverpayments = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${bill.prrb_id}/overpayment`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/overpayment`,
                 type: 'get',
             });
+
+            const {amount: studentBalanceSpent} = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/balance-use`,
+                type: 'get',
+            });
+
+            const nominalInvoice = bill.prrb_amount + bill.prrb_admin_cost;
+            const nominalHasToPaid = bill.prrb_amount + bill.prrb_admin_cost - studentBalanceSpent;
 
             const nominalPaid = paymentTransactions.reduce((accumulator, transaction) => {
                 return (accumulator + transaction.prrt_amount);
             }, 0);
 
-            let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - nominalPaid;
+            let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - (nominalPaid + studentBalanceSpent);
             if (nominalUnpaid < 0) nominalUnpaid = 0;
 
             if (paymentMethod.mpm_type != 'bank_transfer_manual') {
@@ -551,10 +492,25 @@
                     </tr>
                 ` : ''}
 
+                ${studentBalanceSpent > 0 ? `
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Awal</td>
+                        <td>${Rupiah.format(nominalInvoice)}</td>
+                    </tr>
+
+                    <tr>
+                        <td style="width: 300px" class="table-light fw-bolder">Potongan</td>
+                        <td>
+                            <small class="text-nowrap">Penggunaan saldo mahasiswa: <strong>${Rupiah.format(studentBalanceSpent)}</strong><small>
+                        </td>
+                    </tr>
+                `: ''}
+
                 <tr>
-                    <td style="width: 300px" class="table-light fw-bolder">Jumlah Total Tagihan</td>
-                    <td>${Rupiah.format(bill.prrb_amount + bill.prrb_admin_cost)}</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Akhir</td>
+                    <td>${Rupiah.format(nominalHasToPaid)}</td>
                 </tr>
+
                 <tr>
                     <td style="width: 300px; color: #0BA44C !important;" class="table-success text-success fw-bolder">Jumlah yang Telah Dibayar</td>
                     <td style="color: #0BA44C !important;" class="text-success fw-bolder">${Rupiah.format(nominalPaid)}</td>
@@ -565,43 +521,60 @@
                 </tr>
             `);
 
-            // RENDER PAYMENT HISTORY
-            $('#paymentInstructionModal #table-approval-history tbody').html(`
-                <tr>
-                    <td colspan="5" class="text-center">Belum ada bukti pembayaran</td>
-                </tr>
-            `);
-            if (paymentApprovals.length > 0) {
-                $('#paymentInstructionModal #table-approval-history tbody').html(`
-                    ${
-                        paymentApprovals.map((item, index) => {
-                            let status = '';
-                            if (item.pma_approval_status == 'accepted') status = '<span class="badge bg-success">Diterima</span>';
-                            if (item.pma_approval_status == 'rejected') status = '<span class="badge bg-danger">Ditolak</span>';
-                            if (item.pma_approval_status == 'waiting') status = '<span class="badge bg-warning">Menunggu</span>';
-
-                            return `
+            // RENDER EVIDENCE PAYMENT HISTORY
+            $('#paymentInstructionModal #payment-evidence-section').html('');
+            if (paymentMethod.mpm_type == 'bank_transfer_manual') {
+                $('#paymentInstructionModal #payment-evidence-section').html(`
+                    <div class="section-border mt-3">
+                        <h4 class="mb-0">Riwayat Bukti Pembayaran</h4>
+                        <table id="table-approval-history" class="table table-bordered mt-1">
+                            <thead>
                                 <tr>
-                                    <td>${index+1}</td>
-                                    <td>${Rupiah.format(item.pma_amount)}</td>
-                                    <td>${moment(item.pma_payment_time).format('DD/MM/YYYY HH:mm')}</td>
-                                    <td class="text-center">${status}</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.pma_id})">
-                                            <i data-feather="eye"></i>
-                                        </button>
-                                    </td>
+                                    <th>#</th>
+                                    <th>Total Bayar</th>
+                                    <th>Waktu Bayar</th>
+                                    <th class="text-center">Status Approval</th>
+                                    <th class="text-center">Detail</th>
                                 </tr>
-                            `
-                        }).join('')
-                    }
-                `);
-            }
-            $('#paymentInstructionModal #upload-payment-evidence-section').html('');
-            if (bill.prrb_status == 'belum lunas' || payBillModal.alwaysAllowUploadEvidence) {
-                $('#paymentInstructionModal #upload-payment-evidence-section').html(`
-                    <div class="d-flex justify-content-center mt-1">
-                        <button onclick="payBillModal.openUploadEvidenceModal(${bill.prrb_id})" class="btn btn-success">Unggah Bukti Pembayaran</button>
+                            </thead>
+                            <tbody>
+                                ${
+                                    paymentApprovals.length <= 0 ? `
+                                        <tr>
+                                            <td colspan="5" class="text-center">Belum ada bukti pembayaran</td>
+                                        </tr>
+                                    ` : paymentApprovals.map((item, index) => {
+                                            let status = '';
+                                            if (item.pma_approval_status == 'accepted') status = '<span class="badge bg-success">Diterima</span>';
+                                            if (item.pma_approval_status == 'rejected') status = '<span class="badge bg-danger">Ditolak</span>';
+                                            if (item.pma_approval_status == 'waiting') status = '<span class="badge bg-warning">Menunggu</span>';
+
+                                            return `
+                                                <tr>
+                                                    <td>${index+1}</td>
+                                                    <td>${Rupiah.format(item.pma_amount)}</td>
+                                                    <td>${moment(item.pma_payment_time).format('DD/MM/YYYY HH:mm')}</td>
+                                                    <td class="text-center">${status}</td>
+                                                    <td class="text-center">
+                                                        <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.pma_id})">
+                                                            <i data-feather="eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `
+                                        }).join('')
+                                }
+                            </tbody>
+                        </table>
+                        <div id="upload-payment-evidence-section">
+                            ${
+                                bill.prrb_status == 'belum lunas' || payBillModal.alwaysAllowUploadEvidence ? `
+                                    <div class="d-flex justify-content-center mt-1">
+                                        <button onclick="payBillModal.openUploadEvidenceModal(${bill.prrb_id})" class="btn btn-success">Unggah Bukti Pembayaran</button>
+                                    </div>
+                                ` : ''
+                            }
+                        </div>
                     </div>
                 `);
             }
@@ -646,28 +619,43 @@
             }
 
             // RENDER OVERPAYMENT HISTORY
-            $('#paymentInstructionModal #table-overpayment-history tbody').html(`
-                <tr>
-                    <td colspan="4" class="text-center">Belum ada kelebihan bayar</td>
-                </tr>
-            `);
-            if (paymentOverpayments.length > 0) {
-                $('#paymentInstructionModal #table-overpayment-history tbody').html(`
-                    ${
-                        paymentOverpayments.map((item, index) => {
-                            return `
+            $('#paymentInstructionModal #overpayment-history-section').html('');
+            if (paymentMethod.mpm_type == 'bank_transfer_manual') {
+                $('#paymentInstructionModal #overpayment-history-section').html(`
+                    <div class="section-border mt-3">
+                        <h4 class="mb-1">Riwayat Kelebihan Bayar</h4>
+                        <table id="table-overpayment-history" class="table table-bordered">
+                            <thead>
                                 <tr>
-                                    <td>${Rupiah.format(item.ovrt_cash_in)}</td>
-                                    <td>${item.ovrt_remark}</td>
-                                    <td>${moment(item.ovrt_time).format('DD/MM/YYYY HH:mm')}</td>
+                                    <th class="text-center">Saldo Masuk</th>
+                                    <th>Keterangan</th>
+                                    <th>Waktu Transaksi</th>
                                 </tr>
-                            `
-                        }).join('')
-                    }
+                            </thead>
+                            <tbody>
+                                ${
+                                    paymentOverpayments.length <= 0 ? `
+                                        <tr>
+                                            <td colspan="4" class="text-center">Belum ada kelebihan bayar</td>
+                                        </tr>
+                                    ` : paymentOverpayments.map((item, index) => {
+                                            return `
+                                                <tr>
+                                                    <td>${Rupiah.format(item.sbt_amount)}</td>
+                                                    <td>${item.type.sbtt_description}</td>
+                                                    <td>${moment(item.sbt_time).format('DD/MM/YYYY HH:mm')}</td>
+                                                </tr>
+                                            `
+                                        }).join('')
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 `);
             }
 
             // RENDER RESET PAYMENT METHOD BUTTON
+            // console.log(paymentMethod, bill);
             if (paymentMethod.mpm_type == 'bank_transfer_va' && bill.prrb_status == 'belum lunas') {
                 $('#paymentInstructionModal .modal-footer').html(`
                     <div class="d-flex justify-content-end">
@@ -696,7 +684,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-upload-evidence',
-                    formActionUrl: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}/evidence`,
+                    formActionUrl: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}/evidence`,
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
@@ -704,7 +692,7 @@
                             isHidden: true,
                             content: {
                                 template: '<input type="hidden" name="student_type" value=":value" />',
-                                value: userMaster.student ? 'student' : 'new_student'
+                                value: 'student'
                             },
                         },
                         sender_account_name: {
@@ -776,7 +764,7 @@
         openPaymentApprovalDetailModal: async function(pmaId) {
             const approval = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${bill.prrb_id}/approval/${pmaId}`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/approval/${pmaId}`,
                 type: 'get',
             });
 
@@ -896,48 +884,91 @@
 
         },
         paymentMethodChangeHandler: async function(e) {
+            console.log('payment method changed');
+
+            // get student balance
+            const {balance: studentBalance} = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-balance`,
+                data: {
+                    student_type: 'student',
+                    student_number: studentMaster.student_number,
+                    participant_id: null,
+                },
+                processData: true,
+                type: 'get'
+            });
+
+            // clear selected payment method (ui)
             $('.payment-method-list__item').each(function() {
                 $(this).removeClass('active');
             });
 
+            // get prrb_id value
             const prrbId = parseInt($('#form-payment-method input[name="prrb_id"]').val());
 
             const paymentMethodKey = e.target.value;
             $(`.payment-method-list__item > input[value="${paymentMethodKey}"]`).parent().addClass('active');
 
+            // fetch bill data
             const bill = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}`,
                 type: 'get',
             });
-            const billAmount = bill.prrb_amount;
 
-            const paymentMethod = await $.ajax({
+            // fetch payment method data
+            const paymentMethodRes = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/student/payment-method/${paymentMethodKey}`,
+                url: `${_baseURL}/api/payment/payment-method/${paymentMethodKey}`,
                 type: 'get',
             });
-            const adminFee = paymentMethod.mpm_fee;
 
-            // set payment summary section
-            $('#paymentMethodModal #payment-summary').html(`
-                <table class="table table-bordered">
-                    <tbody>
-                        <tr>
-                            <td>Tagihan Daftar Ulang</td>
-                            <td>${Rupiah.format(billAmount)}</td>
-                        </tr>
-                        <tr>
-                            <td>Biaya Admin</td>
-                            <td>${Rupiah.format(adminFee)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `);
+            // update payment method state
+            paymentMethodMaster.state = {
+                bill: bill,
+                paymentMethod: paymentMethodRes,
+                studentBalanceSpend: 0,
+            };
 
-            // set footer section
-            $('#paymentMethodModal #footer-payment-method').text(paymentMethod.mpm_name);
-            $('#paymentMethodModal #footer-bill-total-amount').text(Rupiah.format(billAmount + adminFee));
+            // Dispatch paymentMethodChange Event
+            paymentMethodMaster.managerElm.dispatchEvent(paymentMethodMaster.createChangeEvent());
+
+            // render 'use student balance' section
+            if (studentBalance != null && studentBalance > 0) {
+
+                let totalBill = bill.prrb_amount + paymentMethodRes.mpm_fee;
+                let max = studentBalance;
+                if (totalBill < max) max = totalBill;
+
+                $('#paymentMethodModal #use-student-balance').html(`
+                    <div class="mt-3 alert alert-info border p-1 d-flex flex-column" style="gap: 1rem">
+                        <div class="text-dark fw-normal">
+                            Anda memiliki saldo kelebihan bayar.<br>
+                            Total Saldo : <strong>${Rupiah.format(studentBalance)}</strong>
+                        </div>
+                        <form id="form-use-student-balance" action="javascript:void(0);" onsubmit="payBillModal.useStudentBalance()">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">Rp</span>
+                                <input name="balance_spend" type="number" class="form-control" min="1" max="${max}" placeholder="Masukan nominal">
+                                <button class="btn btn-primary" type="submit">Pakai Saldo</button>
+                            </div>
+                        </form>
+                    </div>
+                `);
+            }
+        },
+        useStudentBalance: function() {
+            const { balance_spend: balanceSpend } = FormDataJson.toJson('#paymentMethodModal #form-use-student-balance');
+
+            // update payment method state
+            paymentMethodMaster.state = {
+                ...paymentMethodMaster.state,
+                studentBalanceSpend: balanceSpend,
+            };
+
+            // Dispatch paymentMethodChange Event
+            paymentMethodMaster.managerElm.dispatchEvent(paymentMethodMaster.createChangeEvent());
         },
         selectPaymentMethod: async function() {
             const confirmed = await _swalConfirmSync({
@@ -947,19 +978,16 @@
 
             if(!confirmed) return;
 
-            const {
-                prrb_id: prrbId,
-                payment_method: paymentMethodKey
-            } = FormDataJson.toJson('#paymentMethodModal #form-payment-method');
-
+            // fields: prrb_id, payment_method, use_student_balance, student_balance_amount
+            const reqData = FormDataJson.toJson('#paymentMethodModal #form-payment-method');
+            // console.log(reqData);
+            // return;
             try {
                 const res = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}/select-method`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${reqData.prrb_id}/select-method`,
                     type: 'post',
-                    data: {
-                        payment_method: paymentMethodKey,
-                    },
+                    data: reqData,
                 });
 
                 if (res.success) {
@@ -967,10 +995,11 @@
                     // hide payment method modal
                     paymentMethodModal.hide();
                     // open payment instruction modal
-                    payBillModal.open(prrbId);
+                    payBillModal.open(reqData.prrb_id);
                 }
 
             } catch (error) {
+                console.error(error);
                 const res = error.responseJSON;
                 _toastr.error(res.message, 'Gagal');
             }
@@ -986,7 +1015,7 @@
             try {
                 const res = await $.ajax({
                     async: true,
-                    url: `${_baseURL}/api/student/payment/${prrId}/bill/${prrbId}/reset-method`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}/reset-method`,
                     type: 'post',
                 });
 
@@ -1017,7 +1046,7 @@
                 const res = await $.ajax({
                     async: true,
                     type: "POST",
-                    url: `${_baseURL}/api/student/payment/${prrIdValue}/bill/${prrbIdValue}/evidence`,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrIdValue}/bill/${prrbIdValue}/evidence`,
                     data: formData,
                     processData: false,
                     contentType: false,
@@ -1027,7 +1056,7 @@
                 if (res.success) {
                     _toastr.success(res.message, 'Sukses');
                     paymentInstructionModal.hide();
-                    await deleteRequestCache(`${_baseURL}/api/student/payment/${prrId}`);
+                    await deleteRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
                     payBillModal.open(prrbIdValue);
                 } else {
                     _toastr.error(res.message, 'Gagal');
