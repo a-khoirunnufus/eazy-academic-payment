@@ -26,6 +26,6 @@ class StudentInvoiceController extends Controller
     }
 
     public function invoiceCicilan(Request $request){
-        return view('pages._payment.student.studnet-invoice.invoice-cicilan', ['content' => $request->get('content')]);
+        return view('pages._payment.student.student-invoice.invoice-cicilan', ['content' => $request->get('content')]);
     }
 }

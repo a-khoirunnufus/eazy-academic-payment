@@ -475,7 +475,7 @@
                     '</tbody>'+
                 '</table>'+
             '</div>';
-            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+            var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
         xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prrb.prr_id);
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
@@ -617,7 +617,7 @@
                 tableKomponen +
                 tableCicilan +
             '</div>';
-            var winPrint = window.open(location.origin+'/student/payment/invoice-cicilan?content='+textContent);
+            var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
         xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prr_id);
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
