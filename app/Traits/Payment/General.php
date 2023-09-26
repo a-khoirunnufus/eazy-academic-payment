@@ -4,6 +4,8 @@ namespace App\Traits\Payment;
 
 use App\Providers\RouteServiceProvider;
 use App\Services\SchoolYearService;
+use Auth;
+use App\Models\Payment\Student;
 
 trait General
 {
@@ -53,4 +55,18 @@ trait General
         return 'Unknown';
     }
 
+    private function getStudentData()
+    {
+        // Error getting associate data
+        // $student = Auth::user()->getAssociateData('student'); // error
+
+        // Manually get student model
+        ['associate_identifier' => $student_number] = Auth::user()->getLoadedData()['student'];
+
+        $student = Student::with(['studyProgram', 'studyProgram.faculty'])
+            ->where('student_number', $student_number)
+            ->first();
+
+        return $student;
+    }
 }

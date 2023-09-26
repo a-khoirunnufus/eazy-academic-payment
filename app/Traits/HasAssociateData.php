@@ -44,6 +44,11 @@ trait HasAssociateData
         return AssociateData::getAssociatedData($modelAlias, $identifier);
     }
 
+    public function getLoadedData()
+    {
+        return $this->loadedData;
+    }
+
     public function getAssociateDataIdentifier($name)
     {
         if(!isset($this->loadedData[$name])){
