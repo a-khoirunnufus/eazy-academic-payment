@@ -24,7 +24,6 @@ class PaymentMethodController extends Controller
     public function show($key)
     {
         $data = PaymentMethod::where('mpm_key', '=', $key)->first();
-
         return response()->json($data);
     }
 }

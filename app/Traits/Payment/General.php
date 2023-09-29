@@ -6,6 +6,7 @@ use App\Providers\RouteServiceProvider;
 use App\Services\SchoolYearService;
 use Auth;
 use App\Models\Payment\Student;
+use Carbon\Carbon;
 
 trait General
 {
@@ -68,5 +69,10 @@ trait General
             ->first();
 
         return $student;
+    }
+
+    private function getCurrentDateTime()
+    {
+        return Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
     }
 }

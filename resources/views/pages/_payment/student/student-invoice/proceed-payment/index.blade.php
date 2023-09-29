@@ -205,8 +205,13 @@
             // $('#nav-tab #nav-payment-option-tab').removeClass('disabled');
             $('#nav-tab #nav-pay-bill-tab').removeClass('disabled');
 
-            await deleteRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
-            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+            const billMaster = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}`,
+                data: {
+                    withData: ['paymentBill'],
+                }
+            });
 
             let openTabId = 'nav-payment-option';
 
@@ -218,7 +223,7 @@
             // }
 
             // check is payment bill is not generated
-            if (payment.payment_bill.length == 0) {
+            if (billMaster.payment_bill.length == 0) {
                 $('#nav-tab #nav-pay-bill-tab').addClass('disabled');
             } else {
                 openTabId = 'nav-pay-bill';

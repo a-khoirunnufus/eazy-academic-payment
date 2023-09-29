@@ -23,10 +23,18 @@ class StudentBalanceTrans extends Model
 
     public $timestamps = false;
 
+    /**
+     * RELATIONSHIPS
+     */
+
     public function type()
     {
         return $this->belongsTo(Type::class, 'sbtt_name', 'sbtt_name');
     }
+
+    /**
+     * OTHERS
+     */
 
     public function getAssociateData()
     {

@@ -68,14 +68,20 @@
 
     const paymentOptionTab = {
         showHandler: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+            const billMaster = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}`,
+                data: {
+                    withData: ['paymentBill'],
+                }
+            });
 
-            const studentType = payment.register ? 'new_student' : 'student';
+            const studentType = 'student';
 
-            if (payment.payment_bill.length > 0) {
+            if (billMaster.payment_bill.length > 0) {
                 $('#payment-option-selected > table > tbody').html(`
                     ${
-                        payment.payment_bill.map((item) => {
+                        billMaster.payment_bill.map((item) => {
                             return `
                                 <tr>
                                     <td>Cicilan Ke-${item.prrb_order}</td>
@@ -114,7 +120,13 @@
             }
         },
         renderOptionPreview: async function(cs_id) {
-            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+            const billMaster = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}`,
+                data: {
+                    withData: ['paymentDetail'],
+                }
+            });
             const {ppm_id: ppmId} = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}/ppm`);
             const optionPreview = await $.ajax({
                 async: true,
@@ -122,7 +134,7 @@
                 type: 'get',
             });
 
-            const invoiceTotal = payment.payment_detail.reduce((acc, curr) => {
+            const invoiceTotal = billMaster.payment_detail.reduce((acc, curr) => {
                 return parseInt(curr.is_plus) == 1 ?
                     acc + parseInt(curr.prrd_amount)
                     : acc - parseInt(curr.prrd_amount);
@@ -150,8 +162,6 @@
             });
 
             if(!confirmed) return;
-
-            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
 
             const selectedCreditSchemaId = $('#select-payment-option').val();
 

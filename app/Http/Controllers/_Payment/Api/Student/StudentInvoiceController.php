@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\_Payment\Api\Student;
 
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,13 +28,16 @@ use App\Services\Payment\PaymentService;
 use App\Exceptions\MidtransException;
 use Carbon\Carbon;
 
+use App\Traits\Models\LoadDataRelationByRequest;
+use App\Traits\Models\LoadDataAppendByRequest;
+
 class StudentInvoiceController extends Controller
 {
+    use LoadDataRelationByRequest, LoadDataAppendByRequest;
+
     /**
-     * @var $default_user_email
-     * @func getStaticUser()
+     * Bill Master
      */
-    use StaticStudentUser;
 
     public function index(Request $request)
     {
@@ -65,10 +69,11 @@ class StudentInvoiceController extends Controller
             $invoices = $invoices->where('prr.student_number', '=', $student->student_number);
         }
 
-        $invoices = $invoices->where([
-                ['prr.prr_status', '=', $validated['status'] == 'unpaid' ? 'belum lunas' : 'lunas'],
-                ['prr.deleted_at', 'is', DB::raw("NULL")],
-            ])
+        $invoices = $invoices->whereIn(
+                'prr.prr_status',
+                $validated['status'] == 'unpaid' ? ['belum lunas', 'kredit'] : ['lunas']
+            )
+            ->whereNull('prr.deleted_at')
             ->select(
                 DB::raw("
                     CASE
@@ -114,7 +119,6 @@ class StudentInvoiceController extends Controller
                     END as penalty_detail
                 "),
                 'prr.prr_total as total_amount',
-                'prr.prr_method as payment_method',
                 'prr.prr_status as payment_status',
                 DB::raw("
                     CASE
@@ -136,64 +140,91 @@ class StudentInvoiceController extends Controller
         return $datatable->toJSON();
     }
 
-    public function detail($prr_id)
+    public function detail(Request $request, $prr_id)
     {
-        $student_type = Payment::find($prr_id)->reg_id ? 'new_student' : 'student';
+        $query = Payment::query();
+        $query = $this->applyRelation($query, $request, [
+            'paymentDetail',
+            'paymentBill',
+            'register',
+            'student',
+            'student.studyprogram',
+            'student.lectureType',
+            'year',
+            'paymentMethod',
+            'dispensation',
+        ]);
 
-        if($student_type == 'new_student') {
-            $payment = Payment::with([
-                    'paymentDetail',
-                    'paymentBill',
-                    'paymentMethod',
-                    'year',
-                    'register',
-                    'register.participant',
-                    'register.studyprogram',
-                    'register.lectureType',
-                ])
-                ->where('prr_id', '=', $prr_id)
-                ->first();
-        }
-        elseif ($student_type == 'student') {
-            $payment = Payment::with([
-                    'paymentDetail',
-                    'paymentBill',
-                    'paymentMethod',
-                    'year',
-                    'student',
-                    'student.studyprogram',
-                    'student.lectureType'
-                ])
-                ->where('prr_id', '=', $prr_id)
-                ->first();
-        }
+        $master_bill = $query->where('prr_id', '=', $prr_id)->first();
 
-        return response()->json($payment, 200);
+        $master_bill = $this->applyAppend($master_bill, $request, [
+            'computed_total_bill',
+            'computed_payment_status',
+            'computedHasPaidBill',
+        ]);
+
+        return response()->json($master_bill);
     }
 
-    public function getBills($prr_id)
+    /**
+     * Bill
+     */
+
+    public function getBills(Request $request, $prr_id)
     {
-        $bills = PaymentBill::where('prr_id', $prr_id)
+        $query = PaymentBill::query();
+        $query = $this->applyRelation($query, $request, [
+            'payment',
+            'paymentMethod',
+            'paymentManualApproval',
+            'paymentTransaction',
+        ]);
+
+        $bills = $query->where('prr_id', $prr_id)
             ->orderBy('prrb_order', 'asc')
             ->get();
-        return response()->json($bills, 200);
+
+        $bills = $this->applyAppend($bills, $request, [
+            'computed_dispensation_applied',
+            'computed_due_date',
+            'computed_is_fully_paid',
+            'computed_nominal_paid',
+            'computed_payment_status',
+        ]);
+
+        return response()->json($bills);
     }
 
-    public function billDetail($prr_id, $prrb_id)
+    public function billDetail(Request $request, $prr_id, $prrb_id)
     {
         // TODO:
         // - throw 404 exception if bill not exist
         // - exception will return 404 response
 
-        $bill = PaymentBill::with([
-                'paymentTransaction',
-                'paymentManualApproval',
-            ])
-            ->where('prrb_id', $prrb_id)
-            ->first();
+        $query = PaymentBill::query();
+        $query = $this->applyRelation($query, $request, [
+            'payment',
+            'paymentMethod',
+            'paymentManualApproval',
+            'paymentTransaction',
+        ]);
 
-        return response()->json($bill, 200);
+        $bill = $query->where('prrb_id', $prrb_id)->first();
+
+        $bill = $this->applyAppend($bill, $request, [
+            'computed_dispensation_applied',
+            'computed_due_date',
+            'computed_is_fully_paid',
+            'computed_nominal_paid',
+            'computed_payment_status',
+        ]);
+
+        return response()->json($bill);
     }
+
+    /**
+     * Others
+     */
 
     public function selectPaymentMethod($prr_id, $prrb_id, Request $request)
     {
@@ -202,8 +233,6 @@ class StudentInvoiceController extends Controller
             'use_student_balance' => 'nullable',
             'student_balance_spend' => 'required_with:use_student_balance',
         ]);
-
-        // dd(intval($validated['student_balance_spend']));
 
         try {
             DB::beginTransaction();
@@ -719,7 +748,6 @@ class StudentInvoiceController extends Controller
             }
 
             $payment = Payment::find($prr_id);
-            $payment->prr_method = null;
             $payment->prr_total = $invoice_total_amount;
             $payment->prr_paid_net = $invoice_total_amount;
             $payment->save();
@@ -751,54 +779,6 @@ class StudentInvoiceController extends Controller
             'approval_status' => $bill->prrb_manual_status,
         ];
         return response()->json($data, 200);
-    }
-
-    // DELETE!!
-    public function uploadEvidence($prr_id, $prrb_id, Request $request)
-    {
-        dd($request->all());
-
-        $validated = $request->validate([
-            'account_owner_name' => 'required',
-            'account_number' => 'required',
-            'file_evidence' => 'nullable|file|mimes:jpg,png,pdf|max:1000',
-        ]);
-
-        try {
-            if (config('app.disable_cloud_storage')) {
-                $upload_success = '/';
-            } else {
-                $upload_success = Storage::disk('minio')->putFile('payment/bukti_bayar/re_register/'.$prr_id, $validated['file_evidence']);
-            }
-
-            if (!$upload_success) {
-                throw new \Exception('Failed uploading file!');
-            }
-
-            DB::beginTransaction();
-
-            $bill = PaymentBill::find($prrb_id);
-            $bill->prrb_manual_name = $validated['account_owner_name'];
-            $bill->prrb_manual_norek = $validated['account_number'];
-            $bill->prrb_manual_evidence = $upload_success;
-            $bill->prrb_manual_status = 'waiting';
-            $bill->prrb_manual_note = null;
-            $bill->save();
-
-            DB::commit();
-        } catch (\Throwable $th) {
-            DB::rollback();
-
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-            ], 500);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil upload bukti pembayaran',
-        ], 200);
     }
 
     public function getApproval($prr_id, $prrb_id)
@@ -927,7 +907,11 @@ class StudentInvoiceController extends Controller
         $data = PaymentTransaction::with('paymentMethod')
             ->where('prrb_id', $prrb_id)
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->each->setAppends([
+                'computed_initial_amount',
+                'computed_overpayment',
+            ]);
 
         return response()->json($data, 200);
     }
@@ -936,11 +920,19 @@ class StudentInvoiceController extends Controller
 
     public function getOverpayment($prr_id, $prrb_id)
     {
+        $transaction_ids = DB::table('finance.payment_re_register_transaction')
+            ->where('prrb_id', $prrb_id)
+            ->select('prrt_id')
+            ->get()
+            ->toArray();
+
+        $transaction_ids = array_map(function($item) {
+            return $item->prrt_id;
+        }, $transaction_ids);
+
         $data = StudentBalanceTrans::with('type')
-            ->where([
-                'sbtt_name' => 'overpaid_bill',
-                'sbtt_associate_id' => $prrb_id,
-            ])
+            ->where('sbtt_name', 'overpaid_bill')
+            ->whereIn('sbtt_associate_id', $transaction_ids)
             ->orderBy('sbt_time', 'asc')
             ->get();
 
