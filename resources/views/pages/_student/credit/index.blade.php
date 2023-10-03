@@ -2,7 +2,7 @@
 
 @section('page_title', 'Pengajuan Cicilan Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', route('student.payment.index'))
+@section('url_back', route('student.invoice.index'))
 
 @section('css_section')
     <style>
