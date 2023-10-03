@@ -157,7 +157,7 @@
                         name: 'notes',
                         data: 'notes',
                         render: (data) => {
-                            return this.template.defaultCell(data, {nowrap: false});
+                            return data ? this.template.defaultCell(data, {nowrap: false}) : '-';
                         }
                     },
                 ],

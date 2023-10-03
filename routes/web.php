@@ -136,3 +136,25 @@ Route::group(['prefix' => 'student', 'middleware' => ['auth', 'student_access']]
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
+
+Route::get('/foo', function() {
+    // $data = App\Models\Payment\Payment::with('dispensation')
+    //     ->whereHas('dispensation', function ($query) {
+    //         $query->where('mds_status', 1)
+    //             ->orderBy('mds_deadline', 'asc');
+    //     })
+    //     ->where('prr_id', 553)
+    //     ->first()
+    //     ->toArray();
+
+    // $data = App\Models\Payment\PaymentBill::with(['paymentTransaction'])->where('prrb_id', 757)->first()->toArray();
+
+    $data = App\Models\Payment\PaymentTransaction::find(63)
+        // ->setAppends([
+        //     'computed_initial_amount',
+        //     'computed_overpayment',
+        // ])
+        ->toArray();
+
+    dd($data);
+});

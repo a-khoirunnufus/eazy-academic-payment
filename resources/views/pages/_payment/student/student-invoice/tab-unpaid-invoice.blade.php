@@ -157,9 +157,7 @@
                         name: 'notes',
                         data: 'notes',
                         render: (data) => {
-                            return this.template.defaultCell(data, {
-                                nowrap: false
-                            });
+                            return data ? this.template.defaultCell(data, {nowrap: false}) : '-';
                         }
                     },
                 ],
@@ -224,7 +222,7 @@
                             </a>
                         </div>
                     `)
-                    console.log(unpaidData);
+                    // console.log(unpaidData);
                     reportUnpaidTable.clear().destroy();
                     var counter = 0;
                     reportUnpaidTable = $('#report-unpaid').DataTable({
@@ -272,7 +270,6 @@
 
     const _unpaidInvoiceTableAction = {
         detail: function(e) {
-            console.log(e);
             invoiceDetailModal.open(e, _unpaidInvoiceTable);
         }
     }

@@ -71,14 +71,26 @@
     const invoiceDataTab = {
         showHandler: async function() {
             try {
-                const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
+                const billMaster = await $.ajax({
+                    async: true,
+                    url: `${_baseURL}/api/payment/student-invoice/${prrId}`,
+                    data: {
+                        withData: [
+                            'paymentBill',
+                            'student.studyprogram',
+                            'student.lecture_type',
+                            'year',
+                            'paymentDetail',
+                        ],
+                    }
+                });
 
-                const studentType = payment.register ? 'new_student' : 'student';
+                const studentType = 'student';
 
-                $('#nav-invoice-data #invoice-data #invoice-data-number').text(payment.prr_id);
-                $('#nav-invoice-data #invoice-data #invoice-data-created').text(moment(payment.created_at).format('DD-MM-YYYY'));
+                $('#nav-invoice-data #invoice-data #invoice-data-number').text(billMaster.prr_id);
+                $('#nav-invoice-data #invoice-data #invoice-data-created').text(moment(billMaster.created_at).utcOffset('+0700').format('DD-MM-YYYY'));
                 // $('#nav-invoice-data #invoice-data #invoice-data-status').html(
-                //     payment.prr_status == 'lunas' ?
+                //     billMaster.prr_status == 'lunas' ?
                 //         '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
                 //         : '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
                 // );
@@ -86,22 +98,22 @@
                 $('#nav-invoice-data #invoice-data #invoice-data-notes').text(
                     `Tagihan ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
                     Program Studi ${ studentType == 'new_student' ? `
-                            ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
-                            ${payment.register.studyprogram.studyprogram_name}
-                            ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
+                            ${billMaster.register.studyprogram.studyprogram_type.toUpperCase()}
+                            ${billMaster.register.studyprogram.studyprogram_name}
+                            ${billMaster.register.lecture_type?.mlt_name ?? 'N/A'}
                         ` : `
-                            ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
-                            ${payment.student.studyprogram.studyprogram_name}
-                            ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
+                            ${billMaster.student.studyprogram.studyprogram_type.toUpperCase()}
+                            ${billMaster.student.studyprogram.studyprogram_name}
+                            ${billMaster.student.lecture_type?.mlt_name ?? 'N/A'}
                         `
                     }
-                    Tahun Ajaran ${payment.year.msy_year}
-                    Semester ${payment.year.msy_semester}.`
+                    Tahun Ajaran ${billMaster.year.msy_year}
+                    Semester ${billMaster.year.msy_semester}.`
                 );
 
                 $('#nav-invoice-data #invoice-detail #table-invoice-detail tbody').html(`
                     ${
-                        payment.payment_detail.map(item => {
+                        billMaster.payment_detail.map(item => {
                             return `
                                 <tr>
                                     <td>${item.prrd_component}</td>
@@ -116,7 +128,7 @@
                         <th>Total Tagihan*</th>
                         <th>
                             ${Rupiah.format(
-                                payment.payment_detail.reduce((acc, curr) => {
+                                billMaster.payment_detail.reduce((acc, curr) => {
                                     return parseInt(curr.is_plus) == 1 ?
                                         acc + parseInt(curr.prrd_amount)
                                         : acc - parseInt(curr.prrd_amount);

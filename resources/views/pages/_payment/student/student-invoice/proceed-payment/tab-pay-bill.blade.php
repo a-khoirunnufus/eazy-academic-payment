@@ -177,71 +177,137 @@
     const payBillTab = {
         alwaysAllowReset: true,
         showHandler: async function() {
-            const payment = await getRequestCache(`${_baseURL}/api/payment/student-invoice/${prrId}`);
-            const studentType = payment.register ? 'new_student' : 'student';
-
-            let hasPaid = false;
-            for (bill of payment.payment_bill) {
-                if (bill.prrb_status == 'lunas') {
-                    hasPaid = true;
-                    break;
+            const billMaster = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}`,
+                data: {
+                    withData: [
+                        'paymentBill',
+                        'student.studyprogram',
+                        'student.lectureType',
+                        'year',
+                    ],
+                    withAppend: [
+                        'computed_has_paid_bill',
+                    ],
                 }
-            }
-            if (hasPaid) {
+            });
+
+            const bills = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill`,
+                data: {
+                    withAppend: [
+                        'computed_due_date',
+                        'computed_dispensation_applied',
+                        'computed_payment_status',
+                    ],
+                }
+            });
+
+            const studentType = 'student';
+
+            if (billMaster.computed_has_paid_bill) {
                 !payBillTab.alwaysAllowReset && $('#reset-payment-section').removeClass('show');
             }
 
             // render index table
             $('#table-pay-bill tbody').html(`
-                ${payment.payment_bill.map(item => {
-                    var row = null;
-                    var xhr = new XMLHttpRequest()
-                    xhr.onload = function(){
-                        var response = JSON.parse(this.responseText);
-                        if(response == null){
-                            console.log('not found');
-                        }
-                        console.log(response);
-                        row = `
-                            <tr>
-                                <td>${item.prrb_order}</td>
-                                <td>
-                                    Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
-                                    Program Studi ${ studentType == 'new_student' ? `
-                                            ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
-                                            ${payment.register.studyprogram.studyprogram_name}
-                                            ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
-                                        ` : `
-                                            ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
-                                            ${payment.student.studyprogram.studyprogram_name}
-                                            ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
-                                        `
-                                    }
-                                    Tahun Ajaran ${payment.year.msy_year}
-                                    Semester ${payment.year.msy_semester}
-                                </td>
-                                <td>${Rupiah.format(item.prrb_amount)}</td>
-                                <td>${ response == null ? moment(item.prrb_due_date).format('DD/MM/YYYY') : '<p class="line">'+moment(item.prrb_due_date).format('DD/MM/YYYY')+'</p><br><p>'+moment(response.mds_deadline).format('DD/MM/YYYY')}</td>
-                                <td class="text-center">
-                                    ${item.prrb_status == 'lunas' ?
-                                        '<span class="badge bg-success">Lunas</span>'
-                                        : item.prrb_status == 'belum lunas' ?
-                                            '<span class="badge bg-danger">Belum Lunas</span>'
-                                            : 'N/A'
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-${item.prrb_status == 'belum lunas' ? `success` : `primary`}" onclick="payBillModal.open(${item.prrb_id})" style="white-space: nowrap;">
-                                        ${item.prrb_status == 'belum lunas' ? `Bayar` : `Detail Pembayaran`}
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    xhr.open("GET", _baseURL+"/api/student/dispensation/spesific-payment/{{ $prr_id }}", false);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
-                    return row;
+                ${bills.map(bill => {
+
+                    let paymentStatusHtml = '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>';
+                    if (bill.computed_payment_status == 'belum lunas')
+                        paymentStatusHtml = '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>';
+                    if (bill.computed_payment_status == 'kredit')
+                        paymentStatusHtml = '<span class="badge bg-warning" style="font-size: 1rem">Kredit</span>';
+                    if (bill.computed_payment_status == 'lunas')
+                        paymentStatusHtml = '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>';
+
+                    return `
+                        <tr>
+                            <td>${bill.prrb_order}</td>
+                            <td>
+                                Cicilan Ke-${bill.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                                Program Studi ${ studentType == 'new_student' ? `
+                                        ${billMaster.register.studyprogram.studyprogram_type.toUpperCase()}
+                                        ${billMaster.register.studyprogram.studyprogram_name}
+                                        ${billMaster.register.lecture_type?.mlt_name ?? 'N/A'}
+                                    ` : `
+                                        ${billMaster.student.studyprogram.studyprogram_type.toUpperCase()}
+                                        ${billMaster.student.studyprogram.studyprogram_name}
+                                        ${billMaster.student.lecture_type?.mlt_name ?? 'N/A'}
+                                    `
+                                }
+                                Tahun Ajaran ${billMaster.year.msy_year}
+                                Semester ${billMaster.year.msy_semester}
+                            </td>
+                            <td>${Rupiah.format(bill.prrb_amount)}</td>
+                            <td class="text-start">
+                                <p class="m-0">${moment(bill.computed_due_date).format('DD/MM/YYYY')}</p>
+                                ${
+                                    bill.computed_dispensation_applied ? `
+                                        <small class="d-block line" style="margin-top: 6px">${
+                                            moment(bill.prrb_due_date).format('DD/MM/YYYY')
+                                        }</small>
+                                    ` : ''
+                                }
+                            </td>
+                            <td class="text-center">${paymentStatusHtml}</td>
+                            <td class="text-center">
+                                <button class="btn btn-${['belum lunas', 'kredit'].includes(bill.computed_payment_status) ? `success` : `primary`}" onclick="payBillModal.open(${bill.prrb_id})" style="white-space: nowrap;">
+                                    ${['belum lunas', 'kredit'].includes(bill.computed_payment_status) ? `Bayar` : `Detail Pembayaran`}
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    // var row = null;
+                    // var xhr = new XMLHttpRequest()
+                    // xhr.onload = function(){
+                    //     var response = JSON.parse(this.responseText);
+                    //     if(response == null){
+                    //         console.log('not found');
+                    //     }
+                    //     console.log(response);
+                    //     row = `
+                    //         <tr>
+                    //             <td>${item.prrb_order}</td>
+                    //             <td>
+                    //                 Cicilan Ke-${item.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
+                    //                 Program Studi ${ studentType == 'new_student' ? `
+                    //                         ${payment.register.studyprogram.studyprogram_type.toUpperCase()}
+                    //                         ${payment.register.studyprogram.studyprogram_name}
+                    //                         ${payment.register.lecture_type?.mlt_name ?? 'N/A'}
+                    //                     ` : `
+                    //                         ${payment.student.studyprogram.studyprogram_type.toUpperCase()}
+                    //                         ${payment.student.studyprogram.studyprogram_name}
+                    //                         ${payment.student.lecture_type?.mlt_name ?? 'N/A'}
+                    //                     `
+                    //                 }
+                    //                 Tahun Ajaran ${payment.year.msy_year}
+                    //                 Semester ${payment.year.msy_semester}
+                    //             </td>
+                    //             <td>${Rupiah.format(item.prrb_amount)}</td>
+                    //             <td>${ response == null ? moment(item.prrb_due_date).format('DD/MM/YYYY') : '<p class="line">'+moment(item.prrb_due_date).format('DD/MM/YYYY')+'</p><br><p>'+moment(response.mds_deadline).format('DD/MM/YYYY')}</td>
+                    //             <td class="text-center">
+                    //                 ${item.prrb_status == 'lunas' ?
+                    //                     '<span class="badge bg-success">Lunas</span>'
+                    //                     : item.prrb_status == 'belum lunas' ?
+                    //                         '<span class="badge bg-danger">Belum Lunas</span>'
+                    //                         : 'N/A'
+                    //                 }
+                    //             </td>
+                    //             <td class="text-center">
+                    //                 <button class="btn btn-${item.prrb_status == 'belum lunas' ? `success` : `primary`}" onclick="payBillModal.open(${item.prrb_id})" style="white-space: nowrap;">
+                    //                     ${item.prrb_status == 'belum lunas' ? `Bayar` : `Detail Pembayaran`}
+                    //                 </button>
+                    //             </td>
+                    //         </tr>
+                    //     `;
+                    // }
+                    // xhr.open("GET", _baseURL+"/api/student/dispensation/spesific-payment/{{ $prr_id }}", false);
+                    // xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    // xhr.send();
+                    // return row;
                 })}
             `);
         },
@@ -340,7 +406,10 @@
             const bill = await $.ajax({
                 async: true,
                 url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}`,
-                type: 'get',
+                data: {
+                    withData: ['paymentManualApproval'],
+                    withAppend:  ['computed_nominal_paid', 'computed_payment_status'],
+                }
             });
 
             if (bill.prrb_payment_method != null) {
@@ -438,9 +507,7 @@
             const nominalInvoice = bill.prrb_amount + bill.prrb_admin_cost;
             const nominalHasToPaid = bill.prrb_amount + bill.prrb_admin_cost - studentBalanceSpent;
 
-            const nominalPaid = paymentTransactions.reduce((accumulator, transaction) => {
-                return (accumulator + transaction.prrt_amount);
-            }, 0);
+            const nominalPaid = bill.computed_nominal_paid;
 
             let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - (nominalPaid + studentBalanceSpent);
             if (nominalUnpaid < 0) nominalUnpaid = 0;
@@ -463,7 +530,7 @@
             // RENDER PAYMENT INFORMATION
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
-                    <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Metbill.ode Pembayaran</td>
                     <td>${paymentMethod.mpm_name}</td>
                 </tr>
 
@@ -556,7 +623,7 @@
                                                     <td>${moment(item.pma_payment_time).format('DD/MM/YYYY HH:mm')}</td>
                                                     <td class="text-center">${status}</td>
                                                     <td class="text-center">
-                                                        <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.pma_id})">
+                                                        <button class="btn btn-info btn-sm btn-icon rounded" onclick="payBillModal.openPaymentApprovalDetailModal(${item.prrb_id},${item.pma_id})">
                                                             <i data-feather="eye"></i>
                                                         </button>
                                                     </td>
@@ -568,7 +635,7 @@
                         </table>
                         <div id="upload-payment-evidence-section">
                             ${
-                                bill.prrb_status == 'belum lunas' || payBillModal.alwaysAllowUploadEvidence ? `
+                                ['belum lunas', 'kredit'].includes(bill.computed_payment_status) || payBillModal.alwaysAllowUploadEvidence ? `
                                     <div class="d-flex justify-content-center mt-1">
                                         <button onclick="payBillModal.openUploadEvidenceModal(${bill.prrb_id})" class="btn btn-success">Unggah Bukti Pembayaran</button>
                                     </div>
@@ -608,7 +675,7 @@
                             return `
                                 <tr>
                                     <td>${index+1}</td>
-                                    <td>${Rupiah.format(item.prrt_amount)}</td>
+                                    <td>${Rupiah.format(item.computed_initial_amount)}</td>
                                     <td>${moment(item.prrt_time).format('DD/MM/YYYY HH:mm')}</td>
                                     <td>${desc}</td>
                                 </tr>
@@ -655,8 +722,7 @@
             }
 
             // RENDER RESET PAYMENT METHOD BUTTON
-            // console.log(paymentMethod, bill);
-            if (paymentMethod.mpm_type == 'bank_transfer_va' && bill.prrb_status == 'belum lunas') {
+            if (paymentMethod.mpm_type == 'bank_transfer_va' && ['belum lunas', 'kredit'].includes(bill.computed_payment_status)) {
                 $('#paymentInstructionModal .modal-footer').html(`
                     <div class="d-flex justify-content-end">
                         <button onclick="payBillModal.resetPaymentMethod(${bill.prrb_id})" class="btn btn-outline-warning">Ganti Metode Pembayaran</button>
@@ -761,10 +827,10 @@
                 },
             });
         },
-        openPaymentApprovalDetailModal: async function(pmaId) {
+        openPaymentApprovalDetailModal: async function(prrbId, pmaId) {
             const approval = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${bill.prrb_id}/approval/${pmaId}`,
+                url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}/approval/${pmaId}`,
                 type: 'get',
             });
 
@@ -863,7 +929,7 @@
                             title: 'Status Approval',
                             content: {
                                 template: `:value`,
-                                value: approval.pma_approval_status == 'waiting' ? 'Menunggu Pembayaran'
+                                value: approval.pma_approval_status == 'waiting' ? 'Menunggu'
                                     : approval.pma_approval_status == 'accepted' ? 'Diterima'
                                     : approval.pma_approval_status == 'rejected' ? 'Ditolak' : '-',
                             },

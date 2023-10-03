@@ -12,11 +12,18 @@ use App\Models\Payment\PaymentTransaction;
 use App\Models\Payment\StudentBalanceTrans;
 use App\Models\Payment\StudentBalanceSpent;
 use App\Models\Payment\Student;
+use App\Traits\Payment\General as PaymentGeneral;
+use App\Enums\Payment\BillStatus;
+use App\Enums\Payment\BalanceTransType;
+use App\Enums\Payment\BalanceSpentStatus;
+use App\Enums\Payment\PaymentMethodType;
 use Carbon\Carbon;
 use DB;
 
 class ManualPaymentController extends Controller
 {
+    use PaymentGeneral;
+
     public function index(Request $request)
     {
         $filters = $request->input('custom_filters');
@@ -61,7 +68,7 @@ class ManualPaymentController extends Controller
             $approval = PaymentManualApproval::find($pma_id);
             $approval->pma_approval_status = $validated['status'];
             $approval->pma_notes = $validated['notes'];
-            $approval->pma_processed_at = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
+            $approval->pma_processed_at = $this->getCurrentDateTime();
             $approval->save();
 
             $bill = PaymentBill::with('paymentMethod')->where('prrb_id', $approval->prrb_id)->first();
@@ -75,8 +82,8 @@ class ManualPaymentController extends Controller
 
                 $total_discount = StudentBalanceSpent::where('prrb_id', $approval->prrb_id)
                     ->where(function ($query) {
-                        $query->where('sbs_status', 'reserved')
-                            ->orWhere('sbs_status', 'used');
+                        $query->where('sbs_status', BalanceSpentStatus::Reserved);
+                            // ->orWhere('sbs_status', BalanceSpentStatus::Used);
                     })
                     ->sum('sbs_amount');
 
@@ -85,6 +92,7 @@ class ManualPaymentController extends Controller
 
                 $total_payment = $approval->pma_amount;
                 $overpayment_nominal = 0;
+                $amount_for_transaction = $total_payment;
 
                 $is_overpayment = ($total_paid + $total_payment) > $total_bill;
                 if ($is_overpayment) {
@@ -92,6 +100,29 @@ class ManualPaymentController extends Controller
                     if ($total_unpaid < 0) $total_unpaid = 0;
                     $overpayment_nominal = $total_payment - $total_unpaid;
                 }
+
+                if ($overpayment_nominal > 0) {
+                    $amount_for_transaction -= $overpayment_nominal;
+                }
+
+                // Create Transaction Record
+                $payment_transaction = new PaymentTransaction();
+                $payment_transaction->prrb_id = $bill->prrb_id;
+                $payment_transaction->prrt_payment_method = $bill->prrb_payment_method;
+                if ($bill->paymentMethod->mpm_type == PaymentMethodType::BankTransferManual->value) {
+                    $payment_transaction->prrt_sender_account_number = $approval->pma_sender_account_number;
+                    $payment_transaction->prrt_receiver_account_number = $approval->pma_receiver_account_number;
+                }
+                elseif ($bill->paymentMethod->mpm_type == PaymentMethodType::BankTransferVA->value) {
+                    $payment_transaction->prrt_va_number = $bill->prrb_va_number;
+                }
+                elseif ($bill->paymentMethod->mpm_type == PaymentMethodType::BankTransferBillPayment->value) {
+                    $payment_transaction->prrt_biller_code = $bill->prrb_biller_code;
+                    $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
+                }
+                $payment_transaction->prrt_amount = $amount_for_transaction;
+                $payment_transaction->prrt_time = $approval->pma_payment_time;
+                $payment_transaction->save();
 
                 // Store overpayment balance
                 if ($overpayment_nominal > 0) {
@@ -108,43 +139,36 @@ class ManualPaymentController extends Controller
                         'sbt_opening_balance' => $opening_balance,
                         'sbt_amount' => $overpayment_nominal,
                         'sbtt_name' => 'overpaid_bill',
-                        'sbtt_associate_id' => $bill->prrb_id,
+                        'sbtt_associate_id' => $payment_transaction->prrt_id,
                         'sbt_closing_balance' => $closing_balance,
-                        'sbt_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                        'sbt_time' => $this->getCurrentDateTime(),
                     ]);
                 }
 
-                // Create Transaction Record
-                $payment_transaction = new PaymentTransaction();
-                $payment_transaction->prrb_id = $bill->prrb_id;
-                $payment_transaction->prrt_payment_method = $bill->prrb_payment_method;
-                if ($bill->paymentMethod->mpm_type == 'bank_transfer_manual') {
-                    $payment_transaction->prrt_sender_account_number = $approval->pma_sender_account_number;
-                    $payment_transaction->prrt_receiver_account_number = $approval->pma_receiver_account_number;
-                }
-                elseif ($bill->paymentMethod->mpm_type == 'bank_transfer_va') {
-                    $payment_transaction->prrt_va_number = $bill->prrb_va_number;
-                }
-                elseif ($bill->paymentMethod->mpm_type == 'bank_transfer_bill_payment') {
-                    $payment_transaction->prrt_biller_code = $bill->prrb_biller_code;
-                    $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
-                }
-                $payment_transaction->prrt_amount = $approval->pma_amount;
-                $payment_transaction->prrt_time = $approval->pma_payment_time;
-                $payment_transaction->save();
+                // Update student_balance_spent status to used
+                StudentBalanceSpent::where([
+                        'prrb_id' => $bill->prrb_id,
+                        'sbs_status' => BalanceSpentStatus::Reserved,
+                    ])
+                    ->update(['sbs_status' => BalanceSpentStatus::Used]);
 
                 /**
                  * Set bill to lunas if sum on transaction nominal belong this bill is equal
                  * or greater than bill nominal.
                  */
+                $total_discount = StudentBalanceSpent::where('prrb_id', $approval->prrb_id)
+                    ->where(function ($query) {
+                        $query->where('sbs_status', BalanceSpentStatus::Used);
+                    })
+                    ->sum('sbs_amount');
                 $total_paid = PaymentTransaction::where('prrb_id', '=', $approval->prrb_id)->sum('prrt_amount');
                 $total_paid += $total_discount;
                 if (
-                    $bill->prrb_status == 'belum lunas'
+                    $bill->prrb_status == BillStatus::NotPaidOff->value
                     && $total_paid >= $total_bill
                 ) {
                     $bill->prrb_paid_date = $approval->pma_payment_time;
-                    $bill->prrb_status = 'lunas';
+                    $bill->prrb_status = BillStatus::PaidOff->value;
                     $bill->save();
                 }
 
@@ -153,20 +177,13 @@ class ManualPaymentController extends Controller
                  * status are lunas.
                  */
                 $unpaid_bills = PaymentBill::where('prr_id', $bill->prr_id)
-                    ->where('prrb_status', 'belum lunas')
+                    ->where('prrb_status', BillStatus::NotPaidOff)
                     ->get();
                 if ($unpaid_bills->count() == 0) {
                     $payment = Payment::find($bill->prr_id);
-                    $payment->prr_status = 'lunas';
+                    $payment->prr_status = BillStatus::PaidOff;
                     $payment->save();
                 }
-
-                // Update student_balance_spent status to used
-                StudentBalanceSpent::where([
-                        'prrb_id' => $bill->prrb_id,
-                        'sbs_status' => 'reserved',
-                    ])
-                    ->update(['sbs_status' => 'used']);
             }
 
             DB::commit();
