@@ -3,12 +3,13 @@
 namespace App\Traits;
 
 use App\Helpers\AssociateData;
-use App\Models\Payment\UserAssociateModel;
+use App\Models\UserAssociateModel;
 
 trait HasAssociateData
 {
     protected $loadedData = [];
     protected $loadedProperty = [];
+    protected $hasAssocDataCache = [];
 
     public function setAssociateData($name, $value = null)
     {
@@ -24,29 +25,30 @@ trait HasAssociateData
         return true;
     }
 
+    public function removeAssociateData($name)
+    {
+        $this->associateModels()
+            ->where("model", $name)
+            ->delete();
+    }
+
     public function getAssociateData($name)
     {
         if(!isset($this->loadedData[$name])){
-            $model = $this->associateModels()->where('model', $name)->first();
-            $this->loadedData[$name] = $model;
-        } else {
-            $model = $this->loadedData[$name];
+            $this->loadedData[$name] = $this->associateModels()
+                ->where('model', $name)
+                ->first() ?? -1;
         }
-        
-        if(!$model)
+
+        if(!is_object($this->loadedData[$name]))
             return false;
 
-        $modelAlias = $model->model;
-        $identifier = $model->associate_identifier;
+        $modelAlias = $this->loadedData[$name]->model;
+        $identifier = $this->loadedData[$name]->associate_identifier;
         if($identifier == null)
             return null;
 
         return AssociateData::getAssociatedData($modelAlias, $identifier);
-    }
-
-    public function getLoadedData()
-    {
-        return $this->loadedData;
     }
 
     public function getAssociateDataIdentifier($name)
@@ -57,7 +59,7 @@ trait HasAssociateData
         } else {
             $model = $this->loadedData[$name];
         }
-        
+
         if(!$model)
             return null;
 
@@ -84,10 +86,10 @@ trait HasAssociateData
 
     public function hasAssociateData($name)
     {
-        if($this->getAssociateData($name) !== false)
-            return true;
-        else
-            return false;
+        if(!isset($this->hasAssocDataCache[$name]))
+            return $this->hasAssocDataCache[$name] = $this->getAssociateData($name) !== false;
+
+        return $this->hasAssocDataCache[$name];
     }
 
     public static function findThroughAssociateData($model, $value)

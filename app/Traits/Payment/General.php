@@ -58,14 +58,14 @@ trait General
     private function getStudentData()
     {
         // Error getting associate data
-        // $student = Auth::user()->getAssociateData('student'); // error
+        $student = Auth::user()->getAssociateData('student'); // error
 
         // Manually get student model
-        ['associate_identifier' => $student_number] = Auth::user()->getLoadedData()['student'];
+        // ['associate_identifier' => $student_number] = Auth::user()->getLoadedData()['student'];
 
-        $student = Student::with(['studyProgram', 'studyProgram.faculty'])
-            ->where('student_number', $student_number)
-            ->first();
+        // $student = Student::with(['studyProgram', 'studyProgram.faculty'])
+        //     ->where('student_number', $student_number)
+        //     ->first();
 
         return $student;
     }

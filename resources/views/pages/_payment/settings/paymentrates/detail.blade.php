@@ -302,7 +302,7 @@
     var count = -9999;
     const _ratesTableActions = {
         tableRef: _ratesTable,
-        PaymentRateInputField: function(id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0) {
+        PaymentRateInputField: function(id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0, is_admission = 0) {
             let isId = 0;
             if (increment === 1) {
                 isId = count++;
@@ -338,7 +338,7 @@
                     </div>
                 </div>
             `);
-            $.get(_baseURL + '/api/payment/settings/paymentrates/component', (data) => {
+            $.get(_baseURL + '/api/payment/settings/paymentrates/component/'+is_admission, (data) => {
                 JSON.parse(data).map(item => {
                     $("#component" + isId).append(`
                         <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
@@ -462,6 +462,32 @@
                     callback: function() {
                         // ex: reload table
                         _ratesTable.reload()
+                        $("#csId").change(function() {
+                            schema = $(this).val();
+                            diff = _ratesTableActions.difference(schema, val);
+                            diff.map(item => {
+                                if (val.includes(item)) {
+                                    val = val.filter(function(x) {
+                                        if (x !== item) {
+                                            return x;
+                                        }
+                                    });
+                                    console.log("hapus "+item);
+                                    $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
+                                        d = JSON.parse(d)
+                                        _toastr.success(d.message, 'Success')
+                                    })
+                                    $("#schemaDeadlineTag" + item).remove();
+                                } else {
+                                    val.push(item.toString());
+                                    $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
+                                        d = JSON.parse(d)
+                                        _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
+                                    })
+                                    // console.log("tambah "+item);
+                                }
+                            });
+                        })
                     },
                 },
             });
@@ -504,6 +530,7 @@
                 $('#csId').val(val).change();
                 selectRefresh()
             })
+            console.log(data.ppm);
             if (Object.keys(data.ppm.credit).length > 0) {
                 data.ppm.credit.map(item => {
                     _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
@@ -533,32 +560,7 @@
             //         // console.log("tambah "+item);
             //     }
             // });
-            $("#csId").change(function() {
-                schema = $(this).val();
-                diff = _ratesTableActions.difference(schema, val);
-                diff.map(item => {
-                    if (val.includes(item)) {
-                        val = val.filter(function(x) {
-                            if (x !== item) {
-                                return x;
-                            }
-                        });
-                        console.log("hapus "+item);
-                        $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-                            d = JSON.parse(d)
-                            _toastr.success(d.message, 'Success')
-                        })
-                        $("#schemaDeadlineTag" + item).remove();
-                    } else {
-                        val.push(item.toString());
-                        $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-                            d = JSON.parse(d)
-                            _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
-                        })
-                        // console.log("tambah "+item);
-                    }
-                });
-            })
+
         },
         copy: function(e) {
             dataCopy = _ratesTable.getRowData(e);

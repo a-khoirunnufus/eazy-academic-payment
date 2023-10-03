@@ -100,10 +100,15 @@ class PaymentRatesController extends Controller
         return datatables($collection)->toJson();
     }
 
-    public function getComponent()
+    public function getComponent($is_admission)
     {
-        $component = Component::all();
-        return $component->toJson();
+        $component = Component::query();
+        if($is_admission == 1){
+            $component = $component->where('msc_is_new_student',1);
+        }else{
+            $component = $component->where('msc_is_student',1);
+        }
+        return $component->get()->toJson();
     }
 
     public function getSchema()

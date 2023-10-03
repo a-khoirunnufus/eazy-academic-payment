@@ -252,6 +252,8 @@
                     },
                     formSubmitLabel: 'Tambah Skema',
                     callback: function() {
+                        _registrationFormTable.reload();
+
                         // ex: reload table
                         // Swal.fire({
                         //     icon: 'success',
@@ -307,7 +309,7 @@
                                 icon: 'success',
                                 text: 'Berhasil mengupdate skema',
                             }).then(() => {
-                                this.tableRef.reload()
+                                _registrationFormTable.reload();
                             })
                         },
                     },
@@ -328,6 +330,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
+                    _registrationFormTable.reload();
                     Swal.fire({
                         icon: 'success',
                         text: 'Berhasil menghapus skema',

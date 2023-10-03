@@ -22,6 +22,7 @@ class FormulirPendaftaranController extends Controller
             ->join('pmb.ms_period as mp', 'pp.period_id', '=', 'mp.period_id')
             ->join('masterdata.ms_school_year as msy', 'mp.msy_id', '=', 'msy.msy_id')
             ->join('pmb.ms_path as mp2', 'pp.path_id', '=', 'mp2.path_id')
+            ->orderBy('pp.ppd_id')
             ->distinct()->get();
 
         $datatable = datatables($data);

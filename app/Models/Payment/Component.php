@@ -10,7 +10,7 @@ class Component extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $table = "finance.ms_component";
 
     protected $primaryKey = 'msc_id';

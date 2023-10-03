@@ -58,7 +58,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('paymentrates/import/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@import');
         Route::get('paymentrates/period', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getPeriod');
         Route::get('paymentrates/path', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getPath');
-        Route::get('paymentrates/component', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getComponent');
+        Route::get('paymentrates/component/{is_admission}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getComponent');
         Route::get('paymentrates/schema', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getSchema');
         Route::get('paymentrates/studyprogram', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getStudyProgram');
         Route::get('paymentrates/lecture-type', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getLectureType');
@@ -316,12 +316,12 @@ Route::get('download', function(Request $request) {
     if ($storage && $type && $filename) {
         if ($storage == 'local') {
             if ($type == 'excel-log') {
-                $path_arr = ['app', 'public', 'excel-logs', $filename];
+                $path_arr = ['app', 'modules', 'excel-logs', $filename];
                 $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
             if ($type == 'excel-template') {
-                $path_arr = ['app', 'public', 'excel-templates', $filename];
+                $path_arr = ['app', 'modules', 'excel-templates', $filename];
                 $path = storage_path(join(DIRECTORY_SEPARATOR, $path_arr));
                 return response()->download($path, $filename);
             }
