@@ -24,11 +24,16 @@ use App\Models\Payment\CreditSchemaDeadline;
 use App\Models\Scopes\CreditSchemaTemplateScope;
 use App\Exports\SettingFeeTemplateExport;
 use App\Imports\SettingFeeImport;
+use App\Traits\Payment\LogActivity;
+use App\Traits\Payment\General;
+use App\Enums\Payment\LogStatus;
 use DB;
 use Builder;
 
 class PaymentRatesController extends Controller
 {
+    use LogActivity, General;
+
     public function index(Request $request)
     {
         $filters = $request->input('custom_filters');
@@ -94,7 +99,7 @@ class PaymentRatesController extends Controller
                 $period_id = $item->periodPath->period_id;
             }
             $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->get();
-            $data = ['ppm' => $item, 'component' => $search];
+            $data = ['ppm' => $item, 'component' => $search, 'ppm_id' => $item->ppm_id, 'ppd_id' => $id];
             $collection->push($data);
         }
         return datatables($collection)->toJson();
@@ -371,13 +376,42 @@ class PaymentRatesController extends Controller
         return datatables($query)->toJson();
     }
 
-    // public function delete($id)
-    // {
-    //     $data = PaymentRate::findOrFail($id);
-    //     $data->delete();
+    public function delete(Request $request, $ppm_id)
+    {
+        $log = $this->addToLog('Hapus Tarif dan Pembayaran',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->deleteProcess($ppm_id,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
 
-    //     return json_encode(array('success' => true, 'message' => "Berhasil menghapus tarif dan pembayaran"));
-    // }
+    public function deleteBulk(Request $request, $ppd_id)
+    {
+        $log = $this->addToLog('Delete Bulk Tarif dan Pembayaran',$this->getAuthId(),LogStatus::Process,$request->url);
+        $ppm = PeriodPathMajor::where('ppd_id', $ppd_id)->get();
+        foreach ($ppm as $item) {
+            $this->deleteProcess($item->ppm_id,$log->log_id);
+        }
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Berhasil Delete Bulk Tarif dan Pembayaran";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteProcess($ppm_id,$log_id){
+        $ppm = PeriodPathMajor::with('majorLectureType')->findorfail($ppm_id);
+        try {
+            DB::beginTransaction();
+            ComponentDetail::where('ppm_id',$ppm_id)->delete();
+            CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->delete();
+            $this->addToLogDetail($log_id,$this->getLogTitle($ppm->majorLectureType->studyProgram->studyprogram_name.' - '.$ppm->majorLectureType->lectureType->mlt_name),LogStatus::Success);
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($ppm->majorLectureType->studyProgram->studyprogram_name.' - '.$ppm->majorLectureType->lectureType->mlt_name,$e->getMessage()),LogStatus::Failed);
+            return response()->json($e->getMessage());
+        }
+        $text = "Berhasil menghapus tarif dan pembayaran";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
 
     /**
      * IMPORT SETTING FEE START

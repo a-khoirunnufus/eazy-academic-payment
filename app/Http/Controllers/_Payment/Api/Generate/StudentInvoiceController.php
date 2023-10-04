@@ -278,16 +278,16 @@ class StudentInvoiceController extends Controller
                         'type' => 'component',
                     ]);
                 }
-                $this->addToLogDetail($log_id,$this->getLogTitle($student),LogStatus::Success);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
-                $this->addToLogDetail($log_id,$this->getLogTitle($student,null,$e->getMessage()),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
                 return response()->json($e->getMessage());
             }
         } else {
             $text= 'Komponen Tagihan Tidak Ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitle($student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         $text = "Berhasil generate tagihan mahasiswa " . $student->fullname;
@@ -363,7 +363,7 @@ class StudentInvoiceController extends Controller
                 foreach ($detail as $item) {
                     if ($item->type == 'discount' or $item->type == 'scholarship') {
                         $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
-                        $this->addToLogDetail($log_id,$this->getLogTitle($item->payment->student,null,$text),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($item->payment->student,null,$text),LogStatus::Failed);
                         return json_encode(array('success' => false, 'message' => $text));
                     }
                 }
@@ -372,23 +372,23 @@ class StudentInvoiceController extends Controller
             $data = Payment::with('student')->findorfail($prr_id);
             if(Carbon::createFromFormat('Y-m-d', Config::get('app.payment_delete_lock')) <= Carbon::now()){
                 $text = "Sudah melebihi batas waktu penghapusan data";
-                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
                 return json_encode(array('success' => false, 'message' => $text));
             }
             if ($data->prr_status == 'kredit') {
                 $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
-                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
                 return json_encode(array('success' => false, 'message' => $text));
             }
             DB::beginTransaction();
             $data->delete();
             PaymentDetail::where('prr_id', $prr_id)->delete();
             PaymentBill::where('prr_id', $prr_id)->delete();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student),LogStatus::Success);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
@@ -657,7 +657,7 @@ class StudentInvoiceController extends Controller
             foreach($data->paymentBill as $item){
                 if($item->prrb_status == 'lunas'){
                     $text= 'Terdapat tagihan yang sudah dilunasi';
-                    $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
                     return json_encode(array('success' => false, 'message' => $text));
                 }
             }
@@ -748,24 +748,24 @@ class StudentInvoiceController extends Controller
                             }
                         }else{
                         $credit->update(['mcs_status'=> 0]);
-                        $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                         }
                     }else{
                         $credit->update(['mcs_status'=> 0]);
-                        $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                     }
                 }
-                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
-                $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
                 return response()->json($e->getMessage());
             }
             return json_encode(array('success' => true, 'message' => "Berhasil regenerate tagihan mahasiswa"));
         } else {
             $text= 'Komponen Tagihan Tidak Ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
     }

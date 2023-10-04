@@ -40,12 +40,12 @@ class DiscountGenerateController extends Controller
         }
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         if($data->mdr_status_generate == 1){
             $text = "Potongan telah digenerate";
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         DB::beginTransaction();
@@ -66,12 +66,12 @@ class DiscountGenerateController extends Controller
             ]);
 
             $data->update(['mdr_status_generate' => 1,'prr_id'=> $payment->prr_id]);
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
 
@@ -124,7 +124,7 @@ class DiscountGenerateController extends Controller
         $payment = Payment::where('prr_id',$data->prr_id)->first();
         if(!$payment){
             $text = "Tagihan tidak ditemukan";
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         DB::beginTransaction();
@@ -139,12 +139,12 @@ class DiscountGenerateController extends Controller
             }
 
             $data->update(['mdr_status_generate' => 0]);
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent),LogStatus::Success);
             // update payment bill case: 1(kalau dia udh lunas gimana) 2(kalau dia belum lunas gimana) 3(kalau dia cicilan, motong yg mana?)
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,$data->newStudent,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
 

@@ -73,7 +73,7 @@ class DispensationSubmissionController extends Controller
 
         if(!$data->payment){
             $text = 'Data tagihan tidak ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
 
@@ -85,11 +85,11 @@ class DispensationSubmissionController extends Controller
             $data->update(['mds_deadline' => $validated['prr_dispensation_date'],'mds_status' => 1,'prr_id'=> $data->payment->prr_id]);
             $text = "Berhasil mengupdate pengajuan dispensasi";
 
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null),LogStatus::Success);
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
@@ -100,7 +100,7 @@ class DispensationSubmissionController extends Controller
         $log = $this->addToLog('Decline Pengajuan Dispensasi',$this->getAuthId(),LogStatus::Process,$request->url);
         $data = DispensationSubmission::with('student')->findorfail($request->mds_id);
         $data->update(['mds_status' => 0,'mds_decline_reason' => $request->mds_decline_reason]);
-        $this->addToLogDetail($log->log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
+        $this->addToLogDetail($log->log_id,$this->getLogTitleStudent($data->student,null),LogStatus::Success);
         $text = "Berhasil menolak pengajuan dispensasi";
         $this->updateLogStatus($log,LogStatus::Success);
         return json_encode(array('success' => true, 'message' => $text));

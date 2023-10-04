@@ -77,12 +77,12 @@ class CreditSubmissionController extends Controller
 
         if(!$data->payment){
             $text = 'Data tagihan tidak ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         if($total != $data->payment->prr_total){
             $text = 'Total nominal cicilan tidak sesuai tagihan, Total saat ini: Rp.'.number_format($total, 2);
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
 
@@ -108,11 +108,11 @@ class CreditSubmissionController extends Controller
 
             $data->update(['mcs_status' => 1,'prr_id'=> $data->payment->prr_id,'cs_id'=> $validated['cs_id']]);
             $text = "Berhasil mengupdate pengajuan cicilan";
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null),LogStatus::Success);
             DB::commit();
         }catch(\Exception $e){
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
@@ -123,7 +123,7 @@ class CreditSubmissionController extends Controller
         $log = $this->addToLog('Decline Pengajuan Cicilan',$this->getAuthId(),LogStatus::Process,$request->url);
         $data = CreditSubmission::with('student')->findorfail($request->mcs_id);
         $data->update(['mcs_status' => 0,'mcs_decline_reason' => $request->mcs_decline_reason]);
-        $this->addToLogDetail($log->log_id,$this->getLogTitle($data->student,null),LogStatus::Success);
+        $this->addToLogDetail($log->log_id,$this->getLogTitleStudent($data->student,null),LogStatus::Success);
         $text = "Berhasil menolak pengajuan cicilan";
         $this->updateLogStatus($log,LogStatus::Success);
         return json_encode(array('success' => true, 'message' => $text));

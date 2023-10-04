@@ -224,9 +224,9 @@ class NewStudentInvoiceController extends Controller
 
         try {
             GenerateOneInvoice::generate($validated['invoice_period_code'], $validated['register_id']);
-            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data),LogStatus::Success);
         } catch (GenerateInvoiceException $ex) {
-            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data,$e->getMessage()),LogStatus::Failed);
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?
@@ -270,7 +270,7 @@ class NewStudentInvoiceController extends Controller
 
             if (count($payBill) > 0) {
                 $text= 'Gagal menghapus tagihan mahasiswa, terdapat mahasiswa yang telah bayar.';
-                $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
                 return response()->json([
                     'success' => false,
                     'message' => $text,
@@ -296,7 +296,7 @@ class NewStudentInvoiceController extends Controller
 
             if (count($componentRules) > 0) {
                 $text = 'Gagal menghapus tagihan mahasiswa, terdapat beasiswa dan potongan yang telah digenerate.';
-                $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
                 return response()->json([
                     'success' => false,
                     'message' => $text,
@@ -304,10 +304,10 @@ class NewStudentInvoiceController extends Controller
             }
 
             DeleteOneInvoice::delete($validated['payment_reregist_id']);
-            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register),LogStatus::Success);
 
         } catch (DeleteInvoiceException $ex) {
-            $this->addToLogDetail($log_id,$this->getLogTitle(null,$data->register,$ex->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$ex->getMessage()),LogStatus::Failed);
             return response()->json([
                 'success' => false,
                 'message' => config('app.env') != 'production' ?

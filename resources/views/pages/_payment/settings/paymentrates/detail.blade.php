@@ -273,10 +273,14 @@
                         <div style="margin-bottom: 7px">
                             <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importInvoiceComponentModal">
                                 <span style="vertical-align: middle">
-                                    <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    <i data-feather="file-text" style="width: 18px; height: 18px;"></i>&nbsp;
                                     Import Komponen Tagihan
                                 </span>
                             </button>
+                            <button onclick="_ratesTableActions.deleteBulk()" class="btn btn-danger">
+                            <i data-feather="trash" style="width: 18px; height: 18px;"></i> Delete All </button>
+                            <button onclick="_ratesTableActions.logActivityModal()" class="btn btn-secondary">
+                            <i data-feather="book-open" style="width: 18px; height: 18px;"></i> Log Generate</button>
                         </div>
                     `);
                     feather.replace();
@@ -292,6 +296,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_ratesTableActions.edit(this)" class="dropdown-item"><i data-feather="dollar-sign"></i> Komponen Tagihan</a>
+                            <a onclick="_ratesTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i> Hapus Komponen</a>
                             <a onclick="_ratesTableActions.copy(this)" class="dropdown-item"><i data-feather="clipboard"></i> Salin Data</a>
                         </div>
                     </div>
@@ -562,6 +567,74 @@
             // });
 
         },
+        delete: function(e) {
+            let data = _ratesTable.getRowData(e);
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus konfigurasi komponen ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/settings/paymentrates/delete/' + data.ppm_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _ratesTable.reload()
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+        deleteBulk: function(e) {
+            let ppd_id = {{ $id }};
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus seluruh konfigurasi pada jalur periode ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/settings/paymentrates/deleteBulk/' + ppd_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _ratesTable.reload();
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error);
+                    })
+                }
+            })
+        },
         copy: function(e) {
             dataCopy = _ratesTable.getRowData(e);
         },
@@ -684,6 +757,11 @@
                     })
                 }
             })
+        },
+        logActivityModal: function() {
+            title = `Log Tarif dan Pembayaran`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
         },
     }
 
@@ -962,5 +1040,6 @@
             }
         });
     }
+
 </script>
 @endsection

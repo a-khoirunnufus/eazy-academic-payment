@@ -39,7 +39,7 @@ trait LogActivity
     	return LogActivityModel::with('detail', 'user')->where('log_route',$route)->latest()->paginate(10);
     }
 
-    public function getLogTitle($student = null, $newStudent = null,$message = null)
+    public function getLogTitleStudent($student = null, $newStudent = null,$message = null)
     {
         $name = $this->getStudentName($student,$newStudent);
         $number = $this->getStudentNumber($student,$newStudent);
@@ -49,6 +49,13 @@ trait LogActivity
             $text = "";
         }
         return $name.' ('.$number.')'.$text;
+    }
+
+    public function getLogTitle($data = null, $message = null)
+    {
+        $data = $data ? $data : "";
+        $text = $message ? $this->getMessage($message) : "";
+        return $data.$text;
     }
 
     public static function updateLogStatus($log,$result){
