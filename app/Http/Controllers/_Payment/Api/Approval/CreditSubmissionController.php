@@ -86,6 +86,14 @@ class CreditSubmissionController extends Controller
             return json_encode(array('success' => false, 'message' => $text));
         }
 
+        // if student has ever paid this bill, then reject this credit submission approval
+        if ($data->payment->computed_has_paid_bill) {
+            $text = 'Tidak dapat mengubah skema cicilan, terdapat tagihan yang telah dibayar oleh mahasiswa.';
+            $data->update(['mcs_status' => 0, 'mcs_decline_reason' => $text]);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
+
         // dd($validated['cse_order'][1]);
         DB::beginTransaction();
         try{
