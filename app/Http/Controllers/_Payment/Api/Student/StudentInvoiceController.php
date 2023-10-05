@@ -41,101 +41,40 @@ class StudentInvoiceController extends Controller
 
     public function index(Request $request)
     {
-        /**
-         * NOTE:
-         * - invoice number still using prr_id, change later.
-         */
-
         $validated = $request->validate([
-            'student_type' => 'required|in:new_student,student',
-            'participant_id' => 'required_if:student_type,new_student',
             'student_number' => 'required_if:student_type,student',
             'status' => 'required|in:paid,unpaid',
         ]);
 
-        $invoices = DB::table('finance.payment_re_register as prr')
-            ->leftJoin('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
-            ->leftJoin('masterdata.ms_school_year as msy', 'msy.msy_code', '=', DB::raw("prr.prr_school_year::VARCHAR"))
-            ->leftJoin('pmb.register as reg', 'reg.reg_id', '=', 'prr.reg_id')
-            ->leftJoin('masterdata.ms_studyprogram as std', 'std.studyprogram_id', '=', 'reg.reg_major_pass')
-            ->leftJoin('masterdata.ms_lecture_type as mlt', 'mlt.mlt_id', '=', DB::raw("reg.reg_major_lecture_type_pass::INTEGER"));
+        $query = Payment::query();
+        $query = $this->applyRelation($query, $request, [
+            'paymentDetail',
+            'paymentBill',
+            'register',
+            'student',
+            'student.studyprogram',
+            'student.lectureType',
+            'year',
+            'dispensation',
+        ]);
 
-        if ($validated['student_type'] == 'new_student') {
-            $invoices = $invoices->where('prr.par_id', '=', $validated['participant_id']);
+        $query = $query->where('student_number', $validated['student_number']);
+        if ($validated['status'] == 'unpaid') $query = $query->whereIn('prr_status', ['belum lunas', 'kredit']);
+        if ($validated['status'] == 'paid') $query = $query->where('prr_status', 'lunas');
+
+        $datatable = datatables($query);
+
+        foreach ($request->input('withAppend') as $attribute) {
+            $datatable->addColumn($attribute, function($invoice) use($attribute) {
+                $value = $invoice->{$attribute};
+                $new_value = $value;
+                if ($value instanceof \Illuminate\Database\Eloquent\Collection) {
+                    $new_value = [];
+                    if ($value->isNotEmpty()) $new_value = [...$value->toArray()];
+                }
+                return $new_value;
+            });
         }
-
-        if ($validated['student_type'] == 'student') {
-            $student = Student::find($validated['student_number']);
-            $invoices = $invoices->where('prr.student_number', '=', $student->student_number);
-        }
-
-        $invoices = $invoices->whereIn(
-                'prr.prr_status',
-                $validated['status'] == 'unpaid' ? ['belum lunas', 'kredit'] : ['lunas']
-            )
-            ->whereNull('prr.deleted_at')
-            ->select(
-                DB::raw("
-                    CASE
-                        WHEN prr.reg_id is not null THEN 'new_student'
-                        ELSE 'student'
-                    END as invoice_student_type
-                "),
-                'prr.prr_id as prr_id',
-                'msy.msy_year as invoice_school_year_year',
-                'msy.msy_semester as invoice_school_year_semester',
-                DB::raw("'INV/' || prr.prr_id as invoice_number"),
-                'prr.created_at as invoice_issued_date',
-                DB::raw("
-                    CASE
-                        WHEN prrd.type = 'component' THEN
-                            '[' || STRING_AGG('{\"name\":\"'::TEXT || prrd.prrd_component || '\",\"nominal\":'::TEXT || prrd.prrd_amount || '}'::TEXT, ',') || ']'
-                        ELSE
-                            '[]'::TEXT
-                    END as invoice_detail
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prrd.type = 'beasiswa' THEN
-                            '[' || STRING_AGG('{\"name\":\"'::TEXT || prrd.prrd_component || '\",\"nominal\":'::TEXT || prrd.prrd_amount || '}'::TEXT, ',') || ']'
-                        ELSE
-                            '[]'::TEXT
-                    END as scholarship_detail
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prrd.type = 'potongan' THEN
-                            '[' || STRING_AGG('{\"name\":\"'::TEXT || prrd.prrd_component || '\",\"nominal\":'::TEXT || prrd.prrd_amount || '}'::TEXT, ',') || ']'
-                        ELSE
-                            '[]'::TEXT
-                    END as discount_detail
-                "),
-                DB::raw("
-                    CASE
-                        WHEN prrd.type = 'denda' THEN
-                            '[' || STRING_AGG('{\"name\":\"'::TEXT || prrd.prrd_component || '\",\"nominal\":'::TEXT || prrd.prrd_amount || '}'::TEXT, ',') || ']'
-                        ELSE
-                            '[]'::TEXT
-                    END as penalty_detail
-                "),
-                'prr.prr_total as total_amount',
-                'prr.prr_status as payment_status',
-                DB::raw("
-                    CASE
-                        WHEN prr.reg_id is not null THEN
-                            CONCAT('Tagihan daftar ulang Program Studi ', UPPER(std.studyprogram_type), ' ', std.studyprogram_name, ' ', mlt.mlt_name)
-                        ELSE
-                            NULL
-                    END as notes
-                ")
-            )
-            ->distinct()
-            ->groupBy('prr.prr_id', 'msy.msy_year', 'msy.msy_semester', 'prrd.type', 'prr.prr_total', 'std.studyprogram_name', 'std.studyprogram_type', 'mlt.mlt_name')
-            ->orderBy('prr.prr_id', 'asc')
-            ->get()
-            ->toArray();
-
-        $datatable = datatables($invoices);
 
         return $datatable->toJSON();
     }
@@ -151,7 +90,6 @@ class StudentInvoiceController extends Controller
             'student.studyprogram',
             'student.lectureType',
             'year',
-            'paymentMethod',
             'dispensation',
         ]);
 
@@ -160,7 +98,7 @@ class StudentInvoiceController extends Controller
         $master_bill = $this->applyAppend($master_bill, $request, [
             'computed_total_bill',
             'computed_payment_status',
-            'computedHasPaidBill',
+            'computed_has_paid_bill',
         ]);
 
         return response()->json($master_bill);
@@ -190,6 +128,7 @@ class StudentInvoiceController extends Controller
             'computed_is_fully_paid',
             'computed_nominal_paid',
             'computed_payment_status',
+            'computed_paid_date',
         ]);
 
         return response()->json($bills);
@@ -217,6 +156,7 @@ class StudentInvoiceController extends Controller
             'computed_is_fully_paid',
             'computed_nominal_paid',
             'computed_payment_status',
+            'computed_paid_date',
         ]);
 
         return response()->json($bill);

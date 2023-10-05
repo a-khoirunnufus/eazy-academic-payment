@@ -34,7 +34,7 @@ class PaymentTransaction extends Model
 
     public function computedInitialAmount(): Attribute
     {
-        $total_overpayment = $this->overpayment()->sum('sbt_amount');
+        $total_overpayment = $this->overpayment->sum('sbt_amount');
 
         return Attribute::make(
             get: fn () => $this->prrt_amount + $total_overpayment,
@@ -43,13 +43,10 @@ class PaymentTransaction extends Model
 
     public function computedOverpayment(): Attribute
     {
-        $overpayments = $this->overpayment()
-            ->where('sbtt_name', BalanceTransType::OverpaidBill)
-            ->get();
+        $overpayments = $this->overpayment
+            ->where('sbtt_name', BalanceTransType::OverpaidBill->value);
 
-        return Attribute::make(
-            get: fn () => $overpayments,
-        );
+        return Attribute::make(get: fn () => $overpayments);
     }
 
     /**

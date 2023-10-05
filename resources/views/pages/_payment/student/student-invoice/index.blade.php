@@ -164,29 +164,26 @@
         open: async function(e, datatableObj) {
             invoiceDetailModal._resetContent();
 
-            const data = datatableObj.getRowData(e.currentTarget);
-
-            const masterBill = await $.ajax({
-                async: true,
-                url: `${_baseURL}/api/payment/student-invoice/${data.prr_id}`,
-                data: {
-                    withAppend: ['computed_payment_status'],
-                }
-            });
+            const masterBill = datatableObj.getRowData(e.currentTarget);
 
             const bills = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/payment/student-invoice/${data.prr_id}/bill`,
+                url: `${_baseURL}/api/payment/student-invoice/${masterBill.prr_id}/bill`,
                 data: {
-                    withAppend: ['computed_due_date', 'computed_dispensation_applied'],
+                    withAppend: [
+                        'computed_due_date',
+                        'computed_dispensation_applied',
+                        'computed_payment_status',
+                        'computed_paid_date',
+                    ],
                 }
             });
 
-            invoiceDetailModal._renderInvoiceNotes(data.invoice_student_type, data.notes);
+            // invoiceDetailModal._renderInvoiceNotes(masterBill.invoice_student_type, masterBill.notes);
 
             invoiceDetailModal._renderInvoiceData(masterBill);
 
-            invoiceDetailModal._renderInvoiceDetail(data);
+            invoiceDetailModal._renderInvoiceDetail(masterBill);
 
             invoiceDetailModal._renderInvoiceBill(bills);
 
@@ -240,16 +237,19 @@
                 </div>
             `);
         },
-        _renderInvoiceDetail: function(data) {
-            const invoiceDetail = JSON.parse(unescapeHtml(data.invoice_detail));
-            const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-            const discountDetail = JSON.parse(unescapeHtml(data.discount_detail));
-            const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-            const scholarshipDetail = JSON.parse(unescapeHtml(data.scholarship_detail));
-            const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-            const penaltyDetail = JSON.parse(unescapeHtml(data.penalty_detail));
-            const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-            const totalAmount = (invoiceTotal + penaltyTotal) - (discountTotal + scholarshipTotal);
+        _renderInvoiceDetail: function(masterBill) {
+            /**
+             * FIX THIS
+             */
+            const invoiceDetail = masterBill.computed_component_list;
+            const invoiceTotal = masterBill.computed_component_total_amount;
+            const discountDetail = masterBill.computed_discount_list;
+            const discountTotal = masterBill.computed_discount_total_amount;
+            const scholarshipDetail = masterBill.computed_scholarship_list;
+            const scholarshipTotal = masterBill.computed_scholarship_total_amount;
+            const penaltyDetail = [];
+            const penaltyTotal = 0;
+            const totalAmount = masterBill.computed_final_bill;
 
             $('#invoiceDetailModal .modal-body').append(`
                 <div class="mt-3">
@@ -266,8 +266,8 @@
                                 invoiceDetail.map(item => {
                                     return `
                                         <tr>
-                                            <td>${item.name}</td>
-                                            <td>${Rupiah.format(item.nominal)}</td>
+                                            <td>${item.prrd_component}</td>
+                                            <td>${Rupiah.format(item.prrd_amount)}</td>
                                         </tr>
                                     `;
                                 }).join('')
@@ -275,8 +275,8 @@
                                 discountDetail.map(item => {
                                     return `
                                         <tr>
-                                            <td>${item.name}</td>
-                                            <td>${Rupiah.format(item.nominal)}</td>
+                                            <td>${item.prrd_component}</td>
+                                            <td>- ${Rupiah.format(item.prrd_amount)}</td>
                                         </tr>
                                     `;
                                 }).join('')
@@ -284,8 +284,8 @@
                                 scholarshipDetail.map(item => {
                                     return `
                                         <tr>
-                                            <td>${item.name}</td>
-                                            <td>${Rupiah.format(item.nominal)}</td>
+                                            <td>${item.prrd_component}</td>
+                                            <td>- ${Rupiah.format(item.prrd_amount)}</td>
                                         </tr>
                                     `;
                                 }).join('')
@@ -293,8 +293,8 @@
                                 penaltyDetail.map(item => {
                                     return `
                                         <tr>
-                                            <td>${item.name}</td>
-                                            <td>${Rupiah.format(item.nominal)}</td>
+                                            <td>${item.prrd_component}</td>
+                                            <td>${Rupiah.format(item.prrd_amount)}</td>
                                         </tr>
                                     `;
                                 }).join('')
@@ -332,6 +332,14 @@
                         <tbody>
                             ${
                                 bills.map(bill => {
+                                    let paymentStatusHtml = '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>';
+                                    if (bill.computed_payment_status == 'belum lunas')
+                                        paymentStatusHtml = '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>';
+                                    if (bill.computed_payment_status == 'kredit')
+                                        paymentStatusHtml = '<span class="badge bg-warning" style="font-size: 1rem">Kredit</span>';
+                                    if (bill.computed_payment_status == 'lunas')
+                                        paymentStatusHtml = '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>';
+
                                     return `
                                         <tr>
                                             <td>Cicilan ke-${bill.prrb_order}</td>
@@ -347,14 +355,8 @@
                                             </td>
                                             <td>${Rupiah.format(bill.prrb_amount)}</td>
                                             <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
-                                            <td>${bill.prrb_paid_date != null ? moment(bill.prrb_paid_date).format('DD-MM-YYYY HH:mm') : '-'}</td>
-                                            <td>${
-                                                bill.prrb_status == 'belum lunas' ?
-                                                    '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
-                                                    : bill.prrb_status == 'lunas' ?
-                                                        '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
-                                                        : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
-                                            }</td>
+                                            <td>${bill.computed_paid_date != null ? moment(bill.computed_paid_date).format('DD-MM-YYYY HH:mm') : '-'}</td>
+                                            <td>${paymentStatusHtml}</td>
                                             <td class="cetak-cicilan-act"><button class="btn btn-primary" onclick="cetakCicilan(${JSON.stringify(bill).replaceAll('"',"'")})"> <i data-feather="printer"></i> Cetak</button>
                                         </tr>
                                     `;

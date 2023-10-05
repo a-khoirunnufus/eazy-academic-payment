@@ -512,7 +512,10 @@
             let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - (nominalPaid + studentBalanceSpent);
             if (nominalUnpaid < 0) nominalUnpaid = 0;
 
-            if (paymentMethod.mpm_type != 'bank_transfer_manual') {
+            if (
+                bill.computed_payment_status != 'lunas'
+                && paymentMethod.mpm_type != 'bank_transfer_manual'
+            ) {
                 $('#paymentInstructionModal #va-number-exp-warning').html(`
                     <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
                         <div class="me-1">
@@ -530,7 +533,7 @@
             // RENDER PAYMENT INFORMATION
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
-                    <td style="width: 300px" class="table-light fw-bolder">Metbill.ode Pembayaran</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
                     <td>${paymentMethod.mpm_name}</td>
                 </tr>
 
@@ -558,6 +561,16 @@
                         <td>${bill.prrb_mandiri_bill_key}</td>
                     </tr>
                 ` : ''}
+
+                <tr>
+                    <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Awal</td>
+                    <td>${Rupiah.format(bill.prrb_amount)}</td>
+                </tr>
+
+                <tr>
+                    <td style="width: 300px" class="table-light fw-bolder">Biaya Admin</td>
+                    <td>${Rupiah.format(paymentMethod.mpm_fee)}</td>
+                </tr>
 
                 ${studentBalanceSpent > 0 ? `
                     <tr>
@@ -656,7 +669,7 @@
                 $('#paymentInstructionModal #table-transaction-history tbody').html(`
                     ${
                         paymentTransactions.map((item, index) => {
-                            let desc = '';
+                            let desc = 'Descrpition not available';
                             const payment_type = item.payment_method.mpm_type;
 
                             if (payment_type == 'bank_transfer_manual') {
@@ -666,10 +679,18 @@
                                     {text: `Nomor Rekening Tujuan : ${nullSafeView(item.prrt_receiver_account_number)}`, bold: true, small: true, nowrap: true},
                                 ]);
                             }
-                            else {
-                                // bank_transfer_va
-                                // bank_transfer_bill_payment
-                                desc = 'Descrpition not available yet!';
+                            else if (payment_type == 'bank_transfer_va') {
+                                desc = _datatableTemplates.listCell([
+                                    {text: `Metode Pembayaran : ${nullSafeView(item.payment_method.mpm_name)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Nomor Virtual Account : ${nullSafeView(item.prrt_va_number)}`, bold: true, small: true, nowrap: true},
+                                ]);
+                            }
+                            else if (payment_type == 'bank_transfer_bill_payment') {
+                                desc = _datatableTemplates.listCell([
+                                    {text: `Metode Pembayaran : ${nullSafeView(item.payment_method.mpm_name)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Bill Key : ${nullSafeView(item.prrt_mandiri_bill_key)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Biller Code : ${nullSafeView(item.prrt_mandiri_biller_code)}`, bold: true, small: true, nowrap: true},
+                                ]);
                             }
 
                             return `
