@@ -232,10 +232,10 @@
                             <button class="btn btn-success" onclick="printUnpaid()">
                                 <i data-feather="printer"></i>&nbsp;&nbsp;Cetak Pembayaran
                             </button>
-                            <a href="{{ route('student.credit.index') }}" class="btn btn-outline-warning">
+                            <a href="{{ route('payment.student-credit.index') }}" class="btn btn-outline-warning">
                                 <i data-feather="plus"></i>&nbsp;&nbsp;Pengajuan Cicilan
                             </a>
-                            <a href="{{ route('student.dispensation.index') }}" class="btn btn-outline-primary">
+                            <a href="{{ route('payment.student-dispensation.index') }}" class="btn btn-outline-primary">
                                 <i data-feather="calendar"></i>&nbsp;&nbsp;Pengajuan Dispensasi
                             </a>
                         </div>

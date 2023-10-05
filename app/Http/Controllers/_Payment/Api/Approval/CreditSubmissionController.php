@@ -4,7 +4,7 @@ namespace App\Http\Controllers\_Payment\API\Approval;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\CreditSubmission;
+use App\Models\Payment\CreditSubmission;
 use App\Http\Requests\Payment\Credit\CreditSubmission as CreditRequest;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Payment;

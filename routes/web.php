@@ -115,46 +115,21 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         'excluded_middleware' => ['admin_access'],
     ], function () {
         Route::group(['prefix' => 'student-invoice'], function () {
-            Route::get('/', 'App\Http\Controllers\_Payment\StudentInvoiceController@index')->name('student.invoice.index');
-            Route::get('{prr_id}/proceed-payment', 'App\Http\Controllers\_Payment\StudentInvoiceController@proceedPayment')->name('student.invoice.proceed-payment');
+            Route::get('/', 'App\Http\Controllers\_Payment\StudentInvoiceController@index')->name('payment.student-invoice.index');
+            Route::get('{prr_id}/proceed-payment', 'App\Http\Controllers\_Payment\StudentInvoiceController@proceedPayment');
             Route::get('invoice-cicilan', 'App\Http\Controllers\_Payment\StudentInvoiceController@invoiceCicilan');
         });
 
-        Route::get('/student-balance', 'App\Http\Controllers\_Payment\StudentBalanceController@index')->name('student.balance.index');
+        Route::get('/student-balance', 'App\Http\Controllers\_Payment\StudentBalanceController@index')->name('payment.student-balance.index');
+
+        Route::group(['prefix' => 'student-dispensation'], function () {
+            Route::get('index', 'App\Http\Controllers\_Payment\StudentDispensationController@index')->name('payment.student-dispensation.index');
+        });
+        Route::group(['prefix' => 'student-credit'], function () {
+            Route::get('index', 'App\Http\Controllers\_Payment\StudentCreditController@index')->name('payment.student-credit.index');
+        });
     });
 
-});
-
-// STUDENT ROUTE
-Route::group(['prefix' => 'student', 'middleware' => ['auth', 'student_access']], function () {
-    Route::group(['prefix' => 'dispensation'], function () {
-        Route::get('index', 'App\Http\Controllers\_Student\DispensationController@index')->name('student.dispensation.index');
-    });
-    Route::group(['prefix' => 'credit'], function () {
-        Route::get('index', 'App\Http\Controllers\_Student\CreditController@index')->name('student.credit.index');
-    });
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
-
-Route::get('/foo', function() {
-    // $data = App\Models\Payment\Payment::with('dispensation')
-    //     ->whereHas('dispensation', function ($query) {
-    //         $query->where('mds_status', 1)
-    //             ->orderBy('mds_deadline', 'asc');
-    //     })
-    //     ->where('prr_id', 553)
-    //     ->first()
-    //     ->toArray();
-
-    // $data = App\Models\Payment\PaymentBill::with(['paymentTransaction'])->where('prrb_id', 757)->first()->toArray();
-
-    $data = App\Models\Payment\PaymentTransaction::find(63)
-        // ->setAppends([
-        //     'computed_initial_amount',
-        //     'computed_overpayment',
-        // ])
-        ->toArray();
-
-    dd($data);
-});
