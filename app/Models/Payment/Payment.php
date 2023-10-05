@@ -10,7 +10,7 @@ use App\Models\PMB\Register;
 use App\Models\HR\MsStudent;
 use App\Models\Payment\Year;
 use App\Models\Payment\PaymentMethod;
-use App\Models\Student\DispensationSubmission;
+use App\Models\Payment\DispensationSubmission;
 use App\Enums\Payment\BillStatus;
 use App\Enums\Payment\PaymentDetailType as DetailType;
 
@@ -64,6 +64,12 @@ class Payment extends Model
         return Attribute::make(get: fn () => $dispensation_applied);
     }
 
+    public function computedCreditApplied(): Attribute
+    {
+        $credit_applied = $this->credit->isNotEmpty();
+        return Attribute::make(get: fn () => $credit_applied);
+    }
+
     public function computedIsFullyPaid(): Attribute
     {
         $fully_paid = $this->paymentBill->isNotEmpty() && $this->paymentBill
@@ -77,7 +83,10 @@ class Payment extends Model
     {
         $get_func = fn () => BillStatus::NotPaidOff->value;
 
-        if ($this->computed_dispensation_applied) {
+        if (
+            $this->computed_dispensation_applied
+            or $this->computed_credit_applied
+        ) {
             $get_func = fn () => BillStatus::Credit->value;
         }
 
@@ -168,8 +177,15 @@ class Payment extends Model
         return $this->hasOne(Year::class, 'msy_code', 'prr_school_year');
     }
 
+    // pengajuan dispensasi yang diapprove
     public function dispensation()
     {
         return $this->hasMany(DispensationSubmission::class, 'prr_id', 'prr_id');
+    }
+
+    // pengajuan cicilan yang diapprove
+    public function credit()
+    {
+        return $this->hasMany(CreditSubmission::class, 'prr_id', 'prr_id');
     }
 }
