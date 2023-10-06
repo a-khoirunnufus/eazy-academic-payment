@@ -98,8 +98,10 @@ class PaymentRatesController extends Controller
                 $path_id = $item->periodPath->path_id;
                 $period_id = $item->periodPath->period_id;
             }
-            $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->get();
-            $data = ['ppm' => $item, 'component' => $search, 'ppm_id' => $item->ppm_id, 'ppd_id' => $id];
+            $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->where('cd_is_admission',0)->get();
+            $searchNew = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->where('cd_is_admission',1)->get();
+            $creditNew = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id', $item->ppm_id)->where('cs_is_admission',1)->get();
+            $data = ['ppm' => $item, 'credit' => $item->credit->where('cs_is_admission',0)->toArray(), 'creditNew' => $creditNew, 'component' => $search, 'componentNew' => $searchNew, 'ppm_id' => $item->ppm_id, 'ppd_id' => $id];
             $collection->push($data);
         }
         return datatables($collection)->toJson();
@@ -128,16 +130,18 @@ class PaymentRatesController extends Controller
         return $schema->toJson();
     }
 
-    public function getSchemaById($ppm_id, $cs_id)
+    public function getSchemaById($ppm_id, $cs_id,$is_admission)
     {
         $schema = CreditSchemaPeriodPath::with(['creditSchema' => function($query){
                 $query->withoutGlobalScope(CreditSchemaTemplateScope::class);
             }])
-            ->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->first();
+            ->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->where('cs_is_admission', $cs_id)->first();
+
         if (!$schema) {
             $create = CreditSchemaPeriodPath::create([
                 'cs_id' => $cs_id,
-                'ppm_id' => $ppm_id
+                'ppm_id' => $ppm_id,
+                'cs_is_admission' => $is_admission,
             ]);
             $schema = CreditSchemaPeriodPath::with(['creditSchema' => function($query){
                     $query->withoutGlobalScope(CreditSchemaTemplateScope::class);
@@ -173,7 +177,8 @@ class PaymentRatesController extends Controller
                             'cd_fee' => $validated['cd_fee'][$i],
                             'msy_id' => $validated['msy_id'][$i],
                             'mlt_id' => $validated['mlt_id'][$i],
-                            'ppm_id' => $validated['main_ppm_id']
+                            'ppm_id' => $validated['main_ppm_id'],
+                            'cd_is_admission' => $validated['is_admission'],
                         ]);
                     } else {
                         $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
@@ -186,11 +191,12 @@ class PaymentRatesController extends Controller
             }
             if (isset($validated['cs_id'])) {
                 foreach ($validated['cs_id'] as $item) {
-                    $data = CreditSchemaPeriodPath::where('cs_id', $item)->where('ppm_id', $validated['main_ppm_id'])->first();
+                    $data = CreditSchemaPeriodPath::where('cs_id', $item)->where('ppm_id', $validated['main_ppm_id'])->where('cs_is_admission',$validated['is_admission'])->first();
                     if (!$data) {
                         CreditSchemaPeriodPath::create([
                             'cs_id' => $item,
-                            'ppm_id' => $validated['main_ppm_id']
+                            'ppm_id' => $validated['main_ppm_id'],
+                            'cs_is_admission' => $validated['is_admission'],
                         ]);
                     }
                 }
@@ -379,7 +385,7 @@ class PaymentRatesController extends Controller
     public function delete(Request $request, $ppm_id)
     {
         $log = $this->addToLog('Hapus Tarif dan Pembayaran',$this->getAuthId(),LogStatus::Process,$request->url);
-        $result = $this->deleteProcess($ppm_id,$log->log_id);
+        $result = $this->deleteProcess($ppm_id,$log->log_id,$request->is_admission);
         $this->updateLogStatus($log,$result);
         return $result;
     }
@@ -389,19 +395,25 @@ class PaymentRatesController extends Controller
         $log = $this->addToLog('Delete Bulk Tarif dan Pembayaran',$this->getAuthId(),LogStatus::Process,$request->url);
         $ppm = PeriodPathMajor::where('ppd_id', $ppd_id)->get();
         foreach ($ppm as $item) {
-            $this->deleteProcess($item->ppm_id,$log->log_id);
+            $this->deleteProcess($item->ppm_id,$log->log_id,null);
         }
         $this->updateLogStatus($log,LogStatus::Success);
         $text = "Berhasil Delete Bulk Tarif dan Pembayaran";
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public function deleteProcess($ppm_id,$log_id){
+    public function deleteProcess($ppm_id,$log_id,$is_admission){
         $ppm = PeriodPathMajor::with('majorLectureType')->findorfail($ppm_id);
         try {
             DB::beginTransaction();
-            ComponentDetail::where('ppm_id',$ppm_id)->delete();
-            CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->delete();
+            if($is_admission == null){
+                ComponentDetail::where('ppm_id',$ppm_id)->delete();
+                CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->delete();
+            }else{
+                ComponentDetail::where('ppm_id',$ppm_id)->where('cd_is_admission',$is_admission)->delete();
+                CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->where('cs_is_admission',$is_admission)->delete();
+            }
+
             $this->addToLogDetail($log_id,$this->getLogTitle($ppm->majorLectureType->studyProgram->studyprogram_name.' - '.$ppm->majorLectureType->lectureType->mlt_name),LogStatus::Success);
             DB::commit();
         } catch (\Throwable $th) {

@@ -64,7 +64,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('paymentrates/lecture-type', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getLectureType');
         Route::get('paymentrates/credit-schema', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getCreditSchema');
         Route::get('paymentrates/getdetailschemabyid/{cs_id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getDetailSchemaById');
-        Route::get('paymentrates/getschemabyid/{ppm_id}/{cs_id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getSchemaById');
+        Route::get('paymentrates/getschemabyid/{ppm_id}/{cs_id}/{is_admission}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getSchemaById');
         Route::get('paymentrates/removeschemabyid/{ppm_id}/{cs_id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@removeSchemaById');
         Route::post('paymentrates/store', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@store');
         Route::post('paymentrates/update', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@update');

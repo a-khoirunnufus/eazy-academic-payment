@@ -67,8 +67,8 @@
                 <th class="text-center">Aksi</th>
                 <th>Program Studi</th>
                 <th>Jenis Perkuliahan</th>
-                <th>Komponen Tagihan</th>
-                <th>Cicilan</th>
+                <th>Komponen Mahasiswa Lama</th>
+                <th>Komponen Mahasiswa Baru</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -194,12 +194,15 @@
                 ajax: {
                     url: _baseURL + '/api/payment/settings/paymentrates/detail/{!! $id !!}',
                 },
+                columnDefs: [{
+                    "defaultContent": "-",
+                    "targets": "_all"
+                }],
                 columns: [{
                         name: 'action',
                         data: 'ppm.ppm_id',
                         orderable: false,
                         render: (data, _, row) => {
-                            // console.log(row)
                             return this.template.rowAction(data)
                         }
                     },
@@ -224,35 +227,13 @@
                     {
                         name: 'component',
                         render: (data, _, row) => {
-                            let html = '<div><ul>';
-                            if (Object.keys(row.component).length > 0) {
-                                row.component.map(item => {
-                                    let component = "";
-                                    if (item.component) {
-                                        component = `<li class="fw-bold">${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
-                                    }
-                                    html += component;
-                                })
-                            }
-                            html += '</ul></div>';
-                            return html;
+                            return _ratesTableActions.componentTable(row,0);
                         }
                     },
                     {
                         name: 'ppm.credit.cspp_id',
                         render: (data, _, row) => {
-                            let html = '<div><ul>';
-                            if (Object.keys(row.ppm.credit).length > 0) {
-                                row.ppm.credit.map(item => {
-                                    let credit = "";
-                                    if (item.credit_schema) {
-                                        credit = `<li class="fw-bold">${item.credit_schema.cs_name}</li>`;
-                                    }
-                                    html += credit;
-                                })
-                            }
-                            html += '</ul></div>';
-                            return html;
+                            return _ratesTableActions.componentTable(row,1);
                         }
                     },
 
@@ -295,9 +276,11 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_ratesTableActions.edit(this)" class="dropdown-item"><i data-feather="dollar-sign"></i> Komponen Tagihan</a>
-                            <a onclick="_ratesTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i> Hapus Komponen</a>
-                            <a onclick="_ratesTableActions.copy(this)" class="dropdown-item"><i data-feather="clipboard"></i> Salin Data</a>
+                            <a onclick="_ratesTableActions.edit(this,0)" class="dropdown-item"><i data-feather="dollar-sign"></i> Komponen Mahasiswa Lama</a>
+                            <a onclick="_ratesTableActions.edit(this,1)" class="dropdown-item"><i data-feather="dollar-sign"></i> Komponen Mahasiswa Baru</a>
+                            <a onclick="_ratesTableActions.delete(this,0)" class="dropdown-item"><i data-feather="trash"></i> Hapus Komponen Mahasiswa Lama</a>
+                            <a onclick="_ratesTableActions.delete(this,1)" class="dropdown-item"><i data-feather="trash"></i> Hapus Komponen Mahasiswa Baru</a>
+                            <a onclick="_ratesTableActions.copy(this)" class="dropdown-item"><i data-feather="clipboard"></i> Copy Data</a>
                         </div>
                     </div>
                 `
@@ -307,7 +290,7 @@
     var count = -9999;
     const _ratesTableActions = {
         tableRef: _ratesTable,
-        PaymentRateInputField: function(id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0, is_admission = 0) {
+        PaymentRateInputField: function(is_admission = 0, id = 0, rate = 0, component = null, increment = 0, mma_id = 0, period_id = 0, path_id = 0, msy_id = 0, mlt_id = 0, ppm_id = 0) {
             let isId = 0;
             if (increment === 1) {
                 isId = count++;
@@ -348,16 +331,6 @@
                     $("#component" + isId).append(`
                         <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
                     `)
-                    // var count_elm = $(".PaymentRateInputField").length;
-                    // $(
-                    //     $(
-                    //         $(
-                    //             $(".PaymentRateInputField")[count_elm - 1]
-                    //         ).children(".flex-fill")[0]
-                    //     ).children("select")[0]
-                    // ).append(`
-                    //     <option value="` + item['msc_id'] + `">` + item['msc_name'] + `</option>
-                    // `)
                 })
                 component ? $("#component" + isId).val(component) : ""
                 $("#component" + isId).trigger('change')
@@ -373,12 +346,14 @@
             }
         },
 
-        edit: function(e) {
+        edit: function(e,is_admission) {
             let data = _ratesTable.getRowData(e);
-            // console.log(data);
+            let disabled = dataCopy ? "" : "disabled";
+            let paymentType = [];
+            let title = is_admission == 0 ? "Mahasiswa Lama" : "Mahasiswa Baru";
             Modal.show({
                 type: 'form',
-                modalTitle: 'Pengaturan Komponen Tagihan',
+                modalTitle: `Pengaturan Komponen Tagihan ${title}`,
                 modalSize: 'lg',
                 config: {
                     formId: 'paymentRateForm',
@@ -418,6 +393,23 @@
                                 </div>`
                             },
                         },
+                        type: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12">
+                                        <label class="form-label">Tipe Tagihan</label>
+                                        <select class="form-select select2" eazy-select2-active id="typePayment" name="type_payment">
+                                            @foreach (\Config::get('payment-service.payment_type') as $key => $item)
+                                                <option value="{{ $item['value'] }}">{{ $item['title'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                `
+                            },
+                        },
                         input_fields: {
                             type: 'custom-field',
                             content: {
@@ -426,12 +418,12 @@
                                     <h4 class="fw-bolder mb-0">Komponen Tagihan</h4>
                                     <div>
                                     <button type="button"
-                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
-                                        onclick="_ratesTableActions.paste(${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> Paste
+                                        class="btn btn-info text-white edit-component waves-effect waves-float waves-light ${disabled}"
+                                        onclick="_ratesTableActions.paste(${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id},${is_admission})"> Paste
                                     </button>
                                     <button type="button"
                                         class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
-                                        onclick="_ratesTableActions.PaymentRateInputField(0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
+                                        onclick="_ratesTableActions.PaymentRateInputField(${is_admission},0,0,null,1,${data.ppm.major_lecture_type.mma_id}, ${data.ppm.period_path.period_id}, ${data.ppm.period_path.path_id}, ${data.ppm.period_path.period.msy_id}, ${data.ppm.major_lecture_type.mlt_id}, ${data.ppm.ppm_id})"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
                                     </button>
                                     </div>
 
@@ -453,6 +445,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <input type="hidden" value=${is_admission} name="is_admission">
                                     <div id="schemaDeadline">
                                     </div>
                                 </div>`
@@ -467,107 +460,102 @@
                     callback: function() {
                         // ex: reload table
                         _ratesTable.reload()
-                        $("#csId").change(function() {
-                            schema = $(this).val();
-                            diff = _ratesTableActions.difference(schema, val);
-                            diff.map(item => {
-                                if (val.includes(item)) {
-                                    val = val.filter(function(x) {
-                                        if (x !== item) {
-                                            return x;
-                                        }
-                                    });
-                                    console.log("hapus "+item);
-                                    $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-                                        d = JSON.parse(d)
-                                        _toastr.success(d.message, 'Success')
-                                    })
-                                    $("#schemaDeadlineTag" + item).remove();
-                                } else {
-                                    val.push(item.toString());
-                                    $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-                                        d = JSON.parse(d)
-                                        _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
-                                    })
-                                    // console.log("tambah "+item);
-                                }
-                            });
-                        })
                     },
                 },
             });
-            if (Object.keys(data.component).length > 0) {
-                data.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(item.cd_id, item.cd_fee, item.msc_id, null)
-                })
+            if(is_admission == 0){
+                if (Object.keys(data.component).length > 0) {
+                    data.component.map(item => {
+                        _ratesTableActions.PaymentRateInputField(is_admission, item.cd_id, item.cd_fee, item.msc_id, null)
+                    })
+                }
+                // Skema
+                var val = [];
+                if (Object.keys(data.credit).length > 0) {
+                    data.credit.map(item => {
+                        val.push(item.cs_id.toString());
+                    })
+                }
+                skema_cicilan = val;
+            }else{
+                if (Object.keys(data.componentNew).length > 0) {
+                    data.componentNew.map(item => {
+                        _ratesTableActions.PaymentRateInputField(is_admission, item.cd_id, item.cd_fee, item.msc_id, null)
+                    })
+                }
+                // Skema
+                var val = [];
+                if (Object.keys(data.creditNew).length > 0) {
+                    data.creditNew.map(item => {
+                        val.push(item.cs_id.toString());
+                    })
+                }
+                skema_cicilan = val;
             }
-            // Skema
-            var val = [];
-            if (Object.keys(data.ppm.credit).length > 0) {
-                data.ppm.credit.map(item => {
-                    val.push(item.cs_id.toString());
-                })
-            }
-            skema_cicilan = val;
 
             /**
              * Include non template Credit Schema on select option
              */
-            let creditSchemaUnlisted = val;
-            creditSchemaUnlisted.forEach(async (item) => {
-                let d = await $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item);
-                const {credit_schema} = JSON.parse(d);
-                $("#csId").append(`
-                    <option value="` + credit_schema.cs_id + `">` + credit_schema.cs_name + `</option>
-                `);
-            });
+            // let creditSchemaUnlisted = val;
+            // creditSchemaUnlisted.forEach(async (item) => {
+            //     let d = await $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item);
+            //     const {credit_schema} = JSON.parse(d);
+            //     $("#csId").append(`
+            //         <option value="` + credit_schema.cs_id + `">` + credit_schema.cs_name + `</option>
+            //     `);
+            // });
 
-            // console.log(skema_cicilan);
             $.get(_baseURL + '/api/payment/settings/paymentrates/schema', (d) => {
                 JSON.parse(d).map(item => {
-                    if (!creditSchemaUnlisted.includes(`${item['cs_id']}`)) {
+                    // if (!creditSchemaUnlisted.includes(`${item['cs_id']}`)) {
                         $("#csId").append(`
                             <option value="` + item['cs_id'] + `">` + item['cs_name'] + `</option>
                         `);
-                    }
+                    // }
                 });
-
                 $('#csId').val(val).change();
                 selectRefresh()
             })
-            console.log(data.ppm);
-            if (Object.keys(data.ppm.credit).length > 0) {
-                data.ppm.credit.map(item => {
-                    _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
-                })
+            if(is_admission == 0){
+                if (Object.keys(data.credit).length > 0) {
+                    data.credit.map(item => {
+                        _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
+                    })
+                }
+            }else{
+                if (Object.keys(data.creditNew).length > 0) {
+                    data.credit.map(item => {
+                        _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
+                    })
+                }
             }
-            // schema = $("#csId").val();
-            // diff = _ratesTableActions.difference(schema, val);
-            // diff.map(item => {
-            //     if (val.includes(item)) {
-            //         val = val.filter(function(x) {
-            //             if (x !== item) {
-            //                 return x;
-            //             }
-            //         });
-            //         // console.log("hapus "+item);
-            //         $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-            //             d = JSON.parse(d)
-            //             _toastr.success(d.message, 'Success')
-            //         })
-            //         $("#schemaDeadlineTag" + item).remove();
-            //     } else {
-            //         val.push(item.toString());
-            //         $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
-            //             d = JSON.parse(d)
-            //             _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
-            //         })
-            //         // console.log("tambah "+item);
-            //     }
-            // });
+            $("#csId").change(function() {
+                schema = $(this).val();
+                diff = _ratesTableActions.difference(schema, val);
+                diff.map(item => {
+                    if (val.includes(item)) {
+                        val = val.filter(function(x) {
+                            if (x !== item) {
+                                return x;
+                            }
+                        });
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/removeschemabyid/' + data.ppm.ppm_id + '/' + item, (d) => {
+                            d = JSON.parse(d)
+                            _toastr.success(d.message, 'Success')
+                        })
+                        $("#schemaDeadlineTag" + item).remove();
+                    } else {
+                        val.push(item.toString());
+                        $.get(_baseURL + '/api/payment/settings/paymentrates/getschemabyid/' + data.ppm.ppm_id + '/' + item+ '/' + is_admission, (d) => {
+                            d = JSON.parse(d)
+                            _ratesTableActions.SchemaDeadlineField(item, d.credit_schema.cs_name, d.credit_schema.credit_schema_detail)
+                        })
+                    }
+                });
+            })
 
         },
-        delete: function(e) {
+        delete: function(e,is_admission) {
             let data = _ratesTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
@@ -582,7 +570,8 @@
                 if (result.isConfirmed) {
                     $.post(_baseURL + '/api/payment/settings/paymentrates/delete/' + data.ppm_id, {
                         _method: 'DELETE',
-                        url: `{{ request()->path() }}`
+                        url: `{{ request()->path() }}`,
+                        is_admission: is_admission
                     }, function(data) {
                         data = JSON.parse(data)
                         Swal.fire({
@@ -638,16 +627,10 @@
         copy: function(e) {
             dataCopy = _ratesTable.getRowData(e);
         },
-        paste: function(mma_id,period_id,path_id,msy_id,mlt_id,ppm_id) {
+        paste: function(mma_id,period_id,path_id,msy_id,mlt_id,ppm_id,is_admission) {
             if (Object.keys(dataCopy.component).length > 0) {
                 dataCopy.component.map(item => {
-                    _ratesTableActions.PaymentRateInputField(0, item.cd_fee, item.msc_id, 1,
-                    mma_id,
-                    period_id,
-                    path_id,
-                    msy_id,
-                    mlt_id,
-                    ppm_id)
+                    _ratesTableActions.PaymentRateInputField(is_admission,0, item.cd_fee, item.msc_id, 1,mma_id,period_id,path_id,msy_id,mlt_id,ppm_id)
                 })
             }
             skema_cicilan = [];
@@ -674,6 +657,7 @@
                 })
             }
         },
+
         difference: function(a1, a2) {
             var a = [],
                 diff = [];
@@ -763,50 +747,81 @@
             url = `{{ request()->path() }}`;
             logActivity(title,url);
         },
+        componentTable: function(row,is_admission) {
+            let html = '<div>';
+            let component_schema = is_admission == 0 ? `row.component` : `row.component_new`;
+            if (Object.keys(component_schema).length > 0) {
+                html += '<h6 class="fw-bolder">Komponen Tagihan</h6><ul>';
+                let sum = 0;
+                if(is_admission == 0){
+                    row.component.map(item => {
+                        let component = "";
+                        if (item.component) {
+                            if(item.cd_is_admission == is_admission){
+                                component = `<li>${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
+                                sum += Number(item.cd_fee);
+                            }
+                        }
+                        html += component;
+                    })
+                }else{
+                    row.componentNew.map(item => {
+                        let component = "";
+                        if (item.component) {
+                            console.log(item.cd_is_admission == is_admission)
+                            if(item.cd_is_admission == is_admission){
+                                component = `<li>${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
+                                sum += Number(item.cd_fee);
+                            }
+                        }
+                        html += component;
+                    })
+                }
+                if(sum != 0){
+                    html += `<li class="fw-bold">Total: ${Rupiah.format(sum)}</li></ul>`;
+                }else{
+                    html = `<div>`;
+                }
+            }
+            let credit_schema = is_admission == 0 ? `row.credit` : `row.credit_new`;
+            let html_credit = '<div>';
+            if (Object.keys(credit_schema).length > 0) {
+                html_credit += '<h6 class="fw-bolder">Skema Pembayaran</h6><ul>'
+                let count = 0;
+                if(is_admission == 0){
+                    row.credit.map(item => {
+                        let credit = "";
+                        if (item.credit_schema) {
+                            if(item.cs_is_admission == is_admission){
+                                credit = `<li>${item.credit_schema.cs_name}</li>`;
+                                count += 1;
+                            }
+                        }
+                        html_credit += credit;
+                    })
+                }else{
+                    row.creditNew.map(item => {
+                        let credit = "";
+                        if (item.credit_schema) {
+                            console.log("disini")
+                            if(item.cs_is_admission == is_admission){
+                                credit = `<li>${item.credit_schema.cs_name}</li>`;
+                                count += 1;
+                            }
+                        }
+                        html_credit += credit;
+                    })
+                }
+                if(count != 0){
+                    html_credit += '</ul>';
+                }else{
+                    html_credit = `<div>`;
+                }
+            }
+            html += html_credit+'</div>';
+            return html;
+        },
     }
-
-    /**
-     * OLD CODE
-     */
-    // function myImport() {
-    //     var x = document.getElementById("myFiles");
-    //     var txt = "";
-    //     if ('files' in x) {
-    //         if (x.files.length > 0) {
-    //             console.log(x.files[0]);
-    //             Swal.fire({
-    //                 title: "Anda Yakin?",
-    //                 text: "Ingin mengimport data dari file tersebut",
-    //                 showDenyButton: true,
-    //                 confirmButtonText: 'Import',
-    //                 denyButtonText: "Cancel",
-    //             }).then((result) => {
-    //                 if (result.isConfirmed) {
-    //                     var formData = new FormData();
-    //                     formData.append("file", x.files[0]);
-    //                     formData.append("_token", "{{ csrf_token() }}");
-    //                     var xhr = new XMLHttpRequest();
-    //                     xhr.onload = function() {
-    //                         var response = JSON.parse(this.responseText);
-    //                         console.log(response)
-    //                         if (response.status) {
-    //                             Swal.fire(response.message, '', 'success');
-    //                         }
-    //                     }
-    //                     xhr.open("POST", _baseURL + '/api/payment/settings/paymentrates/import/{!! $id !!}', true);
-    //                     xhr.send(formData);
-    //                 }
-    //             })
-    //         }
-    //     }
-    // }
-
-    /**
-     * OLD CODE
-     */
-    // function importBtn() {
-    //     $('#myFiles').click()
-    // }
 
     function downloadTemplate() {
         window.location.href = `${_baseURL}/api/payment/settings`
@@ -872,7 +887,6 @@
                                 validCount++;
                             }
                         });
-                        // console.log(validCount,invalidCount);
                         $('#valid-import-data-count').text(validCount);
                         $('#invalid-import-data-count').text(invalidCount);
                         return e.data;

@@ -23,7 +23,7 @@ class ComponentDetail extends Model
     const UPDATED_AT = 'cd_updated_at';
 
     protected $fillable = [
-        'mma_id','msc_id','period_id','path_id','cd_fee','msy_id','mlt_id','cd_created_by','cd_is_package','ppm_id'
+        'mma_id','msc_id','period_id','path_id','cd_fee','msy_id','mlt_id','cd_created_by','cd_is_package','ppm_id','cd_is_admission'
     ];
 
     public function component()

@@ -15,8 +15,8 @@ class CreditSchemaPeriodPath extends Model
 
     protected $primaryKey = 'cspp_id';
 
-    protected $fillable = ['cs_id', 'ppm_id'];
-    
+    protected $fillable = ['cs_id', 'ppm_id','cs_is_admission'];
+
     public function creditSchema()
     {
         return $this->belongsTo(CreditSchema::class, 'cs_id','cs_id')->with('creditSchemaDetail');

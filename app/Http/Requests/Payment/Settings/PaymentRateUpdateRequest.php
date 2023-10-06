@@ -18,7 +18,7 @@ class PaymentRateUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            
+
             'main_ppm_id' => 'required',
             'cd_id' => 'nullable',
             'mma_id' => 'nullable',
@@ -33,6 +33,7 @@ class PaymentRateUpdateRequest extends FormRequest
             'cse_deadline' => 'nullable',
             'cse_cs_id' => 'nullable',
             'cse_csd_id' => 'nullable',
+            'is_admission' => 'nullable',
         ];
     }
 }
