@@ -254,6 +254,7 @@ Route::group(['prefix' => 'payment'], function(){
                     Route::post('{prrb_id}/evidence', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@storeApproval');
                     Route::post('{prrb_id}/select-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@selectPaymentMethod');
                     Route::post('{prrb_id}/reset-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@resetPaymentMethod');
+                    Route::post('{prrb_id}/regenerate-va', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@regenerateVA');
                 });
             });
         });
@@ -285,6 +286,11 @@ Route::group(['prefix' => 'payment'], function(){
     });
 
     Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
+
+    // Development Testing Routes
+    Route::group(['prefix' => 'dev-test'], function() {
+        Route::post('/regenerate-va', 'App\Http\Controllers\_Payment\Api\DevTestController@regenerateVA');
+    });
 });
 
 // REPORT GROUP ROUTE

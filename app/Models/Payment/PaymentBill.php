@@ -111,6 +111,13 @@ class PaymentBill extends Model
         return Attribute::make(get: fn () => $latest_trans?->prrt_time ?? null);
     }
 
+    public function computedStudentBalanceSpendTotal(): Attribute
+    {
+        $amount = $this->studentBalanceSpent->sum('sbs_amount');
+
+        return Attribute::make(get: fn () => $amount);
+    }
+
 
     /**
      * RELATIONSHIPS

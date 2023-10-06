@@ -890,4 +890,77 @@ class StudentInvoiceController extends Controller
 
         return response()->json(['amount' => $amount]);
     }
+
+    public function regenerateVA($prr_id, $prrb_id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $bill = PaymentBill::find($prrb_id);
+            $payment_method = $bill->paymentMethod;
+            $student = Student::find($bill->payment->student_number);
+
+            $status_result = (new PaymentService())->transactionStatus($bill->prrb_order_id);
+            if ($status_result->payload?->transaction_status == 'pending') {
+                $cancel_result = (new PaymentService())->cancelTransaction($bill->prrb_order_id);
+                if ($cancel_result->status != "success") {
+                    // when cancel transaction action is failed
+                }
+            }
+
+            $order_id = (string) Str::uuid();
+            $invoice_gross_amount = $bill->prrb_amount;
+            $admin_cost = $payment_method->mpm_fee;
+            $student_balance_spend = $bill->computed_student_balance_spend_total;
+
+            // charge transaction
+            $charge_result = (new PaymentService())->chargeTransaction([
+                "order_id" => $order_id,
+                "payment_type" => $bill->prrb_payment_method,
+                "amount_total" => ($invoice_gross_amount + $admin_cost) - $student_balance_spend,
+                "name" => $student->fullname,
+                "email" => $student->email,
+                "phone" => $student->phone_number,
+                "item_details" => [
+                    0 => [
+                        "name" => "Cicilan ke-".$bill->prrb_order,
+                        "price" => ($invoice_gross_amount + $admin_cost) - $student_balance_spend,
+                    ]
+                ]
+            ]);
+
+            if ($charge_result->status == 'error') {
+                throw new \Exception($charge_result->message);
+            }
+
+            $bill->prrb_order_id = $order_id;
+            $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
+            $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
+
+            if ($payment_method->mpm_type == 'bank_transfer_va') {
+                $bill->prrb_va_number = $charge_result->payload->va_number;
+            }
+            elseif ($payment_method->mpm_type == 'bank_transfer_bill_payment') {
+                $bill->prrb_mandiri_biller_code = $charge_result->payload->biller_code;
+                $bill->prrb_mandiri_bill_key = $charge_result->payload->bill_key;
+            }
+
+            $bill->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil membuat nomor virtual account baru.",
+            ], 200);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
 }

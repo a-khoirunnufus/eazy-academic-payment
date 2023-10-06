@@ -130,6 +130,11 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         });
     });
 
+    // Development Testing Routes
+    Route::group(['prefix' => 'dev-test'], function() {
+        Route::get('/', 'App\Http\Controllers\_Payment\DevTestController@index');
+    });
+
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
