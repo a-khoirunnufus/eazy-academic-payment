@@ -58,8 +58,9 @@ trait General
 
     private function getStudentData()
     {
-        // Error getting associate data
-        $student = Auth::user()->getAssociateData('student'); // error
+        $student = Auth::user()->getAssociateData('student');
+        // load faculty & studyprogram data
+        $student->load('studyProgram.faculty');
 
         // Manually get student model
         // ['associate_identifier' => $student_number] = Auth::user()->getLoadedData()['student'];

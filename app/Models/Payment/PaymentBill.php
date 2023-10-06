@@ -48,8 +48,8 @@ class PaymentBill extends Model
 
     public function computedDispensationApplied(): Attribute
     {
-        $due_date = $this->payment->dispensation()
-            ->orderBy('mds_deadline', 'desc')
+        $due_date = $this->payment->dispensation
+            ->sortByDesc('mds_deadline')
             ->first()
             ?->mds_deadline ?? '1970-01-01';
 
@@ -60,8 +60,8 @@ class PaymentBill extends Model
 
     public function computedDueDate(): Attribute
     {
-        $due_date = $this->payment->dispensation()
-            ->orderBy('mds_deadline', 'desc')
+        $due_date = $this->payment->dispensation
+            ->sortByDesc('mds_deadline')
             ->first()
             ?->mds_deadline ?? '1970-01-01';
 
@@ -72,9 +72,9 @@ class PaymentBill extends Model
 
     public function computedIsFullyPaid(): Attribute
     {
-        $paid_amount = $this->paymentTransaction()->sum('prrt_amount');
-        $total_discount = $this->studentBalanceSpent()
-            ->where('sbs_status', BalanceSpentStatus::Used)
+        $paid_amount = $this->paymentTransaction->sum('prrt_amount');
+        $total_discount = $this->studentBalanceSpent
+            ->where('sbs_status', BalanceSpentStatus::Used->value)
             ->sum('sbs_amount');
 
         return Attribute::make(
@@ -84,32 +84,38 @@ class PaymentBill extends Model
 
     public function computedNominalPaid(): Attribute
     {
-        $paid_amount = $this->paymentTransaction()->sum('prrt_amount');
+        $paid_amount = $this->paymentTransaction->sum('prrt_amount');
 
-        return Attribute::make(
-            get: fn () => $paid_amount,
-        );
+        return Attribute::make(get: fn () => $paid_amount);
     }
 
     public function computedPaymentStatus(): Attribute
     {
-        $get_func = fn () => BillStatus::NotPaidOff;
+        $get_func = fn () => BillStatus::NotPaidOff->value;
 
-        $due_date = $this->payment->dispensation()
-            ->orderBy('mds_deadline', 'desc')
-            ->first()
-            ?->mds_deadline ?? '1970-01-01';
-        $dispensation_applied = strtotime($due_date) > strtotime($this->prrb_due_date);
-        if ($dispensation_applied) $get_func = fn () => BillStatus::Credit;
+        if ($this->computed_dispensation_applied) {
+            $get_func = fn () => BillStatus::Credit->value;
+        }
 
-        $total_discount = $this->studentBalanceSpent()
-            ->where('sbs_status', BalanceSpentStatus::Used)
-            ->sum('sbs_amount');
-
-        $fully_paid = $this->paymentTransaction()->sum('prrt_amount') >= ($this->prrb_amount - $total_discount);
-        if ($fully_paid) $get_func = fn () => BillStatus::PaidOff;
+        if ($this->computed_is_fully_paid) {
+            $get_func = fn () => BillStatus::PaidOff->value;
+        }
 
         return Attribute::make(get: $get_func);
+    }
+
+    public function computedPaidDate(): Attribute
+    {
+        $latest_trans = $this->paymentTransaction->sortByDesc('prrt_time')->first();
+
+        return Attribute::make(get: fn () => $latest_trans?->prrt_time ?? null);
+    }
+
+    public function computedStudentBalanceSpendTotal(): Attribute
+    {
+        $amount = $this->studentBalanceSpent->sum('sbs_amount');
+
+        return Attribute::make(get: fn () => $amount);
     }
 
 

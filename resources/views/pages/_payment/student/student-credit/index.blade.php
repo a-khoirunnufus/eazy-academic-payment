@@ -2,7 +2,7 @@
 
 @section('page_title', 'Pengajuan Cicilan Pembayaran')
 @section('sidebar-size', 'collapsed')
-@section('url_back', route('student.invoice.index'))
+@section('url_back', route('payment.student-invoice.index'))
 
 @section('css_section')
     <style>
@@ -109,7 +109,7 @@
 @section('js_section')
 <script>
 
-    const userMaster = JSON.parse(`{!! json_encode($user, true) !!}`);
+    const studentMaster = JSON.parse(`{!! json_encode($student, true) !!}`);
 
     $(function(){
         renderHeaderInfo();
@@ -117,73 +117,38 @@
     });
 
     async function renderHeaderInfo() {
-        const studentType = userMaster.participant ? 'new_student' : 'student';
-        const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
-        const queryParam = `student_type=${studentType}&${studentType == 'new_student' ? 'par_id=' : 'student_id='}${studentId}`;
-
-        const studentDetail = await $.ajax({
-            async: true,
-            url: `${_baseURL}/api/student/detail?${queryParam}`,
-            type: 'get'
-        });
-
-        if (studentType == 'new_student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap</small>
-                            <span class="text__title">${studentDetail.par_fullname}</span>
-                        </div>
+        $('#header-info-student').html(`
+            <div class="eazy-header">
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-hash"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">NIK</small>
-                            <span class="text__title">${studentDetail.par_nik}</span>
-                        </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Nama Lengkap dan NIM</small>
+                        <span class="text__title">${studentMaster.fullname}</span>
+                        <span class="d-block">${studentMaster.student_id}</span>
                     </div>
                 </div>
-            `);
-        } else if (studentType == 'student') {
-            $('#header-info-student').html(`
-                <div class="eazy-header">
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Nama Lengkap dan NIM</small>
-                            <span class="text__title">${studentDetail.fullname}</span>
-                            <span class="d-block">${studentDetail.student_id}</span>
-                        </div>
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
                     </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Fakultas</small>
-                            <span class="text__title">${studentDetail.studyprogram.faculty.faculty_name}</span>
-                        </div>
-                    </div>
-                    <div class="eazy-header__item">
-                        <div class="item__icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-                        </div>
-                        <div class="item__text">
-                            <small class="text__subtitle">Program Studi</small>
-                            <span class="text__title">${studentDetail.studyprogram.studyprogram_name}</span>
-                        </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Fakultas</small>
+                        <span class="text__title">${studentMaster.study_program.faculty.faculty_name}</span>
                     </div>
                 </div>
-            `);
-        }
+                <div class="eazy-header__item">
+                    <div class="item__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                    </div>
+                    <div class="item__text">
+                        <small class="text__subtitle">Program Studi</small>
+                        <span class="text__title">${studentMaster.study_program.studyprogram_type} ${studentMaster.study_program.studyprogram_name}</span>
+                    </div>
+                </div>
+            </div>
+        `);
     }
 
     const _helper = {
@@ -202,7 +167,10 @@
             this.instance = $('#credit-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/student/credit/index',
+                    url: _baseURL+'/api/payment/student-credit/index',
+                    data: function(d) {
+                        d.student_number = studentMaster.student_number;
+                    },
                 },
                 columns: [
                     {
@@ -402,7 +370,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-add-credit-submission',
-                    formActionUrl: _baseURL + '/api/student/credit/store',
+                    formActionUrl: _baseURL + '/api/payment/student-credit/store',
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
@@ -413,9 +381,9 @@
                                     `<input
                                         type="text"
                                         name="fullname"
-                                        class="form-control" value="{{ $user->student->fullname }}" disabled="disabled"
+                                        class="form-control" value="{{ $student->fullname }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="student_number" value="{{$user->student->student_number}}">`,
+                                    <input type="hidden" name="student_number" value="{{$student->student_number}}">`,
                             },
                         },
                         nim: {
@@ -425,7 +393,7 @@
                                     `<input
                                         type="text"
                                         name="student_id"
-                                        class="form-control" value="{{ $user->student->student_id }}" disabled="disabled"
+                                        class="form-control" value="{{ $student->student_id }}" disabled="disabled"
                                     >`,
                             },
                         },
@@ -499,7 +467,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-edit-credit-submission',
-                    formActionUrl: _baseURL + '/api/student/credit/store',
+                    formActionUrl: _baseURL + '/api/payment/student-credit/store',
                     formType: 'edit',
                     isTwoColumn: true,
                     rowId: data.mcs_id,
@@ -511,9 +479,9 @@
                                     `<input
                                         type="text"
                                         name="fullname"
-                                        class="form-control" value="{{ $user->student->fullname }}" disabled="disabled"
+                                        class="form-control" value="{{ $student->fullname }}" disabled="disabled"
                                     >
-                                    <input type="hidden" name="student_number" value="{{$user->student->student_number}}">`,
+                                    <input type="hidden" name="student_number" value="{{$student->student_number}}">`,
                             },
                         },
                         nim: {
@@ -523,7 +491,7 @@
                                     `<input
                                         type="text"
                                         name="student_id"
-                                        class="form-control" value="{{ $user->student->student_id }}" disabled="disabled"
+                                        class="form-control" value="{{ $student->student_id }}" disabled="disabled"
                                     >`,
                             },
                         },
@@ -606,7 +574,7 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/student/credit/delete/' + data.mcs_id, {
+                    $.post(_baseURL + '/api/payment/student-credit/delete/' + data.mcs_id, {
                         _method: 'DELETE'
                     }, function(data){
                         data = JSON.parse(data)

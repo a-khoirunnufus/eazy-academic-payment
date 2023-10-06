@@ -1,36 +1,31 @@
 <?php
 
-namespace App\Http\Controllers\_Student\Api;
+namespace App\Http\Controllers\_Payment\Api\Student;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\CreditSubmission;
-use App\Traits\Authentication\StaticStudentUser;
+use App\Models\Payment\CreditSubmission;
 use App\Http\Requests\Student\CreditRequest;
 use App\Models\Payment\Payment;
 use DB;
 use Storage;
 
-class CreditController extends Controller
+class StudentCreditController extends Controller
 {
-    use StaticStudentUser;
-    
     public function index(Request $request)
     {
-        $email = $request->query('email') ?? $this->example_s_user_email_hafizh;
-        $type = $request->query('type') ?? 'student';
+        $validated = $request->validate([
+            'student_number' => 'required',
+        ]);
 
-        $user = $this->getStaticUser($email, $type);
-
-        if(!$user->student) {
-            return 'User with email: '.$email.' not found!';
-        }
-        
         $query = CreditSubmission::query();
-        $query = $query->with('period','student')->where('student_number',$user->student->student_number)->orderBy('mcs_id');
-        return datatables($query)->toJson();
+        $query = $query->with('period', 'student')
+            ->where('student_number', $validated['student_number'])
+            ->orderBy('mcs_id');
+
+        return datatables($query)->toJSON();
     }
-    
+
     public function store(CreditRequest $request)
     {
         $validated = $request->validated();
@@ -61,8 +56,8 @@ class CreditController extends Controller
                     'mcs_proof_filename' => $validated['mcs_proof']->getClientOriginalName(),
                     'mcs_status' => 2,
                 ]);
-                
-                
+
+
                 $text = "Berhasil membuat pengajuan";
             }
 
@@ -88,7 +83,7 @@ class CreditController extends Controller
         }
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function delete($id)
     {
         $data = CreditSubmission::findOrFail($id);

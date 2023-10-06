@@ -1,36 +1,31 @@
 <?php
 
-namespace App\Http\Controllers\_Student\Api;
+namespace App\Http\Controllers\_Payment\Api\Student;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\DispensationSubmission;
-use App\Traits\Authentication\StaticStudentUser;
+use App\Models\Payment\DispensationSubmission;
 use App\Http\Requests\Student\DispensationRequest;
 use App\Models\Payment\Payment;
 use DB;
 use Storage;
 
-class DispensationController extends Controller
+class StudentDispensationController extends Controller
 {
-    use StaticStudentUser;
-    
     public function index(Request $request)
     {
-        $email = $request->query('email') ?? $this->example_s_user_email_hafizh;
-        $type = $request->query('type') ?? 'student';
+        $validated = $request->validate([
+            'student_number' => 'required',
+        ]);
 
-        $user = $this->getStaticUser($email, $type);
-
-        if(!$user->student) {
-            return 'User with email: '.$email.' not found!';
-        }
-        
         $query = DispensationSubmission::query();
-        $query = $query->with('period','student')->where('student_number',$user->student->student_number)->orderBy('mds_id');
-        return datatables($query)->toJson();
+        $query = $query->with('period', 'student')
+            ->where('student_number', $validated['student_number'])
+            ->orderBy('mds_id');
+
+        return datatables($query)->toJSON();
     }
-    
+
     public function store(DispensationRequest $request)
     {
         $validated = $request->validated();
@@ -62,8 +57,8 @@ class DispensationController extends Controller
                     'mds_proof_filename' => $validated['mds_proof']->getClientOriginalName(),
                     'mds_status' => 2,
                 ]);
-                
-                
+
+
                 $text = "Berhasil membuat pengajuan";
             }
 
@@ -89,7 +84,7 @@ class DispensationController extends Controller
         }
         return json_encode(array('success' => true, 'message' => $text));
     }
-    
+
     public function delete($id)
     {
         $data = DispensationSubmission::findOrFail($id);
@@ -98,12 +93,13 @@ class DispensationController extends Controller
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus pengajuan"));
     }
 
-    public function getSpesific($prr_id){
+    public function getSpesific($prr_id)
+    {
         $data = DispensationSubmission::where('prr_id', $prr_id)
                 ->where('mds_status', 1)
                 ->whereNull('deleted_at')
                 ->first();
-        
+
         return json_encode($data, JSON_PRETTY_PRINT);
     }
 

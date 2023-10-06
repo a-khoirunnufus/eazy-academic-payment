@@ -47,9 +47,10 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Nama</th>
+                <th>Kode Cicilan</th>
                 <th>Jumlah Tagihan</th>
                 <th>Tenggat Pembayaran</th>
+                <th>Keterangan</th>
                 <th class="text-center">Status Pembayaran</th>
                 <th class="text-center">Aksi</th>
             </tr>
@@ -226,6 +227,18 @@
                     return `
                         <tr>
                             <td>${bill.prrb_order}</td>
+                            <td>${bill.prrb_id}</td>
+                            <td>${Rupiah.format(bill.prrb_amount)}</td>
+                            <td class="text-start">
+                                <p class="m-0">${moment(bill.computed_due_date).format('DD/MM/YYYY')}</p>
+                                ${
+                                    bill.computed_dispensation_applied ? `
+                                        <small class="d-block line" style="margin-top: 6px">${
+                                            moment(bill.prrb_due_date).format('DD/MM/YYYY')
+                                        }</small>
+                                    ` : ''
+                                }
+                            </td>
                             <td>
                                 Cicilan Ke-${bill.prrb_order} Pembayaran ${studentType == 'new_student' ? 'Daftar Ulang' : 'Registrasi Semester Baru'}
                                 Program Studi ${ studentType == 'new_student' ? `
@@ -240,17 +253,6 @@
                                 }
                                 Tahun Ajaran ${billMaster.year.msy_year}
                                 Semester ${billMaster.year.msy_semester}
-                            </td>
-                            <td>${Rupiah.format(bill.prrb_amount)}</td>
-                            <td class="text-start">
-                                <p class="m-0">${moment(bill.computed_due_date).format('DD/MM/YYYY')}</p>
-                                ${
-                                    bill.computed_dispensation_applied ? `
-                                        <small class="d-block line" style="margin-top: 6px">${
-                                            moment(bill.prrb_due_date).format('DD/MM/YYYY')
-                                        }</small>
-                                    ` : ''
-                                }
                             </td>
                             <td class="text-center">${paymentStatusHtml}</td>
                             <td class="text-center">
@@ -512,17 +514,36 @@
             let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - (nominalPaid + studentBalanceSpent);
             if (nominalUnpaid < 0) nominalUnpaid = 0;
 
-            if (paymentMethod.mpm_type != 'bank_transfer_manual') {
-                $('#paymentInstructionModal #va-number-exp-warning').html(`
-                    <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
-                        <div class="me-1">
-                            <i data-feather="alert-triangle"></i>
+            if (
+                bill.computed_payment_status != 'lunas'
+                && paymentMethod.mpm_type != 'bank_transfer_manual'
+            ) {
+
+                if (moment().isAfter(moment(bill.prrb_midtrans_transaction_exp))) {
+                    // expire time exceeded
+                    $('#paymentInstructionModal #va-number-exp-warning').html(`
+                        <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
+                            <div class="me-1">
+                                <i data-feather="alert-triangle"></i>
+                            </div>
+                            <div>
+                                <p class="d-block me-1">Nomor Virtual Account anda telah kadaluarsa, silahkan generate nomor virtual account yang baru.</p>
+                                <button class="btn btn-warning" onclick="regenerateVAN(${bill.prrb_id})">Generate No Virtual Account Baru</button>
+                            </div>
                         </div>
-                        <div>
-                            ${paymentMethod.mpm_type == 'bank_transfer_va' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(bill.prrb_midtrans_transaction_exp).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
+                    `);
+                } else {
+                    $('#paymentInstructionModal #va-number-exp-warning').html(`
+                        <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
+                            <div class="me-1">
+                                <i data-feather="alert-triangle"></i>
+                            </div>
+                            <div>
+                                ${paymentMethod.mpm_type == 'bank_transfer_va' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(bill.prrb_midtrans_transaction_exp).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
+                            </div>
                         </div>
-                    </div>
-                `);
+                    `);
+                }
             } else {
                 $('#paymentInstructionModal #va-number-exp-warning').html('');
             }
@@ -530,14 +551,17 @@
             // RENDER PAYMENT INFORMATION
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
-                    <td style="width: 300px" class="table-light fw-bolder">Metbill.ode Pembayaran</td>
+                    <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
                     <td>${paymentMethod.mpm_name}</td>
                 </tr>
 
                 ${paymentMethod.mpm_type == 'bank_transfer_va' ? `
                     <tr>
                         <td style="width: 300px" class="table-light fw-bolder">Nomor Virtual Account</td>
-                        <td>${bill.prrb_va_number}</td>
+                        <td>${
+                            moment().isAfter(moment(bill.prrb_midtrans_transaction_exp)) ? '-'
+                                : bill.prrb_va_number
+                        }</td>
                     </tr>
                 ` : ''}
 
@@ -558,6 +582,16 @@
                         <td>${bill.prrb_mandiri_bill_key}</td>
                     </tr>
                 ` : ''}
+
+                <tr>
+                    <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Awal</td>
+                    <td>${Rupiah.format(bill.prrb_amount)}</td>
+                </tr>
+
+                <tr>
+                    <td style="width: 300px" class="table-light fw-bolder">Biaya Admin</td>
+                    <td>${Rupiah.format(paymentMethod.mpm_fee)}</td>
+                </tr>
 
                 ${studentBalanceSpent > 0 ? `
                     <tr>
@@ -656,7 +690,7 @@
                 $('#paymentInstructionModal #table-transaction-history tbody').html(`
                     ${
                         paymentTransactions.map((item, index) => {
-                            let desc = '';
+                            let desc = 'Descrpition not available';
                             const payment_type = item.payment_method.mpm_type;
 
                             if (payment_type == 'bank_transfer_manual') {
@@ -666,10 +700,18 @@
                                     {text: `Nomor Rekening Tujuan : ${nullSafeView(item.prrt_receiver_account_number)}`, bold: true, small: true, nowrap: true},
                                 ]);
                             }
-                            else {
-                                // bank_transfer_va
-                                // bank_transfer_bill_payment
-                                desc = 'Descrpition not available yet!';
+                            else if (payment_type == 'bank_transfer_va') {
+                                desc = _datatableTemplates.listCell([
+                                    {text: `Metode Pembayaran : ${nullSafeView(item.payment_method.mpm_name)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Nomor Virtual Account : ${nullSafeView(item.prrt_va_number)}`, bold: true, small: true, nowrap: true},
+                                ]);
+                            }
+                            else if (payment_type == 'bank_transfer_bill_payment') {
+                                desc = _datatableTemplates.listCell([
+                                    {text: `Metode Pembayaran : ${nullSafeView(item.payment_method.mpm_name)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Bill Key : ${nullSafeView(item.prrt_mandiri_bill_key)}`, bold: true, small: true, nowrap: true},
+                                    {text: `Biller Code : ${nullSafeView(item.prrt_mandiri_biller_code)}`, bold: true, small: true, nowrap: true},
+                                ]);
                             }
 
                             return `
@@ -1139,6 +1181,35 @@
 
     function nullSafeView(value) {
         return value ?? '<span class="badge bg-secondary">n/a</span>';
+    }
+
+    async function regenerateVAN(billId) {
+        const confirmed = await _swalConfirmSync({
+            title: 'Konfirmasi',
+            text: 'Apakah anda yakin ingin melakukan regenerate va?',
+        });
+
+        if(!confirmed) return;
+
+        const billMasterId = prrId;
+
+        const res = await $.ajax({
+            async: true,
+            url: `${_baseURL}/api/payment/student-invoice/${billMasterId}/bill/${billId}/regenerate-va`,
+            type: 'post',
+        });
+
+        if (res.success) {
+            console.log('success regenerate va.')
+            _toastr.success(res.message, 'Sukses');
+
+            // reopen payment instruction modal
+            paymentInstructionModal.hide();
+            payBillModal.open(billId);
+        } else {
+            console.log('failed regenerate va!');
+            _toastr.error(res.message, 'Gagal');
+        }
     }
 </script>
 @endprepend

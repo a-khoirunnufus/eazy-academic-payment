@@ -21,7 +21,7 @@ class PaymentService {
     public function transactionStatus($order_id)
     {
         $response = Http::withHeaders($this->req_header)
-            ->post($this->base_url.'/'.$order_id.'/charge')
+            ->get($this->base_url.'/'.$order_id.'/status')
             ->object();
 
         return $response;

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\_Payment\API\Approval;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\DispensationSubmission;
+use App\Models\Payment\DispensationSubmission;
 use App\Http\Requests\Payment\Dispensation\DispensationSubmission as RequestDispensation;
 use App\Models\Payment\Payment;
 use App\Models\Payment\Studyprogram;

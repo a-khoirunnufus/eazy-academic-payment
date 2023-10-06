@@ -4,12 +4,11 @@
             <th>Aksi</th>
             <th>Tahun Akademik Tagihan</th>
             <th>Kode Tagihan</th>
-            <th>Total / Rincian Tagihan</th>
-            <th>Total / Rincian Potongan</th>
-            <th>Total / Rincian Beasiswa</th>
-            <th>Total / Rincian Denda</th>
+            <th>Rincian / Total Tagihan</th>
+            <th>Rincian / Total Potongan</th>
+            <th>Rincian / Total Beasiswa</th>
+            <th>Rincian / Total Denda</th>
             <th>Jumlah Total</th>
-            <th>Keterangan</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -48,19 +47,33 @@
         init: function() {
             this.instance = $('#table-paid-invoice').DataTable({
                 serverSide: true,
+                processing: true,
                 ajax: {
                     url: _baseURL+'/api/payment/student-invoice',
                     data: function(d) {
-                        d.student_type = 'student';
-                        d.participant_id = null;
                         d.student_number = studentMaster.student_number;
                         d.status = 'paid';
+                        d.withData = [
+                            'year',
+                        ];
+                        d.withAppend = [
+                            'computed_component_list',
+                            'computed_component_total_amount',
+                            'computed_discount_list',
+                            'computed_discount_total_amount',
+                            'computed_scholarship_list',
+                            'computed_scholarship_total_amount',
+                            'computed_final_bill',
+                            'computed_payment_status',
+                        ];
                     },
                     dataSrc: function(json) {
                         paidData = [];
                         return json.data;
                     }
                 },
+                ordering: false,
+                searching: false,
                 stateSave: false,
                 // columnDefs: [
                 //     {
@@ -89,75 +102,84 @@
                         }
                     },
                     {
-                        name: 'school_year_invoice',
                         render: (data, _, row) => {
                             return this.template.titleWithSubtitleCell(
-                                row.invoice_school_year_year,
-                                'Semester '+row.invoice_school_year_semester
+                                row.year.msy_year,
+                                'Semester ' + row.year.msy_semester
                             );
                         }
                     },
                     {
-                        name: 'invoice_number',
-                        data: 'invoice_number',
+                        data: 'prr_id',
                         render: (data) => {
-                            return this.template.defaultCell(data, {bold: true});
+                            return this.template.defaultCell(data, {
+                                bold: true
+                            });
                         }
                     },
                     {
-                        name: 'invoice',
                         render: (data, _, row) => {
-                            const invoiceDetailJson = row.invoice_detail;
-                            const invoiceDetail = JSON.parse(unescapeHtml(invoiceDetailJson));
-                            const invoiceTotal = invoiceDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return this.template.invoiceDetailCell(invoiceDetail, invoiceTotal);
+                            return this.template.listCell([
+                                ...row.computed_component_list.map(item => ({
+                                    text: `${item.prrd_component} : ${Rupiah.format(item.prrd_amount)}`,
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true,
+                                })),
+                                {
+                                    text: `Total : ${Rupiah.format(row.computed_component_total_amount)}`,
+                                    bold: true,
+                                    small: false,
+                                    nowrap: false,
+                                }
+                            ]);
                         }
                     },
                     {
-                        name: 'discount',
                         render: (data, _, row) => {
-                            const discountDetailJson = row.discount_detail;
-                            const discountDetail = JSON.parse(unescapeHtml(discountDetailJson));
-                            const discountTotal = discountDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return discountDetail.length > 0 ?
-                                this.template.invoiceDetailCell(invoiceDetail, invoiceTotal)
-                                : '-';
+                            return this.template.listCell([
+                                ...row.computed_discount_list.map(item => ({
+                                    text: `${item.prrd_component} : ${Rupiah.format(item.prrd_amount)}`,
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true,
+                                })),
+                                {
+                                    text: `Total : ${Rupiah.format(row.computed_discount_total_amount)}`,
+                                    bold: true,
+                                    small: false,
+                                    nowrap: false,
+                                }
+                            ]);
                         }
                     },
                     {
-                        name: 'scholarship',
                         render: (data, _, row) => {
-                            const scholarshipDetailJson = row.scholarship_detail;
-                            const scholarshipDetail = JSON.parse(unescapeHtml(scholarshipDetailJson));
-                            const scholarshipTotal = scholarshipDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return scholarshipDetail.length > 0 ?
-                                this.template.invoiceDetailCell(scholarshipDetail, scholarshipTotal)
-                                : '-';
+                            return this.template.listCell([
+                                ...row.computed_scholarship_list.map(item => ({
+                                    text: `${item.prrd_component} : ${Rupiah.format(item.prrd_amount)}`,
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true,
+                                })),
+                                {
+                                    text: `Total : ${Rupiah.format(row.computed_scholarship_total_amount)}`,
+                                    bold: true,
+                                    small: false,
+                                    nowrap: false,
+                                }
+                            ]);
                         }
                     },
                     {
-                        name: 'penalty',
                         render: (data, _, row) => {
-                            const penaltyDetailJson = row.penalty_detail;
-                            const penaltyDetail = JSON.parse(unescapeHtml(penaltyDetailJson));
-                            const penaltyTotal = penaltyDetail.reduce((acc, curr) => acc + curr.nominal, 0);
-                            return penaltyDetail.length > 0 ?
-                                this.template.invoiceDetailCell(penaltyDetail, penaltyTotal)
-                                : '-';
+                            return this.template.currencyCell(0, {bold: true});
                         }
                     },
                     {
-                        name: 'total_amount',
-                        data: 'total_amount',
+                        data: 'computed_final_bill',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true});
-                        }
-                    },
-                    {
-                        name: 'notes',
-                        data: 'notes',
-                        render: (data) => {
-                            return data ? this.template.defaultCell(data, {nowrap: false}) : '-';
                         }
                     },
                 ],

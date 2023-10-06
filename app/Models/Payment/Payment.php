@@ -10,8 +10,9 @@ use App\Models\PMB\Register;
 use App\Models\HR\MsStudent;
 use App\Models\Payment\Year;
 use App\Models\Payment\PaymentMethod;
-use App\Models\Student\DispensationSubmission;
+use App\Models\Payment\DispensationSubmission;
 use App\Enums\Payment\BillStatus;
+use App\Enums\Payment\PaymentDetailType as DetailType;
 
 class Payment extends Model
 {
@@ -45,21 +46,53 @@ class Payment extends Model
         );
     }
 
-    public function computedPaymentStatus(): Attribute
+    public function computedFinalBill(): Attribute
     {
-        $get_func = fn () => BillStatus::NotPaidOff;
+        $total_bill = $this->computed_component_total_amount - ($this->computed_discount_total_amount + $this->computed_scholarship_total_amount);
+        return Attribute::make(get: fn () => $total_bill);
+    }
 
-        $due_date = $this->dispensation()
-            ->orderBy('mds_deadline', 'desc')
+    public function computedDispensationApplied(): Attribute
+    {
+        $due_date = $this->dispensation
+            ->sortByDesc('mds_deadline')
             ->first()
             ?->mds_deadline ?? '1970-01-01';
-        $dispensation_applied = strtotime($due_date) > time();
-        if ($dispensation_applied) $get_func = fn () => BillStatus::Credit;
 
-        $fully_paid = $this->payment_bill && $this->paymentBill()
-            ->whereIn('prrb_status', [BillStatus::NotPaidOff, BillStatus::Credit])
-            ->doesntExist();
-        if ($fully_paid) $get_func = fn () => BillStatus::PaidOff;
+        $dispensation_applied = strtotime($due_date) > time();
+
+        return Attribute::make(get: fn () => $dispensation_applied);
+    }
+
+    public function computedCreditApplied(): Attribute
+    {
+        $credit_applied = $this->credit->isNotEmpty();
+        return Attribute::make(get: fn () => $credit_applied);
+    }
+
+    public function computedIsFullyPaid(): Attribute
+    {
+        $fully_paid = $this->paymentBill->isNotEmpty() && $this->paymentBill
+            ->whereIn('prrb_status', [BillStatus::NotPaidOff->value, BillStatus::Credit->value])
+            ->isEmpty();
+
+        return Attribute::make(get: fn () => $fully_paid);
+    }
+
+    public function computedPaymentStatus(): Attribute
+    {
+        $get_func = fn () => BillStatus::NotPaidOff->value;
+
+        if (
+            $this->computed_dispensation_applied
+            or $this->computed_credit_applied
+        ) {
+            $get_func = fn () => BillStatus::Credit->value;
+        }
+
+        if ($this->computed_is_fully_paid) {
+            $get_func = fn () => BillStatus::PaidOff->value;
+        }
 
         return Attribute::make(get: $get_func);
     }
@@ -67,18 +100,52 @@ class Payment extends Model
     public function computedHasPaidBill(): Attribute
     {
         $has_paid_bill = false;
-        if ($this->payment_bill) {
-            foreach ($this->payment_bill as $bill) {
-                if ($bill->payment_transaction) {
+        if ($this->paymentBill->isNotEmpty()) {
+            foreach ($this->paymentBill as $bill) {
+                if ($bill->paymentTransaction->isNotEmpty()) {
                     $has_paid_bill = true;
                     break;
                 }
             }
         }
 
-        return Attribute::make(
-            get: fn () => $has_paid_bill,
-        );
+        return Attribute::make(get: fn () => $has_paid_bill);
+    }
+
+    public function computedComponentList(): Attribute
+    {
+        $items = $this->paymentDetail->where('type', DetailType::Component->value);
+        return Attribute::make(get: fn () => $items);
+    }
+
+    public function computedComponentTotalAmount(): Attribute
+    {
+        $amount = $this->paymentDetail->where('type', DetailType::Component->value)->sum('prrd_amount');
+        return Attribute::make(get: fn () => $amount);
+    }
+
+    public function computedDiscountList(): Attribute
+    {
+        $items = $this->paymentDetail->where('type', DetailType::Discount->value);
+        return Attribute::make(get: fn () => $items);
+    }
+
+    public function computedDiscountTotalAmount(): Attribute
+    {
+        $amount = $this->paymentDetail->where('type', DetailType::Discount->value)->sum('prrd_amount');
+        return Attribute::make(get: fn () => $amount);
+    }
+
+    public function computedScholarshipList(): Attribute
+    {
+        $items = $this->paymentDetail->where('type', DetailType::Scholarship->value);
+        return Attribute::make(get: fn () => $items);
+    }
+
+    public function computedScholarshipTotalAmount(): Attribute
+    {
+        $amount = $this->paymentDetail->where('type', DetailType::Scholarship->value)->sum('prrd_amount');
+        return Attribute::make(get: fn () => $amount);
     }
 
     /**
@@ -110,13 +177,15 @@ class Payment extends Model
         return $this->hasOne(Year::class, 'msy_code', 'prr_school_year');
     }
 
-    public function paymentMethod()
-    {
-        return $this->hasOne(PaymentMethod::class, 'mpm_key', 'prr_method');
-    }
-
+    // pengajuan dispensasi yang diapprove
     public function dispensation()
     {
         return $this->hasMany(DispensationSubmission::class, 'prr_id', 'prr_id');
+    }
+
+    // pengajuan cicilan yang diapprove
+    public function credit()
+    {
+        return $this->hasMany(CreditSubmission::class, 'prr_id', 'prr_id');
     }
 }

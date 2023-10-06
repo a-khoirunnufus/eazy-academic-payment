@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Student;
+namespace App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,20 +9,20 @@ use App\Models\Payment\Year;
 use App\Models\Payment\Student;
 use App\Models\Payment\Payment;
 
-class DispensationSubmission extends Model
+class CreditSubmission extends Model
 {
     use HasFactory;
     use SoftDeletes;
 
-    protected $table = "finance.ms_dispensation_submission";
+    protected $table = "finance.ms_credit_submission";
 
-    protected $primaryKey = 'mds_id';
+    protected $primaryKey = 'mcs_id';
 
-    protected $fillable = ['student_number', 'mds_school_year', 'mds_phone','mds_email','mds_reason','mds_proof','mds_deadline','mds_status','mds_proof_filename','mds_decline_reason','prr_id'];
+    protected $fillable = ['student_number', 'mcs_school_year', 'mcs_phone','mcs_email','mcs_reason','mcs_proof','mcs_status','mcs_proof_filename','mcs_decline_reason','prr_id','cs_id'];
 
     public function period()
     {
-        return $this->belongsTo(Year::class, 'mds_school_year','msy_code');
+        return $this->belongsTo(Year::class, 'mcs_school_year','msy_code');
     }
 
     public function student()

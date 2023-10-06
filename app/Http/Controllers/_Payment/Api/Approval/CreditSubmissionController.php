@@ -4,7 +4,7 @@ namespace App\Http\Controllers\_Payment\API\Approval;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Student\CreditSubmission;
+use App\Models\Payment\CreditSubmission;
 use App\Http\Requests\Payment\Credit\CreditSubmission as CreditRequest;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Payment;
@@ -83,6 +83,14 @@ class CreditSubmissionController extends Controller
         if($total != $data->payment->prr_total){
             $text = 'Total nominal cicilan tidak sesuai tagihan, Total saat ini: Rp.'.number_format($total, 2);
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
+
+        // if student has ever paid this bill, then reject this credit submission approval
+        if ($data->payment->computed_has_paid_bill) {
+            $text = 'Tidak dapat mengubah skema cicilan, terdapat tagihan yang telah dibayar oleh mahasiswa.';
+            $data->update(['mcs_status' => 0, 'mcs_decline_reason' => $text]);
+            $this->addToLogDetail($log_id,$this->getLogTitle($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
 

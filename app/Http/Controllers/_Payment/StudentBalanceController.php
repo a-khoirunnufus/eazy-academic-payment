@@ -4,7 +4,6 @@ namespace App\Http\Controllers\_Payment;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Auth;
 use App\Traits\Payment\General as PaymentGeneral;
 
 class StudentBalanceController extends Controller

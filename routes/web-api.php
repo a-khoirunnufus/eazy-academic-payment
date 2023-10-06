@@ -254,6 +254,7 @@ Route::group(['prefix' => 'payment'], function(){
                     Route::post('{prrb_id}/evidence', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@storeApproval');
                     Route::post('{prrb_id}/select-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@selectPaymentMethod');
                     Route::post('{prrb_id}/reset-method', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@resetPaymentMethod');
+                    Route::post('{prrb_id}/regenerate-va', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@regenerateVA');
                 });
             });
         });
@@ -263,12 +264,32 @@ Route::group(['prefix' => 'payment'], function(){
             Route::get('/dt-transaction', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@dtTransaction');
         });
 
+        Route::group(['prefix' => 'student-credit'], function(){
+            Route::get('index', 'App\Http\Controllers\_Payment\Api\Student\StudentCreditController@index');
+            Route::post('store', 'App\Http\Controllers\_Payment\Api\Student\StudentCreditController@store');
+            Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Student\StudentCreditController@delete');
+        });
+
+        Route::group(['prefix' => 'student-dispensation'], function(){
+            Route::get('index', 'App\Http\Controllers\_Payment\Api\Student\StudentDispensationController@index');
+            Route::post('store', 'App\Http\Controllers\_Payment\Api\Student\StudentDispensationController@store');
+            Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Student\StudentDispensationController@delete');
+            Route::get('spesific-payment/{prr_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentDispensationController@getSpesific');
+        });
+
     });
 
     Route::group(['prefix' => 'payment-method'], function() {
         Route::get('/', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@index');
         Route::get('/type-group', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@typeGroup');
         Route::get('/{key}', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@show');
+    });
+
+    Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
+
+    // Development Testing Routes
+    Route::group(['prefix' => 'dev-test'], function() {
+        Route::post('/regenerate-va', 'App\Http\Controllers\_Payment\Api\DevTestController@regenerateVA');
     });
 });
 
@@ -287,24 +308,6 @@ Route::group(['prefix' => 'report'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentRegistrant');
     });
     Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@getProdi');
-});
-
-// STUDENT GROUP ROUTE
-Route::group(['prefix' => 'student'], function(){
-    Route::get('detail', 'App\Http\Controllers\_Student\Api\StudentController@detail');
-
-    Route::group(['prefix' => 'credit'], function(){
-        Route::get('index', 'App\Http\Controllers\_Student\Api\CreditController@index');
-        Route::post('store', 'App\Http\Controllers\_Student\Api\CreditController@store');
-        Route::delete('delete/{id}', 'App\Http\Controllers\_Student\Api\CreditController@delete');
-    });
-
-    Route::group(['prefix' => 'dispensation'], function(){
-        Route::get('index', 'App\Http\Controllers\_Student\Api\DispensationController@index');
-        Route::post('store', 'App\Http\Controllers\_Student\Api\DispensationController@store');
-        Route::delete('delete/{id}', 'App\Http\Controllers\_Student\Api\DispensationController@delete');
-        Route::get('spesific-payment/{prr_id}', 'App\Http\Controllers\_Student\Api\DispensationController@getSpesific');
-    });
 });
 
 // DOWNLOAD LOCAL
