@@ -529,7 +529,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-add-credit-submission',
-                    formActionUrl: _baseURL + '/api/student/credit/store',
+                    formActionUrl: _baseURL + '/api/payment/student-credit/store',
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
