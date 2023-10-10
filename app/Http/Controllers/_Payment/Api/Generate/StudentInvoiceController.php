@@ -38,6 +38,7 @@ class StudentInvoiceController extends Controller
 {
     use LogActivity, General;
 
+    private $is_admission = 0;
     /**
      * View Only
      */
@@ -252,9 +253,9 @@ class StudentInvoiceController extends Controller
             ->where('period_id', $student->period_id)
             ->where('msy_id', $student->msy_id)
             ->where('mlt_id', $student->mlt_id)
+            ->where('cd_is_admission', $this->is_admission)
             ->get();
-
-        if ($components) {
+        if (!$components->isEmpty()) {
             $prr_total = 0;
             foreach ($components as $item) {
                 $prr_total = $prr_total + $item->cd_fee;
