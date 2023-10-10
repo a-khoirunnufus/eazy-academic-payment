@@ -396,7 +396,7 @@
                                     //         </tr>
                                     //     `;
                                     // }
-                                    // xhr.open("GET", _baseURL+`/api/student/dispensation/spesific-payment/${bill.prr_id}`, false);
+                                    // xhr.open("GET", _baseURL+`/api/payment/student-dispensation/spesific-payment/${bill.prr_id}`, false);
                                     // xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                                     // xhr.send();
                                     // return row;

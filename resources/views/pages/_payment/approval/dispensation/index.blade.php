@@ -562,7 +562,7 @@
                 modalSize: 'lg',
                 config: {
                     formId: 'form-add-dispensation-submission',
-                    formActionUrl: _baseURL + '/api/student/dispensation/store',
+                    formActionUrl: _baseURL + '/api/payment/student-dispensation/store',
                     formType: 'add',
                     isTwoColumn: true,
                     fields: {
