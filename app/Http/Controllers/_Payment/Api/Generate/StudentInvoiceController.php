@@ -299,7 +299,7 @@ class StudentInvoiceController extends Controller
     {
         if ($request->generate_checkbox) {
             $log = $this->addToLog('Generate Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
-            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from,$log)->onQueue('bulk');
+            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from,$log);
             return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
         } else {
             return json_encode(array('success' => false, 'message' => "Belum ada data yang dipilih!"));
@@ -337,10 +337,10 @@ class StudentInvoiceController extends Controller
                 foreach ($students as $student) {
                     $payment = Payment::where('student_number', $student->student_number)->where('prr_school_year', $this->getActiveSchoolYearCode())->first();
                     if (!$payment) {
-                        GenerateInvoice::dispatch($student, $log)->onQueue('invoice');
+                        GenerateInvoice::dispatch($student, $log);
                     }
                 }
-                GenerateInvoice::dispatch(null, $log)->onQueue('invoice');
+                GenerateInvoice::dispatch(null, $log);
             }
         }
         return true;
@@ -456,25 +456,6 @@ class StudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateByFaculty($faculty_id)
-    {
-        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
-
-        foreach ($studyprogram as $item) {
-            $target_prodi = json_decode($this->regenerateByProdi($item->studyprogram_id), true);
-
-            if (!$target_prodi['status']) {
-                return json_encode($target_prodi, JSON_PRETTY_PRINT);
-            }
-        }
-
-        return array(
-            'status' => true,
-            'msg' => 'Berhasil menggenerate ulang'
-        );
-    }
-
-
     public function deleteBulk($f, $sp)
     {
         // dd($sp);
@@ -552,96 +533,25 @@ class StudentInvoiceController extends Controller
         );
     }
 
-    public function regenerateTagihanByProdi($prodi_id)
+    public function regenerateTagihanByFaculty(Request $request, $faculty_id)
     {
-        try {
-            $prr = DB::table('finance.payment_re_register as prr')
-                ->select('prr.prr_id', 'prr.student_number')
-                ->join('hr.ms_student as student', 'student.student_number', '=', 'prr.student_number')
-                ->whereNull('prr.deleted_at')
-                ->where('student.studyprogram_id', '=', $prodi_id)
-                ->get();
-
-            foreach ($prr as $list) {
-                $payment_bill = DB::table('finance.payment_re_register_detail as prrd')
-                    ->where('prr_id', '=', $list->prr_id)
-                    ->whereNull('deleted_at')
-                    ->update(['deleted_at' => date("Y-m-d H:i:s")]);
-
-                $component = DB::table('finance.component_detail as cd')
-                    ->select('c.msc_name as component_name', 'cd.cd_fee as fee')
-                    ->join('hr.ms_student as student', function ($join) {
-                        $join->on('student.studyprogram_id', '=', 'cd.mma_id')
-                            ->on('student.period_id', '=', 'cd.period_id')
-                            ->on('student.path_id', '=', 'cd.path_id')
-                            ->on('student.msy_id', '=', 'cd.msy_id');
-                    })
-                    ->join('finance.ms_component as c', 'c.msc_id', '=', 'cd.msc_id')
-                    ->where('student.student_number', '=', $list->student_number)
-                    ->get();
-
-                foreach ($component as $item) {
-                    $prrd = PaymentDetail::create([
-                        'prr_id' => $list->prr_id,
-                        'prrd_component' => $item->component_name,
-                        'prrd_amount' => $item->fee,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'is_plus' => 1,
-                        'type' => 'component'
-                    ]);
-                }
-
-                $scholarship = DB::table('finance.ms_scholarship_receiver as msr')
-                    ->join('finance.ms_scholarship as scholarship', 'scholarship.ms_id', '=', 'msr.ms_id')
-                    ->where('student_number', '=', $list->student_number)
-                    ->where('msr_status_generate', '=', 1)
-                    ->where('msr_status', '=', '1')
-                    ->where('prr_id', '=', $list->prr_id)
-                    ->whereNull('msr.deleted_at')
-                    ->get('msr.msr_nominal as fee', 'scholarship.ms_name as component_name');
-
-                foreach ($scholarship as $item) {
-                    $prrd = PaymentDetail::create([
-                        'prr_id' => $list->prr_id,
-                        'prrd_component' => $item->component_name,
-                        'prrd_amount' => $item->fee,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'is_plus' => 0,
-                        'type' => 'scholarship'
-                    ]);
-                }
-
-                $discount = DB::table('finance.ms_discount_receiver as mdr')
-                    ->join('finance.ms_discount as md', 'md.md_id', '=', 'mdr.md_id')
-                    ->where('student_number', '=', $list->student_number)
-                    ->where('mdr_status_generate', '=', 1)
-                    ->where('mdr_status', '=', '1')
-                    ->where('prr_id', '=', $list->prr_id)
-                    ->whereNull('mdr.deleted_at')
-                    ->get('mdr_nominal as fee', 'md.md_name as component_name');
-
-                foreach ($discount as $item) {
-                    $prrd = PaymentDetail::create([
-                        'prr_id' => $list->prr_id,
-                        'prrd_component' => $item->component_name,
-                        'prrd_amount' => $item->fee,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'is_plus' => 0,
-                        'type' => 'discount'
-                    ]);
-                }
-            }
-        } catch (QueryException $e) {
-            return array(
-                'status' => false,
-                'msg' => 'error system: ' . $e->getMessage()
-            );
+        $log = $this->addToLog('Regenerate Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
+        foreach ($studyprogram as $item) {
+            $this->regenerateProdiProcess($item->studyprogram_id,$log);
         }
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Regenerate Bulk Tagihan Mahasiswa Lama Berhasil";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
 
-        return array(
-            'status' => true,
-            'msg' => 'Berhasil menggenerate ulang'
-        );
+    public function regenerateTagihanByProdi(Request $request, $prodi_id)
+    {
+        $log = $this->addToLog('Regenerate Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $this->regenerateProdiProcess($prodi_id,$log);
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Regenerate Bulk Tagihan Mahasiswa Lama Berhasil";
+        return json_encode(array('success' => true, 'message' => $text));
     }
 
     public function regenerateTagihanByStudent(Request $request, $prr_id)
@@ -652,8 +562,22 @@ class StudentInvoiceController extends Controller
         return $result;
     }
 
+    public function regenerateProdiProcess($prodi_id,$log){
+        $payment = Payment::whereHas('student', function($q) use($prodi_id) {
+            $q->where('studyprogram_id', '=', $prodi_id);
+        })->get();
+        foreach ($payment as $item) {
+            $result = $this->regenerateProcess($item->prr_id,$log->log_id);
+        }
+    }
+
     public function regenerateProcess($prr_id, $log_id){
         $data = Payment::with('student','paymentDetail','paymentBill')->findorfail($prr_id);
+        if(Carbon::createFromFormat('Y-m-d', Config::get('app.payment_regenerate_lock')) <= Carbon::now()){
+            $text = "Sudah melebihi batas waktu regenerate data";
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
         if($data->paymentBill){
             foreach($data->paymentBill as $item){
                 if($item->prrb_status == 'lunas'){

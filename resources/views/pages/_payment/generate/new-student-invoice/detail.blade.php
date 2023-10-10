@@ -449,7 +449,7 @@
                             <a onclick="TreeGenerate.openModal()" class="btn btn-info" href="javascript:void(0);">
                             <i data-feather="command"></i> Generate All</a>
                             <a onclick="_newStudentInvoiceDetailTableAction.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
-                            <i data-feather="book-open"></i> Log Generate</a>
+                            <i data-feather="book-open"></i> Log Activity</a>
                         </div>
                     `)
                     feather.replace()
@@ -607,7 +607,7 @@
             });
         },
         logActivityModal: function() {
-            title = `Log Generate Tagihan Mahasiswa Baru`;
+            title = `Log Activity Tagihan Mahasiswa Baru`;
             url = `{{ request()->path() }}`;
             logActivity(title,url);
         },

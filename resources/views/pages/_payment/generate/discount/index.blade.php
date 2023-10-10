@@ -205,7 +205,7 @@
                             <a onclick="_discountReceiverTableActions.deleteBulk()" class="btn btn-danger" href="javascript:void(0);">
                             <i data-feather="trash"></i> Delete All</a>
                             <a onclick="_discountReceiverTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
-                            <i data-feather="book-open"></i> Log Generate</a>
+                            <i data-feather="book-open"></i> Log Activity</a>
                         </div>
                     `)
                     feather.replace()
@@ -423,7 +423,7 @@
             })
         },
         logActivityModal: function() {
-            title = `Log Generate Potongan`;
+            title = `Log Activity Potongan`;
             url = `{{ request()->path() }}`;
             logActivity(title,url);
         },

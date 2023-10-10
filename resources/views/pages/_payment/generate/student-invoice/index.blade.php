@@ -243,7 +243,7 @@
                             <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
                             <a onclick="_studentInvoiceTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
-                            <i data-feather="book-open"></i> Log Generate</a>
+                            <i data-feather="book-open"></i> Log Activity</a>
                         </div>
                     `)
                     feather.replace()
@@ -583,18 +583,18 @@
         regenerate: function(faculty_id, studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?',
+                html: `Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
                 cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
+                confirmButtonText: 'Regenerate',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
                     $url = _baseURL + "/api/payment/generate/student-invoice/regenerate/";
-                    var unit_id = 0;
+                    let unit_id = 0;
                     if (faculty_id == 0) {
                         $url += "prodi/"
                         unit_id = studyprogram_id
@@ -602,22 +602,34 @@
                         $url += "faculty/"
                         unit_id = faculty_id
                     }
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.onload = function() {
-                        var data = JSON.parse(this.responseText);
+                    $.post($url + unit_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                    }).fail((error) => {
                         Swal.fire({
-                            icon: data.status == true ? 'success':'error',
-                            text: data.msg
-                        })
-                        _newStudentInvoiceTable.reload();
-                    }
-                    xhr.open("DELETE", $url+unit_id, true);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
                 }
             })
-        }
+        },
     }
 
     function filters(){

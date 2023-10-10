@@ -396,7 +396,7 @@
                             <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-info" href="javascript:void(0);">
                                 <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
                             <a onclick="_studentInvoiceDetailTableAction.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
-                            <i data-feather="book-open"></i> Log Generate</a>
+                            <i data-feather="book-open"></i> Log Activity</a>
                         </div>
                     `)
                     feather.replace()
@@ -821,40 +821,31 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    if(data.payment){
-                        console.log(data);
-                        $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.payment.prr_id, {
-                            _method: 'DELETE',
-                            url: `{{ request()->path() }}`,
-                        }, function(data){
-                            console.log(data);
-                            data = JSON.parse(data)
-                            if(data.success){
-                                Swal.fire({
-                                    icon: 'success',
-                                    text: data.message,
-                                }).then(() => {
-                                    _studentInvoiceDetailTable.reload()
-                                });
-                            }else{
-                                Swal.fire({
-                                    icon: 'error',
-                                    text: data.message,
-                                })
-                            }
-                        }).fail((error) => {
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/regenerate/student/' + data.payment.prr_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
                             Swal.fire({
                                 icon: 'error',
                                 text: data.message,
-                            });
-                            _responseHandler.generalFailResponse(error)
-                        })
-                    }else{
+                            })
+                        }
+                    }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
-                            text: 'Data Tagihan Tidak Ditemukan',
-                        })
-                    }
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
                 }
             })
         },
