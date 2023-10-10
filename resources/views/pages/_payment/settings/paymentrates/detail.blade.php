@@ -261,7 +261,7 @@
                             <button onclick="_ratesTableActions.deleteBulk()" class="btn btn-danger">
                             <i data-feather="trash" style="width: 18px; height: 18px;"></i> Delete All </button>
                             <button onclick="_ratesTableActions.logActivityModal()" class="btn btn-secondary">
-                            <i data-feather="book-open" style="width: 18px; height: 18px;"></i> Log Generate</button>
+                            <i data-feather="book-open" style="width: 18px; height: 18px;"></i> Log Activity</button>
                         </div>
                     `);
                     feather.replace();
@@ -446,6 +446,8 @@
                                         </div>
                                     </div>
                                     <input type="hidden" value=${is_admission} name="is_admission">
+                                    <input type="hidden" value="{{ request()->path() }}" name="url">
+                                    <input type="hidden" value="${data.ppm.major_lecture_type.study_program.studyprogram_type} - ${data.ppm.major_lecture_type.study_program.studyprogram_name} - ${data.ppm.major_lecture_type.lecture_type.mlt_name}" name="title">
                                     <div id="schemaDeadline">
                                     </div>
                                 </div>`
@@ -523,8 +525,9 @@
                     })
                 }
             }else{
+                console.log('admission '+is_admission);
                 if (Object.keys(data.creditNew).length > 0) {
-                    data.credit.map(item => {
+                    data.creditNew.map(item => {
                         _ratesTableActions.SchemaDeadlineField(item.cs_id, item.credit_schema.cs_name, item.credit_schema.credit_schema_detail)
                     })
                 }

@@ -135,7 +135,7 @@ class PaymentRatesController extends Controller
         $schema = CreditSchemaPeriodPath::with(['creditSchema' => function($query){
                 $query->withoutGlobalScope(CreditSchemaTemplateScope::class);
             }])
-            ->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->where('cs_is_admission', $cs_id)->first();
+            ->where('ppm_id', $ppm_id)->where('cs_id', $cs_id)->where('cs_is_admission', $is_admission)->first();
 
         if (!$schema) {
             $create = CreditSchemaPeriodPath::create([
@@ -162,6 +162,13 @@ class PaymentRatesController extends Controller
 
     public function update(PaymentRateUpdateRequest $request)
     {
+        $log = $this->addToLog('Update Tarif dan Pembayaran',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->updateProcess($request,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function updateProcess(PaymentRateUpdateRequest $request,$log_id){
         $validated = $request->validated();
         DB::beginTransaction();
         try {
@@ -180,27 +187,34 @@ class PaymentRatesController extends Controller
                             'ppm_id' => $validated['main_ppm_id'],
                             'cd_is_admission' => $validated['is_admission'],
                         ]);
+                        $component = Component::findorfail($validated['msc_id'][$i]);
+                        $this->addToLogDetail($log_id,$this->getLogTitle('Add '.$component->msc_name.' - Rp.'.$validated['cd_fee'][$i].' at '.$validated['title']),LogStatus::Success);
                     } else {
                         $data = ComponentDetail::findorfail($validated['cd_id'][$i]);
                         $data->update([
                             'msc_id' => $validated['msc_id'][$i],
                             'cd_fee' => $validated['cd_fee'][$i]
                         ]);
+                        $component = Component::findorfail($validated['msc_id'][$i]);
+                        $this->addToLogDetail($log_id,$this->getLogTitle('Update '.$component->msc_name.' - Rp.'.$validated['cd_fee'][$i].' at '.$validated['title']),LogStatus::Success);
                     }
                 }
             }
             if (isset($validated['cs_id'])) {
                 foreach ($validated['cs_id'] as $item) {
                     $data = CreditSchemaPeriodPath::where('cs_id', $item)->where('ppm_id', $validated['main_ppm_id'])->where('cs_is_admission',$validated['is_admission'])->first();
+                    $creditSchema = CreditSchema::findorfail($item);
                     if (!$data) {
                         CreditSchemaPeriodPath::create([
                             'cs_id' => $item,
                             'ppm_id' => $validated['main_ppm_id'],
                             'cs_is_admission' => $validated['is_admission'],
                         ]);
+                        $this->addToLogDetail($log_id,$this->getLogTitle('Add Credit Schema '.$creditSchema->cs_name.' at '.$validated['title']),LogStatus::Success);
                     }
+                    $this->addToLogDetail($log_id,$this->getLogTitle('Update Credit Schema '.$creditSchema->cs_name.' at '.$validated['title']),LogStatus::Success);
                 }
-                CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
+                CreditSchemaPeriodPath::where('ppm_id', $validated['main_ppm_id'])->where('cs_is_admission',$validated['is_admission'])->whereNotIn('cs_id', $validated['cs_id'])->delete();
             }
             if (isset($validated['cse_cs_id'])) {
                 foreach ($validated['cse_cs_id'] as $key => $item) {
@@ -222,6 +236,7 @@ class PaymentRatesController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($validated['title'],$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
@@ -234,115 +249,6 @@ class PaymentRatesController extends Controller
 
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen"));
     }
-
-    /**
-     * OLD CODE
-     */
-    // ppd_id => $id
-    // public function import($id, Request $request)
-    // {
-    //     $file = $request->file('file');
-
-    //     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-    //     // $reader->setReadDataOnly(true);
-    //     $spreadsheet = $reader->load($file->getRealPath());
-
-    //     $list_data = array();
-    //     foreach ($spreadsheet->getSheetNames() as $list) {
-    //         $sheet = $spreadsheet->getSheetByName($list);
-    //         $dataSheet = $sheet->toArray();
-
-    //         $data = array();
-    //         $jenis_perkuliahan = array();
-    //         $tagihan = array();
-    //         $cicilan = array();
-    //         for ($i = 2; $i < count($dataSheet); $i++) {
-    //             if ($dataSheet[$i][0] != null && $dataSheet[$i][0] != NULL) {
-    //                 array_push($jenis_perkuliahan, array(
-    //                     "mlt_id" => $dataSheet[$i][0]
-    //                 ));
-    //             }
-    //             if ($dataSheet[$i][1] != null && $dataSheet[$i][1] != NULL) {
-    //                 $default_fee = $dataSheet[$i][2] == NULL ? 0 : $dataSheet[$i][2];
-    //                 array_push($tagihan, array(
-    //                     "msc_id" => $dataSheet[$i][1],
-    //                     "fee" => $default_fee
-    //                 ));
-    //             }
-    //             if ($dataSheet[$i][3] != null && $dataSheet[$i][3] != NULL) {
-    //                 $default_date = $dataSheet[$i][4] == NULL ? date("Y-m-d") : $dataSheet[$i][4];
-    //                 array_push($cicilan, array(
-    //                     "cs_id" => $dataSheet[$i][3],
-    //                     "tenggat" => array($default_date)
-    //                 ));
-    //             } else {
-    //                 $default_date = $dataSheet[$i][4] == NULL ? date("Y-m-d") : $dataSheet[$i][4];
-    //                 if (count($cicilan) > 0) {
-    //                     array_push($cicilan[count($cicilan) - 1]["tenggat"], $default_date);
-    //                 }
-    //             }
-    //         }
-    //         array_push($data, array(
-    //             "mma_id" => $spreadsheet->getSheetNames()[0],
-    //             "detail" => array(
-    //                 "jenis_perkuliahan" => $jenis_perkuliahan,
-    //                 "komponen_tagihan" => $tagihan,
-    //                 "cicilan" => $cicilan
-    //             )
-    //         ));
-
-    //         array_push($list_data, $data);
-    //     }
-
-    //     //ambil data dari variabel $list_data untuk dimasukkan ke database
-
-    //     //format response
-    //     // return json_encode(array(
-    //     //     'status' => 1, //1 untuk success/true, 0 untuk fail/false
-    //     //     'message' => 'Berhasil import data' //message menyesuaikan kondisi
-    //     // ));
-
-    //     // return json_encode($list_data);
-    // }
-    // OLD CODE
-    // public function store(request $request)
-    // {
-    //     $validated = $request->validated();
-    //     // dd($validated);
-    //     DB::beginTransaction();
-    //     try{
-    //         $paymentRate = PaymentRate::create([
-    //             'f_period_id' => $validated['f_period_id'],
-    //             'f_studyprogram_id' => $validated['f_studyprogram_id'],
-    //             'f_path_id' => $validated['f_path_id'],
-    //             'f_jenis_perkuliahan_id' => $validated['f_jenis_perkuliahan_id'],
-    //         ]);
-    //         $f_id = $paymentRate->f_id;
-
-    //         $count = count($validated['cs_id']);
-    //         for ($i=0; $i < $count; $i++) {
-    //             PaymentCredit::create([
-    //                 'f_id' => $f_id,
-    //                 'cs_id' => $validated['cs_id'][$i]
-    //             ]);
-    //         }
-
-    //         $count = count($validated['msc_id']);
-    //         for ($i=0; $i < $count; $i++) {
-    //             PaymentComponent::create([
-    //                 'f_id' => $f_id,
-    //                 'msc_id' => $validated['msc_id'][$i],
-    //                 'fc_rate' => $validated['fc_rate'][$i],
-    //             ]);
-    //         }
-    //         $text = "Berhasil menambahkan tarif dan pembayaran";
-    //         DB::commit();
-    //     }catch(\Exception $e){
-    //         DB::rollback();
-    //         return response()->json($e->getMessage());
-    //     }
-    //     return json_encode(array('success' => true, 'message' => $text));
-    // }
 
     public function getPeriod()
     {
