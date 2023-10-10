@@ -240,10 +240,12 @@
                 initComplete: function() {
                     $('.student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <a onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info" href="javascript:void(0);">
-                                <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
-                            <a onclick="_studentInvoiceTableActions.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
-                            <i data-feather="book-open"></i> Log Activity</a>
+                            <button onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info">
+                                <i data-feather="command" style="width: 18px; height: 18px;"></i> Generate Tagihan Mahasiswa</button>
+                            <button onclick="_studentInvoiceTableActions.deleteBulk()" class="btn btn-danger">
+                            <i data-feather="trash" style="width: 18px; height: 18px;"></i> Delete All </button>
+                            <button onclick="_studentInvoiceTableActions.logActivityModal()" class="btn btn-secondary">
+                            <i data-feather="book-open" style="width: 18px; height: 18px;"></i> Log Activity</button>
                         </div>
                     `)
                     feather.replace()
@@ -288,44 +290,6 @@
                         icon: 'success',
                         text: 'Berhasil generate tagihan',
                     })
-                }
-            })
-        },
-        delete: function(faculty_id,studyprogram_id) {
-            Swal.fire({
-                title: 'Konfirmasi',
-                html: `Apakah anda yakin ingin menghapus tagihan pada unit ini? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ea5455',
-                cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // ex: do ajax request
-                    $url = _baseURL + "/api/payment/generate/student-invoice/delete/";
-                    var unit_id = 0;
-                    if (faculty_id == 0) {
-                        $url += "prodi/"
-                        unit_id = studyprogram_id
-                    } else {
-                        $url += "faculty/"
-                        unit_id = faculty_id
-                    }
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.onload = function() {
-                        var data = JSON.parse(this.responseText);
-                        Swal.fire({
-                            icon: data.status == true ? 'success':'error',
-                            text: data.msg
-                        })
-                        _newStudentInvoiceTable.reload();
-                    }
-                    xhr.open("DELETE", $url+unit_id, true);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
                 }
             })
         },
@@ -626,6 +590,89 @@
                             text: data.message,
                         });
                         _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+        delete: function(faculty_id,studyprogram_id) {
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: `Apakah anda yakin ingin menghapus tagihan pada unit ini? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // ex: do ajax request
+                    $url = _baseURL + "/api/payment/generate/student-invoice/delete/";
+                    let unit_id = 0;
+                    if (faculty_id == 0) {
+                        $url += "prodi/"
+                        unit_id = studyprogram_id
+                    } else {
+                        $url += "faculty/"
+                        unit_id = faculty_id
+                    }
+                    $.post($url + unit_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+        deleteBulk: function() {
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: 'Apakah anda yakin ingin menghapus seluruh tagihan universitas? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/delete/university', {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _studentInvoiceDetailTable.reload();
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error);
                     })
                 }
             })

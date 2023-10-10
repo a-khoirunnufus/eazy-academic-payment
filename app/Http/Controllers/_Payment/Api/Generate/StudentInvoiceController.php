@@ -346,6 +346,53 @@ class StudentInvoiceController extends Controller
         return true;
     }
 
+
+    public function deleteByUniversity(Request $request)
+    {
+        $log = $this->addToLog('Delete All Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $faculty = Faculty::all();
+        foreach ($faculty as $item) {
+            $this->deleteFacultyProcess($request,$item->faculty_id,$log);
+        }
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Delete All Tagihan Mahasiswa Lama Berhasil";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteByFaculty(Request $request, $faculty_id)
+    {
+        $log = $this->addToLog('Delete Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $this->deleteFacultyProcess($request,$faculty_id,$log);
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Delete Bulk Tagihan Mahasiswa Lama Berhasil";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteFacultyProcess($request,$faculty_id,$log){
+        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
+        foreach ($studyprogram as $item) {
+            $this->deleteProdiProcess($request,$item->studyprogram_id,$log);
+        }
+    }
+
+    public function deleteByProdi(Request $request,$prodi_id)
+    {
+        $log = $this->addToLog('Delete Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $this->deleteProdiProcess($request,$prodi_id,$log);
+        $this->updateLogStatus($log,LogStatus::Success);
+        $text = "Delete Bulk Tagihan Mahasiswa Lama Berhasil";
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function deleteProdiProcess($request,$prodi_id,$log){
+        $payment = Payment::whereHas('student', function($q) use($prodi_id) {
+            $q->where('studyprogram_id', '=', $prodi_id);
+        })->get();
+        foreach ($payment as $item) {
+            $result = $this->deleteProcess($request,$item->prr_id,$log->log_id);
+        }
+    }
+
     public function delete(Request $request,$prr_id)
     {
         // Deleting Detail invoice
@@ -393,144 +440,6 @@ class StudentInvoiceController extends Controller
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
-    }
-
-
-    // Mas sukri
-    public function deleteByProdi($prodi_id)
-    {
-        return json_encode($this->deleteTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
-    }
-
-    public function regenerateByProdi($prodi_id)
-    {
-        return json_encode($this->regenerateTagihanByProdi($prodi_id), JSON_PRETTY_PRINT);
-    }
-
-    public function deleteInvoiceUniv()
-    {
-        $faculty = Faculty::all('faculty_id');
-
-        $dataSuccess = 0;
-        $dataFailed = 0;
-        foreach ($faculty as $list) {
-            $target_faculty = json_decode($this->deleteByFaculty($list->faculty_id));
-
-            if (!$target_faculty['status']) {
-                return json_encode($target_faculty, JSON_PRETTY_PRINT);
-            }
-            $dataSuccess += $target_faculty['data_success'];
-            $dataFailed += $target_faculty['data_failed'];
-        }
-
-        return array(
-            'status' => true,
-            'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
-            'data_success' => $dataSuccess,
-            'data_failed' => $dataFailed
-        );
-    }
-
-    public function deleteByFaculty($faculty_id)
-    {
-        $studyprogram = Studyprogram::where('faculty_id', '=', $faculty_id)->get();
-
-        $dataSuccess = 0;
-        $dataFailed = 0;
-        foreach ($studyprogram as $item) {
-            $target_prodi = json_decode($this->deleteByProdi($item->studyprogram_id), true);
-
-            if (!$target_prodi['status']) {
-                return json_encode($target_prodi, JSON_PRETTY_PRINT);
-            }
-
-            $dataSuccess += $target_prodi['data_success'];
-            $dataFailed += $target_prodi['data_failed'];
-        }
-
-        return array(
-            'status' => true,
-            'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
-            'data_success' => $dataSuccess,
-            'data_failed' => $dataFailed
-        );
-    }
-
-    public function deleteBulk($f, $sp)
-    {
-        // dd($sp);
-        $activeSchoolYearCode = $this->getActiveSchoolYearCode();
-        $invoice = Payment::query()
-            ->join('hr.ms_student', 'hr.ms_student.student_number', 'finance.payment_re_register.student_number')
-            ->where('finance.payment_re_register.prr_school_year', '=', $activeSchoolYearCode)
-            ->where('finance.payment_re_register.deleted_at', '=', null);
-
-        if ($f && $f != 0) {
-            $sp_in_faculty = Studyprogram::where('faculty_id', $f)->pluck('studyprogram_id')->toArray();
-            $invoice = $invoice->whereIn('studyprogram_id', $sp_in_faculty);
-        } else {
-            $invoice = $invoice->where('studyprogram_id', $sp);
-        }
-        $invoice = $invoice->delete();
-
-        return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
-    }
-
-    public function deleteTagihanByProdi($prodi_id)
-    {
-        $dataSuccess = 0;
-        $dataFailed = 0;
-        try {
-            $data = DB::table('finance.payment_re_register as prr')
-                ->select('prr.prr_id')
-                ->join('hr.ms_student as student', 'student.student_number', '=', 'prr.student_number')
-                ->where('student.studyprogram_id', '=', $prodi_id)
-                ->whereNull('prr.deleted_at')
-                ->get();
-
-            /*
-                hapus data jika tidak terdapat pembayaran yang sudah dilakukan
-                dan juga beasiswa dan potongan yang belum digenerate
-            */
-            foreach ($data as $item) {
-                $target_detail = DB::table('finance.payment_re_register_detail')
-                    ->select('prrd_id')
-                    ->where('prr_id', '=', $item->prr_id)
-                    ->whereNull('deleted_at')
-                    ->whereIn('type', ['scholarship', 'discount'])
-                    ->get();
-
-                $target_bill = DB::table('finance.payment_re_register_bill')
-                    ->select('prrb_id')
-                    ->where('prr_id', '=', $item->prr_id)
-                    ->whereNull('deleted_at')
-                    ->get();
-
-                if (count($target_detail) > 0 || count($target_bill) > 0) {
-                    $dataFailed++;
-                } else {
-                    $target_detail_update = DB::table('finance.payment_re_register')
-                        ->where('prr_id', '=', $item->prr_id)
-                        ->update(['deleted_at' => date("Y-m-d H:i:s")]);
-
-                    $dataSuccess++;
-                }
-            }
-        } catch (QueryException $e) {
-            return array(
-                'status' => false,
-                'msg' => 'error system: ' . $e->getMessage(),
-                'data_success' => $dataSuccess,
-                'data_failed' => $dataFailed
-            );
-        }
-
-        return array(
-            'status' => true,
-            'msg' => 'data sukses: ' . $dataSuccess . ', data gagal: ' . $dataFailed,
-            'data_success' => $dataSuccess,
-            'data_failed' => $dataFailed
-        );
     }
 
     public function regenerateTagihanByFaculty(Request $request, $faculty_id)
@@ -695,52 +604,3 @@ class StudentInvoiceController extends Controller
         }
     }
 }
-
-// OLD CODE, MAYBE USEFULL SOMEDAY
-// $components = $student->getComponent()
-// ->where('path_id',$student->path_id)
-// ->where('period_id',$student->period_id)
-// ->where('msy_id',$student->msy_id)
-// ->where('mlt_id',$student->mlt_id)
-// ->get();
-
-// if($components){
-//     $prr_total = 0;
-//     foreach($components as $item){
-//         $prr_total = $prr_total+$item->cd_fee;
-//     }
-//     $payment = Payment::where('student_number',$student->student_number)->where('prr_school_year',$this->getActiveSchoolYearCode())->first();
-
-//     DB::beginTransaction();
-//     try{
-//         if($payment){
-//             $payment->prr_status = 'belum lunas';
-//             $payment->prr_total = $prr_total;
-//             $payment->prr_paid_net = $prr_total;
-//             $payment->save();
-//             PaymentDetail::where('prr_id', $payment->prr_id)->delete();
-//         }else{
-//             $payment = Payment::create([
-//                 'prr_status' => 'belum lunas',
-//                 'prr_total' => $prr_total,
-//                 'prr_paid_net' => $prr_total,
-//                 'student_number' => $student->student_number,
-//                 'prr_school_year' => $this->getActiveSchoolYearCode(),
-//             ]);
-
-//         }
-
-//         foreach($components as $item){
-//             PaymentDetail::create([
-//                 'prr_id' => $payment->prr_id,
-//                 'prrd_component' => $item->component->msc_name,
-//                 'prrd_amount' => $item->cd_fee
-//             ]);
-//         }
-
-//         DB::commit();
-//     }catch(\Exception $e){
-//         DB::rollback();
-//         return response()->json($e->getMessage());
-//     }
-// }
