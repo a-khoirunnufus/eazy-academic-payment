@@ -69,6 +69,13 @@
                 <th>Jenis Perkuliahan</th>
                 <th>Komponen Mahasiswa Lama</th>
                 <th>Komponen Mahasiswa Baru</th>
+                <th>Program Studi</th>
+                <th>Komponen Mahasiswa Lama</th>
+                <th>Total Mahasiswa Lama</th>
+                <th>Skema Pembayaran Mahasiswa Lama</th>
+                <th>Komponen Mahasiswa Baru</th>
+                <th>Total Mahasiswa Baru</th>
+                <th>Skema Pembayaran Mahasiswa Baru</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -194,10 +201,10 @@
                 ajax: {
                     url: _baseURL + '/api/payment/settings/paymentrates/detail/{!! $id !!}',
                 },
-                columnDefs: [{
-                    "defaultContent": "-",
-                    "targets": "_all"
-                }],
+                // columnDefs: [{
+                //     "defaultContent": "-",
+                //     "targets": "_all"
+                // }],
                 columns: [{
                         name: 'action',
                         data: 'ppm.ppm_id',
@@ -236,6 +243,110 @@
                             return _ratesTableActions.componentTable(row,1);
                         }
                     },
+                    {
+                        name: 'ppm.mma_lt_id',
+                        visible: false,
+                        searchable: false,
+                        render: (data, _, row) => {
+                            return `${row.ppm.major_lecture_type.study_program.studyprogram_type} ${row.ppm.major_lecture_type.study_program.studyprogram_name}`;
+                        }
+                    },
+                    {
+                        name: 'component',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let component = "";
+                            row.component.map(item => {
+                                if (item.component) {
+                                    if(item.cd_is_admission == 0){
+                                        component += `<li>| ${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
+                                    }
+                                }
+                            });
+                            return component;
+                        }
+                    },
+                    {
+                        name: 'component',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let count = 0;
+                            row.component.map(item => {
+                                if (item.component) {
+                                    if(item.cd_is_admission == 0){
+                                        count = count+item.cd_fee;
+                                    }
+                                }
+                            });
+                            return Rupiah.format(count);
+                        }
+                    },
+                    {
+                        name: 'component',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let credit = "";
+                            row.credit.map(item => {
+                                if (item.credit_schema) {
+                                    if(item.cs_is_admission == 0){
+                                        credit += `<li>| ${item.credit_schema.cs_name}</li>`;
+                                    }
+                                }
+                            })
+                            return credit;
+                        }
+                    },
+                    {
+                        name: 'componentNew',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let component = "";
+                            row.componentNew.map(item => {
+                                if (item.component) {
+                                    if(item.cd_is_admission == 1){
+                                        component += `<li>| ${item.component.msc_name}: ${Rupiah.format(item.cd_fee)}</li>`;
+                                    }
+                                }
+                            });
+                            return component;
+                        }
+                    },
+                    {
+                        name: 'componentNew',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let count = 0;
+                            row.componentNew.map(item => {
+                                if (item.component) {
+                                    if(item.cd_is_admission == 1){
+                                        count = count+item.cd_fee;
+                                    }
+                                }
+                            });
+                            return Rupiah.format(count);
+                        }
+                    },
+                    {
+                        name: 'creditNew',
+                        searchable: false,
+                        visible: false,
+                        render: (data, _, row) => {
+                            let credit = "";
+                            row.creditNew.map(item => {
+                                if (item.credit_schema) {
+                                    if(item.cs_is_admission == 1){
+                                        credit += `<li>| ${item.credit_schema.cs_name}</li>`;
+                                    }
+                                }
+                            })
+                            return credit;
+                        }
+                    },
 
                 ],
                 drawCallback: function(settings) {
@@ -249,6 +360,56 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [5,2,6,7,8,9,10,11]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [5,2,6,7,8,9,10,11]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [5,2,6,7,8,9,10,11]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                orientation: 'landscape',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [5,2,6,7,8,9,10,11]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [5,2,6,7,8,9,10,11]
+                                }
+                            }
+                        ],
+                    }
+                ],
                 initComplete: function() {
                     $('.invoice-component-actions').html(`
                         <div style="margin-bottom: 7px">
@@ -806,7 +967,6 @@
                     row.creditNew.map(item => {
                         let credit = "";
                         if (item.credit_schema) {
-                            console.log("disini")
                             if(item.cs_is_admission == is_admission){
                                 credit = `<li>${item.credit_schema.cs_name}</li>`;
                                 count += 1;
