@@ -18,7 +18,7 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     'payment_delete_lock' => env('PAYMENT_DELETE_LOCK', '2023-12-25'),
-    'payment_regenerate_lock' => env('PAYMENT_REGENERATE_LOCK', '2023-09-25'),
+    'payment_regenerate_lock' => env('PAYMENT_REGENERATE_LOCK', '2023-12-25'),
 
     /*
     |--------------------------------------------------------------------------

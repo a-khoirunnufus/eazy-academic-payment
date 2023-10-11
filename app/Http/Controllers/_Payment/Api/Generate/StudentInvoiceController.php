@@ -23,6 +23,7 @@ use App\Models\Payment\CreditSchema;
 use App\Models\Payment\DispensationSubmission;
 use App\Models\Payment\CreditSubmission;
 use App\Models\PMB\PaymentRegisterDetail;
+use App\Http\Requests\Payment\Generate\StudentInvoiceUpdateRequest;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -602,5 +603,79 @@ class StudentInvoiceController extends Controller
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
+    }
+
+    public function deleteStudentComponent(Request $request, $prrd_id)
+    {
+        $log = $this->addToLog('Delete Komponen Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $paymentDetail = PaymentDetail::with('payment')->findorfail($prrd_id);
+        $payment = Payment::findorfail($paymentDetail->prr_id);
+        try {
+            DB::beginTransaction();
+            $payment->prr_total = $payment->prr_total-$paymentDetail->prrd_amount;
+            $payment->prr_paid_net = $payment->prr_paid_net-$paymentDetail->prrd_amount;
+            $payment->save();
+            PaymentDetail::where('prrd_id', $prrd_id)->delete();
+            DB::commit();
+            $this->addToLogDetail($log->log_id,$this->getLogTitleStudent($paymentDetail->payment->student),LogStatus::Success);
+        } catch (\Exception $e) {
+            DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($paymentDetail->payment->student,null,$e->getMessage()),LogStatus::Failed);
+            return response()->json($e->getMessage());
+        }
+        $this->updateLogStatus($log,LogStatus::Success);
+        return json_encode(array('success' => true, 'message' => "Berhasil menghapus komponen tagihan"));
+    }
+
+    public function updateStudentComponent(StudentInvoiceUpdateRequest $request)
+    {
+        $log = $this->addToLog('Update Komponen Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $result = $this->updateStudentComponentProcess($request,$log->log_id);
+        $this->updateLogStatus($log,$result);
+        return $result;
+    }
+
+    public function updateStudentComponentProcess(StudentInvoiceUpdateRequest $request,$log_id){
+        $validated = $request->validated();
+        DB::beginTransaction();
+        try {
+            if (isset($validated['prrd_id'])) {
+                $count = count($validated['prrd_id']);
+                for ($i=0; $i < $count; $i++) {
+                    if($validated['prrd_id'][$i] == 0){
+                        PaymentDetail::create([
+                            'prr_id' => $validated['prr_id'][$i],
+                            'prrd_component' => $validated['prrd_component'][$i],
+                            'prrd_amount' => $validated['prrd_amount'][$i],
+                            'is_plus' => 1,
+                            'type' => 'component',
+                        ]);
+                        $payment = Payment::findorfail($validated['prr_id'][$i]);
+                        $payment->prr_total = $payment->prr_total+$validated['prrd_amount'][$i];
+                        $payment->prr_paid_net = $payment->prr_paid_net+$validated['prrd_amount'][$i];
+                        $payment->save();
+                        $this->addToLogDetail($log_id,$this->getLogTitle('Add '.$validated['prrd_component'][$i].' - Rp.'.$validated['prrd_amount'][$i].' at '.$validated['title']),LogStatus::Success);
+                    } else {
+                        $data = PaymentDetail::findorfail($validated['prrd_id'][$i]);
+                        $payment = Payment::findorfail($validated['prr_id'][$i]);
+                        $payment->prr_total = $payment->prr_total-$data->prrd_amount+$validated['prrd_amount'][$i];
+                        $payment->prr_paid_net = $payment->prr_paid_net-$data->prrd_amount+$validated['prrd_amount'][$i];
+                        $data->update([
+                            'prrd_component' => $validated['prrd_component'][$i],
+                            'prrd_amount' => $validated['prrd_amount'][$i]
+                        ]);
+                        $payment->save();
+                        $this->addToLogDetail($log_id,$this->getLogTitle('Update '.$validated['prrd_component'][$i].' - Rp.'.$validated['prrd_amount'][$i].' at '.$validated['title']),LogStatus::Success);
+                    }
+                }
+            }
+            $text = "Berhasil memperbarui komponen tagihan mahasiswa";
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitle($validated['title'],$e->getMessage()),LogStatus::Failed);
+            return response()->json($e->getMessage());
+        }
+        return json_encode(array('success' => true, 'message' => $text));
     }
 }

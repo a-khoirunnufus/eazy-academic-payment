@@ -406,8 +406,10 @@
         template: {
             rowAction: function(row) {
                 let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
-                var optional = ``;
+                let edit = ``;
+                let optional = ``;
                 if(row.payment){
+                    edit = `<a onclick="_studentInvoiceDetailTableAction.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit Tagihan</a>`;
                     action = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
                     optional = `<a onclick="_studentInvoiceDetailTableAction.regenerate(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
                 }
@@ -418,6 +420,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
+                            ${edit}
                             ${action}
                             ${optional}
                         </div>
@@ -843,6 +846,204 @@
                         Swal.fire({
                             icon: 'error',
                             text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+
+        edit: function(e) {
+            let data = _studentInvoiceDetailTable.getRowData(e);
+            console.log(data);
+            Modal.show({
+                type: 'form',
+                modalTitle: `Pengaturan Tagihan ${data.fullname ? (data.fullname) : (data.student.fullname)}`,
+                modalSize: 'lg',
+                config: {
+                    formId: 'paymentRateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/student-invoice/component/update',
+                    formType: 'add',
+                    data: $("#paymentRateForm").serialize(),
+                    isTwoColumn: false,
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: 'Data Mahasiswa',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Nama Lengkap</h6>
+                                            <h1 class="h6 fw-bolder">${data.fullname ? (data.fullname) : (data.student.fullname)}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>NIM</h6>
+                                            <h1 class="h6 fw-bolder">${data.student_id ? (data.student_id) : (data.student.student_id)}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>No Handphone</h6>
+                                            <h1 class="h6 fw-bolder">${data.phone_number ? (data.phone_number) : (data.student.phone_number)}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Status Pembayaran</h6>
+                                            <h1 class="h6 fw-bolder" id="statusPembayaran"></h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        input_fields: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+                                    <h4 class="fw-bolder mb-0">Komponen Tagihan</h4>
+                                    <div>
+                                        <button type="button"
+                                            class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
+                                            onclick="_studentInvoiceDetailTableAction.PaymentRateNewField(${data.payment.prr_id},0)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
+                                        </button>
+                                    </div>
+                                    <input type="hidden" value="{{ request()->path() }}" name="url">
+                                    <input type="hidden" value="${data.fullname ? (data.fullname) : (data.student.fullname)} - ${data.student_id ? (data.student_id) : (data.student.student_id)}" name="title">
+                                </div>
+                                <div id="PaymentRateInput">
+                                </div>
+                                `
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Simpan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+                    </small>`,
+                    callback: function() {
+                        // ex: reload table
+                        _studentInvoiceDetailTable.reload()
+                    },
+                },
+            });
+            // Status
+            let source = data.payment;
+            let status = "";
+            if(source){
+                if(source.prr_status == 'lunas'){
+                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                }else if(source.prr_status == 'kredit'){
+                    status = '<div class="badge bg-warning" style="font-size: inherit">Kredit</div>'
+                }else{
+                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                }
+                if (Object.keys(source.payment_detail).length > 0) {
+                    source.payment_detail.map(item => {
+                        if(item.type == 'component'){
+                            _studentInvoiceDetailTableAction.PaymentRateInputField(item)
+                        }
+                    })
+                }
+            }
+            $("#statusPembayaran").append(status);
+
+        },
+        PaymentRateInputField: function(item) {
+            $('#PaymentRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 PaymentRateInputField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <input type="hidden" name="prr_id[]" value="${item.prr_id}">
+                    <input type="hidden" name="prrd_id[]" value="${item.prrd_id}">
+                    <div class="flex-fill">
+                        <label class="form-label">Nama Komponen</label>
+                        <input type="text" class="form-control" name="prrd_component[]" value="${item.prrd_component}"
+                            placeholder="Nama Komponen">
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Harga Komponen Biaya</label>
+                        <input type="text" class="form-control comp_price" name="prrd_amount[]" value="${item.prrd_amount}"
+                            placeholder="Tarif Komponen">
+                    </div>
+                    <div class="d-flex align-content-end">
+                        <div class="">
+                            <label class="form-label" style="opacity: 0">#</label>
+                            <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            onclick="_studentInvoiceDetailTableAction.paymentRateDeleteField(this,${item.prrd_id})"> <i class="bx bx-trash m-auto"></i> </a>
+                        </div>
+                    </div>
+                </div>
+            `);
+        },
+        PaymentRateNewField: function(prr_id,is_admission) {
+            $('#PaymentRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 PaymentRateInputField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <input type="hidden" name="prr_id[]" value="${prr_id}">
+                    <input type="hidden" name="prrd_id[]" value="0">
+                    <div class="flex-fill">
+                        <label class="form-label">Nama Komponen</label>
+                        <select class="form-select select2" eazy-select2-active name="prrd_component[]" id="component${prr_id}" value="">
+                        </select>
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Harga Komponen Biaya</label>
+                        <input type="text" class="form-control comp_price" name="prrd_amount[]" value=""
+                            placeholder="Tarif Komponen">
+                    </div>
+                    <div class="d-flex align-content-end">
+                        <div class="">
+                            <label class="form-label" style="opacity: 0">#</label>
+                            <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            onclick="_studentInvoiceDetailTableAction.paymentRateDeleteField(this,0)"> <i class="bx bx-trash m-auto"></i> </a>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $.get(_baseURL + '/api/payment/settings/paymentrates/component/'+is_admission, (data) => {
+                JSON.parse(data).map(item => {
+                    $("#component" + prr_id).append(`
+                        <option value="` + item['msc_name'] + `">` + item['msc_name'] + `</option>
+                    `)
+                })
+                selectRefresh();
+            })
+
+        },
+        paymentRateDeleteField: function(e, id) {
+            if (id === 0) {
+                $(e).parents('.PaymentRateInputField').get(0).remove();
+            } else {
+                _studentInvoiceDetailTableAction.deleteComponent(e, id);
+            }
+        },
+        deleteComponent: function(e, id) {
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/generate/student-invoice/component/delete/' + id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            $(e).parents('.PaymentRateInputField').get(0).remove();
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
                         });
                         _responseHandler.generalFailResponse(error)
                     })
