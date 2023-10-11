@@ -370,7 +370,7 @@
                         *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
                     </small>`,
                     callback: function() {
-                        _studentInvoiceDetailTable.reload();
+                        _studentInvoiceTable.reload();
                         feather.replace();
                     }
                 },
@@ -576,7 +576,7 @@
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _studentInvoiceDetailTable.reload()
+                                _studentInvoiceTable.reload()
                             });
                         }else{
                             Swal.fire({
@@ -626,7 +626,7 @@
                                 icon: 'success',
                                 text: data.message,
                             }).then(() => {
-                                _studentInvoiceDetailTable.reload()
+                                _studentInvoiceTable.reload()
                             });
                         }else{
                             Swal.fire({
@@ -665,7 +665,7 @@
                             icon: 'success',
                             text: data.message,
                         }).then(() => {
-                            _studentInvoiceDetailTable.reload();
+                            _studentInvoiceTable.reload();
                         });
                     }).fail((error) => {
                         Swal.fire({
