@@ -82,10 +82,6 @@
                 ajax: {
                     url: _baseURL+'/api/payment/generate/discount/index',
                     data: function(d) {
-                        // d.custom_filters = {
-                        //     'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
-                        //     'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
-                        // };
                         d.filters = [
                             {
                                 column: 'period.msy_code',

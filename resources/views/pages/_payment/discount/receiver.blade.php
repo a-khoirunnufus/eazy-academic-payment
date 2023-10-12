@@ -26,7 +26,7 @@
                 <select name="period" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                        <option value="{{$item->msy_code}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,16 +35,16 @@
                 <select name="discount_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Potongan</option>
                     @foreach ($discount as $item)
-                    <option value="{{$item->md_id}}">{{$item->md_name}}</option>
+                        <option value="{{$item->md_id}}">{{$item->md_name}}</option>
                     @endforeach
                 </select>
             </div>
             <div>
                 <label class="form-label">Fakultas</label>
-                <select name="faculty_filter" class="form-select" eazy-select2-active onchange="getStudyProgram(this.value)">
+                <select name="faculty_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Fakultas</option>
                     @foreach ($faculty as $item)
-                    <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
+                        <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -52,10 +52,13 @@
                 <label class="form-label">Program Studi</label>
                 <select name="study_program_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Program Studi</option>
+                    @foreach ($studyprogram as $item)
+                        <option value="{{$item->studyprogram_id}}">{{strtoupper($item->studyprogram_type)}} {{$item->studyprogram_name}}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button onclick="_discountReceiverTable.reload()" class="btn btn-info text-nowrap">
+                <button onclick="refreshTableDiscountReceiver()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -83,9 +86,17 @@
         </div>
     </div>
 </div>
-
 @endsection
 
-@section('js_section')
-@stack('scripts')
-@endsection
+@push('scripts')
+    <script>
+        function refreshTableDiscountReceiver() {
+            if ($('#navs-student').hasClass('active')) {
+                _discountReceiverTable.reload();
+            }
+            if ($('#navs-new-student').hasClass('active')) {
+                _discountReceiverNewStudentTable.reload();
+            }
+        }
+    </script>
+@endpush

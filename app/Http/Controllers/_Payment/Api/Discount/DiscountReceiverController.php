@@ -13,111 +13,43 @@ use App\Models\Payment\Year;
 use DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Traits\Models\DatatableManualFilter;
 
 class DiscountReceiverController extends Controller
 {
+    use DatatableManualFilter;
 
     public function index(Request $request)
     {
-        $filters = $request->input('custom_filters');
-        $filters = array_filter($filters, function ($item) {
-            return !is_null($item) && $item != '#ALL';
-        });
+        $query = DiscountReceiver::with('period','student','discount')
+            ->where('reg_id', '=', null);
 
-        $query = DiscountReceiver::query();
-        $query = $query->where('reg_id', '=', null);
-        $query = $query->with('period','student','discount');
+        $datatable = datatables($query);
 
-        if (isset($filters['period'])){
-            $query->where('mdr_period', '=', $filters['period']);
-        }
+        $this->applyManualFilter(
+            $datatable,
+            $request,
+            [
+                // filter attributes
+                'period.msy_code',
+                'period.msy_code',
+                'md_id',
+                'student.studyProgram.faculty_id',
+                'student.studyprogram_id',
+            ],
+            [
+                // search attributes
+                'student.fullname',
+                'student.student_id',
+                'student.studyProgram.studyprogram_name',
+                'student.studyProgram.faculty.faculty_name',
+                'discount.md_name',
+                'period.msy_year',
+                'mdr_nominal',
+            ],
+        );
 
-        if(isset($filters['discount_filter'])){
-            $query->whereHas('discount', function($q) use($filters){
-                $q->where('md_id', '=', $filters['discount_filter']);
-            });
-        }
-
-        if(isset($filters['faculty_filter'])){
-            $query->whereHas('student.studyProgram', function($q) use($filters){
-                $q->where('faculty_id', '=', $filters['faculty_filter']);
-            });
-        }
-
-        if(isset($filters['study_program_filter'])){
-            $query->whereHas('student.studyProgram', function($q) use($filters){
-                $q->where('studyprogram_id', '=', $filters['study_program_filter']);
-            });
-        }
-
-        $query = $query->orderBy('mdr_id')->get();
-
-        if(isset($filters['search_filter'])){
-            $data = [];
-            foreach($query as $item){
-                // print_r($item);
-                $isFound = false;
-
-                if(strpos(strtolower($item->student->fullname), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->student->student_id), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->student->studyProgram->studyprogram_type . ' ' . $item->student->studyProgram->studyprogram_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->student->studyProgram->faculty->faculty_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->discount->md_name), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->period->msy_year.' '.($item->period->msy_semester == 1 ? 'Ganjil':'Genap')), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->mdr_nominal), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-
-                if(strpos(strtolower($item->mdr_status == 1 ? 'Aktif':'Tidak Aktif'), strtolower($filters['search_filter'])) !== false){
-                    if(!$isFound){
-                        $isFound = true;
-                        array_push($data, $item);
-                    }
-                }
-            }
-            return datatables($data)->toJson();
-        }
-
-        return datatables($query)->toJson();
+        return $datatable->toJson();
     }
 
     public function discount()
