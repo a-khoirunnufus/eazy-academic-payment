@@ -13,12 +13,13 @@ use App\Models\Payment\Student;
 use App\Models\Payment\Year;
 use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
+use App\Traits\Models\DatatableManualFilter;
 use App\Enums\Payment\LogStatus;
 use DB;
 
 class DiscountGenerateController extends Controller
 {
-    use LogActivity, General;
+    use LogActivity, General, DatatableManualFilter;
 
     public function getReferenceTable(){
         return 'ms_discount_receiver';
@@ -26,9 +27,35 @@ class DiscountGenerateController extends Controller
 
     public function index(Request $request)
     {
-        $query = DiscountReceiver::query();
-        $query = $query->with('period','student','newStudent','discount')->where('mdr_status',1)->orderBy('mdr_id');
-        return datatables($query)->toJson();
+        $query = DiscountReceiver::with('period','student','newStudent','discount')
+            ->where('mdr_status', 1);
+
+        $datatable = datatables($query);
+
+        $this->applyManualFilter(
+            $datatable,
+            $request,
+            [
+                // filter attributes
+                'period.msy_code',
+            ],
+            [
+                // search attributes
+                'newStudent.participant.par_fullname',
+                'newStudent.reg_number',
+                'newStudent.studyprogram.faculty.faculty_name',
+                'newStudent.studyprogram.studyprogram_name',
+                'student.fullname',
+                'student.student_id',
+                'student.studyProgram.faculty.faculty_name',
+                'student.studyProgram.studyprogram_name',
+                'discount.md_name',
+                'period.msy_year',
+                'mdr_nominal',
+            ],
+        );
+
+        return $datatable->toJson();
     }
 
     public function store($id,$log_id){

@@ -77,7 +77,7 @@ class GenerateController extends Controller
 
     public function discount()
     {
-        $period = Year::all();
+        $period = Year::orderBy('msy_code')->get();
         return view('pages._payment.generate.discount.index',compact('period'));
     }
 

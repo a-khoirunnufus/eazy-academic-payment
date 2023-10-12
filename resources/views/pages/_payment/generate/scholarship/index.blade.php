@@ -96,14 +96,15 @@
                         ];
                     }
                 },
+                order: [[0, 'asc']],
+                stateSave: false,
                 columns: [
                     {
                         name: 'action',
-                        data: 'id',
+                        data: 'msr_id',
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
-                            console.log(row);
                             return this.template.rowAction(row.msr_status_generate)
                         }
                     },
