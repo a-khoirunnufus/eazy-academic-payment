@@ -24,7 +24,7 @@ use App\Models\PMB\Setting;
 use App\Models\PMB\Participant as NewStudent;
 use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
-use App\Services\Payment\PaymentService;
+use App\Services\Payment\PaymentApi;
 use App\Exceptions\MidtransException;
 use Carbon\Carbon;
 
@@ -213,7 +213,7 @@ class StudentInvoiceController extends Controller
                 $student_type = 'student';
 
                 // charge transaction
-                $charge_result = (new PaymentService())->chargeTransaction([
+                $charge_result = (new PaymentApi())->chargeTransaction([
                     "order_id" => $order_id,
                     "payment_type" => $payment_method->mpm_key,
                     "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
@@ -339,7 +339,7 @@ class StudentInvoiceController extends Controller
 
             // Cancel midtrans transaction
             if (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
-                $cancel_result = (new PaymentService())->cancelTransaction($bill->prrb_order_id);
+                $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
 
                 if ($cancel_result->status == 'error') {
                     // try cancel transaction again later by put it into queue
@@ -900,9 +900,9 @@ class StudentInvoiceController extends Controller
             $payment_method = $bill->paymentMethod;
             $student = Student::find($bill->payment->student_number);
 
-            $status_result = (new PaymentService())->transactionStatus($bill->prrb_order_id);
+            $status_result = (new PaymentApi())->transactionStatus($bill->prrb_order_id);
             if ($status_result->payload?->transaction_status == 'pending') {
-                $cancel_result = (new PaymentService())->cancelTransaction($bill->prrb_order_id);
+                $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
                 if ($cancel_result->status != "success") {
                     // when cancel transaction action is failed
                 }
@@ -914,7 +914,7 @@ class StudentInvoiceController extends Controller
             $student_balance_spend = $bill->computed_student_balance_spend_total;
 
             // charge transaction
-            $charge_result = (new PaymentService())->chargeTransaction([
+            $charge_result = (new PaymentApi())->chargeTransaction([
                 "order_id" => $order_id,
                 "payment_type" => $bill->prrb_payment_method,
                 "amount_total" => ($invoice_gross_amount + $admin_cost) - $student_balance_spend,

@@ -4,7 +4,7 @@ namespace App\Services\Payment;
 
 use Illuminate\Support\Facades\Http;
 
-class PaymentService {
+class PaymentApi {
 
     private $base_url;
     private $req_header;
