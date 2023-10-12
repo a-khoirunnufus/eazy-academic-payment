@@ -59,44 +59,44 @@
 
             <li class="nav-item mb-50">
                 <a class="d-flex align-items-center fw-bold" href="#">
-                    <i data-feather="settings"></i>
-                    <span class="menu-title text-truncate">Setting</span>
+                    <i data-feather="archive"></i>
+                    <span class="menu-title text-truncate">Master Data</span>
                 </a>
                 <ul class="menu-content">
                     <li class="menu__item nav-item {{ 'payment.settings.component' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.component') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Komponen<br>Tagihan</span>
+                            <span class="menu-title text-truncate">Master Komponen<br>Tagihan</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'payment.settings.credit-schema' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.credit-schema') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Template<br>Cicilan</span>
+                            <span class="menu-title text-truncate">Master Template<br>Cicilan</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'payment.settings.payment-rates' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.payment-rates') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Tarif</span>
+                            <span class="menu-title text-truncate">Master Tarif</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'payment.settings.subject-rates' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.subject-rates') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Tarif Per Mata Kuliah</span>
+                            <span class="menu-title text-truncate">Master Tarif Per Mata Kuliah</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'payment.settings.registration-form' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.registration-form') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Formulir<br>Pendaftaran(PMB)</span>
+                            <span class="menu-title text-truncate">Master Formulir<br>Pendaftaran(PMB)</span>
                         </a>
                     </li>
                     <li class="menu__item nav-item {{ 'payment.settings.academic-rules' == request()->route()->getName() ? 'active' : '' }}">
                         <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.academic-rules') }}">
                             <i data-feather="circle"></i>
-                            <span class="menu-title text-truncate">Setting Aturan<br>Akademik</span>
+                            <span class="menu-title text-truncate">Master Aturan<br>Akademik</span>
                         </a>
                     </li>
                 </ul>
@@ -267,6 +267,12 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+            <li class="nav-item mb-50 {{ 'payment.settings.index' == request()->route()->getName() ? 'active' : '' }}">
+                <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.index') }}">
+                    <i data-feather="settings"></i>
+                    <span class="menu-title text-truncate">Settings</span>
+                </a>
             </li>
 
 	    </ul>

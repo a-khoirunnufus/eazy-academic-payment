@@ -11,12 +11,31 @@ use App\Models\Payment\Studyprogram;
 use App\Models\Payment\PeriodPath;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
+use App\Models\Payment\Settings;
 
 class SettingsController extends Controller
 {
     public function component()
     {
         return view('pages._payment.settings.component.index');
+    }
+
+    public function index()
+    {
+        $settings = Settings::all();
+        return view('pages._payment.settings.index', compact('settings'));
+    }
+
+    public function update(Request $request)
+    {
+        unset($request['_token']);
+        foreach ($request->all() as $key => $item) {
+            Settings::where('name', $key)->update(
+                ['value' => $item]
+            );
+        }
+        $settings = Settings::all();
+        return redirect()->back()->with('message','Update settings berhasil!');
     }
 
     public function subjectrates()

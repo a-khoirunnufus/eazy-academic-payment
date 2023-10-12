@@ -135,6 +135,12 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         Route::get('/', 'App\Http\Controllers\_Payment\DevTestController@index');
     });
 
+    // Settings Route
+    Route::group(['prefix' => 'settings'], function() {
+        Route::get('/', 'App\Http\Controllers\_Payment\SettingsController@index')->name('payment.settings.index');
+        Route::post('/update', 'App\Http\Controllers\_Payment\SettingsController@update')->name('payment.settings.update');
+    });
+
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
