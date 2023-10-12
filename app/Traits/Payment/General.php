@@ -4,8 +4,10 @@ namespace App\Traits\Payment;
 
 use App\Providers\RouteServiceProvider;
 use App\Services\SchoolYearService;
+use Illuminate\Support\Facades\Cache;
 use Auth;
 use App\Models\Payment\Student;
+use App\Models\Payment\Settings;
 use Carbon\Carbon;
 
 trait General
@@ -75,5 +77,15 @@ trait General
     private function getCurrentDateTime()
     {
         return Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O');
+    }
+
+    public function getCacheSetting($name){
+        if (Cache::has($name)) {
+            return Cache::get($name);
+        } else {
+            $value = Settings::where('name',$name)->pluck('value')[0];
+            Cache::put($name, $value, 30*60 );
+            return $value;
+        }
     }
 }

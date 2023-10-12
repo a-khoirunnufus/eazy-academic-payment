@@ -419,7 +419,7 @@ class StudentInvoiceController extends Controller
             }
             // Deleting Detail Bill
             $data = Payment::with('student')->findorfail($prr_id);
-            if(Carbon::createFromFormat('Y-m-d', Config::get('app.payment_delete_lock')) <= Carbon::now()){
+            if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_delete_lock_cache')) <= Carbon::now()){
                 $text = "Sudah melebihi batas waktu penghapusan data";
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
                 return json_encode(array('success' => false, 'message' => $text));
@@ -483,7 +483,7 @@ class StudentInvoiceController extends Controller
 
     public function regenerateProcess($prr_id, $log_id){
         $data = Payment::with('student','paymentDetail','paymentBill')->findorfail($prr_id);
-        if(Carbon::createFromFormat('Y-m-d', Config::get('app.payment_regenerate_lock')) <= Carbon::now()){
+        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_regenerate_lock_cache')) <= Carbon::now()){
             $text = "Sudah melebihi batas waktu regenerate data";
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));

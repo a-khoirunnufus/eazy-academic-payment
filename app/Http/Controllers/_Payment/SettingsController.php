@@ -12,6 +12,7 @@ use App\Models\Payment\PeriodPath;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
 use App\Models\Payment\Settings;
+use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends Controller
 {
@@ -34,7 +35,7 @@ class SettingsController extends Controller
                 ['value' => $item]
             );
         }
-        $settings = Settings::all();
+        Cache::flush();
         return redirect()->back()->with('message','Update settings berhasil!');
     }
 
