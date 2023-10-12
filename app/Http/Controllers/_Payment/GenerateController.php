@@ -83,7 +83,7 @@ class GenerateController extends Controller
 
     public function scholarship()
     {
-        $period = Year::all();
+        $period = Year::orderBy('msy_code')->get();
         return view('pages._payment.generate.scholarship.index',compact('period'));
     }
 }

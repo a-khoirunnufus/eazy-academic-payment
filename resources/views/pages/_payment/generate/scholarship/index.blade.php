@@ -26,7 +26,7 @@
                 <select name="md_period_start_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                        <option value="{{$item->msy_code}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <select name="md_period_end_filter" class="form-select" eazy-select2-active>
                     <option value="#ALL" selected>Semua Periode</option>
                     @foreach ($period as $item)
-                        <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
+                        <option value="{{$item->msy_code}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -82,10 +82,18 @@
                 ajax: {
                     url: _baseURL+'/api/payment/generate/scholarship/index',
                     data: function(d) {
-                        d.custom_filters = {
-                            'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
-                            'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
-                        };
+                        d.filters = [
+                            {
+                                column: 'period.msy_code',
+                                operator: '>=',
+                                value: $('select[name="md_period_start_filter"]').val(),
+                            },
+                            {
+                                column: 'period.msy_code',
+                                operator: '<=',
+                                value: $('select[name="md_period_end_filter"]').val(),
+                            }
+                        ];
                     }
                 },
                 columns: [
@@ -111,7 +119,7 @@
                                 student_id = row.new_student.reg_number;
                             }else{
                                 fullname = row.student.fullname;
-                                student_id = row.student.fullname;
+                                student_id = row.student.student_id;
                             }
                             return `
                                 <div>
