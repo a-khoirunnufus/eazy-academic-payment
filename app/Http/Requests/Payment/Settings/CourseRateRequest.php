@@ -38,7 +38,8 @@ class CourseRateRequest extends FormRequest
             'mcr_tingkat' => 'required',
             'mcr_rate' => 'required',
             'mcr_active_status' => 'nullable',
-            'mcr_is_package' => 'required'
+            'mcr_is_package' => 'required',
+            'mcr_studyprogram_id' => 'required',
         ];
     }
 }

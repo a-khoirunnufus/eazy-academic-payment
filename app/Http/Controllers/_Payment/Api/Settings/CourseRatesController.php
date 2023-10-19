@@ -100,6 +100,7 @@ class CourseRatesController extends Controller
                         'mcr_rate' => $validated['mcr_rate'][$i],
                         'mcr_active_status' => 1,
                         'mcr_is_package' => $validated['mcr_is_package'][$i],
+                        'mcr_studyprogram_id' => $validated['mcr_studyprogram_id'],
                     ]);
                     $text = "Berhasil menambahkan tarif mata kuliah";
                 } else {
@@ -110,6 +111,7 @@ class CourseRatesController extends Controller
                         'mcr_rate' => $validated['mcr_rate'][$i],
                         'mcr_active_status' => 1,
                         'mcr_is_package' => $validated['mcr_is_package'][$i],
+                        'mcr_studyprogram_id' => $validated['mcr_studyprogram_id'],
                     ]);
                     $text = "Berhasil memperbarui tarif mata kuliah";
                 }
