@@ -247,7 +247,7 @@
         init: function() {
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'program_study',
+                nameField: 'mcr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name'
             });
@@ -495,7 +495,6 @@
                     formId: 'form-add-rates-per-course',
                     formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
                     formType: 'add',
-                    data: $("#coureRateForm").serialize(),
                     isTwoColumn: false,
                     fields: {
                         selections: {
@@ -506,7 +505,7 @@
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="program_study">
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id">
                                             </select>
                                         </div>
                                         <div class="col-lg-6 col-md-6">
@@ -554,7 +553,7 @@
             $('#courseRateInput').empty();
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'program_study',
+                nameField: 'mcr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name'
             });
@@ -601,13 +600,12 @@
 
             Modal.show({
                 type: 'form',
-                modalTitle: 'Tambah Tarif Matakuliah',
+                modalTitle: 'Edit Tarif Matakuliah',
                 modalSize: 'lg',
                 config: {
-                    formId: 'form-add-rates-per-course',
+                    formId: 'form-edit-rates-per-course',
                     formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
-                    formType: 'add',
-                    data: $("#coureRateForm").serialize(),
+                    formType: 'edit',
                     isTwoColumn: false,
                     fields: {
                         selections: {
@@ -617,15 +615,16 @@
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="program_study">
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id" disabled>
                                             </select>
                                         </div>
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Mata Kuliah</label>
-                                            <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+                                            <select class="form-select select2" eazy-select2-active id="courseId" name="mcr_course_id" disabled>
                                             </select>
                                         </div>
-                                        <input type="hidden" name="mcr_course_id" id="courseHiddenId">
+                                        <input type="hidden" name="mcr_studyprogram_id" value="${spId}" />
+                                        <input type="hidden" name="mcr_course_id" value="${cId}" />
                                     </div>
                                 </div>`
                             },
@@ -659,12 +658,11 @@
                 },
             });
 
-            $("#courseHiddenId").val(cId);
             $('#programStudy').empty().trigger("change");
             $('#courseRateInput').empty();
             _options.load({
                 optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'program_study',
+                nameField: 'mcr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name',
                 val: spId
@@ -682,7 +680,7 @@
                     val: cId
                 });
             })
-            $('#programStudy').prop('disabled', true);
+
             $("#courseId").change(function() {
                 courseId = $(this).val();
                 if (courseId) {
@@ -705,7 +703,6 @@
                     })
                 }
             })
-            $('#courseId').prop('disabled', true);
         },
         delete: function(e, id = 0) {
             let data = _ratesPerCourseTable.getRowData(e);
@@ -760,7 +757,7 @@
                 $('#courseRateInput').empty();
                 _options.load({
                     optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                    nameField: 'program_study',
+                    nameField: 'mcr_studyprogram_id',
                     idData: 'studyprogram_id',
                     nameData: 'studyprogram_name',
                     val: spIdCopy
