@@ -103,6 +103,17 @@
                         </div>
                     </div>
                 </div>
+                <div class="content-header-right text-end col-6">
+                    <div class="mb-1 breadcrumb-right school-year-info">
+                        <a href="javascript:void(0)" class="btn bg-label-info rounded-pill btn-icon small-info" title="-" data-bs-toggle="tooltip">
+                            <i data-feather="calendar"></i>
+                        </a>
+                        <span class="large-info btn bg-label-info">
+                            <i data-feather="calendar"></i>
+                            <span class="ms-1">-</span>
+                        </span>
+                    </div>
+                </div>
             </div>
             <div class="content-body">
                 @yield('content')
@@ -174,12 +185,13 @@
         const _csrfToken = "{{ csrf_token() }}"
     </script>
     <script src="{{ url('js/app.js') }}?version={{ config('version.js_config') }}"></script>
-
+    <script src="{{ url('js/setting.js') }}?version={{ config('version.js_config') }}"></script>
     <script src="{{ url('js/static-data.js') }}"></script>
 
     <script>
         $(document).ready(function () {
             @stack('elm_setup')
+            _activeSchoolYear.load()
         });
     </script>
 

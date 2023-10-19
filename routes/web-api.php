@@ -29,6 +29,9 @@ Route::prefix('dt/registration-form')->group(function() {
     Route::get("/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@byId');
     Route::post("edit/id/{id}", 'App\Http\Controllers\_Payment\Api\FormulirPendaftaranController@setFee');
 });
+Route::group(['prefix' => 'data'], function () {
+    Route::get('school-year/active', 'App\Http\Controllers\Api\Data\SchoolYearController@getActiveData');
+});
 
 // Payment
 Route::group(['prefix' => 'payment'], function(){
