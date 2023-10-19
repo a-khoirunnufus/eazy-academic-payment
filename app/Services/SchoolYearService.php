@@ -25,7 +25,7 @@ class SchoolYearService
         return SchoolYear::activeByDateRange($start_date, $end_date)
             ->first();
     }
-    
+
     public static function getCachedActiveData()
     {
         if(!Cache::has(self::$activeDataCacheKey))

@@ -47,11 +47,13 @@ class StudentInvoiceController extends Controller
     public function index(Request $request)
     {
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
+        if(isset($request->prr_school_year)){
+            $activeSchoolYearCode = $request->prr_school_year;
+        }
         $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
         $student = Student::with(['payment' => function ($query) use ($activeSchoolYearCode) {
             $query->where('prr_school_year', $activeSchoolYearCode);
         }])->get();
-
 
         $result = collect();
         foreach ($query as $item) {
@@ -100,10 +102,17 @@ class StudentInvoiceController extends Controller
         // dd($request);
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
-        $query = Student::query();
-        $query = $query->with('lectureType', 'period', 'payment', 'path', 'year', 'studyProgram')
-            ->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
+        $data['year'] = $request->query()['year'];
 
+        $schoolYearCode = $this->getActiveSchoolYearCode();
+        if(isset($request->query()['year'])){
+            $schoolYearCode = $data['year'];
+        }
+        $query = Student::query();
+        $query = $query->with('lectureType', 'period', 'path', 'year', 'studyProgram')
+            ->with(['payment' => function ($query) use ($schoolYearCode) {
+            $query->where('prr_school_year', $schoolYearCode);
+        }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
             ->select('hr.ms_student.*');
         if ($data['f'] != 0 && $data['f']) {
             $query = $query->where('sp.faculty_id', $data['f']);
@@ -111,7 +120,7 @@ class StudentInvoiceController extends Controller
         if ($data['sp'] != 0 && $data['sp']) {
             $query = $query->where('sp.studyprogram_id', $data['sp']);
         }
-        if ($request->query('year') !== "all") {
+        if ($request->query('yearFilter') !== "all") {
             $query = $query->where('msy_id', '=', $request->query('year'));
             // $query = $query->whereIn('studyprogram_id', $year);
         }
@@ -135,7 +144,13 @@ class StudentInvoiceController extends Controller
         // dd($request);
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
+        $data['year'] = $request->query()['year'];
 
+        $schoolYearCode = $this->getActiveSchoolYearCode();
+        if(isset($request->query()['year'])){
+            $schoolYearCode = $data['year'];
+        }
+        $formatSchoolYear = $this->fromCodeToWords($schoolYearCode);
         // dd($data);
         $faculty = Faculty::find($data['f']);
         if ($data['sp'] != 0) {
@@ -144,7 +159,6 @@ class StudentInvoiceController extends Controller
             $studyProgram = "-";
         }
         $date = Carbon::today()->toDateString();
-        $activeSchoolYear = $this->getActiveSchoolYear();
 
         if ($faculty) {
             $header['faculty'] = $faculty->faculty_name;
@@ -152,7 +166,7 @@ class StudentInvoiceController extends Controller
             $header['faculty'] = $studyProgram->faculty->faculty_name;
         }
         $header['study_program'] = ($data['sp'] != 0) ? $studyProgram->studyprogram_type . ' ' . $studyProgram->studyprogram_name : $studyProgram;
-        $header['active'] = $activeSchoolYear;
+        $header['active'] = $formatSchoolYear;
 
         // dd($query->get());
         return $header;
@@ -169,7 +183,7 @@ class StudentInvoiceController extends Controller
         return $header;
     }
 
-    public function choice($f, $sp)
+    public function choice($f, $sp,$yearCode)
     {
         // dd($f);
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();

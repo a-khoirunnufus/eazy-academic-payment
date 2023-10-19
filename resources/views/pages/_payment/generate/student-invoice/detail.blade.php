@@ -80,6 +80,14 @@
     <div class="card-body">
         <div class="new-student-invoice-filter">
             <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active id="prr-school-year">
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_code }}" {{ $data["year"] == $tahun->msy_code ? 'selected' : '' }}>Semester {{ ($tahun->msy_semester == 1 ? "Ganjil":"Genap")." ".$tahun->msy_year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label class="form-label">Periode Pendaftaran</label>
                 <select class="form-select" eazy-select2-active id="year-filter">
                     <option value="all" selected>Semua Periode Pendaftaran</option>
@@ -149,7 +157,7 @@
     var dataTable = null;
     var header = null;
     $(function(){
-        $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}', (d) => {
+        $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}&year={!! $data["year"] !!}', (d) => {
             $('#active').html(d.active);
             $('#faculty').html(d.faculty);
             $('#study_program').html(d.study_program);
@@ -169,9 +177,10 @@
                 ajax: {
                     url: _baseURL+'/api/payment/generate/student-invoice/detail?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
                     data: {
-                        year: $('#year-filter').val(),
+                        yearFilter: $('#year-filter').val(),
                         path: $('#path-filter').val(),
-                        period: $('#period-filter').val()
+                        period: $('#period-filter').val(),
+                        year: $('#prr-school-year').val()
                     },
                 },
                 columns: [
@@ -637,7 +646,7 @@
                 },
             });
             var store = [];
-            $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}', (data) => {
+            $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}/{!! $data["year"] !!}', (data) => {
                 console.log(data);
                 if (Object.keys(data).length > 0) {
                     var total_student = 0;

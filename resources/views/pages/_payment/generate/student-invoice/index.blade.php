@@ -43,6 +43,26 @@
 @section('content')
 
 @include('pages._payment.generate._shortcuts', ['active' => 'student-invoice'])
+
+<div class="card">
+    <div class="card-body">
+        <div class="new-student-invoice-filter">
+            <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active id="prr-school-year">
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_code }}" {{ $yearCode == $tahun->msy_code ? 'selected' : '' }}>Semester {{ ($tahun->msy_semester == 1 ? "Ganjil":"Genap")." ".$tahun->msy_year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button class="btn btn-info" onclick="filters()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card">
     <table id="student-invoice-table" class="table table-striped">
         <thead>
@@ -85,7 +105,8 @@
                     data: {
                         year: $('#year-filter').val(),
                         path: $('#path-filter').val(),
-                        period: $('#period-filter').val()
+                        period: $('#period-filter').val(),
+                        prr_school_year: $('#prr-school-year').val()
                     },
                 },
                 columns: [
@@ -96,13 +117,14 @@
                             console.log(row);
                             var sp = 0;
                             var f = 0;
+                            var prr_school_year = $('#prr-school-year').val();
                             if(row.study_program){
                                 sp = row.study_program.studyprogram_id;
                             }
                             if(row.faculty){
                                 f = row.faculty.faculty_id;
                             }
-                            return this.template.rowAction(f, sp)
+                            return this.template.rowAction(f, sp,prr_school_year)
                         }
                     },
                     {
@@ -112,6 +134,7 @@
                         render: (data, _, row) => {
                             var sp = 0;
                             var f = 0;
+                            var prr_school_year = $('#prr-school-year').val();
                             if(row.study_program){
                                 sp = row.study_program.studyprogram_id;
                             }
@@ -120,7 +143,7 @@
                             }
                             return `
                                 <div class="${ row.study_program ? 'ps-2' : '' }">
-                                    <a type="button" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+f+'&sp='+sp}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
+                                    <a type="button" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+f+'&sp='+sp+'&year='+prr_school_year}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
                                 </div>
                             `;
                         }
@@ -254,14 +277,14 @@
             this.implementSearchDelay();
         },
         template: {
-            rowAction: function(faculty_id,studyprogram_id) {
+            rowAction: function(faculty_id,studyprogram_id,prr_school_year) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
+                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id+'&year='+prr_school_year}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
                             <a onclick="_studentInvoiceTableActions.delete(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
                             <a onclick="_studentInvoiceTableActions.regenerate(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
                         </div>

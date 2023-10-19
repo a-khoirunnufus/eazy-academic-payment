@@ -9,11 +9,13 @@ use App\Models\Payment\Year;
 use App\Models\Payment\Faculty;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\MasterJob;
+use App\Traits\Payment\General;
 use Illuminate\Http\Request;
 use DB;
 
 class GenerateController extends Controller
 {
+    use General;
 
     public function newStudentInvoice()
     {
@@ -61,13 +63,15 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-        return view('pages._payment.generate.student-invoice.index', compact('year','path','period'));
+        $yearCode = $this->getActiveSchoolYearCode();
+        return view('pages._payment.generate.student-invoice.index', compact('year','path','period','yearCode'));
     }
 
     public function StudentInvoiceDetail(Request $request)
     {
         $data['f'] = $request->query()['f'];
         $data['sp'] = $request->query()['sp'];
+        $data['year'] = $request->query()['year'];
 
         $year = Year::all();
         $path = Path::all();

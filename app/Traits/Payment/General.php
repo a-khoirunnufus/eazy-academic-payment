@@ -19,6 +19,8 @@ trait General
     public function getActiveSchoolYear()
     {
         return "2022/2023 - Ganjil";
+        $schoolYear = SchoolYearService::getActiveByDate();
+        return $schoolYear['msy_code'];
     }
 
     public function getActiveSchoolYearCode()
@@ -87,5 +89,13 @@ trait General
             Cache::put($name, $value, 30*60 );
             return $value;
         }
+    }
+
+    public static function fromCodeToWords($school_year_code)
+    {
+        $year = substr($school_year_code, 0, 4);
+        $semester = substr($school_year_code, 4, 1);
+
+        return "Semester ".($semester == 1 ? "Ganjil":"Genap") ." ".$year."/".((int)$year + 1);
     }
 }
