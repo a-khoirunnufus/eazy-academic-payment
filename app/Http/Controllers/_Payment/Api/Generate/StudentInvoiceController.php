@@ -151,7 +151,6 @@ class StudentInvoiceController extends Controller
             $schoolYearCode = $data['year'];
         }
         $formatSchoolYear = $this->fromCodeToWords($schoolYearCode);
-        // dd($data);
         $faculty = Faculty::find($data['f']);
         if ($data['sp'] != 0) {
             $studyProgram = Studyprogram::with('faculty')->find($data['sp']);

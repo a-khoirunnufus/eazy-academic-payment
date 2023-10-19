@@ -157,12 +157,7 @@
     var dataTable = null;
     var header = null;
     $(function(){
-        $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}&year={!! $data["year"] !!}', (d) => {
-            $('#active').html(d.active);
-            $('#faculty').html(d.faculty);
-            $('#study_program').html(d.study_program);
-            header = d;
-        })
+        _studentInvoiceDetailTableAction.header()
         _studentInvoiceDetailTable.init()
         dataTable.columns([6,7,8,9,10,11,12,13,14,15,16]).visible(false)
 
@@ -468,7 +463,17 @@
     }
 
     const _studentInvoiceDetailTableAction = {
-
+        header: function(){
+            $.get(_baseURL + '/api/payment/generate/student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}&year='+$("#prr-school-year").val(), (d) => {
+                $('#active').html();
+                $('#faculty').html();
+                $('#study_program').html();
+                $('#active').html(d.active);
+                $('#faculty').html(d.faculty);
+                $('#study_program').html(d.study_program);
+                header = d;
+            })
+        },
         generate: function(e) {
             let data = _studentInvoiceDetailTable.getRowData(e);
             Swal.fire({
@@ -1064,6 +1069,7 @@
     function filters(){
         dataTable.destroy();
         _studentInvoiceDetailTable.init();
+        _studentInvoiceDetailTableAction.header();
     }
 </script>
 @include('pages._payment.generate.student-invoice.invoice');
