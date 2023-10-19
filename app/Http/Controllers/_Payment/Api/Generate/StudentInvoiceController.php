@@ -121,7 +121,11 @@ class StudentInvoiceController extends Controller
         if ($request->query('period') !== "all") {
             $query = $query->where('period_id', '=', $request->query('period'));
         }
-        // dd($query->get());
+        // $c = collect();
+        // foreach ($query->get() as $item) {
+        //     $c->add($item);
+        // }
+        // dd($c);
         return datatables($query->get())->toJson();
     }
 
@@ -638,6 +642,11 @@ class StudentInvoiceController extends Controller
     public function updateStudentComponentProcess(StudentInvoiceUpdateRequest $request,$log_id){
         $validated = $request->validated();
         DB::beginTransaction();
+        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_edit_lock_cache')) <= Carbon::now()){
+            $text = "Sudah melebihi batas waktu edit tagihan";
+            $this->addToLogDetail($log_id,$this->getLogTitle($validated['title'],$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
+        }
         try {
             if (isset($validated['prrd_id'])) {
                 $count = count($validated['prrd_id']);

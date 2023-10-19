@@ -29,7 +29,7 @@
                     </span>
                 </button>
             </div>
-            <div class="step" data-target="#personal-info-vertical" role="tab" id="personal-info-vertical-trigger">
+            {{-- <div class="step" data-target="#personal-info-vertical" role="tab" id="personal-info-vertical-trigger">
                 <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">2</span>
                     <span class="bs-stepper-label">
@@ -55,26 +55,61 @@
                         <span class="bs-stepper-subtitle">Add Social Links</span>
                     </span>
                 </button>
-            </div>
+            </div> --}}
         </div>
         <div class="bs-stepper-content">
             <div id="account-details-vertical" class="content dstepper-block active" role="tabpanel" aria-labelledby="account-details-vertical-trigger">
-                <div class="content-header">
-                    <h5 class="mb-0">Generate</h5>
-                    <small class="text-muted">Settings terkait generate secara umum.</small>
-                </div>
+
                 <form action="{{ route('payment.settings.update') }}" method="post">
                 @csrf
+                <div class="content-header">
+                    <h5 class="mb-0">Regenerate</h5>
+                    <small class="text-muted">Pengaturan batas tanggal akhir regenerate tagihan.</small>
+                </div>
                 <div class="row">
                     <div class="mb-1 col-md-6">
-                        <label class="form-label" for="vertical-username">Batas Tanggal Penghapusan<br>
-                        <small class="text-muted">Membatasi fitur penghapusan pada menu generate setelah melewati tanggal tertentu.</small></label>
-                        <input type="date" id="vertical-username" name="payment_delete_lock_cache" class="form-control" value="{{$settings->where('name','payment_delete_lock_cache')->pluck('value')[0]}}">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Regenerate Tagihan Mahasiswa Lama<br>
+                        <small class="text-muted">Membatasi tanggal akhir untuk regenerate tagihan mahasiswa lama.</small></label>
+                        <input type="date" id="vertical-username" name="payment_regenerate_lock_cache" class="form-control" value="{{$settings->where('name','payment_regenerate_lock_cache')->pluck('value')[0]}}" required>
                     </div>
                     <div class="mb-1 col-md-6">
-                        <label class="form-label" for="vertical-email">Batas Tanggal Regenerate<br>
-                            <small class="text-muted">Membatasi fitur regenerate pada menu generate setelah melewati tanggal tertentu.</small></label>
-                        <input type="date" id="vertical-email" name="payment_regenerate_lock_cache" class="form-control" value="{{$settings->where('name','payment_regenerate_lock_cache')->pluck('value')[0]}}">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Regenerate Tagihan Mahasiswa Baru<br>
+                            <small class="text-muted">Membatasi tanggal akhir untuk regenerate tagihan mahasiswa baru.</small></label>
+                        <input type="date" id="vertical-email" name="payment_regenerate_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_regenerate_lock_new_cache')->pluck('value')[0]}}" required>
+                    </div>
+                </div>
+                <hr>
+                <div class="content-header">
+                    <h5 class="mb-0">Hapus Tagihan</h5>
+                    <small class="text-muted">Pengaturan batas tanggal akhir hapus tagihan.</small>
+                </div>
+                <div class="row">
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Hapus Tagihan Mahasiswa Lama<br>
+                        <small class="text-muted">Membatasi tanggal akhir untuk hapus tagihan mahasiswa lama.</small></label>
+                        <input type="date" id="vertical-username" name="payment_delete_lock_cache" class="form-control" value="{{$settings->where('name','payment_delete_lock_cache')->pluck('value')[0]}}" required>
+                    </div>
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Hapus Tagihan Mahasiswa Baru<br>
+                            <small class="text-muted">Membatasi tanggal akhir untuk hapus tagihan mahasiswa baru.</small></label>
+                        <input type="date" id="vertical-email" name="payment_delete_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_delete_lock_new_cache')->pluck('value')[0]}}" required>
+                    </div>
+                </div>
+                <hr>
+                <div class="content-header mt-1">
+                    <h5 class="mb-0">Edit Tagihan</h5>
+                    <small class="text-muted">Pengaturan batas tanggal akhir edit tagihan</small>
+                </div>
+                <div class="row">
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Edit Tagihan Mahasiswa Lama<br>
+                        <small class="text-muted">Membatasi tanggal akhir untuk edit tagihan mahasiswa lama.</small></label>
+                        <input type="date" id="vertical-username" name="payment_edit_lock_cache" class="form-control" value="{{$settings->where('name','payment_edit_lock_cache')->pluck('value')[0]}}" required>
+                    </div>
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Batas Tanggal Akhir Edit Tagihan Mahasiswa Baru<br>
+                            <small class="text-muted">Membatasi tanggal akhir untuk edit tagihan mahasiswa baru.</small></label>
+                        <input type="date" id="vertical-email" name="payment_edit_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_edit_lock_new_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
