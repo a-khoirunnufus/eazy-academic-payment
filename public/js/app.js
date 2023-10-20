@@ -307,7 +307,7 @@ const _datatableTemplates = {
     buttonLinkCell: function(label, {onclickFunc = null, link = null}, {nowrap = true, additionalClass = ''} = {}) {
         return `
             <div class="${additionalClass}">
-                <a type="button" href="${link ? link : '#'}" ${onclickFunc ? 'onclick="'+onclickFunc+'"' : ''} class="btn btn-link px-0 ${nowrap ? 'text-nowrap' : ''}">
+                <a type="button" href="${link ? link : '#'}" ${onclickFunc ? 'onclick="'+onclickFunc+'"' : ''} class="btn btn-link p-0 ${nowrap ? 'text-nowrap' : ''}">
                     ${label}
                 </a>
             </div>
@@ -463,6 +463,29 @@ const _datatableTemplates = {
         html += '</div></div>';
         return html;
     },
+}
+
+/**
+ * DATATABLE BUTTONS TEMPLATE WITH CUSTOMIZABLE EXPORT COLUMNS
+ */
+const _datatableBtnExportTemplate = (options) => {
+    const exportColumns = options.exportColumns;
+
+    const btnFiltered = DataTable.defaults.buttons[0].buttons.filter(item => {
+        return options.btnTypes.includes(item.extend);
+    });
+
+    return [
+        {
+            ...DataTable.defaults.buttons[0],
+            buttons: [
+                btnFiltered.map(item => ({
+                    ...item,
+                    exportOptions: {columns: exportColumns}
+                }))
+            ]
+        }
+    ]
 }
 
 /**

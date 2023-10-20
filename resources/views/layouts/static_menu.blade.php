@@ -209,8 +209,8 @@
                     <span class="menu-title text-truncate">Laporan</span>
                 </a>
                 <ul class="menu-content">
-                    <li class="menu__item nav-item {{ 'report/old-student-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/old-student-invoice') }}">
+                    <li class="menu__item nav-item {{ 'payment/report/old-student-invoice/studyprogram' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/old-student-invoice/studyprogram') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Lama</span>
                         </a>

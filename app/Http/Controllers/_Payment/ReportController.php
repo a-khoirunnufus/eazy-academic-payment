@@ -10,23 +10,34 @@ use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Year;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Traits\Payment\General as PaymentGeneral;
 
 class ReportController extends Controller
 {
-    //
-    function oldStudent()
+    use PaymentGeneral;
+
+    function oldStudentPerStudyprogram()
     {
-        $year = Year::all();
-        $faculty = Faculty::all();
-        return view('pages._payment.report.old-student-invoice.per-study-program', compact('year', 'faculty'));
+        $current_year = $this->getActiveSchoolYearCode();
+        $current_year = Year::where('msy_code', $current_year)->first();
+
+        return view('pages._payment.report.old-student-invoice.per-study-program', compact('current_year'));
     }
 
-    function oldStudentDetail($programStudy)
+    function oldStudentPerStudent(Request $request)
     {
-        $angkatan = Year::select(DB::raw("SUBSTR(msy_code, 1, 4) as Tahun"))->distinct()->get();
-        $periode = Period::all();
-        $jalur = Path::all();
-        return view('pages._payment.report.old-student-invoice.per-student', compact('programStudy','angkatan', 'periode', 'jalur'));
+        $year_code = $this->getActiveSchoolYearCode();
+        $year = Year::where('msy_code', $year_code)->first();
+        if ($request->get('school_year')) {
+            $year = Year::where('msy_code', $request->get('school_year'))->first();
+        }
+
+        $studyprogram = null;
+        if ($request->get('studyprogram')) {
+            $studyprogram = Studyprogram::find($request->get('studyprogram'));
+        }
+
+        return view('pages._payment.report.old-student-invoice.per-student', compact('year', 'studyprogram'));
     }
 
     function newStudentDetail($programStudy)

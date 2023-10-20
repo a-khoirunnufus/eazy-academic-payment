@@ -6,4 +6,5 @@ enum PaymentDetailType:string {
     case Component = 'component';
     case Discount = 'discount';
     case Scholarship = 'scholarship';
+    case Penalty = 'denda';
 }

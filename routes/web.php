@@ -87,7 +87,8 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
     // Report
     Route::group(['prefix' => 'report'], function () {
         Route::group(['prefix' => 'old-student-invoice'], function () {
-            Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudent');
+            Route::get('/studyprogram', 'App\Http\Controllers\_Payment\ReportController@oldStudentPerStudyprogram');
+            Route::get('/student', 'App\Http\Controllers\_Payment\ReportController@oldStudentPerStudent');
             Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
             Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
         });
@@ -144,3 +145,4 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
+

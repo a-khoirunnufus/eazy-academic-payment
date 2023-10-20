@@ -26,9 +26,9 @@
 
 <div id="payment-option-unselected">
     <div class="d-flex flex-column align-items-center">
-        <h4>Pilih Opsi Pembayaran Daftar Ulang</h4>
+        <h4>Pilih Opsi Pembayaran</h4>
         <p></p>
-        <p>Silahkan pilih opsi pembayaran untuk dapat mengetahui informasi pembayaran daftar ulang yang akan anda lakukan!</p>
+        <p>Silahkan pilih opsi pembayaran untuk dapat mengetahui informasi pembayaran yang akan anda lakukan!</p>
         <div class="mt-2">
             <div class="input-group" style="width: 400px">
                 <select id="select-payment-option" class="form-select">

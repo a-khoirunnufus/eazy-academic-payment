@@ -410,7 +410,7 @@
                 url: `${_baseURL}/api/payment/student-invoice/${prrId}/bill/${prrbId}`,
                 data: {
                     withData: ['paymentManualApproval'],
-                    withAppend:  ['computed_nominal_paid', 'computed_payment_status'],
+                    withAppend:  ['computed_nominal_paid_gross', 'computed_payment_status'],
                 }
             });
 
@@ -509,7 +509,7 @@
             const nominalInvoice = bill.prrb_amount + bill.prrb_admin_cost;
             const nominalHasToPaid = bill.prrb_amount + bill.prrb_admin_cost - studentBalanceSpent;
 
-            const nominalPaid = bill.computed_nominal_paid;
+            const nominalPaid = bill.computed_nominal_paid_gross;
 
             let nominalUnpaid = (bill.prrb_amount + bill.prrb_admin_cost) - (nominalPaid + studentBalanceSpent);
             if (nominalUnpaid < 0) nominalUnpaid = 0;

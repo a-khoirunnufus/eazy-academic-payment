@@ -190,12 +190,14 @@
 
     <script>
         $(document).ready(function () {
-            @stack('elm_setup')
             _activeSchoolYear.load()
         });
     </script>
 
+    @stack('laravel-component-setup')
+
     @yield('js_section')
+
     @stack('scripts')
 </body>
 

@@ -49,6 +49,26 @@ class PaymentTransaction extends Model
         return Attribute::make(get: fn () => $overpayments);
     }
 
+    public function computedNettAmount(): Attribute
+    {
+        return Attribute::make(get: fn () => $this->prrt_amount - $this->paymentMethod->mpm_fee);
+    }
+
+    public function computedGrossAmount(): Attribute
+    {
+        return Attribute::make(get: fn () => $this->prrt_amount);
+    }
+
+    // public function computedNettAmount(): Attribute
+    // {
+    //     return Attribute::make(get: fn () => $this->prrt_amount);
+    // }
+
+    // public function computedGrossAmount(): Attribute
+    // {
+    //     return Attribute::make(get: fn () => $this->prrt_amount + (int)$this->prrt_admin_cost);
+    // }
+
     /**
      * RELATIONS
      */

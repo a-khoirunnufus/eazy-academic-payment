@@ -121,6 +121,7 @@ class ManualPaymentController extends Controller
                     $payment_transaction->prrt_bill_key = $bill->prrb_bill_key;
                 }
                 $payment_transaction->prrt_amount = $amount_for_transaction;
+                $payment_transaction->prrt_admin_cost = 0;
                 $payment_transaction->prrt_time = $approval->pma_payment_time;
                 $payment_transaction->save();
 

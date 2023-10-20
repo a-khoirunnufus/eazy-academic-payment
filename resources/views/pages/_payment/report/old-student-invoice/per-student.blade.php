@@ -32,6 +32,26 @@
     .space {
         margin-left: 10px;
     }
+
+    table.dataTable thead th {
+        white-space: nowrap
+    }
+
+    table.dataTable thead [rowspan="2"].sorting:before,
+    table.dataTable thead [rowspan="2"].sorting_asc:before,
+    table.dataTable thead [rowspan="2"].sorting_desc:before {
+        top: 1.75rem;
+    }
+    table.dataTable thead [rowspan="2"].sorting:after,
+    table.dataTable thead [rowspan="2"].sorting_asc:after,
+    table.dataTable thead [rowspan="2"].sorting_desc:after {
+        top: unset;
+        bottom: 1.75rem;
+    }
+
+    table.dataTable.align-top td {
+        vertical-align: top;
+    }
 </style>
 @endsection
 
@@ -40,83 +60,123 @@
 @include('pages._payment.report.old-student-invoice._shortcuts', ['active' => 'per-student'])
 
 <div class="card">
-    <div class="nav-tabs-shadow nav-align-top">
-        <ul class="nav nav-tabs custom border-bottom" role="tablist">
-            <li class="nav-item">
-                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Mahasiswa Lama</button>
-            </li>
-        </ul>
-        <div class="tab-content">
-
-            <!-- OLD STUDENT INVOICE DETAIL -->
-            <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
-                <div class="px-1 py-2 border-bottom">
-                    <div class="d-flex">
-                        <div class="select-filtering">
-                            <label class="form-label">Angkatan</label>
-                            <select class="form-select select2 select-filter" id="filterData">
-                                <option value="#ALL">Semua Tahun</option>
-                                @foreach($angkatan as $item)
-                                <option value="{{ $item->tahun }}">{{ $item->tahun }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space select-filtering">
-                            <label class="form-label">Jalur Masuk</label>
-                            <select class="form-select select2 select-filter" id="pathData">
-                                <option value="#ALL">Semua Jalur Masuk</option>
-                                @foreach($jalur as $item)
-                                <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space select-filtering">
-                            <label class="form-label">Periode Masuk</label>
-                            <select class="form-select select2 select-filter" id="periodData">
-                                <option value="#ALL">Semua Periode Masuk</option>
-                                @foreach($periode as $item)
-                                <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space align-self-end">
-                            <button class="btn btn-info" onclick="filter()">
-                                <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <table id="old-student-invoice-detail-table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Program Studi / Fakultas</th>
-                            <th rowspan="2">Nama / NIM</th>
-                            <th rowspan="2">Total / Rincian Tagihan</th>
-                            <th colspan="4" class="text-center">Jenis Tagihan</th>
-                            <th rowspan="2">
-                                Total Harus Dibayar<br>
-                                (A+B)-(C+D)
-                            </th>
-                            <th rowspan="2">Total Terbayar</th>
-                            <th rowspan="2">Sisa Tagihan</th>
-                            <th rowspan="2">Status</th>
-                        </tr>
-                        <tr>
-                            <th>Tagihan(A)</th>
-                            <th>Denda(B)</th>
-                            <th>Beasiswa(C)</th>
-                            <th>Potongan(D)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+    <div class="card-body">
+        <div class="datatable-filter multiple-row">
+            <x-select-option
+                title="Tahun Akademik"
+                select-id="school-year-filter"
+                resource-url="/api/payment/resource/school-year"
+                value="msy_code"
+                :default-value="$year->msy_code"
+                :default-label="$year->msy_year.' '.($year->msy_semester == 1 ? 'Ganjil' : ($year->msy_semester == 2 ? 'Genap' : 'Antara'))"
+                label-template=":msy_year :msy_semester"
+                :label-template-items="['msy_year', [
+                    'key' => 'msy_semester',
+                    'mapping' => [
+                        '1' => 'Ganjil',
+                        '2' => 'Genap',
+                        '3' => 'Antara',
+                    ],
+                ]]"
+                without-all-option="1"
+            />
+            <div>
+                <label class="form-label">Angkatan</label>
+                <select id="student-batch-filter" class="form-select"></select>
+            </div>
+            <x-select-option
+                title="Periode Masuk"
+                select-id="period-filter"
+                resource-url="/api/payment/resource/registration-period"
+                value="period_id"
+                label-template=":period_name"
+                :label-template-items="['period_name']"
+            />
+            <x-select-option
+                title="Jalur Masuk"
+                select-id="path-filter"
+                resource-url="/api/payment/resource/registration-path"
+                value="path_id"
+                label-template=":path_name"
+                :label-template-items="['path_name']"
+            />
+            <x-select-option
+                title="Fakultas"
+                select-id="faculty-filter"
+                resource-url="/api/payment/resource/faculty"
+                value="faculty_id"
+                label-template=":faculty_name"
+                :label-template-items="['faculty_name']"
+            />
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select id="studyprogram-filter" class="form-select">
+                    @if($studyprogram)
+                        <option value="{{ $studyprogram->studyprogram_id }}" selected>{{ strtoupper($studyprogram->studyprogram_type) }} {{ $studyprogram->studyprogram_name }}</option>
+                    @endif
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Status Tagihan</label>
+                <select id="status-filter" class="form-select select2">
+                    <option value="#ALL" selected>Semua Status Tagihan</option>
+                    <option value="lunas">Lunas</option>
+                    <option value="belum lunas">Belum Lunas</option>
+                    <option value="kredit">Kredit</option>
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button onclick="_oldStudentInvoiceDetailTable.filter()" class="btn btn-info text-nowrap">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<div class="card">
+    <table id="old-student-invoice-detail-table" class="table table-striped align-top">
+        <thead>
+            <tr>
+                <th rowspan="2">Nomor Tagihan</th>
+                <th rowspan="2">Tahun Akademik</th>
+                <th rowspan="2">Nama (NIM)<br>Angkatan<br>Periode Masuk<br>Jalur Masuk</th>
+                <th rowspan="2">Program Studi<br>Fakultas</th>
+                <th colspan="4" class="text-center">Rincian</th>
+                <th rowspan="2">
+                    Total Final Tagihan<br>
+                    (A+B)-(C+D)
+                </th>
+                <th rowspan="2">Terbayar</th>
+                <th rowspan="2">Piutang</th>
+                <th rowspan="2">Status Tagihan</th>
+            </tr>
+            <tr>
+                <th>Tagihan(A)</th>
+                <th>Denda(B)</th>
+                <th>Beasiswa(C)</th>
+                <th>Potongan(D)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="4">Total Keseluruhan</th>
+                <th id="sum-invoice-component"></th>
+                <th id="sum-invoice-penalty"></th>
+                <th id="sum-invoice-scholarship"></th>
+                <th id="sum-invoice-discount"></th>
+                <th id="sum-final-bill"></th>
+                <th id="sum-total-paid"></th>
+                <th id="sum-total-not-paid"></th>
+                <th id="sum-invoice-summary"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
 <div class="modal" id="historPaymentModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Riwayat Pembayaran</h5>
@@ -125,8 +185,7 @@
                 <table id="old-student-payment-history-table" class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Nomor Tagihan</th>
-                            <th>Biaya Admin</th>
+                            <th>Nomor Cicilan</th>
                             <th>Jumlah</th>
                             <th>Batas Pembayaran</th>
                             <th>Tanggal Pembayaran</th>
@@ -146,216 +205,417 @@
 
 @section('js_section')
 <script>
-    var dtDetail, dtHistory, student = null;
-    $(document).ready(function() {
-        select2Replace();
-    });
-
     $(function() {
         _oldStudentInvoiceDetailTable.init();
-        // _oldStudentPaymentHistoryTable.init()
     })
 
     const _oldStudentInvoiceDetailTable = {
         ..._datatable,
-        init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
-            dtDetail = this.instance = $('#old-student-invoice-detail-table').DataTable({
-                serverSide: true,
+        init: function() {
+            this.instance = $('#old-student-invoice-detail-table').DataTable({
                 ajax: {
-                    url: _baseURL + '/api/report/old-student-invoice',
-                    data: {
-                        prodi_filter_angkatan: byFilter,
-                        prodi_search_filter: searchData,
-                        prodi: '{{$programStudy}}',
-                        prodi_path_filter: path,
-                        prodi_period_filter: period,
+                    url: _baseURL + '/api/report/old-student-invoice/student',
+                    data: function(d) {
+                        d.school_year = assignFilter('#school-year-filter');
+                        d.filters = [
+                            {
+                                column: 'student.student_school_year',
+                                operator: 'ilike',
+                                value: assignFilter('#student-batch-filter', '%'),
+                            },
+                            {
+                                column: 'student.period_id',
+                                operator: '=',
+                                value: assignFilter('#period-filter'),
+                            },
+                            {
+                                column: 'student.path_id',
+                                operator: '=',
+                                value: assignFilter('#path-filter'),
+                            },
+                            {
+                                column: 'student.studyProgram.faculty_id',
+                                operator: '=',
+                                value: assignFilter('#faculty-filter'),
+                            },
+                            {
+                                column: 'student.studyprogram_id',
+                                operator: '=',
+                                value: assignFilter('#studyprogram-filter'),
+                            },
+                            {
+                                column: 'prr_status',
+                                operator: '=',
+                                value: assignFilter('#status-filter'),
+                            },
+                        ];
                     },
                 },
-                columns: [{
-                        name: 'study_program_n_faculty',
+                stateSave: false,
+                order: [],
+                columns: [
+                    //0
+                    {
+                        data: 'prr_id',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.studyprogram.studyprogram_name, row.studyprogram.faculty[0].faculty_name);
+                            return this.template.buttonLinkCell(
+                                row.prr_id,
+                                {onclickFunc: `toHistory(${row.student_number})`},
+                                {additionalClass: 'text-center'}
+                            );
                         }
                     },
+                    // 1
                     {
-                        name: 'student_name_n_id',
+                        data: 'prr_school_year',
                         render: (data, _, row) => {
-                            var elm = `<div class="toHistory" onclick="toHistory('${row.student_number}')">`;
-                            elm += this.template.titleWithSubtitleCell(row.fullname, row.student_id);
-                            elm += `</div>`;
-                            return elm;
+                            return this.template.titleWithSubtitleCell(
+                                row.year.msy_year,
+                                row.year.msy_semester == 1 ? 'Ganjil'
+                                    : row.year.msy_semester == 2 ? 'Genap'
+                                        : 'Antara'
+                            );
                         }
                     },
+                    // 2
                     {
-                        name: 'invoice',
+                        data: 'student.fullname',
                         render: (data, _, row) => {
-                            var listData = []
-                            var payment = row.payment.payment_detail;
-                            for (var i = 0; i < payment.length; i++) {
-                                listData.push({
-                                    name: payment[i].prrd_component,
-                                    nominal: payment[i].prrd_amount
-                                });
+                            return this.template.listCell([
+                                {text: `${row.student.fullname} (${row.student.student_id})`, bold: true, small: false, nowrap: true},
+                                {text: 'Angkatan '+row.student.student_school_year.toString().substring(0, 4), bold: false, small: true, nowrap: true},
+                                {text: row.student.period.period_name, bold: false, small: true, nowrap: true},
+                                {text: row.student.path.path_name, bold: false, small: true, nowrap: true},
+                            ]);
+                        }
+                    },
+                    // 3
+                    {
+                        data: 'student.study_program.studyprogram_name',
+                        render: (data, _, row) => {
+                            return this.template.titleWithSubtitleCell(
+                                `${row.student.study_program.studyprogram_name} (${row.student.study_program.studyprogram_type.toUpperCase()})`,
+                                row.student.study_program.faculty.faculty_name
+                            );
+                        }
+                    },
+                    // 4
+                    {
+                        data: 'invoice_component.total',
+                        render: (data, _, row) => {
+                            let list = row.invoice_component.list;
+                            if (typeof list == 'object') {
+                                list = Object.values(list);
                             }
-                            return this.template.invoiceDetailCell(listData, row.payment.prr_amount);
-                        }
-                    },
-                    {
-                        name: 'invoice_a',
-                        render: (data, _, row) => {
-                            var listData = []
-                            var payment = row.payment.payment_detail;
-                            var totalHarga = 0;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'component') {
-                                    listData.push({
-                                        name: payment[i].prrd_component,
-                                        nominal: payment[i].prrd_amount
-                                    });
-                                    totalHarga += payment[i].prrd_amount;
+
+                            return this.template.listCell([
+                                ...list.map(item => ({
+                                    text: this.template.titleWithSubtitleCell(item.prrd_component, Rupiah.format(item.prrd_amount)),
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true
+                                }))
+                                ,
+                                {
+                                    text: this.template.titleWithSubtitleCell('Total', Rupiah.format(row.invoice_component.total)),
+                                    bold: true,
+                                    small: false,
+                                    nowrap: true
                                 }
-                            }
-                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
+                            ]);
                         }
                     },
+                    // 5
                     {
-                        name: 'invoice_b',
+                        data: 'invoice_penalty.total',
                         render: (data, _, row) => {
-                            var listData = []
-                            var payment = row.payment.payment_detail;
-                            var totalHarga = 0;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'denda') {
-                                    listData.push({
-                                        name: payment[i].prrd_component,
-                                        nominal: payment[i].prrd_amount
-                                    });
-                                    totalHarga += payment[i].prrd_amount;
-                                }
+                            let list = row.invoice_penalty.list;
+                            if (typeof list == 'object') {
+                                list = Object.values(list);
                             }
-                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
+
+                            return this.template.listCell([
+                                ...list.map(item => ({
+                                    text: this.template.titleWithSubtitleCell(item.prrd_component, Rupiah.format(item.prrd_amount)),
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true
+                                }))
+                                ,
+                                {
+                                    text: this.template.titleWithSubtitleCell('Total', Rupiah.format(row.invoice_penalty.total)),
+                                    bold: true,
+                                    small: false,
+                                    nowrap: true
+                                }
+                            ]);
                         }
                     },
+                    // 6
                     {
-                        name: 'invoice_c',
+                        data: 'invoice_scholarship.total',
                         render: (data, _, row) => {
-                            var listData = []
-                            var payment = row.payment.payment_detail;
-                            var totalHarga = 0;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'scholarship') {
-                                    listData.push({
-                                        name: payment[i].prrd_component,
-                                        nominal: payment[i].prrd_amount
-                                    });
-                                    totalHarga += payment[i].prrd_amount;
-                                }
+                            let list = row.invoice_scholarship.list;
+                            if (typeof list == 'object') {
+                                list = Object.values(list);
                             }
-                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
+
+                            return this.template.listCell([
+                                ...list.map(item => ({
+                                    text: this.template.titleWithSubtitleCell(item.prrd_component, Rupiah.format(item.prrd_amount)),
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true
+                                }))
+                                ,
+                                {
+                                    text: this.template.titleWithSubtitleCell('Total', Rupiah.format(row.invoice_scholarship.total)),
+                                    bold: true,
+                                    small: false,
+                                    nowrap: true
+                                }
+                            ]);
                         }
                     },
+                    // 7
                     {
-                        name: 'invoice_d',
+                        data: 'invoice_discount.total',
                         render: (data, _, row) => {
-                            var listData = []
-                            var payment = row.payment.payment_detail;
-                            var totalHarga = 0;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].type == 'discount') {
-                                    listData.push({
-                                        name: payment[i].prrd_component,
-                                        nominal: payment[i].prrd_amount
-                                    });
-                                    totalHarga += payment[i].prrd_amount;
-                                }
+                            let list = row.invoice_discount.list;
+                            if (typeof list == 'object') {
+                                list = Object.values(list);
                             }
-                            return this.template.invoiceDetailCell(listData, '' + totalHarga);
+
+                            return this.template.listCell([
+                                ...list.map(item => ({
+                                    text: this.template.titleWithSubtitleCell(item.prrd_component, Rupiah.format(item.prrd_amount)),
+                                    bold: false,
+                                    small: true,
+                                    nowrap: true
+                                }))
+                                ,
+                                {
+                                    text: this.template.titleWithSubtitleCell('Total', Rupiah.format(row.invoice_discount.total)),
+                                    bold: true,
+                                    small: false,
+                                    nowrap: true
+                                }
+                            ]);
                         }
                     },
+                    // 8
                     {
-                        name: 'total_must_be_paid',
-                        data: 'payment.prr_total',
+                        data: 'final_bill',
                         render: (data) => {
-                            return this.template.currencyCell(data, {
-                                bold: true,
-                                additionalClass: 'text-danger'
-                            });
+                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-primary'});
                         }
                     },
+                    // 9
                     {
-                        name: 'paid_off_total',
-                        data: 'payment.prr_paid',
+                        data: 'total_paid',
                         render: (data) => {
-                            return this.template.currencyCell(data, {
-                                bold: true,
-                                additionalClass: 'text-success'
-                            });
+                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
+                        }
+                    },
+                    // 10
+                    {
+                        data: 'total_not_paid',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
+                        }
+                    },
+                    // 11
+                    {
+                        data: 'prr_status',
+                        render: (data) => {
+                            let bsColor = 'secondary';
+                            if (data == 'lunas') bsColor = 'success';
+                            if (data == 'belum lunas') bsColor = 'danger';
+                            if (data == 'kredit') bsColor = 'warning';
+                            return this.template.badgeCell(data, bsColor);
                         }
                     },
                     {
-                        name: 'receivables_total',
+                        title: 'Nomor Tagihan',
+                        data: 'prr_id',
+                        visible: false,
+                    },
+                    {
+                        title: 'Tahun Akademik',
+                        visible: false,
                         render: (data, _, row) => {
-                            var total = row.payment.prr_total - row.payment.prr_paid;
-                            return this.template.currencyCell(total, {
-                                bold: true,
-                                minus: true,
-                                additionalClass: 'text-warning'
-                            });
+                            return `${row.year.msy_year} ${
+                                row.year.msy_semester == 1 ? 'Ganjil'
+                                    : row.year.msy_semester == 2 ? 'Genap'
+                                        : 'Antara'
+                            }`;
                         }
                     },
                     {
-                        name: 'status',
-                        render: (data, _, row) => {
-                            var total = row.payment.prr_total - row.payment.prr_paid;
-                            var status = total > 0 ? "Belum Lunas" : "Lunas"
-                            return this.template.badgeCell(status, 'primary');
-                        }
+                        title: 'Nama Mahasiswa',
+                        data: 'student.fullname',
+                        visible: false,
+                    },
+                    {
+                        title: 'NIM Mahasiswa',
+                        data: 'student.student_id',
+                        visible: false,
+                    },
+                    {
+                        title: 'Total Nominal Tagihan',
+                        data: 'invoice_component.total',
+                        visible: false,
+                    },
+                    {
+                        title: 'Total Nominal Denda',
+                        data: 'invoice_penalty.total',
+                        visible: false,
+                    },
+                    {
+                        title: 'Total Nominal Beasiswa',
+                        data: 'invoice_scholarship.total',
+                        visible: false,
+                    },
+                    {
+                        title: 'Total Nominal Potongan',
+                        data: 'invoice_discount.total',
+                        visible: false,
+                    },
+                    {
+                        title: 'Total Nominal Final Tagihan',
+                        data: 'final_bill',
+                        visible: false,
+                    },
+                    {
+                        title: 'Nominal Terbayar',
+                        data: 'total_paid',
+                        visible: false,
+                    },
+                    {
+                        title: 'Nominal Belum Dibayar',
+                        data: 'total_not_paid',
+                        visible: false,
+                    },
+                    {
+                        title: 'Status Pembayaran',
+                        data: 'prr_status',
+                        visible: false,
                     },
                 ],
-                drawCallback: function(settings) {
+                drawCallback: (settings) => {
+                    const data = $('#old-student-invoice-detail-table').dataTable().api().rows({page:'current'}).data().toArray();
+                    this.renderFooter(data);
                     feather.replace();
                 },
+                scrollX: true,
+                scrollY: "60vh",
+                scrollCollapse: true,
+                language: {
+                    search: '_INPUT_',
+                    searchPlaceholder: "Cari Data",
+                    lengthMenu: '_MENU_',
+                    paginate: { 'first': 'First', 'last': 'Last', 'next': 'Next', 'previous': 'Prev' },
+                    processing: "Loading...",
+                    emptyTable: "Tidak ada data",
+                    infoEmpty:  "Menampilkan 0",
+                    lengthMenu: "_MENU_",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                    infoFiltered: "(difilter dari _MAX_ entri)",
+                    zeroRecords: "Tidak ditemukan data yang cocok"
+                },
                 dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-detail-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <".search_filter">lB> >' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
-                    '<"eazy-table-wrapper" t>' +
+                    'tr' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                buttons: [{
-                    text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                    className: 'btn btn-outline-secondary',
-                    action: function(e, dt, node, config) {
-                        window.open(
-                            _baseURL +
-                            '/report/old-student-invoice/download-perstudent?' +
-                            'prodi_filter_angkatan=' + encodeURIComponent(byFilter) + '&' +
-                            'prodi_search_filter=' + encodeURIComponent(searchData) + '&' +
-                            'prodi=' + encodeURIComponent('{{$programStudy}}') + '&' +
-                            'prodi_path_filter=' + encodeURIComponent(path) + '&' +
-                            'prodi_period_filter=' + encodeURIComponent(period) + '&' +
-                            'student_export=' + encodeURIComponent('old')
-                        )
-                    }
-                }],
-                initComplete: function() {
-                    $('.old-student-invoice-detail-actions').html(`
-                        <h5 class="mb-0">Daftar Tagihan</h5>
-                    `)
-                    $('.search_filter').html(`
-                    <div class="dataTables_filter">
-                        <label><input type="text" id="searchFilterDetail" class="form-control" placeholder="Cari Data" onkeydown="searchDataDetail(event)"></label>
-                    </div>
-                    `)
-                    feather.replace();
-                }
-            })
+                buttons: _datatableBtnExportTemplate({
+                    btnTypes: ['excel', 'csv'],
+                    exportColumns: [12,13,14,15,16,17,18,19,20,21,22,23]
+                }),
+                initComplete: function() {}
+            });
+
+            this.implementSearchDelay();
         },
         template: _datatableTemplates,
+        renderFooter: function(data) {
+            let sumInvoiceComponent = 0;
+            let sumInvoicePenalty = 0;
+            let sumInvoiceScholarship = 0;
+            let sumInvoiceDiscount = 0;
+            let sumFinalBill = 0;
+            let sumTotalPaid = 0;
+            let sumTotalNotPaid = 0;
+            let sumInvoiceSummaryTotal = 0;
+            let sumInvoiceSummaryPaid = 0;
+            let sumInvoiceSummaryNotPaid = 0;
+
+            data.forEach((payment) => {
+                sumInvoiceComponent += payment.invoice_component.total;
+                sumInvoicePenalty += payment.invoice_penalty.total;
+                sumInvoiceScholarship += payment.invoice_scholarship.total;
+                sumInvoiceDiscount += payment.invoice_discount.total;
+                sumFinalBill += payment.final_bill;
+                sumTotalPaid += payment.total_paid;
+                sumTotalNotPaid += payment.total_not_paid;
+
+                if (payment.prr_status == 'lunas') {
+                    sumInvoiceSummaryTotal++;
+                    sumInvoiceSummaryPaid++;
+                }
+
+                if (payment.prr_status == 'belum lunas' || payment.prr_status == 'kredit') {
+                    sumInvoiceSummaryTotal++;
+                    sumInvoiceSummaryNotPaid++;
+                }
+            });
+
+            $('.dataTables_scrollFoot #sum-invoice-component').html(
+                _datatableTemplates.currencyCell(sumInvoiceComponent)
+            );
+
+            $('.dataTables_scrollFoot #sum-invoice-penalty').html(
+                _datatableTemplates.currencyCell(sumInvoicePenalty)
+            );
+
+            $('.dataTables_scrollFoot #sum-invoice-scholarship').html(
+                _datatableTemplates.currencyCell(sumInvoiceScholarship)
+            );
+
+            $('.dataTables_scrollFoot #sum-invoice-discount').html(
+                _datatableTemplates.currencyCell(sumInvoiceDiscount)
+            );
+
+            $('.dataTables_scrollFoot #sum-final-bill').html(
+                _datatableTemplates.currencyCell(sumFinalBill, {bold: true, additionalClass: 'text-primary'})
+            );
+
+            $('.dataTables_scrollFoot #sum-total-paid').html(
+                _datatableTemplates.currencyCell(sumTotalPaid, {bold: true, additionalClass: 'text-success'})
+            );
+
+            $('.dataTables_scrollFoot #sum-total-not-paid').html(
+                _datatableTemplates.currencyCell(sumTotalNotPaid, {bold: true, additionalClass: 'text-danger'})
+            );
+
+            $('.dataTables_scrollFoot #sum-invoice-summary').html(
+                _datatableTemplates.defaultCell(`L: ${sumInvoiceSummaryPaid}, BL: ${sumInvoiceSummaryNotPaid}, T: ${sumInvoiceSummaryTotal}`)
+            );
+        },
+        filter: function() {
+            this.reload();
+        },
+        search: function(e) {
+            if (e.key == 'Enter')
+                this.reload();
+        },
     }
 
+    let dtHistory = null;
     const _oldStudentPaymentHistoryTable = {
         ..._datatable,
         init: function(student_number, search = '#ALL') {
@@ -367,20 +627,13 @@
                         search_filter: search
                     }
                 },
-                columns: [{
-                        name: 'payment_date',
-                        data: 'prrb_invoice_num',
+                order: [[0, 'asc']],
+                stateSave: false,
+                columns: [
+                    {
+                        data: 'prrb_id',
                         render: (data) => {
                             return this.template.defaultCell(data, {
-                                bold: true
-                            });
-                        }
-                    },
-                    {
-                        name: 'invoice_component',
-                        data: 'prrb_admin_cost',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {
                                 bold: true
                             });
                         }
@@ -396,7 +649,7 @@
                     },
                     {
                         name: 'payment_expired_date',
-                        data: 'prrb_expired_date',
+                        data: 'prrb_due_date',
                         render: (data) => {
                             return this.template.defaultCell(data, {
                                 bold: true
@@ -407,6 +660,7 @@
                         name: 'payment_paid_date',
                         data: 'prrb_paid_date',
                         render: (data) => {
+                            if(!data) return '-';
                             return this.template.defaultCell(data, {
                                 bold: true
                             });
@@ -434,14 +688,18 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: _datatableBtnExportTemplate({
+                    btnTypes: ['print', 'csv', 'excel', 'pdf', 'copy'],
+                    exportColumns: [0, 1, 2, 3, 4]
+                }),
                 initComplete: function() {
                     $('.old-student-payment-history-actions').html(`
                         <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
                     `)
                     $('.search_filter_history').html(`
-                    <div class="dataTables_filter">
-                        <label><input type="text" id="searchFilterHistory" class="form-control" placeholder="Cari Data" onkeydown="searchDataHistory(event)"></label>
-                    </div>
+                        <div class="dataTables_filter">
+                            <label><input type="text" id="searchFilterHistory" class="form-control" placeholder="Cari Data" onkeydown="searchDataHistory(event)"></label>
+                        </div>
                     `)
                     feather.replace();
                 }
@@ -463,26 +721,6 @@
 
     }
 
-    function filter() {
-        var angkatan = $('select[id="filterData"]').val();
-        var jalur = $('select[id="pathData"]').val();
-        var periode = $('select[id="periodData"]').val();
-        dtDetail.clear().destroy()
-        _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode)
-    }
-
-    function searchDataDetail(event) {
-        if (event.key == 'Enter') {
-            var angkatan = $('select[id="filterData"]').val();
-            var jalur = $('select[id="pathData"]').val();
-            var periode = $('select[id="periodData"]').val();
-            var find = $('#searchFilterDetail').val();
-            $('#searchFilterDetail').val('');
-            dtDetail.clear().destroy();
-            _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode, find)
-        }
-    }
-
     function searchDataHistory(event) {
         if (event.key == 'Enter') {
             var find = $('#searchFilterHistory').val();
@@ -491,5 +729,93 @@
             _oldStudentPaymentHistoryTable.init(student, find);
         }
     }
+
+    function assignFilter(selector, postfix = null) {
+        let value = $(selector).val();
+
+        if (value === '#ALL')
+            return null;
+
+        if (value && postfix)
+            value = `${value}${postfix}`;
+
+        return value;
+    }
 </script>
 @endsection
+
+@push('laravel-component-setup')
+    <script>
+        $(function() {
+            setupFilters.studentBatch();
+            setupFilters.studyprogram();
+        });
+
+        const setupFilters = {
+            studentBatch: async function() {
+                const schoolYears = await $.get({
+                    async: true,
+                    url: `${_baseURL}/api/payment/resource/school-year`,
+                    data: {semester: '1'},
+                });
+
+                const studentBatchArr = schoolYears.map(item => item.msy_year.substring(0, 4));
+
+                const formatted = studentBatchArr.map(item => ({id: item, text: item}));
+
+                $('#student-batch-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Angkatan"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+            },
+            studyprogram: async function() {
+                const data = await $.get({
+                    async: true,
+                    url: `${_baseURL}/api/payment/resource/studyprogram`,
+                });
+
+                const formatted = data.map(item => {
+                    return {
+                        id: item.studyprogram_id,
+                        text: item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                    };
+                });
+
+                $('#studyprogram-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Program Studi"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+
+                $('#faculty-filter').change(async function() {
+                    const facultyId = this.value;
+                    const studyprograms = await $.get({
+                        async: true,
+                        url: `${_baseURL}/api/payment/resource/studyprogram`,
+                        data: {
+                            faculty: facultyId != '#ALL' ? facultyId : null,
+                        },
+                        processData: true,
+                    });
+                    const options = [
+                        new Option('Semua Program Studi', '#ALL', false, false),
+                        ...studyprograms.map(item => {
+                            return new Option(
+                                item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                                item.studyprogram_id,
+                                false,
+                                false,
+                            );
+                        })
+                    ];
+                    $('#studyprogram-filter').empty().append(options).trigger('change');
+                });
+            }
+        }
+    </script>
+@endpush

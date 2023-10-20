@@ -149,7 +149,6 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('activity', 'App\Http\Controllers\_Payment\Api\LogController@logActivity');
     });
 
-
     Route::group(['prefix' => 'discount'], function(){
         Route::get('index', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@index');
         Route::get('period', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@period');
@@ -290,7 +289,25 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('/{key}', 'App\Http\Controllers\_Payment\Api\PaymentMethodController@show');
     });
 
-    Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
+    // Payment Resources Route
+    Route::group(['prefix' => 'resource'], function() {
+        Route::get('school-year', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@schoolYearIndex');
+        Route::get('school-year/{msy_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@schoolYearShow');
+
+        Route::get('faculty', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@facultyIndex');
+        Route::get('faculty/{msy_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@facultyShow');
+
+        Route::get('studyprogram', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@studyprogramIndex');
+        Route::get('studyprogram/{msy_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@studyprogramShow');
+
+        Route::get('registration-period', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPeriodIndex');
+        Route::get('registration-period/{period_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPeriodShow');
+
+        Route::get('registration-path', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPathIndex');
+        Route::get('registration-path/{path_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPathShow');
+    });
+
+    // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
 
     // Development Testing Routes
     Route::group(['prefix' => 'dev-test'], function() {
@@ -302,6 +319,8 @@ Route::group(['prefix' => 'payment'], function(){
 Route::group(['prefix' => 'report'], function(){
     Route::group(['prefix' => 'old-student-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudent');
+        Route::get('/studyprogram', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentPerStudyprogram');
+        Route::get('/student', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentPerStudent');
         Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentHistory');
         Route::post('/export', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@exportOldStudentPerProdi');
     });
