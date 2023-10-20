@@ -372,7 +372,7 @@
                                     <li id="choice" class="row">
                                         <div class="row border-bottom py-05" style="padding-left: 2%!important">
                                             <div class="col-6" style="padding-left: 0px!important">
-                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.university}
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /><span id="checkbox_header_title" class=""> ${header.university} </span>
                                             </div>
                                             <div class="col-3">
                                             <div class="badge" id="badge_header">Belum Digenerate</div>
@@ -404,6 +404,16 @@
                 if (Object.keys(data).length > 0) {
                     var total_student = 0;
                     var total_generate = 0;
+                    var is_component = [];
+                    data.map(item => {
+                        if(is_component[item.faculty_id] != 0){
+                            is_component[item.faculty_id] = item.is_component;
+                        }
+                        if(is_component[item.faculty_id+'_'+item.studyprogram_id] != 0){
+                        is_component[item.faculty_id+'_'+item.studyprogram_id] = item.is_component;
+                        }
+                    });
+
                     data.map(item => {
                         var id = item.faculty_id+"_"+item.studyprogram_id;
                         _studentInvoiceTableActions.choiceRow(
@@ -412,6 +422,7 @@
                             'facultyId_'+item.faculty_id,
                             item.faculty_id+'_spId',
                             'Fakultas '+item.study_program.faculty.faculty_name,
+                            is_component[item.faculty_id],
                             2)
 
                         _studentInvoiceTableActions.choiceRow(
@@ -420,6 +431,7 @@
                             item.faculty_id+'_spId_'+item.studyprogram_id,
                             item.faculty_id+'_'+item.studyprogram_id+'_end',
                             item.study_program.studyprogram_name,
+                            is_component[item.faculty_id+'_'+item.studyprogram_id],
                             3,
                             item.total_student,
                             item.total_generate,
@@ -472,6 +484,18 @@
                         console.log(store[x]);
                     }
 
+                    let root_is_component = null;
+                    for (let x of Object.keys(is_component)) {
+                        if(root_is_component != 0){
+                            root_is_component = is_component[x];
+                        }
+                    }
+                    if(root_is_component != 1){
+                        $('#checkbox_header').attr("type", 'radio');
+                        $("#checkbox_header").attr("disabled", true);
+                        $("#checkbox_header_title").addClass("text-muted");
+                    }
+
                     // Badges for master root
                     let student = total_student;
                     let generate = total_generate;
@@ -480,13 +504,22 @@
                 }
             });
         },
-        choiceRow(tag,grandparent,parent,child,data,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+        choiceRow(tag,grandparent,parent,child,data,is_component= null,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
             let status_component = "";
             let status_disabled = "";
             let type = "checkbox";
             let text_color = "";
             if(position === 'last'){
                 if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(is_component != null){
+                if(is_component == 0){
                     status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
                     type = "radio"
                     status_disabled = "disabled";

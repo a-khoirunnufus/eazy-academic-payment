@@ -624,7 +624,7 @@
                                     <li id="choice" class="row">
                                         <div class="row border-bottom py-05" style="padding-left: 2%!important">
                                             <div class="col-4" style="padding-left: 0px!important">
-                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /> ${header.study_program}
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /><span id="checkbox_header_title" class=""> ${header.study_program} </span>
                                             </div>
                                             <div class="col-4">
                                             <div class="badge" id="badge_header">Belum Digenerate</div>
@@ -652,10 +652,22 @@
             });
             var store = [];
             $.get(_baseURL + '/api/payment/generate/student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}/{!! $data["year"] !!}', (data) => {
-                console.log(data);
                 if (Object.keys(data).length > 0) {
                     var total_student = 0;
                     var total_generate = 0;
+                    var is_component = [];
+                    data.map(item => {
+                        if(is_component[item.msy_id] != 0){
+                            is_component[item.msy_id] = item.is_component;
+                        }
+                        if(is_component[item.msy_id+'_'+item.path_id] != 0){
+                        is_component[item.msy_id+'_'+item.path_id] = item.is_component;
+                        }
+                        if(is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id] != 0){
+                            is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id] = item.is_component;
+                        }
+                    });
+
                     data.map(item => {
                         var id = item.studyprogram_id+"_"+item.msy_id+"_"+item.path_id+"_"+item.period_id+"_"+item.mlt_id;
                         _studentInvoiceDetailTableAction.choiceRow(
@@ -664,6 +676,7 @@
                             'msyId_'+item.msy_id,
                             item.msy_id+'_pathId',
                             'Tahun '+item.year.msy_year,
+                            is_component[item.msy_id],
                             2)
 
                         _studentInvoiceDetailTableAction.choiceRow(
@@ -672,6 +685,7 @@
                             item.msy_id+'_pathId_'+item.path_id,
                             item.msy_id+'_'+item.path_id+'_periodId',
                             item.path.path_name,
+                            is_component[item.msy_id+'_'+item.path_id],
                             3)
 
                         _studentInvoiceDetailTableAction.choiceRow(
@@ -680,6 +694,7 @@
                             item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
                             item.period.period_name,
+                            is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id],
                             4)
 
                         _studentInvoiceDetailTableAction.choiceRow(
@@ -688,6 +703,7 @@
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
                             item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
                             item.lecture_type.mlt_name,
+                            null,
                             5,
                             item.total_student,
                             item.total_generate,
@@ -726,9 +742,18 @@
                         $('#checkbox_'+x).attr('student',student);
                         $('#checkbox_'+x).attr('generate',generate);
                         _studentInvoiceDetailTableAction.badge(x,student,generate)
-                        console.log(store[x]);
                     }
-
+                    let root_is_component = null;
+                    for (let x of Object.keys(is_component)) {
+                        if(root_is_component != 0){
+                            root_is_component = is_component[x];
+                        }
+                    }
+                    if(root_is_component != 1){
+                        $('#checkbox_header').attr("type", 'radio');
+                        $("#checkbox_header").attr("disabled", true);
+                        $("#checkbox_header_title").addClass("text-muted");
+                    }
                     // Badges for master root
                     let student = total_student;
                     let generate = total_generate;
@@ -737,13 +762,22 @@
                 }
             });
         },
-        choiceRow(tag,grandparent,parent,child,data,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+        choiceRow(tag,grandparent,parent,child,data,is_component = null,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
             let status_component = "";
             let status_disabled = "";
             let text_color = "";
             let type = "checkbox"
             if(position === 'last'){
                 if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(is_component != null){
+                if(is_component == 0){
                     status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
                     type = "radio"
                     status_disabled = "disabled";

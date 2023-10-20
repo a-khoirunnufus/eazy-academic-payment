@@ -214,8 +214,14 @@ class StudentInvoiceController extends Controller
                 ->where('mlt_id', $s->mlt_id)
                 ->get();
             $student[$key]->setRelation('component_filter', $getComponent->values());
+            $student[$key]->is_component = 1;
         }
 
+        foreach ($student as $key => $s) {
+            if($s->component_filter->isEmpty()){
+                $s->is_component = 0;
+            }
+        }
         return $student;
     }
 
@@ -247,6 +253,13 @@ class StudentInvoiceController extends Controller
                 ->where('mlt_id', $s->mlt_id)
                 ->get();
             $student[$key]->setRelation('component_filter', $getComponent->values());
+            $student[$key]->is_component = 1;
+        }
+
+        foreach ($student as $key => $s) {
+            if($s->component_filter->isEmpty()){
+                $s->is_component = 0;
+            }
         }
 
         return $student;
