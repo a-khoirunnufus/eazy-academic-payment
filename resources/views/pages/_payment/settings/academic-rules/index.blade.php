@@ -398,3 +398,13 @@
     }
 </script>
 @endsection
+
+@push('laravel-component-setup')
+    <script>
+        $(function() {
+            $('#filter-status').select2({
+                minimumResultsForSearch: -1,
+            });
+        });
+    </script>
+@endpush
