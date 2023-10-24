@@ -87,8 +87,7 @@
     const _registrationFormTable = {
         ..._datatable,
         init: function() {
-            tables = this.instance = $('#registration-form-table').DataTable({
-                serverSide: false,
+            this.instance = $('#registration-form-table').DataTable({
                 ajax: {
                     url: _baseURL + '/api/dt/registration-form',
                 },
@@ -174,7 +173,9 @@
                 initComplete: function() {
                     feather.replace()
                 }
-            })
+            });
+
+            tables = this.instance;
         },
         template: {
             rowAction: function(id) {
@@ -253,14 +254,6 @@
                     formSubmitLabel: 'Tambah Skema',
                     callback: function() {
                         _registrationFormTable.reload();
-
-                        // ex: reload table
-                        // Swal.fire({
-                        //     icon: 'success',
-                        //     text: 'Berhasil menambahkan skema',
-                        // }).then(() => {
-                        //     this.tableRef.reload()
-                        // })
                     },
                 },
             });
@@ -304,13 +297,7 @@
                         },
                         formSubmitLabel: 'Edit Skema',
                         callback: function() {
-                            // ex: reload table
-                            Swal.fire({
-                                icon: 'success',
-                                text: 'Berhasil mengupdate skema',
-                            }).then(() => {
-                                _registrationFormTable.reload();
-                            })
+                            _registrationFormTable.reload();
                         },
                     },
                 });
