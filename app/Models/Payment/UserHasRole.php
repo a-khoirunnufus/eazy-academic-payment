@@ -17,6 +17,6 @@ class UserHasRole extends Model
 
     public function role()
     {
-        return $this->belongsTo(\App\Models\Role::class);
+        return $this->belongsTo(\App\Models\Role::class, 'role_id', 'id');
     }
 }

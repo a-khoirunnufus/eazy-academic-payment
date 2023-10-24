@@ -186,12 +186,12 @@ class Payment extends Model
 
     public function paymentDetail()
     {
-        return $this->hasMany(PaymentDetail::class, 'prr_id', 'prr_id');
+        return $this->hasMany(PaymentDetail::class, 'prr_id', 'prr_id')->orderBy('prrd_id', 'asc');
     }
 
     public function paymentBill()
     {
-        return $this->hasMany(PaymentBill::class, 'prr_id', 'prr_id');
+        return $this->hasMany(PaymentBill::class, 'prr_id', 'prr_id')->orderBy('prrb_id', 'asc');
     }
 
     public function register()
