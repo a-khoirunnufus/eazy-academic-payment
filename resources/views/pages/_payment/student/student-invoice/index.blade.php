@@ -83,6 +83,10 @@
         #cicilan-invoice {
             display: none;
         }
+
+        .dataTables_scrollBody {
+            min-height: 200px;
+        }
     </style>
 @endsection
 
@@ -100,10 +104,10 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="navs-invoice_n_va" role="tabpanel">
-                @include('pages._payment.student.student-invoice.tab-unpaid-invoice')
+                @include('pages._payment.student.student-invoice._tab-unpaid-invoice')
             </div>
             <div class="tab-pane fade" id="navs-payment" role="tabpanel">
-                @include('pages._payment.student.student-invoice.tab-paid-invoice')
+                @include('pages._payment.student.student-invoice._tab-paid-invoice')
             </div>
         </div>
     </div>
@@ -360,46 +364,6 @@
                                             <td class="cetak-cicilan-act"><button class="btn btn-primary" onclick="cetakCicilan(${JSON.stringify(bill).replaceAll('"',"'")})"> <i data-feather="printer"></i> Cetak</button>
                                         </tr>
                                     `;
-
-                                    // console.log(bill)
-                                    // var row = null;
-                                    // var xhr = new XMLHttpRequest()
-                                    // xhr.onload = function(){
-                                    //     var response = JSON.parse(this.responseText);
-                                    //     if(response == null){
-                                    //         console.log('not found');
-                                    //     }
-                                    //     console.log(response);
-                                    //     row = `
-                                    //         <tr>
-                                    //             <td>Cicilan ke-${bill.prrb_order}</td>
-                                    //             <td>
-                                    //                 ${
-                                    //                     response == null ? moment(bill.prrb_due_date).format('DD-MM-YYYY')
-                                    //                         : `
-                                    //                             <p class="line">${moment(bill.prrb_due_date).format('DD-MM-YYYY')}</p>
-                                    //                             <p>${moment(response.mds_deadline).format('DD-MM-YYYY')}</p>
-                                    //                         `
-                                    //                 }
-                                    //             </td>
-                                    //             <td>${Rupiah.format(bill.prrb_amount)}</td>
-                                    //             <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
-                                    //             <td>${bill.prrb_paid_date != null ? moment(bill.prrb_paid_date).format('DD-MM-YYYY HH:mm') : '-'}</td>
-                                    //             <td>${
-                                    //                 bill.prrb_status == 'belum lunas' ?
-                                    //                     '<span class="badge bg-danger" style="font-size: 1rem">Belum Lunas</span>'
-                                    //                     : bill.prrb_status == 'lunas' ?
-                                    //                         '<span class="badge bg-success" style="font-size: 1rem">Lunas</span>'
-                                    //                         : '<span class="badge bg-secondary" style="font-size: 1rem">N/A</span>'
-                                    //             }</td>
-                                    //             <td class="cetak-cicilan-act"><button class="btn btn-primary" onclick="cetakCicilan(${JSON.stringify(bill).replaceAll('"',"'")})"> <i data-feather="printer"></i> Cetak</button>
-                                    //         </tr>
-                                    //     `;
-                                    // }
-                                    // xhr.open("GET", _baseURL+`/api/payment/student-dispensation/spesific-payment/${bill.prr_id}`, false);
-                                    // xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                                    // xhr.send();
-                                    // return row;
                                 }).join('')
                             }
                         </tbody>
@@ -411,19 +375,27 @@
         },
         _renderProceedPayment: function(masterBill) {
 
-            if (masterBill.computed_payment_status == 'lunas') return;
-
-            $('#invoiceDetailModal .modal-body').append(`
-                <div id="proceed-payment" class="mt-4">
-                    <div class="d-flex justify-content-start" style="gap: 1rem">
-                        <a type="button" id="btn-proceed-payment" data-eazy-prr-id="${masterBill.prr_id}" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
-                            Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
-                        </a>
-                        <button class="btn btn-primary" onclick="cetakSemua('${masterBill.prr_id}')"> <i data-feather="printer"></i> Cetak </button>
+            if (masterBill.computed_payment_status == 'lunas') {
+                $('#invoiceDetailModal .modal-body').append(`
+                    <div id="proceed-payment" class="mt-4">
+                        <div class="d-flex justify-content-start" style="gap: 1rem">
+                            <button class="btn btn-primary" onclick="cetakSemua('${masterBill.prr_id}')"> <i data-feather="printer"></i> Cetak </button>
+                        </div>
                     </div>
-                </div>
-            `);
-        },
+                `);
+            } else {
+                $('#invoiceDetailModal .modal-body').append(`
+                    <div id="proceed-payment" class="mt-4">
+                        <div class="d-flex justify-content-start" style="gap: 1rem">
+                            <a type="button" id="btn-proceed-payment" data-eazy-prr-id="${masterBill.prr_id}" onclick="proceedPayment(event)" class="btn btn-success d-inline-block">
+                                Halaman Pembayaran&nbsp;&nbsp;<i data-feather="arrow-right"></i>
+                            </a>
+                            <button class="btn btn-primary" onclick="cetakSemua('${masterBill.prr_id}')"> <i data-feather="printer"></i> Cetak </button>
+                        </div>
+                    </div>
+                `);
+            }
+        }
     }
 
     function proceedPayment(e) {
@@ -436,8 +408,7 @@
         console.log(prrb)
         var xhr = new XMLHttpRequest();
         xhr.onload = function(){
-            var { data } = JSON.parse(this.responseText)
-            console.log(data);
+            var data = JSON.parse(this.responseText)
 
             var student = {
                 name: '',
@@ -487,7 +458,7 @@
                             <td>Cicilan ke-${prrb.prrb_order}</td>
                             <td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>
                             <td>${prrb.prrb_amount}</td>
-                            <td>${prrb.prrb_admin_cost}</td>
+                            <td>${prrb.prrb_admin_cost ?? ''}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -524,14 +495,14 @@
                             `<td>Cicilan ke-${prrb.prrb_order}</td>`+
                             `<td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>`+
                             `<td>${prrb.prrb_amount}</td>`+
-                            `<td>${prrb.prrb_admin_cost}</td>`+
+                            `<td>${prrb.prrb_admin_cost ?? ''}</td>`+
                         '</tr>'+
                     '</tbody>'+
                 '</table>'+
             '</div>';
             var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
-        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prrb.prr_id);
+        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prrb.prr_id+'?withData[]=student&withData[]=student.studyprogram');
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
         xhr.send();
     }
@@ -539,8 +510,7 @@
     function cetakSemua(prr_id){
         var xhr = new XMLHttpRequest();
         xhr.onload = function(){
-            var { data } = JSON.parse(this.responseText)
-            console.log(data);
+            var data = JSON.parse(this.responseText)
 
             var student = {
                 name: '',
@@ -614,7 +584,7 @@
                         `<td>Cicilan ke-${prrb.prrb_order}</td>`+
                         `<td>${dueDate.getDate()}-${dueDate.getMonth()}-${dueDate.getFullYear()}</td>`+
                         `<td>${prrb.prrb_amount}</td>`+
-                        `<td>${prrb.prrb_admin_cost}</td>`+
+                        `<td>${prrb.prrb_admin_cost ?? ''}</td>`+
                     '</tr>';
 
                 total_admin += prrb.prrb_admin_cost;
@@ -673,7 +643,7 @@
             '</div>';
             var winPrint = window.open(location.origin+'/payment/student-invoice/invoice-cicilan?content='+textContent);
         }
-        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prr_id);
+        xhr.open("GET", _baseURL+"/api/payment/student-invoice/"+prr_id+'?withData[]=student&withData[]=student.studyprogram&withData[]=paymentDetail&withData[]=paymentBill');
         xhr.setRequestHeader("X-CSRF-TOKEN", '{{ csrf_token() }}');
         xhr.send();
     }

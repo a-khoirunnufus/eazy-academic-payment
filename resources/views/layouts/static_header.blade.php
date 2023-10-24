@@ -22,102 +22,17 @@
             </ul>
         </div>
         <ul class="nav navbar-nav align-items-center ms-auto">
-            <li class="nav-item dropdown dropdown-notification me-1"><a class="nav-link" href="#"
-                    data-bs-toggle="dropdown"><i class="ficon" data-feather="bell"></i><span
-                        class="badge rounded-pill bg-danger badge-up">5</span></a>
-                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-end">
-                    <li class="dropdown-menu-header">
-                        <div class="dropdown-header d-flex">
-                            <h4 class="notification-title mb-0 me-auto">Notifications</h4>
-                            <div class="badge rounded-pill badge-light-primary">6 New</div>
-                        </div>
-                    </li>
-                    <li class="scrollable-container media-list"><a class="d-flex" href="#">
-                            <div class="list-item d-flex align-items-start">
-                                <div class="me-1">
-                                    <div class="avatar"><img
-                                            src="{{ asset('images/defaultavatar.jpg" alt="avatar" width="32" height="32') }}">
-                                    </div>
-                                </div>
-                                <div class="list-item-body flex-grow-1">
-                                    <p class="media-heading"><span class="fw-bolder">Congratulation Sam
-                                            🎉</span>winner!</p><small class="notification-text"> Won the monthly best
-                                        seller badge.</small>
-                                </div>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="dropdown-menu-footer"><a class="btn btn-info w-100" href="#">Read all notifications</a></li>
-                </ul>
-            </li>
 
-            <li class="nav-item dropdown dropdown-notification me-1">
-                <button class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="fw-bolder"><i data-feather="users" class="ficon me-1"></i>Admin</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-end">
-                    <li class="dropdown-menu-header">
-                        <div class="dropdown-header d-flex">
-                            <h4 class="notification-title mb-0 me-auto">Switch User Group</h4>
-                            <div class="badge rounded-pill badge-light-primary">2 User Group</div>
-                        </div>
-                    </li>
-                    <li class="scrollable-container media-list">
-                        {{-- @foreach (auth()->getAvailableRoles() as $role)
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . $role->id) }}">
-                            <div class="list-item d-flex align-items-start">
-                                <div class="me-1">
-                                    <div class="avatar bg-light-danger">
-                                        <div class="avatar-content"><i class="avatar-icon" data-feather="user-check"></i></div>
-                                    </div>
-                                </div>
-                                <div class="list-item-body flex-grow-1">
-                                    <p class="media-heading"><span class="fw-bolder">{{ $role->name }}</span></p>
-                                    <small class="notification-text">click to switch user group</small>
-                                </div>
-                            </div>
-                        </a>
-                        @endforeach --}}
-                        <a class="d-flex" href="{{ url('switchrole' . '/' . 'test') }}">
-                            <div class="list-item d-flex align-items-start">
-                                <div class="me-1">
-                                    <div class="avatar bg-light-danger">
-                                        <div class="avatar-content"><i class="avatar-icon" data-feather="user-check"></i></div>
-                                    </div>
-                                </div>
-                                <div class="list-item-body flex-grow-1">
-                                    <p class="media-heading"><span class="fw-bolder">Test Role</span></p>
-                                    <small class="notification-text">click to switch user group</small>
-                                </div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- <li class="nav-item nav-search"><a class="nav-link nav-link-search"><i class="ficon"
-                        data-feather="search"></i></a>
-                <div class="search-input">
-                    <div class="search-input-icon"><i data-feather="search"></i></div>
-                    <input class="form-control input" type="text" placeholder="Explore Vuexy..." tabindex="-1"
-                        data-search="search">
-                    <div class="search-input-close"><i data-feather="x"></i></div>
-                    <ul class="search-list search-list-main"></ul>
-                </div>
-            </li> -->
-            <!-- <li class="nav-item d-none d-lg-block"><a class="nav-link nav-link-style"><i class="ficon" data-feather="moon"></i></a></li> -->
-
-
-            <li class="nav-item dropdown dropdown-user ps-1 border-start"><a class="nav-link dropdown-toggle dropdown-user-link"
+            <li class="nav-item dropdown dropdown-user ps-1"><a class="nav-link dropdown-toggle dropdown-user-link"
                     id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                     aria-expanded="false">
                     <span class="avatar me-1">
-                        <img class="round" src="{{ asset('images/defaultavatar.jpg') }}" style="height: 40px; width: 40px">
+                        <img class="round" src="{{ url('images/defaultavatar.jpg') }}" style="height: 40px; width: 40px">
                         <span class="avatar-status-online"></span>
                     </span>
                     <div class="user-nav d-sm-flex d-none m-0">
-                        <span class="user-name fw-bolder m-0">{{ auth()->user()->user_fullname }}</span>
-                        <!-- <span class="user-status">Admin Keuangan</span> -->
+                        <span class="user-name fw-bolder">{{ auth()->user()->user_fullname }}</span>
+                        <span class="user-status">{{ auth()->user()->roles->first()?->role->name ?? '' }}</span>
                     </div>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user"><a class="dropdown-item"

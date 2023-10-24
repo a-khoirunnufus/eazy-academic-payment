@@ -38,7 +38,7 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->hasMany(\App\Models\Payment\UserHasRole::class);
+        return $this->hasMany(\App\Models\Payment\UserHasRole::class, 'user_id', 'user_id');
     }
 
     public function getIdAttribute()
