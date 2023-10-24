@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Http\Controllers\_Payment\Api\Generate\StudentInvoiceController;
+use App\Services\Payment\StudentInvoice;
 use App\Traits\Payment\LogActivity;
 use App\Enums\Payment\LogStatus;
 use DB;
@@ -35,8 +35,8 @@ class GenerateInvoice implements ShouldQueue
     public function handle(): void
     {
         if($this->student){
-            $test = new StudentInvoiceController;
-            $result = $test->storeStudentGenerate($this->student,$this->log->log_id);
+            $studentInvoice = new StudentInvoice;
+            $result = $studentInvoice->storeStudentGenerate($this->student,$this->log->log_id);
         }else{
             $this->updateLogStatus($this->log,LogStatus::Success);
         }
