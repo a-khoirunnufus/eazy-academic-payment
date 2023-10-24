@@ -48,7 +48,9 @@ class Payment extends Model
 
     public function computedFinalBill(): Attribute
     {
-        $total_bill = $this->computed_component_total_amount - ($this->computed_discount_total_amount + $this->computed_scholarship_total_amount);
+        $total_bill =
+            ($this->computed_component_total_amount + $this->computed_penalty_total_amount)
+            - ($this->computed_discount_total_amount + $this->computed_scholarship_total_amount);
         return Attribute::make(get: fn () => $total_bill);
     }
 
@@ -68,6 +70,24 @@ class Payment extends Model
     {
         $credit_applied = $this->credit->isNotEmpty();
         return Attribute::make(get: fn () => $credit_applied);
+    }
+
+    public function computedTotalPaid(): Attribute
+    {
+        $total = 0;
+
+        foreach ($this->paymentBill as $bill) {
+            $total += $bill->computed_nominal_paid_nett;
+        }
+
+        return Attribute::make(get: fn () => $total);
+    }
+
+    public function computedTotalNotPaid(): Attribute
+    {
+        $total = $this->computed_final_bill - $this->computed_total_paid;
+
+        return Attribute::make(get: fn () => $total);
     }
 
     public function computedIsFullyPaid(): Attribute
@@ -148,18 +168,30 @@ class Payment extends Model
         return Attribute::make(get: fn () => $amount);
     }
 
+    public function computedPenaltyList(): Attribute
+    {
+        $items = $this->paymentDetail->where('type', DetailType::Penalty->value);
+        return Attribute::make(get: fn () => $items);
+    }
+
+    public function computedPenaltyTotalAmount(): Attribute
+    {
+        $amount = $this->paymentDetail->where('type', DetailType::Penalty->value)->sum('prrd_amount');
+        return Attribute::make(get: fn () => $amount);
+    }
+
     /**
      * RELATIONS
      */
 
     public function paymentDetail()
     {
-        return $this->hasMany(PaymentDetail::class, 'prr_id', 'prr_id')->orderBy('prrd_id', 'asc');
+        return $this->hasMany(PaymentDetail::class, 'prr_id', 'prr_id');
     }
 
     public function paymentBill()
     {
-        return $this->hasMany(PaymentBill::class, 'prr_id', 'prr_id')->orderBy('prrb_id', 'asc');
+        return $this->hasMany(PaymentBill::class, 'prr_id', 'prr_id');
     }
 
     public function register()

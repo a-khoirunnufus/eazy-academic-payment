@@ -12,7 +12,7 @@ class StudentCreditController extends Controller
 
     public function index(Request $request)
     {
-        $student = $student = $this->getStudentData();
+        $student = $this->getStudentData();
         $year = $this->getActiveSchoolYear();
         $yearCode = $this->getActiveSchoolYearCode();
 

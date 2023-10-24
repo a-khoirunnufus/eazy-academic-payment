@@ -70,9 +70,48 @@ class PaymentBill extends Model
         );
     }
 
+    public function computedNominalPaid(): Attribute
+    {
+        $paid_amount = 0;
+
+        if ($this->paymentTransaction->isNotEmpty()) {
+            foreach ($this->paymentTransaction as $transaction) {
+                $paid_amount += $transaction->computed_nett_amount;
+            }
+        }
+
+        return Attribute::make(get: fn () => $paid_amount);
+    }
+
+    public function computedNominalPaidNett(): Attribute
+    {
+        $paid_amount = 0;
+
+        if ($this->paymentTransaction->isNotEmpty()) {
+            foreach ($this->paymentTransaction as $transaction) {
+                $paid_amount += $transaction->computed_nett_amount;
+            }
+        }
+
+        return Attribute::make(get: fn () => $paid_amount);
+    }
+
+    public function computedNominalPaidGross(): Attribute
+    {
+        $paid_amount = 0;
+
+        if ($this->paymentTransaction->isNotEmpty()) {
+            foreach ($this->paymentTransaction as $transaction) {
+                $paid_amount += $transaction->computed_gross_amount;
+            }
+        }
+
+        return Attribute::make(get: fn () => $paid_amount);
+    }
+
     public function computedIsFullyPaid(): Attribute
     {
-        $paid_amount = $this->paymentTransaction->sum('prrt_amount');
+        $paid_amount = $this->computed_nominal_paid_nett;
         $total_discount = $this->studentBalanceSpent
             ->where('sbs_status', BalanceSpentStatus::Used->value)
             ->sum('sbs_amount');
@@ -80,13 +119,6 @@ class PaymentBill extends Model
         return Attribute::make(
             get: fn () => $paid_amount >= ($this->prrb_amount - $total_discount),
         );
-    }
-
-    public function computedNominalPaid(): Attribute
-    {
-        $paid_amount = $this->paymentTransaction->sum('prrt_amount');
-
-        return Attribute::make(get: fn () => $paid_amount);
     }
 
     public function computedPaymentStatus(): Attribute

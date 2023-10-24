@@ -127,6 +127,8 @@ class StudentInvoiceController extends Controller
             'computed_due_date',
             'computed_is_fully_paid',
             'computed_nominal_paid',
+            'computed_nominal_paid_nett',
+            'computed_nominal_paid_gross',
             'computed_payment_status',
             'computed_paid_date',
         ]);
@@ -155,6 +157,8 @@ class StudentInvoiceController extends Controller
             'computed_due_date',
             'computed_is_fully_paid',
             'computed_nominal_paid',
+            'computed_nominal_paid_nett',
+            'computed_nominal_paid_gross',
             'computed_payment_status',
             'computed_paid_date',
         ]);
@@ -338,10 +342,9 @@ class StudentInvoiceController extends Controller
             }
 
             // Cancel midtrans transaction
-            if (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
+            if ($payment_method->mpm_type == 'bank_transfer_va') {
                 $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
-
-                if ($cancel_result->status == 'error') {
+                if ($cancel_result->status != 'success') {
                     // try cancel transaction again later by put it into queue
                 }
             }

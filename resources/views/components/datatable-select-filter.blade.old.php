@@ -1,7 +1,7 @@
 <div>
     <label class="form-label">{{ $title }}</label>
     <select id="{{ $elementId }}" class="form-select">
-        <option value="_ALL" selected>Semua {{ $title }}</option>
+        <option value="#ALL" selected>Semua {{ $title }}</option>
     </select>
 </div>
 
@@ -9,11 +9,11 @@
 
     caches.open('eazy-cache').then(cache => {
         cache.match(_baseURL+"/api/{{ $resourceName }}").then(async (response) => {
-            
+
             let optionData = [];
 
             if(!response) {
-                
+
                 console.log("'{{ $title }}' cache not found, get data and store to cache.");
                 optionData = await $.ajax({
                     async: true,
@@ -22,7 +22,7 @@
                     dataType: 'json',
                 });
                 cache.put(
-                    _baseURL+"/api/{{ $resourceName }}", 
+                    _baseURL+"/api/{{ $resourceName }}",
                     new Response(JSON.stringify(optionData), {
                         headers: {
                             Date: new Date().toUTCString(),
@@ -44,23 +44,23 @@
                         dataType: 'json',
                     });
                     cache.put(
-                        _baseURL+"/api/{{ $resourceName }}", 
+                        _baseURL+"/api/{{ $resourceName }}",
                         new Response(JSON.stringify(optionData), {
                             headers: {
                                 Date: new Date().toUTCString(),
                             },
                         })
                     );
-                
+
                 } else {
 
                     console.log("'{{ $title }}' cache found.");
                     optionData = await response.json();
-                
+
                 }
 
             }
-            
+
             const valueFrom = "{{ $value }}";
             const labelTemplate = "{{ $labelTemplate }}";
             const labelTemplateItems = JSON.parse('{!! json_encode($labelTemplateItems) !!}');
@@ -72,7 +72,7 @@
                 }
                 return {
                     id: item[valueFrom],
-                    text: text, 
+                    text: text,
                 };
             });
 
