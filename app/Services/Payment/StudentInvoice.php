@@ -279,12 +279,16 @@ class StudentInvoice {
             if ($item != "null") {
                 // Parsing the key from string
                 $store = explode("_", $item);
-                $studyprogram_id = ($store[0]) ? $store[0] : 0;
-                $msy_id = ($store[1]) ? $store[1] : 0;
-                $path_id = ($store[2]) ? $store[2] : 0;
-                $period_id = ($store[3]) ? $store[3] : 0;
-                $mlt_id = ($store[4]) ? $store[4] : 0;
-
+                if(count($store) == 2){
+                    $faculty_id = ($store[0]) ? $store[0] : 0;
+                    $studyprogram_id = ($store[1]) ? $store[1] : 0;
+                }else{
+                    $studyprogram_id = ($store[0]) ? $store[0] : 0;
+                    $msy_id = ($store[1]) ? $store[1] : 0;
+                    $path_id = ($store[2]) ? $store[2] : 0;
+                    $period_id = ($store[3]) ? $store[3] : 0;
+                    $mlt_id = ($store[4]) ? $store[4] : 0;
+                }
                 // Starting Query
                 $students = Student::query();
                 $students = $students->with('getComponent')
