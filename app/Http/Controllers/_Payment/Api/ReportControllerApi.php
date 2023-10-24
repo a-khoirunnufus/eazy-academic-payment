@@ -315,6 +315,180 @@ class ReportControllerApi extends Controller
         return response()->json($datatable_array);
     }
 
+    // old function
+    function oldStudent(Request $request)
+    {
+        // $list_studyProgram = $this->getColomns('ms.studyprogram_id', 'ms.studyprogram_type', 'ms.studyprogram_name')->distinct()->get();
+        $year = Year::query();
+        if ($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL) {
+            $year = $year->where('msy_id', '=', $request->get('data_filter'));
+        }
+        $year = $year->get();
+        $data = [];
+        $id_faculty = $request->get('id_faculty');
+        $id_prodi = $request->get('id_prodi');
+
+        $dataStudent = [];
+        $spesifikProdi = $request->get('prodi');
+        $prodi_filter_angkatan = $request->get('prodi_filter_angkatan');
+        $prodi_search_filter = $request->get('prodi_search_filter');
+        $prodi_path_filter = $request->get('prodi_path_filter');
+        $prodi_period_filter = $request->get('prodi_period_filter');
+
+        foreach ($year as $tahun) {
+            $list_studyProgram = $this->getColomns('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
+            if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
+                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
+            }
+            if ($id_faculty !== '#ALL' && $id_faculty !== NULL) {
+                $list_studyProgram = $list_studyProgram->where('ms.faculty_id', '=', $id_faculty);
+            }
+            if ($id_prodi !== '#ALL' && $id_prodi !== NULL) {
+                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $id_prodi);
+            }
+            $list_studyProgram = $list_studyProgram->distinct()->get();
+
+            foreach ($list_studyProgram as $studyProgram) {
+                $prr_list_student_number = DB::table('finance.payment_re_register as prr')
+                                            ->whereNull('prr.deleted_at')
+                                            ->whereNotNull('prr.student_number')
+                                            ->select('prr.student_number');
+                $list_student_number = array();
+                foreach($prr_list_student_number->get() as $item){
+                    array_push($list_student_number, $item->student_number);
+                }
+
+                $listStudent = $this->getColomns('ms2.*')->whereIn('ms2.student_number', $list_student_number);
+                if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
+                    $listStudent->where(DB::raw('SUBSTR(ms2.periode_masuk, 1, 4)'), '=', $prodi_filter_angkatan);
+                }
+                if ($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL) {
+                    $listStudent->where('ms2.path_id', '=', $prodi_path_filter);
+                }
+                if ($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL) {
+                    $listStudent->where('ms2.period_id', '=', $prodi_period_filter);
+                }
+                $listStudent
+                    ->where('ms2.studyprogram_id', '=', $studyProgram->studyprogram_id)
+                    ->where('msy.msy_id', '=', $tahun->msy_id)
+                    ->distinct();
+
+                $studyProgram->student = $listStudent->get();
+                $studyProgram->year = $tahun;
+                $studyProgram->faculty = Faculty::where('faculty_id', '=', $studyProgram->faculty_id)->get();
+
+                foreach ($studyProgram->student as $list_student) {
+                    $listPayment = $this->getColomns('prr.*')
+                        ->where('prr.student_number', '=', $list_student->student_number)
+                        ->distinct()->get();
+
+                    $denda = 0;
+                    $beasiswa = 0;
+                    $potongan = 0;
+                    foreach ($listPayment as $list_payment) {
+                        $listPaymentDetail = $this->getColomns('prrd.*')
+                            ->where('prrd.prr_id', '=', $list_payment->prr_id)
+                            ->whereNull('prrd.deleted_at')
+                            ->distinct()
+                            ->get();
+                        $total_prrd_amount = 0;
+                        foreach ($listPaymentDetail as $pd) {
+                            switch ($pd->type) {
+                                case "component":
+                                    $total_prrd_amount += $pd->prrd_amount;
+                                    break;
+                                case "denda":
+                                    $denda += $pd->prrd_amount;
+                                    break;
+                                case "scholarship":
+                                    $beasiswa += $pd->prrd_amount;
+                                    break;
+                                case "discount":
+                                    $potongan += $pd->prrd_amount;
+                                    break;
+                            }
+                        }
+
+                        $listPaymentBill = $this->getColomns('prrb.*')
+                            ->where('prrb.prr_id', '=', $list_payment->prr_id)
+                            ->whereNull('prrb.deleted_at')
+                            ->distinct()
+                            ->get();
+                        $total_paid = 0;
+                        foreach ($listPaymentBill as $pb) {
+                            $manual_payment = DB::table('finance.payment_re_register_transaction')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->whereNull('deleted_at')
+                                                ->get();
+                            if(count($manual_payment) > 0){
+                                $total = 0;
+                                foreach($manual_payment as $mp){
+                                    $total += $mp->prrt_amount;
+                                }
+                                if($total >= $pb->prrb_amount){
+                                    $pb_update = DB::table('finance.payment_re_register_bill')
+                                                ->where('prrb_id', '=', $pb->prrb_id)
+                                                ->update(['prrb_status' => 'lunas']);
+                                }
+                                $total_paid += $total;
+                            }
+                            if(count($manual_payment) < 1){
+                                $total_paid += $pb->prrb_status == 'lunas' ? $pb->prrb_amount : 0;
+                            }
+                        }
+
+                        $list_payment->payment_detail = $listPaymentDetail;
+                        $list_payment->payment_bill = $listPaymentBill;
+                        $list_payment->prr_total = ($total_prrd_amount + $denda) - ($beasiswa + $potongan);
+                        $list_payment->prr_amount = $total_prrd_amount + $denda;
+                        $list_payment->prr_paid = $total_paid;
+                        $list_payment->penalty = $denda;
+                        $list_payment->schoolarsip = $beasiswa;
+                        $list_payment->discount = $potongan;
+                        $list_student->payment = $list_payment;
+                    }
+
+                    if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
+                        $detail_prodi = $studyProgram;
+                        unset($detail_prodi->student);
+                        $list_student->studyprogram = $detail_prodi;
+                        array_push($dataStudent, $list_student);
+                    }
+                }
+                array_push($data, $studyProgram);
+            }
+        }
+
+        if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
+            if ($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL) {
+                $data_filter = [];
+                foreach ($dataStudent as $list) {
+                    $row = json_encode($list);
+                    if (strpos($row, $prodi_search_filter)) {
+                        array_push($data_filter, $list);
+                    }
+                }
+                return DataTables($data_filter)->toJson();
+            }
+            return DataTables($dataStudent)->toJson();
+        }
+
+        if ($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL) {
+            $data_filter = [];
+            foreach ($data as $list) {
+                $row = json_encode($list);
+                $find = $request->get('search_filter');
+                if (strpos($row, $find)) {
+                    array_push($data_filter, $list);
+                }
+            }
+            return DataTables($data_filter)->toJson();
+        }
+
+        // return json_encode($data);
+        return DataTables($data)->toJson();
+    }
+
     function newStudent(Request $request)
     {
         // $list_studyProgram = $this->getColomns('ms.studyprogram_id', 'ms.studyprogram_type', 'ms.studyprogram_name')->distinct()->get();
