@@ -1,67 +1,123 @@
 @extends('tpl.vuexy.master-payment')
 
 
-@section('page_title', 'Detail Tagihan Mahasiswa Baru')
+@section('page_title', 'Detail Tagihan Mahasiswa Lama')
 @section('sidebar-size', 'collapsed')
 @section('url_back', route('payment.generate.student-invoice'))
 
 @section('css_section')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-    <link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
-
     <style>
         .eazy-table-wrapper {
-            min-height: 300px;
             width: 100%;
             overflow-x: auto;
         }
+        .new-student-invoice-filter {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 1rem;
+        }
+        .nested-checkbox {
+            list-style-type: none;
+            padding-left: 0px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
 
-        .eazy-table-info {
-            display: inline-block;
+        .nested-checkbox ul {
+            list-style-type: none;
+            padding-left: 0px;
+            font-size: 15px!important;
+            font-weight: bold!important;
         }
-        .eazy-table-info td {
-            padding: 2.5px 0;
+
+        .nested-checkbox ul li {
+            list-style-type: none;
+            font-size: 15px!important;
+            font-weight: bold!important;
         }
-        .eazy-table-info td:first-child {
-            padding-right: 1rem;
+
+        .py-05{
+            padding-top: 0.5%!important;
+            padding-bottom: 0.5%!important;
         }
-        #invoiceDetailModal #invoice-not-generated.hide,
-        #invoiceDetailModal #invoice-data.hide,
-        #invoiceDetailModal #invoice-detail.hide,
-        #invoiceDetailModal #transaction-history.hide {
-            display: none;
-        }
+
     </style>
 @endsection
 
 @section('content')
 
-@include('pages._payment.generate._shortcuts', ['active' => 'new-student-invoice'])
-
+@include('pages._payment.generate._shortcuts', ['active' => null])
+{{-- {{ dd($data) }} --}}
 <div class="card">
     <div class="card-body">
         <div class="d-flex" style="gap: 2rem">
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Periode Tagihan</span>
-                <h5 class="fw-bolder" id="info-invoice-period">
-                    {{ $invoice_period->msy_year}} Semester {{ $invoice_period->msy_semester }}
-                </h5>
+                <h5 class="fw-bolder" id="active"></h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Fakultas</span>
-                @if($faculty)
-                    <h5 class="fw-bolder" id="info-faculty">{{ $faculty->faculty_name }}</h5>
-                @else
-                    <h5>-</h5>
-                @endif
+                <h5 class="fw-bolder" id="faculty"></h5>
             </div>
             <div class="flex-grow-1">
                 <span class="text-secondary d-block" style="margin-bottom: 7px">Program Studi</span>
-                @if($studyprogram)
-                    <h5 class="fw-bolder" id="info-studyprogram">{{ strtoupper($studyprogram->studyprogram_type).' '.$studyprogram->studyprogram_name }}</h5>
-                @else
-                    <h5>-</h5>
-                @endif
+                <h5 class="fw-bolder" id="study_program"></h5>
+            </div>
+
+            {{-- <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Sistem Kuliah</span>
+                <h5 class="fw-bolder">Reguler</h5>
+            </div>
+            <div class="flex-grow-1">
+                <span class="text-secondary d-block" style="margin-bottom: 7px">Angkatan</span>
+                <h5 class="fw-bolder">Angkatan 2021</h5>
+            </div> --}}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="new-student-invoice-filter">
+            <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active id="prr-school-year">
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_code }}" {{ $data["year"] == $tahun->msy_code ? 'selected' : '' }}>Semester {{ ($tahun->msy_semester == 1 ? "Ganjil":"Genap")." ".$tahun->msy_year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Periode Pendaftaran</label>
+                <select class="form-select" eazy-select2-active id="year-filter">
+                    <option value="all" selected>Semua Periode Pendaftaran</option>
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_id }}">{{ $tahun->msy_year." ".($tahun->msy_semester%2 == 0 ? "GANJIL":"GENAP") }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Gelombang</label>
+                <select class="form-select" eazy-select2-active id="period-filter">
+                    <option value="all" selected>Semua Gelombang</option>
+                    @foreach($period as $item)
+                        <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Jalur Pendaftaran</label>
+                <select class="form-select" eazy-select2-active id="path-filter">
+                    <option value="all" selected>Semua Jalur Pendaftaran</option>
+                    @foreach($path as $item)
+                        <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button class="btn btn-info" onclick="filters()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
             </div>
         </div>
     </div>
@@ -72,313 +128,207 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
-                <th>Tahun Ajaran</th>
-                <th>Nama / Nomor Pendaftaran</th>
-                <th>Jalur / Periode Pendaftaran</th>
-                <th>Program Studi / Jenis Perkuliahan</th>
+                <th>Nama -<br> Nomor Pendaftaran</th>
+                <th>Tahun Masuk -<br> Jenis Perkuliahan</th>
+                <th>Periode Masuk -<br> Jalur Masuk</th>
+                <th>Total <br> Tagihan</th>
+                <th class="text-center">Status <br> Tagihan</th>
+                <th>Nama</th>
+                <th>Nim</th>
+                <th>Fakultas</th>
+                <th>Prodi</th>
+                <th>Tahun Masuk</th>
+                <th>Periode Masuk</th>
+                <th>Jalur Masuk</th>
                 <th>Jenis Perkuliahan</th>
-                <th class="text-center">Status Tagihan</th>
-                <th>Jumlah Tagihan</th>
+                <th>Status Mahasiswa</th>
+                <th>Total Tagihan</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 </div>
-
-<!-- Modal Generate Tagihan -->
-<div class="modal fade" id="generateInvoiceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-white" style="padding: 2rem 3rem">
-                <h4 class="modal-title fw-bolder" id="generateInvoiceModalLabel">Generate Tagihan Mahasiswa Baru</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3 pt-0">
-                <div class="d-flex flex-row" style="gap: 3rem">
-                    <div class="d-flex flex-column mb-2" style="gap: 5px">
-                        <small class="d-block">Periode Tagihan</small>
-                        <span class="fw-bolder" id="info-invoice-period">N/A</span>
-                    </div>
-                    @if($faculty)
-                        <div class="d-flex flex-column mb-2" style="gap: 5px">
-                            <small class="d-block">Fakultas</small>
-                            <span class="fw-bolder">{{ $faculty->faculty_name }}</span>
-                        </div>
-                    @endif
-                    @if($studyprogram)
-                        <div class="d-flex flex-column mb-2" style="gap: 5px">
-                            <small class="d-block">Program Studi</small>
-                            <span class="fw-bolder">{{ $studyprogram->studyprogram_name }}</span>
-                        </div>
-                    @endif
-                </div>
-                <div class="d-flex flex-row mb-2" style="gap: 1rem">
-                    <button onclick="TreeGenerate.checkAll()" class="btn btn-outline-primary btn-sm"><i data-feather="check-square"></i>&nbsp;&nbsp;Check Semua</button>
-                    <button onclick="TreeGenerate.uncheckAll()" class="btn btn-outline-primary btn-sm"><i data-feather="square"></i>&nbsp;&nbsp;Uncheck Semua</button>
-                </div>
-                <div class="jstree-table-wrapper">
-                    <div style="width: 1185px; margin: 0 auto;">
-                        <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
-                            <div style="width: 80px"></div>
-                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 539px">Scope</div>
-                            <div class="fw-bolder text-uppercase" style="width: 280px">Status Generate</div>
-                            <div class="fw-bolder text-uppercase" style="width: 284px">Status Komponen Tagihan</div>
-                        </div>
-                        <div id="tree-generate-invoice"></div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-info">Generate</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Invoice Detail Modal -->
-<div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-white" style="padding: 2rem 3rem 3rem 3rem">
-                <h4 class="modal-title fw-bolder" id="invoiceDetailModalLabel">Detail Mahasiswa dan Tagihan</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3 pt-0">
-                <div id="student-data" class="mb-3">
-                    <h4 class="fw-bolder mb-1">Data Mahasiwa</h4>
-                    <div class="d-flex flex-row justify-content-between mb-4" style="gap: 2rem">
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Nama Lengkap dan Nomor Pendaftaran</small>
-                            <span class="fw-bolder" id="detail-student-fullname">...</span>
-                            <span class="text-secondary d-block" id="detail-registration-number">...</span>
-                        </div>
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Jalur dan Periode Pendaftaran</small>
-                            <span class="fw-bolder" id="detail-path">...</span>
-                            <span class="text-secondary d-block" id="detail-period">...</span>
-                        </div>
-                        <div class="d-flex flex-column" style="gap: 5px">
-                            <small class="d-block">Program Studi dan Jenis Perkuliahan</small>
-                            <span class="fw-bolder" id="detail-studyprogram">...</span>
-                            <span class="text-secondary d-block" id="detail-lecture-type">...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="invoice-not-generated" class="hide">
-                    <div class="alert alert-warning p-1">
-                        <i data-feather="alert-circle"></i>&nbsp;&nbsp;Tagihan untuk mahasiswa ini belum digenerate.
-                    </div>
-                </div>
-
-                <div id="invoice-data" class="mb-3 hide">
-                    <h4 class="fw-bolder mb-1">Data Invoice</h4>
-                    <table class="eazy-table-info">
-                        <tr>
-                            <td>Nomor Invoice</td>
-                            <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;<span id="detail-invoice-number">...</span><span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Digenerate Pada</td>
-                            <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;<span id="detail-invoice-created">...</span></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Status Pembayaran</td>
-                            <td>
-                                <span class="fw-bold">:&nbsp;&nbsp;<span id="detail-invoice-status">...</span></span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div id="invoice-detail" class="mb-3 hide">
-                    <h4 class="fw-bolder mb-2">Rincian Tagihan</h4>
-                    <table id="table-detail-invoice-component" class="table table-bordered">
-                        <thead>
-                            <tr class="bg-light">
-                                <th class="text-center">Komponen Tagihan</th>
-                                <th class="text-center">Harga</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-                <div id="transaction-history" class="hide">
-                    <h4 class="fw-bolder mb-2">Riwayat Transaksi</h4>
-                    <table class="table table-bordered" id="paymentBill">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Invoice ID</th>
-                                <th class="text-center">Expired Date</th>
-                                <th class="text-center">Amount</th>
-                                <th class="text-center">Fee</th>
-                                <th class="text-center">Paid Date</th>
-                                <th class="text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="text-center" colspan="6">
-                                    Belum ada transaksi
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 
 @section('js_section')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
-
 <script>
-    DataTable.render.ellipsis = function ( cutoff ) {
-        return function ( data, type, row ) {
-            if ( type === 'display' ) {
-                var str = data.toString(); // cast numbers
-
-                return str.length < cutoff ?
-                    str :
-                    str.substr(0, cutoff-1) +'&#8230;';
-            }
-
-            // Search, order and type can use the original data
-            return data;
-        };
-    };
-
-    const invoicePeriodCode = "{{ $invoice_period->msy_code }}";
-    const scope = "{{ $scope }}";
-    const facultyId = "{{ $faculty ? $faculty->faculty_id : 0 }}";
-    const studyprogramId = "{{ $studyprogram ? $studyprogram->studyprogram_id : 0 }}";
-
+    var dataTable = null;
+    var header = null;
     $(function(){
-        _newStudentInvoiceDetailTable.init()
+        _studentInvoiceDetailTableAction.header()
+        _studentInvoiceDetailTable.init()
+        dataTable.columns([6,7,8,9,10,11,12,13,14,15,16]).visible(false)
+
+
     })
 
-    const _newStudentInvoiceDetailTable = {
+    const _studentInvoiceDetailTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#student-invoice-detail-table').DataTable({
+            dataTable = this.instance = $('#student-invoice-detail-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: `${_baseURL}/api/payment/generate/new-student-invoice/detail`
-                        +`?invoice_period_code=${invoicePeriodCode}`
-                        +`&scope=${scope}${scope == 'faculty' ? '&faculty_id='+facultyId : '&studyprogram_id='+studyprogramId}`,
+                    url: _baseURL+'/api/payment/generate/new-student-invoice/detail?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}',
+                    data: {
+                        yearFilter: $('#year-filter').val(),
+                        path: $('#path-filter').val(),
+                        period: $('#period-filter').val(),
+                        year: $('#prr-school-year').val()
+                    },
                 },
-                stateSave: false,
                 columns: [
                     {
                         name: 'action',
-                        data: 'participant_id',
+                        data: 'par_id',
                         orderable: false,
-                        searchable: false,
                         render: (data, _, row) => {
-                            return this.template.rowAction(row.payment_reregist_invoice_status);
+                            console.log(row);
+                            return this.template.rowAction(row)
                         }
                     },
                     {
-                        name: 'school_year_year',
-                        data: 'school_year_year',
+                        name: 'student',
                         render: (data, _, row) => {
-                            return this.template.defaultCell(data);
+                            let html = "";
+                            if(row.participant.par_active_status === 1) {
+                                html += '<div class="badge bg-success" style="font-size: inherit">Aktif</div>'
+                            } else {
+                                html += '<div class="badge bg-danger" style="font-size: inherit">Tidak Aktif</div>'
+                            }
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${row.participant.par_fullname} ${html}</span><br>
+                                    <small class="text-nowrap text-secondary">${row.reg_number}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'participant_fullname',
-                        data: 'participant_fullname',
+                        name: 'year.msy_year',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.participant_fullname, row.registration_number);
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${(row.ms_school_year_id) ? ((row.year.msy_semester === 1)? row.year.msy_year + " Genap" : row.year.msy_year + " Ganjil") : "-"}</span><br>
+                                    <small class="text-nowrap text-secondary">${(row.lecture_type) ? row.lecture_type.mlt_name : "-"}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'registration_path_name',
-                        data: 'registration_path_name',
+                        name: 'period.period_name',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.registration_path_name, row.registration_period_name);
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${(row.period) ? row.period.period_name : "-"}</span><br>
+                                    <small class="text-nowrap text-secondary">${(row.path) ? row.path.path_name : "-"}</small>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'studyprogram_name',
-                        data: 'studyprogram_name',
-                        visible: scope != 'studyprogram',
+                        name: 'payment.prr_id',
                         render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(
-                                row.studyprogram_name ?? 'N/A',
-                                row.lecture_type_name ?? 'N/A'
-                            );
+                            return `
+                                <div>
+                                    <a  onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" href="javascript:void(0);" class="text-nowrap fw-bold">${(row.payment) ? Rupiah.format(row.payment.prr_total) : "-"}</a><br>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'lecture_type_name',
-                        data: 'lecture_type_name',
-                        visible: scope != 'all' && scope != 'faculty',
-                        render: (data) => {
-                            return this.template.defaultCell(data ?? 'N/A');
+                        name: 'payment.prr_id',
+                        render: (data, _, row) => {
+                            var status = "";
+                            if(row.payment){
+                                if(row.payment.prr_status == 'lunas'){
+                                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                                }else{
+                                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                                }
+                            }
+                            return `
+                                <div class="d-flex justify-content-center">
+                                    ${status}
+                                </div>
+                            `;
                         }
                     },
                     {
-                        name: 'payment_reregist_invoice_status',
-                        data: 'payment_reregist_invoice_status',
-                        render: (data) => {
-                            return this.template.badgeCell(
-                                data,
-                                data == 'Sudah Digenerate' ? 'success' : 'secondary'
-                            );
+                        name: 'participant.par_fullname',
+                        data: 'participant.par_fullname'
+                    },
+                    {
+                        name: 'reg_number',
+                        data: 'reg_number'
+                    },
+                    {
+                        name: 'study_program.faculty.faculty_name',
+                        data: 'study_program.faculty.faculty_name',
+                        defaultContent: "-",
+                    },
+                    {
+                        name: 'study_program.studyprogram_name',
+                        data: 'study_program.studyprogram_name',
+                        render: (data, _, row) => {
+                            return (row.reg_major_pass)? (row.study_program.studyprogram_type +' '+row.study_program.studyprogram_name) : '-';
                         }
                     },
                     {
-                        name: 'payment_reregist_invoice_amount',
-                        data: 'payment_reregist_invoice_amount',
-                        render: (data) => {
-                            return this.template.currencyCell(data ?? 0);
+                        name: 'year.msy_year',
+                        render: (data, _, row) => {
+                            return (row.year) ? ((row.year.msy_semester === 1)? row.year.msy_year + " Genap" : row.year.msy_year + " Ganjil") : "-";
                         }
                     },
-                    // search and export columns
                     {
-                        title: 'Nama Mahasiswa',
-                        data: 'participant_fullname',
-                        visible: false,
+                        name: 'period.period_name',
+                        render: (data, _, row) => {
+                            return (row.period)? row.period.period_name : '-';
+                        }
                     },
                     {
-                        title: 'Nomor Pendaftaran',
-                        data: 'registration_number',
-                        visible: false,
+                        name: 'path.path_name',
+                        render: (data, _, row) => {
+                            return (row.path)? row.path.path_name : '-';
+                        }
                     },
                     {
-                        title: 'Jalur Pendaftaran',
-                        data: 'registration_path_name',
-                        visible: false,
+                        name: 'lecture_type.mlt_name',
+                        render: (data, _, row) => {
+                            return (row.lecture_type)? row.lecture_type.mlt_name : '-';
+                        }
                     },
                     {
-                        title: 'Periode Pendaftaran',
-                        data: 'registration_period_name',
-                        visible: false,
+                        name: 'participant.par_active_status',
+                        data: 'participant.par_active_status',
+                        render: (data, _, row) => {
+                            if(row.participant.par_active_status === 1) {
+                                return "Aktif";
+                            } else {
+                                return "Tidak Aktif"
+                            }
+                        }
                     },
                     {
-                        title: 'Program Studi',
-                        data: 'studyprogram_name',
-                        visible: false,
+                        name: 'payment.prr_id',
+                        render: (data, _, row) => {
+                            return (row.payment) ? Rupiah.format(row.payment.prr_total) : "-";
+                        }
                     },
                     {
-                        title: 'Jenis Perkuliahan',
-                        data: 'lecture_type_name',
-                        visible: false,
-                    },
-                    {
-                        title: 'Jumlah Tagihan',
-                        data: 'payment_reregist_invoice_amount',
-                        visible: false,
+                        name: 'payment.prr_id',
+                        render: (data, _, row) => {
+                            if(row.payment){
+                                if(row.payment.prr_status == 'lunas'){
+                                    return "Lunas"
+                                }else{
+                                    return "Belum Lunas"
+                                }
+                            }else {
+                                return ""
+                            }
+                        }
                     },
                 ],
                 drawCallback: function(settings) {
@@ -405,7 +355,7 @@
                                 text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [8,9,10,11,12,13,6,7]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -413,7 +363,7 @@
                                 text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [8,9,10,11,12,13,6,14]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -421,15 +371,16 @@
                                 text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [8,9,10,11,12,13,6,14]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
                                 extend: 'pdf',
                                 text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                orientation: 'landscape',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [8,9,10,11,12,13,6,7]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             },
                             {
@@ -437,7 +388,7 @@
                                 text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
                                 className: 'dropdown-item',
                                 exportOptions: {
-                                    columns: [8,9,10,11,12,13,6,14]
+                                    columns: [6,7,8,9,10,11,12,13,14,15,16]
                                 }
                             }
                         ],
@@ -446,62 +397,88 @@
                 initComplete: function() {
                     $('.student-invoice-detail-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <a onclick="TreeGenerate.openModal()" class="btn btn-info" href="javascript:void(0);">
-                            <i data-feather="command"></i> Generate All</a>
-                            <a onclick="_newStudentInvoiceDetailTableAction.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
+                            <a onclick="_studentInvoiceDetailTableAction.generateForm()" class="btn btn-info" href="javascript:void(0);">
+                                <i data-feather="command"></i> Generate Tagihan Mahasiswa</a>
+                            <a onclick="_studentInvoiceDetailTableAction.logActivityModal()" class="btn btn-secondary" href="javascript:void(0);">
                             <i data-feather="book-open"></i> Log Activity</a>
                         </div>
                     `)
                     feather.replace()
                 }
-            });
-            this.implementSearchDelay();
+            })
         },
         template: {
-            rowAction: function(invoiceStatus) {
+            rowAction: function(row) {
+                let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
+                let edit = ``;
+                let optional = ``;
+                if(row.payment){
+                    edit = `<a onclick="_studentInvoiceDetailTableAction.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit Tagihan</a>`;
+                    action = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
+                    optional = `<a onclick="_studentInvoiceDetailTableAction.regenerate(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
+                }
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_invoiceDetailModalActions.open(event)" class="dropdown-item"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa & Tagihan</a>
-                            <a
-                                onclick="_newStudentInvoiceDetailTableAction.generateInvoice(event)"
-                                class="dropdown-item ${invoiceStatus == 'Sudah Digenerate' ? 'disabled' : ''}"
-                            >
-                                <i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan
-                            </a>
-                            <a
-                                onclick="_newStudentInvoiceDetailTableAction.deleteInvoice(event)"
-                                class="dropdown-item ${invoiceStatus == 'Belum Digenerate' ? 'disabled' : ''}"
-                            >
-                                <i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan
-                            </a>
-                            <a
-                                onclick="_newStudentInvoiceDetailTableAction.regenerate(event)"
-                                class="dropdown-item ${invoiceStatus == 'Belum Digenerate' ? 'disabled' : ''}"
-                            >
-                                <i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan
-                            </a>
+                            <a onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
+                            ${edit}
+                            ${action}
+                            ${optional}
                         </div>
                     </div>
                 `
             },
-            titleWithSubtitleCell: _datatableTemplates.titleWithSubtitleCell,
-            defaultCell: _datatableTemplates.defaultCell,
-            badgeCell: _datatableTemplates.badgeCell,
-            currencyCell: _datatableTemplates.currencyCell,
+            invoiceDetailCell: function(invoiceItems, invoiceTotal) {
+                let html = '<div class="d-flex flex-column" style="gap: .5rem">'
+                html += `<div class="fw-bold text-nowrap">Total : ${Rupiah.format(invoiceTotal)}</div>`;
+                html += '<div class="d-flex flex-row" style="gap: 1rem">';
+
+                const minItemPerColumn = 2;
+                const half = invoiceItems.length > minItemPerColumn ? Math.ceil(invoiceItems.length/2) : invoiceItems.length;
+                let firstCol = invoiceItems.slice(0, half);
+                firstCol = firstCol.map(item => {
+                    return `
+                        <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+                    `;
+                }).join('');
+                html += `<div class="d-flex flex-column" style="gap: .5rem">${firstCol}</div>`;
+
+                if (half < invoiceItems.length) {
+                    let secondCol = invoiceItems.slice(half);
+                    secondCol = secondCol.map(item => {
+                        return `
+                            <div class="text-secondary text-nowrap">${item.name} : ${Rupiah.format(item.nominal)}</div>
+                        `;
+                    }).join('');
+                    html += `<div class="d-flex flex-column" style="gap: .5rem">${secondCol}</div>`;
+                }
+
+                html += '</div></div>';
+                return html;
+            }
         }
     }
 
-    const _newStudentInvoiceDetailTableAction = {
-        tableRef: _newStudentInvoiceDetailTable,
-        generateInvoice: function(e) {
-            const data = this.tableRef.getRowData(e.currentTarget);
+    const _studentInvoiceDetailTableAction = {
+        header: function(){
+            $.get(_baseURL + '/api/payment/generate/new-student-invoice/header?f={!! $data["f"] !!}&sp={!! $data["sp"] !!}&year='+$("#prr-school-year").val(), (d) => {
+                $('#active').html();
+                $('#faculty').html();
+                $('#study_program').html();
+                $('#active').html(d.active);
+                $('#faculty').html(d.faculty);
+                $('#study_program').html(d.study_program);
+                header = d;
+            })
+        },
+        generate: function(e) {
+            let data = _studentInvoiceDetailTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan mahasiswa '+data.participant_fullname+' ?',
+                text: 'Apakah anda yakin ingin generate tagihan mahasiswa '+data.participant.par_fullname+' ?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#356CFF',
@@ -510,501 +487,624 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(
-                        // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/generate-one',
-                        // data send
-                        {
-                            invoice_period_code: invoicePeriodCode,
-                            register_id: data.registration_id,
-                            url: `{{ request()->path() }}`,
-                        },
-                        // data receive
-                        (data) => {
-                            if (data.success) {
-                                _toastr.success(data.message, 'Sukses');
-                            } else {
-                                _toastr.error(data.message, 'Gagal');
-                            }
-                            _newStudentInvoiceDetailTable.reload();
+                    let requestData = {
+                        reg_id: data.reg_id,
+                        url: `{{ request()->path() }}`
+                    };
+                    $.post(_baseURL + '/api/payment/generate/new-student-invoice/student', requestData, (data) => {
+                        console.log(data);
+                        data = JSON.parse(data);
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
                         }
-                    ).fail((error) => {
-                        _responseHandler.generalFailResponse(error);
-                    });
+
+                    }).fail((error) => {
+                        _responseHandler.generalFailResponse(error)
+                    })
                 }
             })
         },
-        deleteInvoice: function(e) {
-            const data = this.tableRef.getRowData(e.currentTarget);
+        delete: function(e) {
+            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan mahasiswa '+data.participant_fullname+' ?',
+                html: `Apakah anda yakin ingin menghapus tagihan mahasiswa ${data.participant.par_fullname}?`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#356CFF',
+                confirmButtonColor: '#ea5455',
                 cancelButtonColor: '#82868b',
                 confirmButtonText: 'Hapus',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(
-                        // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/delete-one',
-                        // data send
-                        {
-                            payment_reregist_id: data.payment_reregist_id,
-                            url: `{{ request()->path() }}`,
-                        },
-                        // data receive
-                        (data) => {
-                            if (data.success) {
-                                _toastr.success(data.message, 'Sukses');
-                            } else {
-                                _toastr.error(data.message, 'Gagal');
+                    // ex: do ajax request
+                    if(data.payment){
+                        console.log(data);
+                        $.post(_baseURL + '/api/payment/generate/new-student-invoice/delete-one/' + data.payment.prr_id, {
+                            _method: 'DELETE',
+                            url: `{{ request()->path() }}`
+                        }, function(data){
+                            data = JSON.parse(data)
+                            if(data.success){
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: data.message,
+                                }).then(() => {
+                                    _studentInvoiceDetailTable.reload()
+                                });
+                            }else{
+                                Swal.fire({
+                                    icon: 'error',
+                                    text: data.message,
+                                })
                             }
-                            _newStudentInvoiceDetailTable.reload();
+                        }).fail((error) => {
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            });
+                            _responseHandler.generalFailResponse(error)
+                        })
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            text: 'Data Tagihan Tidak Ditemukan',
+                        })
+                    }
+                }
+            })
+        },
+        generateForm: function() {
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Generate Tagihan Mahasiswa',
+                modalSize: 'xl',
+                config: {
+                    formId: 'generateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/new-student-invoice/bulk',
+                    formType: 'add',
+                    data: $("#generateForm").serialize(),
+                    isTwoColumn: false,
+                    title: 'Konfirmasi Generate Tagihan',
+                    textConfirm: 'Generate tagihan hanya akan memproses fakultas atau prodi yang sudah memiliki komponen tagihan',
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Fakultas</h6>
+                                            <h1 class="h6 fw-bolder">${header.faculty}</h1>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4">
+                                            <h6>Program Studi</h6>
+                                            <h1 class="h6 fw-bolder">${header.study_program}</h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <h4 class="fw-bolder mb-0">Konfirmasi Generate Tagihan <small class="fst-italic mb-0">(Centang checkbox untuk memilih)</small></h4>
+                                <div class="border border-bottom-0">
+                                <ul class="nested-checkbox bg-light mb-0">
+                                    <li class="row border-bottom py-1 mx-1">
+                                        <div class="col-4 ps-0">
+                                            Scope
+                                        </div>
+                                        <div class="col-4">
+                                            Status Generate
+                                        </div>
+                                        <div class="col-4">
+                                            Status Komponen Tagihan
+                                        </div>
+                                    </li>
+                                </ul>
+                                <ul class="nested-checkbox px-1 mb-0">
+                                    <li id="choice" class="row">
+                                        <div class="row border-bottom py-05" style="padding-left: 2%!important">
+                                            <div class="col-4" style="padding-left: 0px!important">
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /><span id="checkbox_header_title" class=""> ${header.study_program} </span>
+                                            </div>
+                                            <div class="col-4">
+                                            <div class="badge" id="badge_header">Belum Digenerate</div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="from" value="detail">
+                                        <input type="hidden" name="url" value="{{ request()->path() }}">
+                                    </li>
+                                </ul>
+                                </div>
+                                `
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Generate Tagihan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
+                    </small>`,
+                    callback: function() {
+                        _studentInvoiceDetailTable.reload();
+                        feather.replace();
+                    }
+                },
+            });
+            var store = [];
+            $.get(_baseURL + '/api/payment/generate/new-student-invoice/choice/{!! $data["f"] !!}/{!! $data["sp"] !!}/{!! $data["year"] !!}', (data) => {
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    var is_component = [];
+                    data.map(item => {
+                        if(is_component[item.msy_id] != 0){
+                            is_component[item.msy_id] = item.is_component;
                         }
-                    ).fail((error) => {
-                        _responseHandler.generalFailResponse(error);
+                        if(is_component[item.msy_id+'_'+item.path_id] != 0){
+                        is_component[item.msy_id+'_'+item.path_id] = item.is_component;
+                        }
+                        if(is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id] != 0){
+                            is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id] = item.is_component;
+                        }
                     });
+
+                    data.map(item => {
+                        var id = item.studyprogram_id+"_"+item.msy_id+"_"+item.path_id+"_"+item.period_id+"_"+item.mlt_id;
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            'choice',
+                            'msyId',
+                            'msyId_'+item.msy_id,
+                            item.msy_id+'_pathId',
+                            'Tahun '+item.year.msy_year,
+                            is_component[item.msy_id],
+                            2)
+
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_pathId',
+                            item.msy_id+'_pathId',
+                            item.msy_id+'_pathId_'+item.path_id,
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.path.path_name,
+                            is_component[item.msy_id+'_'+item.path_id],
+                            3)
+
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.msy_id+'_'+item.path_id+'_periodId',
+                            item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.period.period_name,
+                            is_component[item.msy_id+'_'+item.path_id+'_'+item.period_id],
+                            4)
+
+                        _studentInvoiceDetailTableAction.choiceRow(
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
+                            item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
+                            item.lecture_type.mlt_name,
+                            null,
+                            5,
+                            item.total_student,
+                            item.total_generate,
+                            id,
+                            item.component_filter,
+                            'last')
+
+                        // COUNTING
+                        // Period
+                        let period = item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id;
+                        let student = item.total_student;
+                        let generate = item.total_generate;
+                        _studentInvoiceDetailTableAction.storeToArray(store,period,student,generate)
+
+                        // Path
+                        let path = item.msy_id+'_pathId_'+item.path_id;
+                        _studentInvoiceDetailTableAction.storeToArray(store,path,student,generate)
+
+                        // Year
+                        let year = 'msyId_'+item.msy_id
+                        _studentInvoiceDetailTableAction.storeToArray(store,year,student,generate)
+
+                        // Mlt
+                        let mlt = item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id;
+                        _studentInvoiceDetailTableAction.storeToArray(store,mlt,student,generate)
+
+                        // Sum
+                        total_student = total_student+student;
+                        total_generate = total_generate+generate;
+                    });
+
+                    // Badges
+                    for (let x of Object.keys(store)) {
+                        let student = store[x]['student'];
+                        let generate = store[x]['generate'];
+                        $('#checkbox_'+x).attr('student',student);
+                        $('#checkbox_'+x).attr('generate',generate);
+                        _studentInvoiceDetailTableAction.badge(x,student,generate)
+                    }
+                    let root_is_component = null;
+                    for (let x of Object.keys(is_component)) {
+                        if(root_is_component != 0){
+                            root_is_component = is_component[x];
+                        }
+                    }
+                    if(root_is_component != 1){
+                        $('#checkbox_header').attr("type", 'radio');
+                        $("#checkbox_header").attr("disabled", true);
+                        $("#checkbox_header_title").addClass("text-muted");
+                    }
+                    // Badges for master root
+                    let student = total_student;
+                    let generate = total_generate;
+                    let x = "header";
+                    _studentInvoiceDetailTableAction.badge(x,student,generate)
                 }
             });
         },
+        choiceRow(tag,grandparent,parent,child,data,is_component = null,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+            let status_component = "";
+            let status_disabled = "";
+            let text_color = "";
+            let type = "checkbox"
+            if(position === 'last'){
+                if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(is_component != null){
+                if(is_component == 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(!$("#choice").find("[id='" + grandparent + "']")[0]){
+                $('#'+tag).append(`
+                    <ul id="${grandparent}" class="col-12" style="padding-left:calc(var(--bs-gutter-x) * .5)">
+                    </ul>
+                `);
+            }
+
+            if(!$("#choice").find("[id='" + parent + "']")[0]){
+                $('#'+grandparent).append(`
+                    <li id="${parent}">
+                        <div class="row border-bottom py-05">
+                            <div class="col-4" style="padding-left: ${padding}%!important;">
+                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} />
+                                <span class="${text_color}"> ${data} </span>
+                            </div>
+                            <div class="col-4">
+                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
+                            </div>
+                            <div class="col-4">
+                                ${status_component}
+                            </div>
+                        </div>
+                        <ul id="${child}" class="col-12">
+                        </ul>
+                    </li>
+                `);
+            }
+
+            $('li :checkbox').on('click', function () {
+                console.log("hey");
+                var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
+                console.log($li);
+                if ($li.has('ul')) {
+                    $li.find(':checkbox').not(this).prop('checked', this.checked)
+                }
+                do {
+                    $ul = $li.parent();
+                    $parent = $ul.siblings(':checkbox');
+                    if ($chk.is(':checked')) {
+                        $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
+                    } else {
+                        $parent.prop('checked', false)
+                    }
+                    $chk = $parent;
+                    $li = $chk.closest('li');
+                } while ($ul.is(':not(.someclass)'));
+            });
+
+        },
+        badge(x,student,generate){
+            if(generate == 0){
+                $('#badge_'+x).addClass('bg-danger');
+                $('#badge_'+x).html('Belum Digenerate ('+ generate + '/' + student + ')');
+            }else if(generate < student){
+                $('#badge_'+x).addClass('bg-warning');
+                $('#badge_'+x).html('Sebagian Telah Digenerate ('+ generate + '/' + student + ')');
+            }else{
+                $('#badge_'+x).addClass('bg-success');
+                $('#badge_'+x).html('Sudah Digenerate ('+ generate + '/' + student + ')');
+            }
+        },
+        storeToArray(store,key,student,generate){
+            if(store[key]){
+                store[key] = {'student' : store[key]['student']+student, 'generate' : store[key]['generate']+generate}
+            }else{
+                store[key] = {'student' : student, 'generate' : generate}
+            }
+        },
+        logActivityModal: function() {
+            title = `Log Tagihan Mahasiswa Lama`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
+        },
         regenerate: function(e) {
-            const data = this.tableRef.getRowData(e.currentTarget);
+            const data = _studentInvoiceDetailTable.getRowData(e.currentTarget);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menggenerate ulang tagihan mahasiswa '+data.participant_fullname+' ?',
+                html: `Apakah anda yakin ingin menggenerate ulang tagihan mahasiswa ${data.participant.par_fullname}?`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#356CFF',
+                confirmButtonColor: '#ea5455',
                 cancelButtonColor: '#82868b',
                 confirmButtonText: 'Regenerate',
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    console.log(data)
-                    $.post(
-                        // url
-                        _baseURL + '/api/payment/generate/new-student-invoice/regenerate/student/'+data.registration_id+'/1',
-                        // data send
-                        {
-                            payment_reregist_id: data.payment_reregist_id,
+                    // ex: do ajax request
+                    $.post(_baseURL + '/api/payment/generate/new-student-invoice/regenerate/student/' + data.payment.prr_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceDetailTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+
+        edit: function(e) {
+            let data = _studentInvoiceDetailTable.getRowData(e);
+            console.log(data);
+            Modal.show({
+                type: 'form',
+                modalTitle: `Pengaturan Tagihan ${data.participant ? (data.participant.par_fullname) : '-'}`,
+                modalSize: 'lg',
+                config: {
+                    formId: 'paymentRateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/new-student-invoice/component/update',
+                    formType: 'add',
+                    data: $("#paymentRateForm").serialize(),
+                    isTwoColumn: false,
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            title: 'Data Mahasiswa',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Nama Lengkap</h6>
+                                            <h1 class="h6 fw-bolder">${data.participant ? (data.participant.par_fullname) : '-'}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Nomor Pendaftaran</h6>
+                                            <h1 class="h6 fw-bolder">${data.reg_id ? (data.reg_id) : '-'}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>No Handphone</h6>
+                                            <h1 class="h6 fw-bolder">${data.participant ? (data.participant.par_phone) : '-'}</h1>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3">
+                                            <h6>Status Pembayaran</h6>
+                                            <h1 class="h6 fw-bolder" id="statusPembayaran"></h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
                         },
-                        // data receive
-                        (data) => {
-                            if (data.status) {
-                                _toastr.success(data.msg, 'Sukses');
-                            } else {
-                                _toastr.error(data.msg, 'Gagal');
-                            }
-                            _newStudentInvoiceDetailTable.reload();
-                        }
-                    ).fail((error) => {
-                        _responseHandler.generalFailResponse(error);
-                    });
-                }
-            });
-        },
-        logActivityModal: function() {
-            title = `Log Activity Tagihan Mahasiswa Baru`;
-            url = `{{ request()->path() }}`;
-            logActivity(title,url);
-        },
-    }
-
-    const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));
-
-
-    const TreeGenerate = {
-        selector: '#tree-generate-invoice',
-        openModal: function() {
-            $('#generateInvoiceModal #info-invoice-period').text("{{ $invoice_period->msy_year.' Semester '.$invoice_period->msy_semester }}");
-            this.initTree();
-
-            // if tree is not yet initilized
-            if (!$(this.selector).jstree(true)) {
-                console.log('binding event handler');
-                $(this.selector).on("loaded.jstree", () => { console.log('tree is loaded'); this.appendColumn(this.selector) });
-                $(this.selector).on("ready.jstree", () => { console.log('tree is ready'); this.appendColumn(this.selector) });
-                $(this.selector).on("refresh.jstree", () => { console.log('tree is refreshed'); this.appendColumn(this.selector) });
-                $(this.selector).on("before_open.jstree", () => { console.log('tree is before open'); this.appendColumn(this.selector) });
-                $(this.selector).on("check_all.jstree", () => { console.log('tree is check all'); this.appendColumn(this.selector) });
-                $(this.selector).on("uncheck_all.jstree", () => { console.log('tree is uncheck all');this.appendColumn(this.selector) });
-            }
-
-            GenerateInvoiceModal.show();
-        },
-        initTree: async function() {
-            const {data} = await $.ajax({
-                async: true,
-                url: `${_baseURL}/api/payment/generate/new-student-invoice/get-tree-generate-${scope}`
-                    +`?invoice_period_code=${invoicePeriodCode}`
-                    +`${
-                        scope == 'faculty' ?
-                            `&scope=faculty&faculty_id=${facultyId}`
-                            : scope == 'studyprogram' ?
-                                `&scope=studyprogram&faculty_id=${facultyId}&studyprogram_id=${studyprogramId}`
-                                : ''
-                    }`,
-                type: 'get',
-            });
-
-            if ($(TreeGenerate.selector).jstree(true)) {
-                console.log('update tree with new data');
-                $(TreeGenerate.selector).jstree(true).settings.core.data = data.tree;
-                $(TreeGenerate.selector).jstree(true).refresh();
-            } else {
-                console.log('initializing tree');
-                $(TreeGenerate.selector).jstree({
-                    'core' : {
-                        'data' : data.tree,
-                        "themes":{
-                            "icons":false
-                        }
+                        input_fields: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap:10px">
+                                    <h4 class="fw-bolder mb-0">Komponen Tagihan</h4>
+                                    <div>
+                                        <button type="button"
+                                            class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
+                                            onclick="_studentInvoiceDetailTableAction.PaymentRateNewField(${data.payment.prr_id},1)"> <i class="bx bx-plus m-auto"></i> Tambah Komponen
+                                        </button>
+                                    </div>
+                                    <input type="hidden" value="{{ request()->path() }}" name="url">
+                                    <input type="hidden" value="${data.participant ? (data.participant.par_fullname) : '-'} - ${data.reg_id ? (data.reg_id) : '-'}" name="title">
+                                </div>
+                                <div id="PaymentRateInput">
+                                </div>
+                                `
+                            },
+                        },
                     },
-                    "checkbox" : {
-                        "keep_selected_style" : false
+                    formSubmitLabel: 'Simpan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
+                    </small>`,
+                    callback: function() {
+                        // ex: reload table
+                        _studentInvoiceDetailTable.reload()
                     },
-                    "plugins" : [ "checkbox", "wholerow" ],
-                });
-            }
-
-        },
-        appendColumn: function(selector) {
-            $(selector+' .jstree-anchor').each(function() {
-                if ($(this).children().length <= 2) {
-                    const nodeId = $(this).parents('li').attr('id');
-                    const node = $(selector).jstree('get_node', nodeId);
-                    const children = $(this).children();
-                    $(this).empty();
-                    $(this).append(children.get(0));
-                    $(this).append(children.get(1));
-                    $(this).append(`<div class="text"><span>${node.text}</span></div>`);
-                    $(this).append(`
-                        <div style="display: flex; justify-content: flex-end;">
-                            <div style="width: 280px">${
-                                node.data.status_generated.status == 'not_generated' ? `
-                                    <span class="badge bg-danger">${node.data.status_generated.text}</span>
-                                ` : node.data.status_generated.status == 'partial_generated' ? `
-                                        <span class="badge bg-warning">${node.data.status_generated.text}</span>
-                                    ` : node.data.status_generated.status == 'done_generated' ? `
-                                            <span class="badge bg-success">${node.data.status_generated.text}</span>
-                                        ` : '-'
-                            }</div>
-                            <div style="width: 280px">${
-                                node.data.status_invoice_component == 'not_defined' ?
-                                    `<span class="badge bg-danger">Komponen Tagihan Belum Diset!</span>`
-                                    : node.data.status_invoice_component == 'partially_defined' ?
-                                        `<span class="badge bg-warning">Komponen Tagihan Diset Sebagian</span>`
-                                        : node.data.status_invoice_component == 'defined' ?
-                                            `<span class="badge bg-success">Komponen Tagihan Telah Diset</span>`
-                                            : ''
-                            }</div>
-                        </div>
-                    `);
-                }
-            });
-        },
-        checkAll: function() {
-            $(this.selector).jstree(true).check_all();
-            this.appendColumn(this.selector);
-        },
-        uncheckAll: function() {
-            $(this.selector).jstree(true).uncheck_all();
-            this.appendColumn(this.selector);
-        },
-    }
-
-    // generate new id from this variable
-    let idGlobal = 0;
-
-    const GenerateInvoiceAction = {
-        getPaths: () => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-            // get selected nodes
-            const selected = treeApi.get_selected();
-            // foreach selected node, select only leaf node
-            const leafs = selected.filter(nodeId => treeApi.is_leaf(nodeId));
-            // foreach leaf, get path
-            const paths = leafs.map(nodeId => {
-                return {
-                    id: ++idGlobal,
-                    pathString: treeApi.get_path(nodeId, '/', true),
-                };
-            });
-            return paths;
-        },
-        getOptimizedPaths: (paths) => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-
-            let finalPaths = [...paths];
-
-            let previousOptimizedPaths = [...paths];
-            let optimizedPaths = [...paths];
-
-            let limit = 10;
-            while (true && limit > 0) {
-                // Get parents of each leaf at each path.
-                // Ex: ['1', '2', '3']
-                const leafsParents = [];
-                optimizedPaths.forEach(path => {
-                    const pathArr = path.pathString.split('/');
-                    if (pathArr.length > 1) {
-                        const leafParentId = pathArr[pathArr.length-2];
-                        if (!leafsParents.includes(leafParentId)) {
-                            leafsParents.push(leafParentId);
-                        }
-                    }
-                });
-                if(leafsParents.length == 0) break;
-
-                /**
-                 * Add childrenCount and hasPaths property for each parent.
-                 * Ex: [
-                 *  {id: '1', childrenCount: 2, hasPaths: [...] },
-                 *  {id: '2', childrenCount: 1, hasPaths: [...] },
-                 *  {id: '3', childrenCount: 3, hasPaths: [...] },
-                 * ]
-                 */
-                const leafsParentsExt = leafsParents.map(id => {
-                    const filteredPaths = optimizedPaths.filter(path => {
-                        const pathArr = path.pathString.split('/');
-                        const leafParentId = pathArr[pathArr.length-2];
-                        return leafParentId == id
-                    });
-                    const childrenCount = treeApi.get_node(id).children.length;
-                    return { id, childrenCount, hasPaths: filteredPaths };
-                });
-
-                /**
-                 * If parent childrenCount = hasPaths.length, then delete all path
-                 * belong this parent and replace with new path(one path).
-                 * Example: from ['1/2/3', '1/2/4', '1/2/5'] to ['1/2']
-                 */
-                leafsParentsExt.forEach(parent => {
-                    if (parent.hasPaths.length == parent.childrenCount) {
-                        parent.hasPaths.forEach(path => {
-                            optimizedPaths = optimizedPaths.filter(optPath => optPath.id != path.id);
-                        });
-                        const newPathArr = parent.hasPaths[0].pathString.split('/');
-                        newPathArr.pop();
-                        const newPath = newPathArr.join('/');
-                        optimizedPaths.push({
-                            id: ++idGlobal,
-                            pathString: newPath,
-                        });
-                    }
-                });
-
-                const array1 = previousOptimizedPaths.map(item => item.pathString);
-                const array2 = optimizedPaths.map(item => item.pathString);
-                if (areArrayEqual(array1, array2)) {
-                    finalPaths = optimizedPaths;
-                    break;
-                } else {
-                    previousOptimizedPaths = optimizedPaths;
-                    limit--;
-                }
-            }
-
-            return finalPaths;
-        },
-        getProcessScope: (optimizedPaths) => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-
-            // Add scope, faculty_id and studyprogram_id property for each optimized path.
-            return optimizedPaths.map(path => {
-                const pathArr = path.pathString.split('/');
-                const globalScope = scope;
-                let localScope = 'n/a';
-                let ids = {};
-
-                if (globalScope == 'faculty') {
-                    if(pathArr.length == 1) localScope = 'studyprogram';
-                    if(pathArr.length == 2) localScope = 'path';
-                    if(pathArr.length == 3) localScope = 'period';
-                    if(pathArr.length == 4) localScope = 'lecture_type';
-                    ids = {
-                        studyprogram_id: treeApi.get_node(pathArr[0]).data.obj_id,
-                        path_id: treeApi.get_node(pathArr[1]).data?.obj_id,
-                        period_id: treeApi.get_node(pathArr[2]).data?.obj_id,
-                        lecture_type_id: treeApi.get_node(pathArr[3]).data?.obj_id,
-                    };
-                } else if (globalScope == 'studyprogram') {
-                    if(pathArr.length == 1) localScope = 'path';
-                    if(pathArr.length == 2) localScope = 'period';
-                    if(pathArr.length == 3) localScope = 'lecture_type';
-                    ids = {
-                        studyprogram_id: studyprogramId,
-                        path_id: treeApi.get_node(pathArr[0]).data.obj_id,
-                        period_id: treeApi.get_node(pathArr[1]).data?.obj_id,
-                        lecture_type_id: treeApi.get_node(pathArr[2]).data?.obj_id,
-                    };
-                }
-
-                return {
-                    ...path,
-                    scope: localScope,
-                    ...ids,
-                };
-            });
-        },
-        /**
-         * Main method for generate invoice, used in generate invoice in modal.
-         */
-        main: async function() {
-            // check if there are selected items
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-            if (treeApi.get_selected().length == 0) {
-                _toastr.error('Silahkan pilih item yang ingin digenerate.', 'Belum Memilih!');
-                return;
-            }
-
-            const confirmed = await _swalConfirmSync({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan?',
-            });
-            if(!confirmed) return;
-
-            const paths = this.getPaths();
-            const optimizedPaths = this.getOptimizedPaths(paths);
-            const processScope = this.getProcessScope(optimizedPaths);
-
-            const generateData = processScope.map(item => {
-                return {
-                    scope: item.scope,
-                    faculty_id: facultyId,
-                    studyprogram_id: item.studyprogram_id,
-                    path_id: item.path_id,
-                    period_id: item.period_id,
-                    lecture_type_id: item.lecture_type_id,
-                }
-            });
-
-            $.ajax({
-                url: _baseURL+'/api/payment/generate/new-student-invoice/generate-by-scopes',
-                type: 'post',
-                data: {
-                    invoice_period_code: invoicePeriodCode,
-                    generate_data: generateData,
                 },
-                success: (res) => {
-                    GenerateInvoiceModal.hide();
-                    _toastr.success(res.message, 'Success');
-                    _newStudentInvoiceDetailTable.reload();
-                }
             });
-        },
-    }
-
-    const InvoiceDetailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
-
-    const _invoiceDetailModalActions = {
-        open: async function(e) {
-            this.resetData();
-
-            const studentData = _newStudentInvoiceDetailTable.getRowData(e.currentTarget);
-
-            // Student Data
-            $('#detail-student-fullname').text(studentData.participant_fullname);
-            $('#detail-registration-number').text(studentData.registration_number);
-            $('#detail-path').text(studentData.registration_path_name);
-            $('#detail-period').text(studentData.registration_period_name);
-            $('#detail-studyprogram').text(studentData.studyprogram_name);
-            $('#detail-lecture-type').text(studentData.lecture_type_name);
-
-            // invoice already generated
-            if (studentData.payment_reregist_id) {
-                const {data: invoiceData} = await $.ajax({
-                    async: true,
-                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice/'+studentData.payment_reregist_id,
-                    type: 'get',
-                });
-                const {data: invoiceComponentData} = await $.ajax({
-                    async: true,
-                    url: _baseURL+'/api/payment/generate/new-student-invoice/show-invoice-component/'+studentData.payment_reregist_id,
-                    type: 'get',
-                });
-                // TODO: get total terbayar dan total diterima
-
-                $('#invoice-data').removeClass('hide');
-                $('#invoice-detail').removeClass('hide');
-                $('#transaction-history').removeClass('hide');
-
-                // Invoice Data
-                $('#detail-invoice-number').text(invoiceData.prr_id);
-                $('#detail-invoice-created').text(moment(invoiceData.created_at).format('DD MMMM YYYY, HH:mm'));
-                $('#detail-invoice-status').html(
-                    invoiceData.prr_status == 'lunas' ?
-                        '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
-                        : '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
-                );
-
-                let detailInvoiceComponentHtml = invoiceComponentData.map((item) => {
-                    return `
-                        <tr>
-                            <td class="text-center">${item.prrd_component}</td>
-                            <td class="text-center">${Rupiah.format(item.prrd_amount)}</td>
-                        </tr>
-                    `;
-                });
-                detailInvoiceComponentHtml += `
-                    <tr class="bg-light">
-                        <td class="text-center fw-bolder">Total Tagihan Mahasiswa</td>
-                        <td class="text-center fw-bolder">${Rupiah.format(studentData.payment_reregist_invoice_amount)}</td>
-                    </tr>
-                    <tr class="bg-light">
-                        <td class="text-center fw-bolder">Jumlah Terbayar</td>
-                        <td class="text-center fw-bolder">N/A</td>
-                    </tr>
-                    <tr class="bg-light">
-                        <td class="text-center fw-bolder">Total yang Diterima</td>
-                        <td class="text-center fw-bolder">N/A</td>
-                    </tr>
-                `;
-
-                // Invoice Component Data
-                $('#table-detail-invoice-component tbody').html(detailInvoiceComponentHtml);
-            }
-            // invoice not generated
-            else {
-                $('#invoice-not-generated').removeClass('hide');
-            }
-
-            InvoiceDetailModal.show();
-        },
-        resetData: function() {
-            $('#detail-student-fullname').text('...');
-            $('#detail-student-nik').text('...');
-            $('#detail-path').text('...');
-            $('#detail-period').text('...');
-            $('#detail-studyprogram').text('...');
-            $('#detail-lecture-type').text('...');
-            $('#detail-invoice-number').text('...');
-            $('#detail-invoice-created').text('...');
-            $('#table-detail-invoice-component tbody').html('');
-            $('#detail-invoice-amount').text('...');
-
-            $('#invoice-not-generated').addClass('hide');
-            $('#invoice-data').addClass('hide');
-            $('#invoice-detail').addClass('hide');
-            $('#transaction-history').addClass('hide');
-        },
-
-    }
-
-    function areArrayEqual(array1, array2) {
-        if (array1.length === array2.length) {
-            return array1.every((element, index) => {
-                if (element === array2[index]) {
-                    return true;
+            // Status
+            let source = data.payment;
+            let status = "";
+            if(source){
+                if(source.prr_status == 'lunas'){
+                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                }else if(source.prr_status == 'kredit'){
+                    status = '<div class="badge bg-warning" style="font-size: inherit">Kredit</div>'
+                }else{
+                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
                 }
-                return false;
-            });
-        }
-        return false;
+                if (Object.keys(source.payment_detail).length > 0) {
+                    source.payment_detail.map(item => {
+                        if(item.type == 'component'){
+                            _studentInvoiceDetailTableAction.PaymentRateInputField(item)
+                        }
+                    })
+                }
+            }
+            $("#statusPembayaran").append(status);
+
+        },
+        PaymentRateInputField: function(item) {
+            $('#PaymentRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 PaymentRateInputField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <input type="hidden" name="prr_id[]" value="${item.prr_id}">
+                    <input type="hidden" name="prrd_id[]" value="${item.prrd_id}">
+                    <div class="flex-fill">
+                        <label class="form-label">Nama Komponen</label>
+                        <input type="text" class="form-control" name="prrd_component[]" value="${item.prrd_component}"
+                            placeholder="Nama Komponen">
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Harga Komponen Biaya</label>
+                        <input type="text" class="form-control comp_price" name="prrd_amount[]" value="${item.prrd_amount}"
+                            placeholder="Tarif Komponen">
+                    </div>
+                    <div class="d-flex align-content-end">
+                        <div class="">
+                            <label class="form-label" style="opacity: 0">#</label>
+                            <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            onclick="_studentInvoiceDetailTableAction.paymentRateDeleteField(this,${item.prrd_id})"> <i class="bx bx-trash m-auto"></i> </a>
+                        </div>
+                    </div>
+                </div>
+            `);
+        },
+        PaymentRateNewField: function(prr_id,is_admission) {
+            $('#PaymentRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 PaymentRateInputField" style="gap:10px"
+                    id="comp-order-preview-0">
+                    <input type="hidden" name="prr_id[]" value="${prr_id}">
+                    <input type="hidden" name="prrd_id[]" value="0">
+                    <div class="flex-fill">
+                        <label class="form-label">Nama Komponen</label>
+                        <select class="form-select select2" eazy-select2-active name="prrd_component[]" id="component${prr_id}" value="">
+                        </select>
+                    </div>
+                    <div class="flex-fill">
+                        <label class="form-label">Harga Komponen Biaya</label>
+                        <input type="text" class="form-control comp_price" name="prrd_amount[]" value=""
+                            placeholder="Tarif Komponen">
+                    </div>
+                    <div class="d-flex align-content-end">
+                        <div class="">
+                            <label class="form-label" style="opacity: 0">#</label>
+                            <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
+                            onclick="_studentInvoiceDetailTableAction.paymentRateDeleteField(this,0)"> <i class="bx bx-trash m-auto"></i> </a>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $.get(_baseURL + '/api/payment/settings/paymentrates/component/'+is_admission, (data) => {
+                JSON.parse(data).map(item => {
+                    $("#component" + prr_id).append(`
+                        <option value="` + item['msc_name'] + `">` + item['msc_name'] + `</option>
+                    `)
+                })
+                selectRefresh();
+            })
+
+        },
+        paymentRateDeleteField: function(e, id) {
+            if (id === 0) {
+                $(e).parents('.PaymentRateInputField').get(0).remove();
+            } else {
+                _studentInvoiceDetailTableAction.deleteComponent(e, id);
+            }
+        },
+        deleteComponent: function(e, id) {
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus komponen tagihan ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/generate/new-student-invoice/component/delete/' + id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            $(e).parents('.PaymentRateInputField').get(0).remove();
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
     }
 
+    function filters(){
+        dataTable.destroy();
+        _studentInvoiceDetailTable.init();
+        _studentInvoiceDetailTableAction.header();
+    }
 </script>
+@include('pages._payment.generate.new-student-invoice.invoice');
 @endsection

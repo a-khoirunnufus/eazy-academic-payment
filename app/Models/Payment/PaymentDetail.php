@@ -19,6 +19,6 @@ class PaymentDetail extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'prr_id', 'prr_id')->with('student');
+        return $this->belongsTo(Payment::class, 'prr_id', 'prr_id')->with('student','register');
     }
 }

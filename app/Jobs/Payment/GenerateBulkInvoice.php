@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Services\Payment\StudentInvoice;
+use App\Services\Payment\NewStudentInvoice;
 use App\Traits\Payment\LogActivity;
 use App\Enums\Payment\LogStatus;
 use DB;
@@ -23,12 +24,14 @@ class GenerateBulkInvoice implements ShouldQueue
     protected $data;
     protected $from;
     protected $log;
+    protected $is_admission;
 
-    public function __construct($data,$from,$log)
+    public function __construct($data,$from,$log,$is_admission)
     {
         $this->data = $data;
         $this->from = $from;
         $this->log = $log;
+        $this->is_admission = $is_admission;
     }
 
 
@@ -38,6 +41,9 @@ class GenerateBulkInvoice implements ShouldQueue
     public function handle(): void
     {
         $studentInvoice = new StudentInvoice;
+        if($this->is_admission == 1){
+            $studentInvoice = new NewStudentInvoice;
+        }
         $result = $studentInvoice->storeBulkStudentGenerate($this->data, $this->from,$this->log);
     }
 }

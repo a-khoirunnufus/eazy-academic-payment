@@ -29,6 +29,12 @@ trait General
         return $schoolYear['msy_code'];
     }
 
+    public function getActiveSchoolYearId()
+    {
+        $schoolYear = SchoolYearService::getActiveByDate();
+        return $schoolYear['msy_id'];
+    }
+
     public function getStudentName($student, $newStudent){
         if($student){
             return $student->fullname;

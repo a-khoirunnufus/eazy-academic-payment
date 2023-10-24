@@ -1,48 +1,70 @@
 @extends('tpl.vuexy.master-payment')
 
+
 @section('page_title', 'Generate Tagihan')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
 @section('css_section')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-<link rel="stylesheet" href="{{ url('css/jstree-custom-table.css') }}" />
-<style>
-    .item-log {
-        width: 100%;
-        display: grid;
-        column-gap: 10px;
-        grid-template-columns: auto auto;
-        padding: 5px 10px 6px 10px;
-        border-radius: 10px;
-        margin-top: 5px;
-    }
-    .item-log p {
-        margin: 0;
-    }
-    .item-log .type-action {
-        text-align: right;
-    }
-</style>
+    <style>
+        .new-student-invoice-filter {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 1rem;
+        }
+         .nested-checkbox {
+            list-style-type: none;
+            padding-left: 0px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .nested-checkbox ul {
+            list-style-type: none;
+            padding-left: 0px;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .nested-checkbox ul li {
+            list-style-type: none;
+            font-size: 15px!important;
+            font-weight: bold!important;
+        }
+
+        .py-05{
+            padding-top: 0.5%!important;
+            padding-bottom: 0.5%!important;
+        }
+
+    </style>
 @endsection
 
 @section('content')
 
 @include('pages._payment.generate._shortcuts', ['active' => 'new-student-invoice'])
 
-<div class="form-group" style="width: 300px; margin-bottom: 2rem !important;">
-    <label class="form-label">Pilih Periode Tagihan</label>
-    <select id="select-invoice-period" class="form-control select2">
-        @foreach($invoice_periods as $period)
-        <option value="{{ $period->school_year_code }}" {{ $current_period_code == $period->school_year_code ? 'selected' : '' }}>
-            {{ $period->school_year_year }} Semester {{ $period->school_year_semester }}
-        </option>
-        @endforeach
-    </select>
-</div>
-
 <div class="card">
-    <table id="new-student-invoice-table" class="table table-striped">
+    <div class="card-body">
+        <div class="new-student-invoice-filter">
+            <div>
+                <label class="form-label">Periode Tagihan</label>
+                <select class="form-select" eazy-select2-active id="prr-school-year">
+                    @foreach($year as $tahun)
+                        <option value="{{ $tahun->msy_code }}" {{ $yearCode == $tahun->msy_code ? 'selected' : '' }}>Semester {{ ($tahun->msy_semester == 1 ? "Ganjil":"Genap")." ".$tahun->msy_year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button class="btn btn-info" onclick="filters()">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <table id="student-invoice-table" class="table table-striped">
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
@@ -50,272 +72,203 @@
                 <th>Jumlah Mahasiswa</th>
                 <th>Total Tagihan</th>
                 <th>Status Generate</th>
+                {{-- <th rowspan="2">Jumlah Total</th> --}}
             </tr>
+
         </thead>
         <tbody></tbody>
     </table>
 </div>
-
-<!-- Modal Generate Tagihan -->
-<div class="modal fade" id="generateInvoiceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-white" style="padding: 2rem 3rem">
-                <h4 class="modal-title fw-bolder" id="generateInvoiceModalLabel">Generate Tagihan Mahasiswa Baru</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3 pt-0">
-                <div class="d-flex flex-column mb-2" style="gap: 5px">
-                    <small class="d-block">Periode Tagihan</small>
-                    <span class="fw-bolder" id="info-invoice-period">N/A</span>
-                </div>
-                <div class="d-flex flex-row mb-2" style="gap: 1rem">
-                    <button onclick="TreeGenerate.checkAll()" class="btn btn-outline-primary btn-sm"><i data-feather="check-square"></i>&nbsp;&nbsp;Check Semua</button>
-                    <button onclick="TreeGenerate.uncheckAll()" class="btn btn-outline-primary btn-sm"><i data-feather="square"></i>&nbsp;&nbsp;Uncheck Semua</button>
-                </div>
-                <div class="jstree-table-wrapper">
-                    <div style="width: 1185px; margin: 0 auto;">
-                        <div id="tree-table-header" class="d-flex align-items-center bg-light border-top border-start border-end" style="height: 40px; width: 1185px;">
-                            <div style="width: 80px"></div>
-                            <div class="flex-grow-1 fw-bolder text-uppercase" style="width: 539px">Scope</div>
-                            <div class="fw-bolder text-uppercase" style="width: 280px">Status Generate</div>
-                            <div class="fw-bolder text-uppercase" style="width: 284px">Status Komponen Tagihan</div>
-                        </div>
-                        <div id="tree-generate-invoice"></div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <button class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Batal</button>
-                    <button onclick="GenerateInvoiceAction.main()" class="btn btn-info">Generate</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Log -->
-<div class="modal fade" id="logModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Riwayat Aktivitas</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="bodyLogActivity">
-        <div class="d-flex flex-column">
-            <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('1')">
-                <p>2023/09/13</p>
-                <p class="type-action">Hapus Perprodi</p>
-            </div>
-            <div class="collapse p-1" id="logActivityItem-1">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th scope="col">NAMA</th>
-                            <th scope="col">PROGRAM STUDY</th>
-                            <th scope="col">STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>user1</td>
-                            <td>informatika</td>
-                            <td>berhasil</td>
-                        </tr>
-                        <tr>
-                            <td>user2</td>
-                            <td>informatika</td>
-                            <td>berhasil</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('2')">
-                <p>2023/09/13</p>
-                <p class="type-action">Hapus Perprodi</p>
-            </div>
-            <div class="collapse" id="logActivityItem-2">
-                <p>data testing 1</p>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection
 
+
 @section('js_section')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
-
 <script>
-    let selectedPeriod = "{{ $current_period_code }}";
+    var dataTable = null;
+    var header = null;
 
-    $(function() {
-        _newStudentInvoiceTable.init();
+    $(function(){
+        _studentInvoiceTable.init()
+        $.get(_baseURL + '/api/payment/generate/new-student-invoice/headerall', (d) => {
+            header = d;
+        })
 
-        $('#select-invoice-period').change(function() {
-            selectedPeriod = $(this).val();
-            _newStudentInvoiceTable.reload();
-        });
     })
 
-    const _newStudentInvoiceTable = {
+    const _studentInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#new-student-invoice-table').DataTable({
+            dataTable = this.instance = $('#student-invoice-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/payment/generate/new-student-invoice/index',
-                    data: function(d) {
-                        d.invoice_period_code = $('#select-invoice-period').val();
-                    }
+                    url: _baseURL+'/api/payment/generate/new-student-invoice/index',
+                    data: {
+                        year: $('#year-filter').val(),
+                        path: $('#path-filter').val(),
+                        period: $('#period-filter').val(),
+                        prr_school_year: $('#prr-school-year').val()
+                    },
                 },
-                stateSave: false,
-                columns: [{
+                columns: [
+                    {
                         name: 'action',
                         orderable: false,
-                        searchable: false,
                         render: (data, _, row) => {
-                            return this.template.rowAction(row.unit_type, row.unit_id, row.generated_status);
+                            console.log(row);
+                            var sp = 0;
+                            var f = 0;
+                            var prr_school_year = $('#prr-school-year').val();
+                            if(row.study_program){
+                                sp = row.study_program.studyprogram_id;
+                            }
+                            if(row.faculty){
+                                f = row.faculty.faculty_id;
+                            }
+                            return this.template.rowAction(f, sp,prr_school_year)
                         }
                     },
                     {
-                        name: 'unit_name',
-                        data: 'unit_name',
+                        name: 'faculty',
+                        searchable: false,
                         orderable: false,
                         render: (data, _, row) => {
-                            return this.template.buttonLinkCell(
-                                data, {
-                                    link: `${_baseURL}/payment/generate/new-student-invoice/detail?invoice_period_code=${$('#select-invoice-period').val()}&scope=${row.unit_type}&${row.unit_type}_id=${row.unit_id}`
-                                }, {
-                                    additionalClass: row.unit_type == 'studyprogram' ? 'ps-2' : ''
-                                }
-                            );
-                        }
-                    },
-                    {
-                        name: 'student_count',
-                        data: 'student_count',
-                        searchable: false,
-                        render: (data) => {
-                            return this.template.defaultCell(data);
-                        }
-                    },
-                    {
-                        name: 'invoice_total_amount',
-                        data: 'invoice_total_amount',
-                        searchable: false,
-                        render: (data) => {
-                            return this.template.currencyCell(data);
-                        }
-                    },
-                    {
-                        name: 'generated_msg',
-                        data: 'generated_msg',
-                        searchable: true,
-                        render: (data, _, row) => {
-                            let bsColor = 'secondary';
-                            if (row.generated_status == 'not_yet') {
-                                bsColor = 'danger';
-                            } else if (row.generated_status == 'partial') {
-                                bsColor = 'warning';
-                            } else if (row.generated_status == 'done') {
-                                bsColor = 'success';
+                            var sp = 0;
+                            var f = 0;
+                            var prr_school_year = $('#prr-school-year').val();
+                            if(row.study_program){
+                                sp = row.study_program.studyprogram_id;
                             }
-
-                            return this.template.badgeCell(data, bsColor, {
-                                centered: false
-                            });
+                            if(row.faculty){
+                                f = row.faculty.faculty_id;
+                            }
+                            return `
+                                <div class="${ row.study_program ? 'ps-2' : '' }">
+                                    <a type="button" href="${_baseURL+'/payment/generate/new-student-invoice/detail?f='+f+'&sp='+sp+'&year='+prr_school_year}" class="btn btn-link">${row.faculty ? row.faculty.faculty_name : (row.study_program.studyprogram_type.toUpperCase()+' '+row.study_program.studyprogram_name)}</a>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        title: 'Total Tagihan',
-                        name: 'invoice_total_amount',
-                        data: 'invoice_total_amount',
+                        name: 'total_student',
+                        data: 'total_student',
+                        searchable: false,
+                        orderable: false,
+                    },
+                    {
+                        name: 'total_invoice',
+                        data: 'total_invoice',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            return Rupiah.format(row.total_invoice)
+                        }
+                    },
+                    {
+                        name: 'total_generate',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            let status = "Belum Digenerate";
+                            let bg = "bg-danger";
+                            if(row.total_generate === row.total_student && row.total_student != 0){
+                                status = "Sudah Digenerate";
+                                bg = "bg-success";
+                            }else if(row.total_generate < row.total_student && row.total_generate != 0){
+                                status = "Sebagian Telah Digenerate";
+                                bg = "bg-warning";
+                            }
+                            return '<div class="badge '+bg+'">'+status+' ('+row.total_generate+'/'+row.total_student+')</div>'
+                        }
+                    },
+                    {
+                        name: 'faculty.faculty_name',
+                        data: 'faculty.faculty_name',
+                        defaultContent: "",
+                        visible: false,
+                    },
+                    {
+                        name: 'study_program.studyprogram_name',
+                        data: 'study_program.studyprogram_name',
+                        defaultContent: "",
+                        visible: false,
+                    },
+                    {
+                        name: 'study_program.studyprogram_type',
+                        data: 'study_program.studyprogram_type',
+                        defaultContent: "",
                         visible: false,
                     },
                 ],
                 drawCallback: function(settings) {
                     feather.replace();
                 },
-                dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"new-student-invoice-actions d-flex align-items-end">>' +
+                dom:
+                    '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"student-invoice-actions d-flex align-items-end">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>t' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                buttons: [{
-                    extend: 'collection',
-                    className: 'btn btn-outline-secondary dropdown-toggle',
-                    text: feather.icons['external-link'].toSvg({
-                        class: 'font-small-4 me-50'
-                    }) + 'Export',
-                    buttons: [{
-                            extend: 'print',
-                            text: feather.icons['printer'].toSvg({
-                                class: 'font-small-4 me-50'
-                            }) + 'Print',
-                            className: 'dropdown-item',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4]
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
                             }
-                        },
-                        {
-                            extend: 'csv',
-                            text: feather.icons['file-text'].toSvg({
-                                class: 'font-small-4 me-50'
-                            }) + 'Csv',
-                            className: 'dropdown-item',
-                            exportOptions: {
-                                columns: [1, 2, 5, 4]
-                            }
-                        },
-                        {
-                            extend: 'excel',
-                            text: feather.icons['file'].toSvg({
-                                class: 'font-small-4 me-50'
-                            }) + 'Excel',
-                            className: 'dropdown-item',
-                            exportOptions: {
-                                columns: [1, 2, 5, 4]
-                            }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: feather.icons['clipboard'].toSvg({
-                                class: 'font-small-4 me-50'
-                            }) + 'Pdf',
-                            className: 'dropdown-item',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4]
-                            }
-                        },
-                        {
-                            extend: 'copy',
-                            text: feather.icons['copy'].toSvg({
-                                class: 'font-small-4 me-50'
-                            }) + 'Copy',
-                            className: 'dropdown-item',
-                            exportOptions: {
-                                columns: [1, 2, 5, 4]
-                            }
-                        }
-                    ],
-                }],
+                        ],
+                    }
+                ],
                 initComplete: function() {
-                    $('.new-student-invoice-actions').html(`
+                    $('.student-invoice-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="TreeGenerate.openModal()" class="btn btn-info">
-                                Generate Tagihan
-                            </button>
-                            <button onclick="_newStudentInvoiceTableActions.deleteUniv()" class="btn btn-danger">
-                                Hapus Tagihan Universitas
-                            </button>
-                            <button onclick="LogActivity.log()" class="btn btn-secondary" >
-                                Log Aktivitas
-                            </button>
+                            <button onclick="_studentInvoiceTableActions.generateForm()" class="btn btn-info">
+                                <i data-feather="command" style="width: 18px; height: 18px;"></i> Generate Tagihan Mahasiswa Baru</button>
+                            <button onclick="_studentInvoiceTableActions.deleteBulk()" class="btn btn-danger">
+                            <i data-feather="trash" style="width: 18px; height: 18px;"></i> Delete All </button>
+                            <button onclick="_studentInvoiceTableActions.logActivityModal()" class="btn btn-secondary">
+                            <i data-feather="book-open" style="width: 18px; height: 18px;"></i> Log Activity</button>
                         </div>
                     `)
                     feather.replace()
@@ -324,36 +277,25 @@
             this.implementSearchDelay();
         },
         template: {
-            rowAction: function(unit_type, unit_id, generated_status) {
+            rowAction: function(faculty_id,studyprogram_id,prr_school_year) {
                 return `
                     <div class="dropdown d-flex justify-content-center">
                         <button type="button" class="btn btn-light btn-icon round dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_newStudentInvoiceTableActions.openDetail('${unit_type}', ${unit_id})" class="dropdown-item"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
-                            <a onclick="GenerateInvoiceAction.generateOneScope(event)" class="dropdown-item ${generated_status == 'done' ? 'disabled' : ''}" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.delete('${unit_type}', ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
-                            <a onclick="_newStudentInvoiceTableActions.regenerate('${unit_type}', ${unit_id})" class="dropdown-item ${generated_status != 'not_yet' ? '' : 'disabled'}" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
+                            <a class="dropdown-item" href="${_baseURL+'/payment/generate/new-student-invoice/detail?f='+faculty_id+'&sp='+studyprogram_id+'&year='+prr_school_year}"><i data-feather="external-link"></i>&nbsp;&nbsp;Detail pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.delete(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete pada Unit ini</a>
+                            <a onclick="_studentInvoiceTableActions.regenerate(${faculty_id},${studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate pada Unit ini</a>
                         </div>
                     </div>
                 `
-            },
-            defaultCell: _datatableTemplates.defaultCell,
-            buttonLinkCell: _datatableTemplates.buttonLinkCell,
-            currencyCell: _datatableTemplates.currencyCell,
-            badgeCell: _datatableTemplates.badgeCell,
+            }
         }
     }
-
-    const _newStudentInvoiceTableActions = {
-        tableRef: _newStudentInvoiceTable,
-        openDetail: function(unit_type, unit_id) {
-            window.location.href = `${_baseURL}/payment/generate/new-student-invoice/detail` +
-                `?invoice_period_code=${$('#select-invoice-period').val()}` +
-                `&scope=${unit_type}` +
-                `&${unit_type}_id=${unit_id}`;
-        },
+    // <a onclick="_studentInvoiceTableActions.generate()" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate pada Unit ini</a>
+    const _studentInvoiceTableActions = {
+        tableRef: _studentInvoiceTable,
         generate: function() {
             Swal.fire({
                 title: 'Konfirmasi',
@@ -374,45 +316,294 @@
                 }
             })
         },
-        delete: function(unit_type, unit_id) {
-            Swal.fire({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan pada unit ini?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ea5455',
-                cancelButtonColor: '#82868b',
-                confirmButtonText: 'Hapus',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // ex: do ajax request
-                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/";
-                    if (unit_type == "studyprogram") {
-                        $url += "prodi/"
-                    } else {
-                        $url += "faculty/"
+        generateForm: function() {
+            Modal.show({
+                type: 'form',
+                modalTitle: 'Generate Tagihan Mahasiswa',
+                modalSize: 'xl',
+                config: {
+                    formId: 'generateForm',
+                    formActionUrl: _baseURL + '/api/payment/generate/new-student-invoice/bulk',
+                    formType: 'add',
+                    data: $("#generateForm").serialize(),
+                    isTwoColumn: false,
+                    title: 'Konfirmasi Generate Tagihan',
+                    textConfirm: 'Generate tagihan hanya akan memproses fakultas atau prodi yang sudah memiliki komponen tagihan',
+                    fields: {
+                        header: {
+                            type: 'custom-field',
+                            content: {
+                                template: `<div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Periode Tagihan</h6>
+                                            <h1 class="h6 fw-bolder">${header.active}</h1>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <h6>Universitas</h6>
+                                            <h1 class="h6 fw-bolder">${header.university}</h1>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </div>`
+                            },
+                        },
+                        tagihan: {
+                            type: 'custom-field',
+                            content: {
+                                template: `
+                                <h4 class="fw-bolder mb-0">Konfirmasi Generate Tagihan <small class="fst-italic mb-0">(Centang checkbox untuk memilih)</small></h4>
+                                <div class="border border-bottom-0">
+                                <ul class="nested-checkbox bg-light mb-0">
+                                    <li class="row border-bottom py-1 mx-1">
+                                        <div class="col-6 ps-0">
+                                            Scope
+                                        </div>
+                                        <div class="col-3">
+                                            Status Generate
+                                        </div>
+                                        <div class="col-3">
+                                            Status Komponen Tagihan
+                                        </div>
+                                    </li>
+                                </ul>
+                                <ul class="nested-checkbox px-1 mb-0">
+                                    <li id="choice" class="row">
+                                        <div class="row border-bottom py-05" style="padding-left: 2%!important">
+                                            <div class="col-6" style="padding-left: 0px!important">
+                                                <input type="checkbox" name="generate_checkbox[]" class="form-check-input" id="checkbox_header" value="null" /><span id="checkbox_header_title" class=""> ${header.university} </span>
+                                            </div>
+                                            <div class="col-3">
+                                            <div class="badge" id="badge_header">Belum Digenerate</div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="from" value="index">
+                                        <input type="hidden" name="url" value="{{ request()->path() }}">
+                                    </li>
+                                </ul>
+                                </div>
+                                `
+                            },
+                        },
+                    },
+                    formSubmitLabel: 'Generate Tagihan',
+                    formSubmitNote: `
+                    <small style="color:#163485">
+                        *Pastikan Tagihan yang Ingin Anda Generate Sudah <strong>Sesuai</strong>
+                    </small>`,
+                    callback: function() {
+                        _studentInvoiceTable.reload();
+                        feather.replace();
+                    }
+                },
+            });
+            var store = [];
+            $.get(_baseURL + '/api/payment/generate/new-student-invoice/choiceall', (data) => {
+                console.log(data);
+                if (Object.keys(data).length > 0) {
+                    var total_student = 0;
+                    var total_generate = 0;
+                    var is_component = [];
+                    data.map(item => {
+                        if(is_component[item.faculty_id] != 0){
+                            is_component[item.faculty_id] = item.is_component;
+                        }
+                        if(is_component[item.faculty_id+'_'+item.studyprogram_id] != 0){
+                        is_component[item.faculty_id+'_'+item.studyprogram_id] = item.is_component;
+                        }
+                    });
+
+                    data.map(item => {
+                        var id = item.faculty_id+"_"+item.studyprogram_id;
+                        _studentInvoiceTableActions.choiceRow(
+                            'choice',
+                            'facultyId',
+                            'facultyId_'+item.faculty_id,
+                            item.faculty_id+'_spId',
+                            'Fakultas '+item.study_program.faculty.faculty_name,
+                            is_component[item.faculty_id],
+                            2)
+
+                        _studentInvoiceTableActions.choiceRow(
+                            item.faculty_id+'_spId',
+                            item.faculty_id+'_spId',
+                            item.faculty_id+'_spId_'+item.studyprogram_id,
+                            item.faculty_id+'_'+item.studyprogram_id+'_end',
+                            item.study_program.studyprogram_name,
+                            is_component[item.faculty_id+'_'+item.studyprogram_id],
+                            3,
+                            item.total_student,
+                            item.total_generate,
+                            id,
+                            item.component_filter,
+                            'last')
+
+                        // _studentInvoiceTableActions.choiceRow(
+                        //     item.msy_id+'_'+item.path_id+'_periodId',
+                        //     item.msy_id+'_'+item.path_id+'_periodId',
+                        //     item.msy_id+'_'+item.path_id+'_periodId_'+item.period_id,
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.period.period_name)
+
+                        // _studentInvoiceTableActions.choiceRow(
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId',
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_mltId_'+item.mlt_id,
+                        //     item.msy_id+'_'+item.path_id+'_'+item.period_id+'_'+item.mlt_id+'_end',
+                        //     item.lecture_type.mlt_name,
+                        //     item.total_student,
+                        //     item.total_generate,
+                        //     id,
+                        //     item.component_filter,
+                        //     'last')
+
+                        // COUNTING
+                        // Study Program
+                        let sp = item.faculty_id+'_spId_'+item.studyprogram_id;
+                        let student = item.total_student;
+                        let generate = item.total_generate;
+                        _studentInvoiceTableActions.storeToArray(store,sp,student,generate)
+
+                        // Faculty
+                        let faculty = 'facultyId_'+item.faculty_id;
+                        _studentInvoiceTableActions.storeToArray(store,faculty,student,generate)
+
+                        // Sum
+                        total_student = total_student+student;
+                        total_generate = total_generate+generate;
+                    });
+
+                    // Badges
+                    for (let x of Object.keys(store)) {
+                        let student = store[x]['student'];
+                        let generate = store[x]['generate'];
+                        $('#checkbox_'+x).attr('student',student);
+                        $('#checkbox_'+x).attr('generate',generate);
+                        _studentInvoiceTableActions.badge(x,student,generate)
+                        console.log(store[x]);
                     }
 
-                    var xhr = new XMLHttpRequest();
-                    xhr.onload = function() {
-                        var data = JSON.parse(this.responseText);
-                        Swal.fire({
-                            icon: data.status == true ? 'success':'error',
-                            text: data.msg
-                        })
-                        _newStudentInvoiceTable.reload();
+                    let root_is_component = null;
+                    for (let x of Object.keys(is_component)) {
+                        if(root_is_component != 0){
+                            root_is_component = is_component[x];
+                        }
                     }
-                    xhr.open("DELETE", $url+unit_id+"/1", true);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
+                    if(root_is_component != 1){
+                        $('#checkbox_header').attr("type", 'radio');
+                        $("#checkbox_header").attr("disabled", true);
+                        $("#checkbox_header_title").addClass("text-muted");
+                    }
+
+                    // Badges for master root
+                    let student = total_student;
+                    let generate = total_generate;
+                    let x = "header";
+                    _studentInvoiceTableActions.badge(x,student,generate)
                 }
-            })
+            });
         },
-        regenerate: function(unit_type, unit_id){
+        choiceRow(tag,grandparent,parent,child,data,is_component= null,padding = 0,total_student = 0,total_generate = 0, value = null,total_component,position= null){
+            let status_component = "";
+            let status_disabled = "";
+            let type = "checkbox";
+            let text_color = "";
+            if(position === 'last'){
+                if(total_component <= 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(is_component != null){
+                if(is_component == 0){
+                    status_component = "<div class='badge bg-danger'>Belum Ada Komponen Tagihan</div>";
+                    type = "radio"
+                    status_disabled = "disabled";
+                    text_color = "text-muted";
+                }
+            }
+
+            if(!$("#choice").find("[id='" + grandparent + "']")[0]){
+                $('#'+tag).append(`
+                    <ul id="${grandparent}" class="col-12" style="padding-left:calc(var(--bs-gutter-x) * .5)">
+                    </ul>
+                `);
+            }
+
+            if(!$("#choice").find("[id='" + parent + "']")[0]){
+                $('#'+grandparent).append(`
+                    <li id="${parent}">
+                        <div class="row border-bottom py-05">
+                            <div class="col-6" style="padding-left: ${padding}%!important;">
+                                <input type="${type}" class="form-check-input" name="generate_checkbox[]" id="checkbox_${parent}" student=${total_student} generate=${total_generate} value=${value} ${status_disabled} />
+                                <span class="${text_color}"> ${data} </span>
+                            </div>
+                            <div class="col-3">
+                                <div class="badge" id="badge_${parent}">${total_generate} / ${total_student}</div>
+                            </div>
+                            <div class="col-3">
+                                ${status_component}
+                            </div>
+                        </div>
+                        <ul id="${child}" class="col-12">
+                        </ul>
+                    </li>
+                `);
+            }
+
+            $('li :checkbox').on('click', function () {
+                console.log("hey");
+                var $chk = $(this), $li = $chk.closest('li'), $ul, $parent;
+                console.log($li);
+                if ($li.has('ul')) {
+                    $li.find(':checkbox').not(this).prop('checked', this.checked)
+                }
+                do {
+                    $ul = $li.parent();
+                    $parent = $ul.siblings(':checkbox');
+                    if ($chk.is(':checked')) {
+                        $parent.prop('checked', $ul.has(':checkbox:not(:checked)').length == 0)
+                    } else {
+                        $parent.prop('checked', false)
+                    }
+                    $chk = $parent;
+                    $li = $chk.closest('li');
+                } while ($ul.is(':not(.someclass)'));
+            });
+
+        },
+        badge(x,student,generate){
+            if(generate == 0){
+                $('#badge_'+x).addClass('bg-danger');
+                $('#badge_'+x).html('Belum Digenerate ('+ generate + '/' + student + ')');
+            }else if(generate < student){
+                $('#badge_'+x).addClass('bg-warning');
+                $('#badge_'+x).html('Sebagian Telah Digenerate ('+ generate + '/' + student + ')');
+            }else{
+                $('#badge_'+x).addClass('bg-success');
+                $('#badge_'+x).html('Sudah Digenerate ('+ generate + '/' + student + ')');
+            }
+        },
+        storeToArray(store,key,student,generate){
+            if(store[key]){
+                store[key] = {'student' : store[key]['student']+student, 'generate' : store[key]['generate']+generate}
+            }else{
+                store[key] = {'student' : student, 'generate' : generate}
+            }
+        },
+        logActivityModal: function() {
+            title = `Log Tagihan Mahasiswa Lama`;
+            url = `{{ request()->path() }}`;
+            logActivity(title,url);
+        },
+        regenerate: function(faculty_id, studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?',
+                html: `Apakah anda yakin ingin menggenerate ulang tagihan pada unit ini?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -423,31 +614,46 @@
                 if (result.isConfirmed) {
                     // ex: do ajax request
                     $url = _baseURL + "/api/payment/generate/new-student-invoice/regenerate/";
-                    if (unit_type == "studyprogram") {
+                    let unit_id = 0;
+                    if (faculty_id == 0) {
                         $url += "prodi/"
+                        unit_id = studyprogram_id
                     } else {
                         $url += "faculty/"
+                        unit_id = faculty_id
                     }
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.onload = function() {
-                        var data = JSON.parse(this.responseText);
+                    $.post($url + unit_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                    }).fail((error) => {
                         Swal.fire({
-                            icon: data.status == true ? 'success':'error',
-                            text: data.msg
-                        })
-                        _newStudentInvoiceTable.reload();
-                    }
-                    xhr.open("DELETE", $url+unit_id+"/1", true);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
                 }
             })
         },
-        deleteUniv: function() {
+        delete: function(faculty_id,studyprogram_id) {
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan satu universitas?',
+                html: `Apakah anda yakin ingin menghapus tagihan pada unit ini? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -457,421 +663,81 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // ex: do ajax request
-                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/univ/1";
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.onload = function() {
-                        var data = JSON.parse(this.responseText);
-                        Swal.fire({
-                            icon: data.status == true ? 'success':'error',
-                            text: data.msg
-                        })
-                        _newStudentInvoiceTable.reload();
+                    $url = _baseURL + "/api/payment/generate/new-student-invoice/delete/";
+                    let unit_id = 0;
+                    if (faculty_id == 0) {
+                        $url += "prodi/"
+                        unit_id = studyprogram_id
+                    } else {
+                        $url += "faculty/"
+                        unit_id = faculty_id
                     }
-                    xhr.open("DELETE", $url, true);
-                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                    xhr.send();
+                    $.post($url + unit_id, {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`,
+                    }, function(data){
+                        data = JSON.parse(data)
+                        if(data.success){
+                            Swal.fire({
+                                icon: 'success',
+                                text: data.message,
+                            }).then(() => {
+                                _studentInvoiceTable.reload()
+                            });
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                text: data.message,
+                            })
+                        }
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.message,
+                        });
+                        _responseHandler.generalFailResponse(error)
+                    })
+                }
+            })
+        },
+        deleteBulk: function() {
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: 'Apakah anda yakin ingin menghapus seluruh tagihan universitas? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(_baseURL + '/api/payment/generate/new-student-invoice/delete/university', {
+                        _method: 'DELETE',
+                        url: `{{ request()->path() }}`
+                    }, function(data) {
+                        data = JSON.parse(data)
+                        Swal.fire({
+                            icon: 'success',
+                            text: data.message,
+                        }).then(() => {
+                            _studentInvoiceTable.reload();
+                        });
+                    }).fail((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            text: data.text,
+                        });
+                        _responseHandler.generalFailResponse(error);
+                    })
                 }
             })
         },
     }
 
-    const LogActivity = {
-        log: function(){
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function(){
-                var data = JSON.parse(this.responseText);
-                console.log(data);
-
-                $('#bodyLogActivity').html(``)
-                data.forEach(item => {
-                    var row_success = ``;
-                    item.list_success.forEach(list => {
-                        row_success += `
-                                <tr>
-                                    <td>${list.par_fullname}</td>
-                                    <td>${list.studyprogram_type} ${list.studyprogram_name}</td>
-                                    <td>Berhasil</td>
-                                </tr>
-                        `
-                    });
-
-                    var row_fail = ``;
-                    item.list_fail.forEach(list => {
-                        row_fail += `
-                                <tr>
-                                    <td>${list.par_fullname}</td>
-                                    <td>${list.studyprogram_type} ${list.studyprogram_name}</td>
-                                    <td>Gagal</td>
-                                </tr>
-                        `
-                    })
-                    $('#bodyLogActivity').append(`
-                    <div class="item-log bg-secondary text-white" onclick="LogActivity.showData('${item.id}')">
-                        <p>${item.action_date}</p>
-                        <p class="type-action">${item.type}</p>
-                    </div>
-                    <div class="collapse p-1" id="logActivityItem-${item.id}">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">NAMA</th>
-                                    <th scope="col">PROGRAM STUDY</th>
-                                    <th scope="col">STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${row_success}
-                                ${row_fail}
-                            </tbody>
-                        </table>
-                    </div>
-                    `)
-                })
-                $('#logModal').modal('show');
-            }
-            xhr.open("GET", _baseURL+"/api/payment/generate/new-student-invoice/log");
-            xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-            xhr.send();
-        },
-        showData: function(id){
-            $('#logActivityItem-'+id).collapse('toggle');
-        }
-    }
-
-    const GenerateInvoiceModal = new bootstrap.Modal(document.getElementById('generateInvoiceModal'));
-
-    const TreeGenerate = {
-        selector: '#tree-generate-invoice',
-        openModal: function() {
-            $('#generateInvoiceModal #info-invoice-period').text($("#select-invoice-period option:selected").text());
-            this.initTree();
-
-            // if tree is not yet initilized
-            if (!$(this.selector).jstree(true)) {
-                console.log('binding event handler');
-                $(this.selector).on("loaded.jstree", () => {
-                    console.log('tree is loaded');
-                    this.appendColumn(this.selector)
-                });
-                $(this.selector).on("ready.jstree", () => {
-                    console.log('tree is ready');
-                    this.appendColumn(this.selector)
-                });
-                $(this.selector).on("refresh.jstree", () => {
-                    console.log('tree is refreshed');
-                    this.appendColumn(this.selector)
-                });
-                $(this.selector).on("before_open.jstree", () => {
-                    console.log('tree is before open');
-                    this.appendColumn(this.selector)
-                });
-                $(this.selector).on("check_all.jstree", () => {
-                    console.log('tree is check all');
-                    this.appendColumn(this.selector)
-                });
-                $(this.selector).on("uncheck_all.jstree", () => {
-                    console.log('tree is uncheck all');
-                    this.appendColumn(this.selector)
-                });
-            }
-
-            GenerateInvoiceModal.show();
-        },
-        initTree: async function() {
-            const {
-                data
-            } = await $.ajax({
-                async: true,
-                url: _baseURL + '/api/payment/generate/new-student-invoice/get-tree-generate-university?invoice_period_code=' + $('#select-invoice-period').val(),
-                type: 'get',
-            });
-
-            if ($(TreeGenerate.selector).jstree(true)) {
-                console.log('update tree with new data');
-                $(TreeGenerate.selector).jstree(true).settings.core.data = data.tree;
-                $(TreeGenerate.selector).jstree(true).refresh();
-            } else {
-                console.log('initializing tree');
-                $(TreeGenerate.selector).jstree({
-                    'core': {
-                        'data': data.tree,
-                        "themes": {
-                            "icons": false
-                        }
-                    },
-                    "checkbox": {
-                        "keep_selected_style": false
-                    },
-                    "plugins": ["checkbox", "wholerow"],
-                });
-            }
-        },
-        appendColumn: function(selector) {
-            $(selector + ' .jstree-anchor').each(function() {
-                if ($(this).children().length <= 2) {
-                    const nodeId = $(this).parents('li').attr('id');
-                    const node = $(selector).jstree('get_node', nodeId);
-                    const children = $(this).children();
-                    $(this).empty();
-                    $(this).append(children.get(0));
-                    $(this).append(children.get(1));
-                    $(this).append(`<div class="text"><span>${node.text}</span></div>`);
-                    $(this).append(`
-                        <div style="display: flex; justify-content: flex-end;">
-                            <div style="width: 280px">${
-                                node.data.status_generated.status == 'not_generated' ? `
-                                    <span class="badge bg-danger">${node.data.status_generated.text}</span>
-                                ` : node.data.status_generated.status == 'partial_generated' ? `
-                                        <span class="badge bg-warning">${node.data.status_generated.text}</span>
-                                    ` : node.data.status_generated.status == 'done_generated' ? `
-                                            <span class="badge bg-success">${node.data.status_generated.text}</span>
-                                        ` : '-'
-                            }</div>
-                            <div style="width: 280px">${
-                                node.data.status_invoice_component == 'not_defined' ?
-                                    `<span class="badge bg-danger">Komponen Tagihan Belum Diset!</span>`
-                                    : node.data.status_invoice_component == 'partially_defined' ?
-                                        `<span class="badge bg-warning">Komponen Tagihan Diset Sebagian</span>`
-                                        : node.data.status_invoice_component == 'defined' ?
-                                            `<span class="badge bg-success">Komponen Tagihan Telah Diset</span>`
-                                            : ''
-                            }</div>
-                        </div>
-                    `);
-                }
-            });
-        },
-        checkAll: function() {
-            $(this.selector).jstree(true).check_all();
-            this.appendColumn(this.selector);
-        },
-        uncheckAll: function() {
-            $(this.selector).jstree(true).uncheck_all();
-            this.appendColumn(this.selector);
-        },
-    }
-
-    // generate new id from this variable
-    let idGlobal = 0;
-
-    const GenerateInvoiceAction = {
-        getPaths: () => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-
-            // get selected nodes
-            let selected = treeApi.get_selected(true);
-            selected = selected.filter((node) => node.state.disabled == false)
-                .map((checked) => checked.id);
-
-            // foreach selected node, select only leaf node
-            const leafs = selected.filter(nodeId => treeApi.is_leaf(nodeId));
-
-            // foreach leaf, get path
-            const paths = leafs.map(nodeId => {
-                return {
-                    id: ++idGlobal,
-                    pathString: treeApi.get_path(nodeId, '/', true),
-                };
-            });
-
-            return paths;
-        },
-        getOptimizedPaths: (paths) => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-
-            let optimizedPaths = [...paths];
-
-            // Get parents of each leaf at each path.
-            // Ex: ['1', '2', '3']
-            const leafsParents = [];
-            paths.forEach(path => {
-                const pathArr = path.pathString.split('/');
-                const leafParentId = pathArr[0];
-                if (!leafsParents.includes(leafParentId)) {
-                    leafsParents.push(leafParentId);
-                }
-            });
-
-            /**
-             * Add childrenCount and hasPaths property for each parent.
-             * Ex: [
-             *  {id: '1', childrenCount: 2, hasPaths: [...] },
-             *  {id: '2', childrenCount: 1, hasPaths: [...] },
-             *  {id: '3', childrenCount: 3, hasPaths: [...] },
-             * ]
-             */
-            const leafsParentsExt = leafsParents.map(id => {
-                const filteredPaths = paths.filter(path => {
-                    const pathArr = path.pathString.split('/');
-                    const leafParentId = pathArr[0];
-                    return leafParentId == id
-                });
-                const childrenCount = treeApi.get_node(id).children.length;
-                return {
-                    id,
-                    childrenCount,
-                    hasPaths: filteredPaths
-                };
-            });
-
-            /**
-             * If parent childrenCount = hasPaths.length, then delete all path
-             * belong this parent and replace with new path(one path).
-             * Example: from ['1/2/3', '1/2/4', '1/2/5'] to ['1/2']
-             */
-            leafsParentsExt.forEach(parent => {
-                if (parent.hasPaths.length == parent.childrenCount) {
-                    parent.hasPaths.forEach(path => {
-                        optimizedPaths = optimizedPaths.filter(optPath => optPath.id != path.id);
-                    });
-                    const newPathArr = parent.hasPaths[0].pathString.split('/');
-                    newPathArr.pop();
-                    const newPath = newPathArr.join('/');
-                    optimizedPaths.push({
-                        id: ++idGlobal,
-                        pathString: newPath,
-                    });
-                }
-            });
-
-            return optimizedPaths;
-        },
-        getProcessScope: (optimizedPaths) => {
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-
-            // Add scope, faculty_id and studyprogram_id property for each optimized path.
-            return optimizedPaths.map(path => {
-                const pathArr = path.pathString.split('/');
-                let scope = 'n/a';
-                if (pathArr.length == 1) scope = 'university';
-                if (pathArr.length == 2) scope = 'faculty';
-                if (pathArr.length == 3) scope = 'studyprogram';
-                return {
-                    ...path,
-                    scope,
-                    university_id: treeApi.get_node(pathArr[0]).data?.obj_id,
-                    faculty_id: treeApi.get_node(pathArr[1]).data?.obj_id,
-                    studyprogram_id: treeApi.get_node(pathArr[2]).data?.obj_id,
-                };
-            });
-        },
-        /**
-         * Main method for generate invoice, used in generate invoice in modal.
-         */
-        main: async function() {
-            // check if there are selected items
-            const treeApi = $(TreeGenerate.selector).jstree(true);
-            if (treeApi.get_selected().length == 0) {
-                _toastr.error('Silahkan pilih item yang ingin digenerate.', 'Belum Memilih!');
-                return;
-            }
-
-            const confirmed = await _swalConfirmSync({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan?',
-            });
-            if (!confirmed) return;
-
-            const paths = this.getPaths();
-            const optimizedPaths = this.getOptimizedPaths(paths);
-            const processScope = this.getProcessScope(optimizedPaths);
-
-            const generateData = processScope.map(item => {
-                return {
-                    scope: item.scope,
-                    university_id: item.university_id,
-                    faculty_id: item.faculty_id,
-                    studyprogram_id: item.studyprogram_id,
-                }
-            });
-
-            // console.log(generateData); return;
-
-            $.ajax({
-                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scopes',
-                type: 'post',
-                data: {
-                    invoice_period_code: $('#select-invoice-period').val(),
-                    generate_data: generateData,
-                },
-                success: (res) => {
-                    GenerateInvoiceModal.hide();
-                    _toastr.success(res.message, 'Success');
-                    _newStudentInvoiceTable.reload();
-                }
-            });
-        },
-        /**
-         * Method for generate invoice by clicking on action column.
-         */
-        generateOneScope: async (e) => {
-            const data = _newStudentInvoiceTable.getRowData(e.currentTarget);
-
-            const confirmed = await _swalConfirmSync({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin generate tagihan?',
-            });
-            if (!confirmed) return;
-
-            let requestData = {
-                invoice_period_code: $('#select-invoice-period').val()
-            };
-
-            if (data.unit_type == 'faculty') {
-                requestData.scope = 'faculty';
-                requestData.faculty_id = data.unit_id;
-            } else if (data.unit_type == 'studyprogram') {
-                requestData.scope = 'studyprogram';
-                requestData.faculty_id = data.faculty_id;
-                requestData.studyprogram_id = data.unit_id;
-            }
-
-            $.ajax({
-                url: _baseURL + '/api/payment/generate/new-student-invoice/generate-by-scope/1',
-                type: 'post',
-                data: requestData,
-                success: (res) => {
-                    _toastr.success(res.message, 'Success');
-                    _newStudentInvoiceTable.reload();
-                }
-            });
-        },
-        /**
-         * Method for delete invoice by clicking on action column.
-         */
-        deleteOneScope: async (e) => {
-            const data = _newStudentInvoiceTable.getRowData(e.currentTarget);
-
-            const confirmed = await _swalConfirmSync({
-                title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tagihan? <br> <small class="text-danger">Seluruh pengaturan pembayaran seperti beasiswa, potongan, cicilan, dispensasi akan ikut terhapus<small>',
-            });
-            if (!confirmed) return;
-
-            let requestData = {
-                invoice_period_code: $('#select-invoice-period').val()
-            };
-
-            if (data.unit_type == 'faculty') {
-                requestData.scope = 'faculty';
-                requestData.faculty_id = data.unit_id;
-            } else if (data.unit_type == 'studyprogram') {
-                requestData.scope = 'studyprogram';
-                requestData.faculty_id = data.faculty_id;
-                requestData.studyprogram_id = data.unit_id;
-            }
-
-            $.ajax({
-                url: _baseURL + '/api/payment/generate/new-student-invoice/delete-by-scope',
-                type: 'post',
-                data: requestData,
-                success: (res) => {
-                    _toastr.success(res.message, 'Success');
-                    _newStudentInvoiceTable.reload();
-                }
-            });
-        }
+    function filters(){
+        dataTable.destroy();
+        _studentInvoiceTable.init();
     }
 </script>
 @endsection

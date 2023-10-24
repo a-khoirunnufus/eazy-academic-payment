@@ -378,7 +378,7 @@
                                             <div class="badge" id="badge_header">Belum Digenerate</div>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="from" value="detail">
+                                        <input type="hidden" name="from" value="index">
                                         <input type="hidden" name="url" value="{{ request()->path() }}">
                                     </li>
                                 </ul>

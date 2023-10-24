@@ -21,6 +21,8 @@ use App\Models\Payment\CreditSchema;
 use App\Models\Payment\DispensationSubmission;
 use App\Models\Payment\CreditSubmission;
 use App\Models\PMB\PaymentRegisterDetail;
+use App\Models\PMB\Register;
+use App\Models\SchoolYear;
 use App\Http\Requests\Payment\Generate\StudentInvoiceUpdateRequest;
 use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
@@ -28,20 +30,10 @@ use App\Enums\Payment\LogStatus;
 use Carbon\Carbon;
 use DB;
 
-class StudentInvoice {
+class NewStudentInvoice {
     use LogActivity, General;
 
-    private $is_admission = 0;
-
-    /**
-     * Get invoice status of given student
-     *
-     * @param Student   $student            Student object
-     * @param string    $school_year_code   School year code
-     *
-     * @return string|null  Return payment status {'lunas', 'belum lunas', 'kredit'},
-     *                      if invoice not found return null instead.
-     */
+    private $is_admission = 1;
 
     public function getSchoolYear($prr_school_year){
         $schoolYearCode = $this->getActiveSchoolYearCode();
@@ -49,6 +41,11 @@ class StudentInvoice {
             $schoolYearCode = $prr_school_year;
         }
         return $schoolYearCode;
+    }
+
+    public function getSchoolYearId($schoolYearCode){
+        $schoolYearId = SchoolYear::where('msy_code',$schoolYearCode)->firstorfail();
+        return $schoolYearId->msy_id;
     }
 
     public function getDataQuery($request,$list){
@@ -59,10 +56,13 @@ class StudentInvoice {
     }
 
     public function getIndex($schoolYearCode){
+        $schoolYearId = $this->getSchoolYearId($schoolYearCode);
         $query = Faculty::with('studyProgram')->orderBy('faculty_name')->get();
-        $student = Student::with(['payment' => function ($query) use ($schoolYearCode) {
+        $student = Register::with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
-        }])->get();
+        }])
+        ->where('ms_school_year_id',$schoolYearId)
+        ->where('re_register_status',1)->get();
 
         $result = collect();
         foreach ($query as $item) {
@@ -74,8 +74,8 @@ class StudentInvoice {
                 foreach ($item->studyProgram as $sp) {
                     $arrSp[] = $sp->studyprogram_id;
                 }
-                $filter = $student->whereIn('studyprogram_id', $arrSp);
-                $total_student = $student->whereIn('studyprogram_id', $arrSp)->count();
+                $filter = $student->whereIn('reg_major_pass', $arrSp);
+                $total_student = $student->whereIn('reg_major_pass', $arrSp)->count();
                 foreach ($filter as $t) {
                     if ($t->payment) {
                         $total_invoice = $total_invoice + $t->payment->prr_total;
@@ -87,8 +87,8 @@ class StudentInvoice {
             $result->push($data);
             if ($item->studyProgram) {
                 foreach ($item->studyProgram as $sp) {
-                    $filter = $student->whereIn('studyprogram_id', $sp->studyprogram_id);
-                    $total_student = $student->whereIn('studyprogram_id', $sp->studyprogram_id)->count();
+                    $filter = $student->whereIn('reg_major_pass', $sp->studyprogram_id);
+                    $total_student = $student->whereIn('reg_major_pass', $sp->studyprogram_id)->count();
                     $total_invoice = 0;
                     $total_generate = 0;
                     foreach ($filter as $t) {
@@ -106,12 +106,15 @@ class StudentInvoice {
     }
 
     public function getDetailIndex($request,$schoolYearCode,$data){
-        $query = Student::query();
-        $query = $query->with('lectureType', 'period', 'path', 'year', 'studyProgram')
+        $schoolYearId = $this->getSchoolYearId($schoolYearCode);
+        $query = Register::query();
+        $query = $query->with('lectureType', 'period', 'path', 'year', 'studyProgram','participant')
             ->with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
-        }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
-            ->select('hr.ms_student.*');
+        }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'pmb.register.reg_major_pass')
+            ->where('ms_school_year_id',$schoolYearId)
+            ->where('re_register_status',1)
+            ->select('pmb.register.*');
         if ($data['f'] != 0 && $data['f']) {
             $query = $query->where('sp.faculty_id', $data['f']);
         }
@@ -119,13 +122,13 @@ class StudentInvoice {
             $query = $query->where('sp.studyprogram_id', $data['sp']);
         }
         if ($request->query('yearFilter') !== "all") {
-            $query = $query->where('msy_id', '=', $request->query('year'));
+            $query = $query->where('ms_school_year_id', '=', $request->query('year'));
         }
         if ($request->query('path') !== "all") {
-            $query = $query->where('path_id', '=', $request->query('path'));
+            $query = $query->where('ms_path_id', '=', $request->query('path'));
         }
         if ($request->query('period') !== "all") {
-            $query = $query->where('period_id', '=', $request->query('period'));
+            $query = $query->where('ms_period_id', '=', $request->query('period'));
         }
         return $query;
     }
@@ -159,19 +162,29 @@ class StudentInvoice {
         return $header;
     }
 
-    public function setChoiceArray($student){
+    public function setChoiceArray($student,$is_all){
         foreach ($student as $key => $s) {
-            $getComponent = $s->getComponent()
-                ->where('path_id', $s->path_id)
-                ->where('period_id', $s->period_id)
-                ->where('msy_id', $s->msy_id)
-                ->where('mlt_id', $s->mlt_id)
-                ->where('cd_is_admission', $this->is_admission)
-                ->get();
+            if($is_all == 1){
+                $getComponent = $s->getComponent()
+                    ->where('cd_is_admission', $this->is_admission)
+                    ->get();
+            }else{
+                $getComponent = $s->getComponent()
+                    ->where('path_id', $s->ms_path_id)
+                    ->where('period_id', $s->ms_period_id)
+                    ->where('msy_id', $s->ms_school_year_id)
+                    ->where('mlt_id', $s->reg_major_lecture_type_pass)
+                    ->where('cd_is_admission', $this->is_admission)
+                    ->get();
+            }
             $student[$key]->setRelation('component_filter', $getComponent->values());
             $student[$key]->is_component = 1;
+            $student[$key]->studyprogram_id = $s->reg_major_pass;
+            $student[$key]->path_id = $s->ms_path_id;
+            $student[$key]->period_id = $s->ms_period_id;
+            $student[$key]->msy_id = $s->ms_school_year_id;
+            $student[$key]->mlt_id = $s->reg_major_lecture_type_pass;
         }
-
         foreach ($student as $key => $s) {
             if($s->component_filter->isEmpty()){
                 $s->is_component = 0;
@@ -182,44 +195,47 @@ class StudentInvoice {
 
     public function getChoiceWithScope($f, $sp,$yearCode){
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
-        $student = Student::query()
+        $schoolYearId = $this->getSchoolYearId($activeSchoolYearCode);
+        $student = Register::query()
             ->with('studyProgram', 'lectureType', 'period', 'path', 'year', 'getComponent')
             ->leftJoin('finance.payment_re_register', function ($join) use ($activeSchoolYearCode) {
-                $join->on('finance.payment_re_register.student_number', '=', 'hr.ms_student.student_number');
+                $join->on('finance.payment_re_register.student_number', '=', 'pmb.register.reg_id');
                 $join->where('finance.payment_re_register.prr_school_year', '=', $activeSchoolYearCode);
                 $join->where('finance.payment_re_register.deleted_at', '=', null);
             });
 
         if ($f && $f != 0) {
             $sp_in_faculty = Studyprogram::where('faculty_id', $f)->pluck('studyprogram_id')->toArray();
-            $student = $student->whereIn('studyprogram_id', $sp_in_faculty);
+            $student = $student->whereIn('reg_major_pass', $sp_in_faculty);
         } else {
-            $student = $student->where('studyprogram_id', $sp);
+            $student = $student->where('reg_major_pass', $sp);
         }
         $student = $student
-            ->where('student_type_id', 1)
-            ->select('hr.ms_student.mlt_id', 'hr.ms_student.path_id', 'hr.ms_student.period_id', 'hr.ms_student.msy_id', 'hr.ms_student.studyprogram_id', DB::raw('count(hr.ms_student.*) as total_student'), DB::raw('count(prr_id) as total_generate'))
-            ->groupBy('hr.ms_student.mlt_id', 'hr.ms_student.path_id', 'hr.ms_student.period_id', 'hr.ms_student.msy_id', 'hr.ms_student.studyprogram_id')
+            ->where('ms_school_year_id',$schoolYearId)
+            ->where('re_register_status',1)
+            ->select('pmb.register.reg_major_lecture_type_pass', 'pmb.register.ms_path_id', 'pmb.register.ms_period_id', 'pmb.register.ms_school_year_id', 'pmb.register.reg_major_pass', DB::raw('count(pmb.register.*) as total_student'), DB::raw('count(prr_id) as total_generate'))
+            ->groupBy('pmb.register.reg_major_lecture_type_pass', 'pmb.register.ms_path_id', 'pmb.register.ms_period_id', 'pmb.register.ms_school_year_id', 'pmb.register.reg_major_pass')
             ->get();
         return $student;
     }
 
     public function getChoiceAll(){
         $activeSchoolYearCode = $this->getActiveSchoolYearCode();
-        $student = Student::query()
+        $schoolYearId = $this->getSchoolYearId($activeSchoolYearCode);
+        $student = Register::query()
             ->with('studyProgram', 'getComponent')
-            ->join('masterdata.ms_studyprogram', 'masterdata.ms_studyprogram.studyprogram_id', 'hr.ms_student.studyprogram_id')
+            ->join('masterdata.ms_studyprogram', 'masterdata.ms_studyprogram.studyprogram_id', 'pmb.register.reg_major_pass')
             ->join('masterdata.ms_faculties', 'masterdata.ms_faculties.faculty_id', 'masterdata.ms_studyprogram.faculty_id')
             ->leftJoin('finance.payment_re_register', function ($join) use ($activeSchoolYearCode) {
-                $join->on('finance.payment_re_register.student_number', '=', 'hr.ms_student.student_number');
+                $join->on('finance.payment_re_register.reg_id', '=', 'pmb.register.reg_id');
                 $join->where('finance.payment_re_register.prr_school_year', '=', $activeSchoolYearCode);
                 $join->where('finance.payment_re_register.deleted_at', '=', null);
             });
-
         $student = $student
-            ->where('student_type_id', 1)
-            ->select('hr.ms_student.studyprogram_id', 'masterdata.ms_faculties.faculty_id', DB::raw('count(hr.ms_student.*) as total_student'), DB::raw('count(prr_id) as total_generate'))
-            ->groupBy('hr.ms_student.studyprogram_id', 'masterdata.ms_faculties.faculty_id')
+            ->where('ms_school_year_id',$schoolYearId)
+            ->where('re_register_status',1)
+            ->select('pmb.register.reg_major_pass', 'masterdata.ms_faculties.faculty_id', DB::raw('count(pmb.register.*) as total_student'), DB::raw('count(prr_id) as total_generate'))
+            ->groupBy('pmb.register.reg_major_pass', 'masterdata.ms_faculties.faculty_id')
             ->get();
         return $student;
     }
@@ -227,10 +243,10 @@ class StudentInvoice {
     public function storeStudentGenerate($student,$log_id)
     {
         $components = $student->getComponent()
-            ->where('path_id', $student->path_id)
-            ->where('period_id', $student->period_id)
-            ->where('msy_id', $student->msy_id)
-            ->where('mlt_id', $student->mlt_id)
+            ->where('path_id', $student->ms_path_id)
+            ->where('period_id', $student->ms_period_id)
+            ->where('msy_id', $student->ms_school_year_id)
+            ->where('mlt_id', $student->reg_major_lecture_type_pass)
             ->where('cd_is_admission', $this->is_admission)
             ->get();
         if (!$components->isEmpty()) {
@@ -244,7 +260,7 @@ class StudentInvoice {
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
-                    'student_number' => $student->student_number,
+                    'reg_id' => $student->reg_id,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                 ]);
 
@@ -257,16 +273,16 @@ class StudentInvoice {
                         'type' => 'component',
                     ]);
                 }
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student),LogStatus::Success);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$student),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$student,$e->getMessage()),LogStatus::Failed);
                 return response()->json($e->getMessage());
             }
         } else {
             $text= 'Komponen Tagihan Tidak Ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$student,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         $text = "Berhasil generate tagihan mahasiswa " . $student->fullname;
@@ -279,30 +295,33 @@ class StudentInvoice {
             if ($item != "null") {
                 // Parsing the key from string
                 $store = explode("_", $item);
-                $studyprogram_id = ($store[0]) ? $store[0] : 0;
-                $msy_id = ($store[1]) ? $store[1] : 0;
-                $path_id = ($store[2]) ? $store[2] : 0;
-                $period_id = ($store[3]) ? $store[3] : 0;
-                $mlt_id = ($store[4]) ? $store[4] : 0;
-
+                if(count($store) == 2){
+                    $faculty_id = ($store[0]) ? $store[0] : 0;
+                    $studyprogram_id = ($store[1]) ? $store[1] : 0;
+                }else{
+                    $studyprogram_id = ($store[0]) ? $store[0] : 0;
+                    $msy_id = ($store[1]) ? $store[1] : 0;
+                    $path_id = ($store[2]) ? $store[2] : 0;
+                    $period_id = ($store[3]) ? $store[3] : 0;
+                    $mlt_id = ($store[4]) ? $store[4] : 0;
+                }
                 // Starting Query
-                $students = Student::query();
+                $students = Register::query();
                 $students = $students->with('getComponent')
-                    ->where('studyprogram_id', $studyprogram_id);
-
+                    ->where('reg_major_pass', $studyprogram_id);
                 // If from details, not index, using more parameters
                 if ($from == 'detail') {
                     $students = $students
-                        ->where('msy_id', $msy_id)
-                        ->where('path_id', $path_id)
-                        ->where('period_id', $period_id)
-                        ->where('mlt_id', $mlt_id);
+                        ->where('ms_school_year_id', $msy_id)
+                        ->where('ms_path_id', $path_id)
+                        ->where('ms_period_id', $period_id)
+                        ->where('reg_major_lecture_type_pass', $mlt_id);
                 }
-                $students = $students->get();
+                $students = $students->where('re_register_status',1)->get();
 
                 // Loop for each student
                 foreach ($students as $student) {
-                    $payment = Payment::where('student_number', $student->student_number)->where('prr_school_year', $this->getActiveSchoolYearCode())->first();
+                    $payment = Payment::where('reg_id', $student->reg_id)->where('prr_school_year', $this->getActiveSchoolYearCode())->first();
                     if (!$payment) {
                         GenerateInvoice::dispatch($student, $log,$this->is_admission);
                     }
@@ -322,58 +341,59 @@ class StudentInvoice {
                 foreach ($detail as $item) {
                     if ($item->type == 'discount' or $item->type == 'scholarship') {
                         $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
-                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($item->payment->student,null,$text),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$item->payment->register,$text),LogStatus::Failed);
                         return json_encode(array('success' => false, 'message' => $text));
                     }
                 }
             }
             // Deleting Detail Bill
-            $data = Payment::with('student')->findorfail($prr_id);
-            if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_delete_lock_cache')) <= Carbon::now()){
+            $data = Payment::with('register')->findorfail($prr_id);
+            if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_delete_lock_new_cache')) <= Carbon::now()){
                 $text = "Sudah melebihi batas waktu penghapusan data";
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
                 return json_encode(array('success' => false, 'message' => $text));
             }
             if ($data->prr_status == 'kredit') {
                 $text = "Terdapat potongan, beasiswa, cicilan ataupun dispensasi yang sudah disetujui pada tagihan ini.";
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
                 return json_encode(array('success' => false, 'message' => $text));
             }
             DB::beginTransaction();
             $data->delete();
             PaymentDetail::where('prr_id', $prr_id)->delete();
             PaymentBill::where('prr_id', $prr_id)->delete();
-            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student),LogStatus::Success);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register),LogStatus::Success);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => "Berhasil menghapus tagihan"));
     }
 
     public function regenerateProcess($prr_id, $log_id){
-        $data = Payment::with('student','paymentDetail','paymentBill')->findorfail($prr_id);
-        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_regenerate_lock_cache')) <= Carbon::now()){
+        $data = Payment::with('register','paymentDetail','paymentBill')->findorfail($prr_id);
+        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_regenerate_lock_new_cache')) <= Carbon::now()){
             $text = "Sudah melebihi batas waktu regenerate data";
-            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
         if($data->paymentBill){
             foreach($data->paymentBill as $item){
                 if($item->prrb_status == 'lunas'){
                     $text= 'Terdapat tagihan yang sudah dilunasi';
-                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
                     return json_encode(array('success' => false, 'message' => $text));
                 }
             }
         }
-        $components = $data->student->getComponent()
-        ->where('path_id', $data->student->path_id)
-        ->where('period_id', $data->student->period_id)
-        ->where('msy_id', $data->student->msy_id)
-        ->where('mlt_id', $data->student->mlt_id)
+
+        $components = $data->register->getComponent()
+        ->where('path_id', $data->register->ms_path_id)
+        ->where('period_id', $data->register->ms_period_id)
+        ->where('msy_id', $data->register->ms_school_year_id)
+        ->where('mlt_id', $data->register->reg_major_lecture_type_pass)
         ->where('cd_is_admission', $this->is_admission)
         ->get();
 
@@ -388,7 +408,7 @@ class StudentInvoice {
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
-                    'student_number' => $data->student->student_number,
+                    'reg_id' => $data->register->reg_id,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                     'prr_dispensation_date' => $data->prr_dispensation_date,
                 ]);
@@ -456,31 +476,31 @@ class StudentInvoice {
                             }
                         }else{
                         $credit->update(['mcs_status'=> 0]);
-                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                         }
                     }else{
                         $credit->update(['mcs_status'=> 0]);
-                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                     }
                 }
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollback();
-                $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$e->getMessage()),LogStatus::Failed);
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$e->getMessage()),LogStatus::Failed);
                 return response()->json($e->getMessage());
             }
             return json_encode(array('success' => true, 'message' => "Berhasil regenerate tagihan mahasiswa"));
         } else {
             $text= 'Komponen Tagihan Tidak Ditemukan';
-            $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,$text),LogStatus::Failed);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
         }
     }
 
     public function deleteStudentComponentProcess($request, $prrd_id)
     {
-        $log = $this->addToLog('Delete Komponen Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        $log = $this->addToLog('Delete Komponen Tagihan Mahasiswa Baru',$this->getAuthId(),LogStatus::Process,$request->url);
         $paymentDetail = PaymentDetail::with('payment')->findorfail($prrd_id);
         $payment = Payment::findorfail($paymentDetail->prr_id);
         try {
@@ -490,10 +510,10 @@ class StudentInvoice {
             $payment->save();
             PaymentDetail::where('prrd_id', $prrd_id)->delete();
             DB::commit();
-            $this->addToLogDetail($log->log_id,$this->getLogTitleStudent($paymentDetail->payment->student),LogStatus::Success);
+            $this->addToLogDetail($log->log_id,$this->getLogTitleStudent(null,$paymentDetail->payment->register),LogStatus::Success);
         } catch (\Exception $e) {
             DB::rollback();
-            $this->addToLogDetail($log->log_id,$this->getLogTitleStudent($paymentDetail->payment->student,null,$e->getMessage()),LogStatus::Failed);
+            $this->addToLogDetail($log->log_id,$this->getLogTitleStudent(null,$paymentDetail->payment->register,$e->getMessage()),LogStatus::Failed);
             return response()->json($e->getMessage());
         }
         $this->updateLogStatus($log,LogStatus::Success);
@@ -503,7 +523,7 @@ class StudentInvoice {
     public function updateStudentComponentProcess($request,$log_id){
         $validated = $request->validated();
         DB::beginTransaction();
-        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_edit_lock_cache')) <= Carbon::now()){
+        if(Carbon::createFromFormat('Y-m-d', $this->getCacheSetting('payment_edit_lock_new_cache')) <= Carbon::now()){
             $text = "Sudah melebihi batas waktu edit tagihan";
             $this->addToLogDetail($log_id,$this->getLogTitle($validated['title'],$text),LogStatus::Failed);
             return json_encode(array('success' => false, 'message' => $text));
@@ -549,16 +569,4 @@ class StudentInvoice {
         return json_encode(array('success' => true, 'message' => $text));
     }
 
-    public static function status($student, $school_year_code)
-    {
-        $invoice = Payment::where('student_number', $student->student_number)
-            ->where('prr_school_year', $school_year_code)
-            ->first();
-
-        if ($invoice == null) {
-            return null;
-        }
-
-        return $invoice->computed_payment_status;
-    }
 }

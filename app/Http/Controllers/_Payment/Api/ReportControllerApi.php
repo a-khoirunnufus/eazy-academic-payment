@@ -1077,7 +1077,7 @@ class ReportControllerApi extends Controller
     }
 
     function studentRegistrant(Request $request){
-        $data = Register::with('participant', 'studyprogram', 'lectureType', 'period', 'path' ,'payment', 'year');
+        $data = Register::with('participant', 'studyProgram', 'lectureType', 'period', 'path' ,'paymentRegister', 'year');
 
         if($request->get('angkatan', '#ALL') !== '#ALL'){
             $data = $data->whereHas('year', function($q) use($request) {

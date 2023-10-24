@@ -197,7 +197,7 @@
                     dataSrc: function(json) {
                         var data = [];
                         for (var i = 0; i < json.data.length; i++) {
-                            if (json.data[i].payment === null) {
+                            if (json.data[i].payment_register === null) {
                                 console.log(i + " Value is null");
                             } else {
                                 if (searchData != '#ALL') {
@@ -219,30 +219,30 @@
                                         isFound = true;
                                     }
 
-                                    if (!isFound && '' + row.payment.payment_reg_method.toLowerCase().search(searchData.toLowerCase()) >= 0) {
+                                    if (!isFound && '' + row.payment_register.payment_reg_method.toLowerCase().search(searchData.toLowerCase()) >= 0) {
                                         data.push(json.data[i]);
                                         isFound = true;
                                     }
 
-                                    if (!isFound && '' + row.payment.payment_reg_total.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
+                                    if (!isFound && '' + row.payment_register.payment_reg_total.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
                                         data.push(json.data[i]);
                                         isFound = true;
                                     }
 
-                                    if (!isFound && '' + row.payment.payment_reg_status.toLowerCase().search(searchData.toLowerCase()) >= 0) {
+                                    if (!isFound && '' + row.payment_register.payment_reg_status.toLowerCase().search(searchData.toLowerCase()) >= 0) {
                                         data.push(json.data[i]);
                                         isFound = true;
                                     }
 
                                     if (!isFound) {
                                         var start = 0;
-                                        while (!isFound && start < row.payment.payment_register_detail.length) {
-                                            if (!isFound && '' + row.payment.payment_register_detail[start].payment_rd_amount.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
+                                        while (!isFound && start < row.payment_register.payment_register_detail.length) {
+                                            if (!isFound && '' + row.payment_register.payment_register_detail[start].payment_rd_amount.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
                                                 data.push(json.data[i]);
                                                 isFound = true;
                                             }
 
-                                            if (!isFound && '' + row.payment.payment_register_detail[start].payment_rd_component.toLowerCase().search(searchData.toLowerCase()) >= 0) {
+                                            if (!isFound && '' + row.payment_register.payment_register_detail[start].payment_rd_component.toLowerCase().search(searchData.toLowerCase()) >= 0) {
                                                 data.push(json.data[i]);
                                                 isFound = true;
                                             }
@@ -278,7 +278,7 @@
                         name: 'payment',
                         render: (data, _, row) => {
                             try {
-                                return row.payment.payment_reg_method;
+                                return row.payment_register.payment_reg_method;
                             } catch (err) {
                                 return "";
                             }
@@ -296,7 +296,7 @@
                         name: 'invoice_a',
                         render: (data, _, row) => {
                             var listData = [];
-                            var payment = row.payment.payment_register_detail;
+                            var payment = row.payment_register.payment_register_detail;
                             for (var i = 0; i < payment.length; i++) {
                                 if (payment[i].payment_rd_component != "biaya discount") {
                                     listData.push({
@@ -305,14 +305,14 @@
                                     })
                                 }
                             }
-                            return this.template.invoiceDetailCell(listData, row.payment.payment_reg_total);
+                            return this.template.invoiceDetailCell(listData, row.payment_register.payment_reg_total);
                         }
                     },
                     {
                         name: 'invoice_b',
                         render: (data, _, row) => {
                             var listData = [];
-                            var payment = row.payment.payment_register_detail;
+                            var payment = row.payment_register.payment_register_detail;
                             var total = 0;
                             for (var i = 0; i < payment.length; i++) {
                                 if (payment[i].payment_rd_component == "biaya discount") {
@@ -330,7 +330,7 @@
                         name: 'total_must_be_paid',
                         data: 'total_must_be_paid',
                         render: (data, _, row) => {
-                            return this.template.currencyCell(row.payment.payment_reg_total, {
+                            return this.template.currencyCell(row.payment_register.payment_reg_total, {
                                 bold: true,
                                 additionalClass: 'text-danger'
                             });
@@ -500,17 +500,17 @@
         var listData = [];
 
         data.forEach((row) => {
-            row.payment.payment_register_detail.forEach((list) => {
+            row.payment_register.payment_register_detail.forEach((list) => {
                 listData.push({
                     par_fullname: row.participant.par_fullname,
                     path_name: row.path.path_name,
                     period_name: row.period.period_name,
-                    payment_reg_method: row.payment.payment_reg_method,
-                    payment_reg_invoice_num: row.payment.payment_reg_invoice_num,
-                    payment_reg_paid_date: row.payment.payment_reg_paid_date,
+                    payment_reg_method: row.payment_register.payment_reg_method,
+                    payment_reg_invoice_num: row.payment_register.payment_reg_invoice_num,
+                    payment_reg_paid_date: row.payment_register.payment_reg_paid_date,
                     payment_rd_component: list.payment_rd_component,
                     payment_rd_amount: list.payment_rd_amount,
-                    payment_reg_status: row.payment.payment_reg_status
+                    payment_reg_status: row.payment_register.payment_reg_status
                 })
             })
         })

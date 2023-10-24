@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Services\Payment\StudentInvoice;
+use App\Services\Payment\NewStudentInvoice;
 use App\Traits\Payment\LogActivity;
 use App\Enums\Payment\LogStatus;
 use DB;
@@ -22,11 +23,13 @@ class GenerateInvoice implements ShouldQueue
      */
     protected $student;
     protected $log;
+    protected $is_admission;
 
-    public function __construct($student = null,$log)
+    public function __construct($student = null,$log,$is_admission)
     {
         $this->student = $student;
         $this->log = $log;
+        $this->is_admission = $is_admission;
     }
 
     /**
@@ -36,6 +39,9 @@ class GenerateInvoice implements ShouldQueue
     {
         if($this->student){
             $studentInvoice = new StudentInvoice;
+            if($this->is_admission == 1){
+                $studentInvoice = new NewStudentInvoice;
+            }
             $result = $studentInvoice->storeStudentGenerate($this->student,$this->log->log_id);
         }else{
             $this->updateLogStatus($this->log,LogStatus::Success);

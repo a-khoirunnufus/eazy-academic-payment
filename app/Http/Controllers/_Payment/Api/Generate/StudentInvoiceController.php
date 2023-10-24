@@ -3,38 +3,21 @@
 namespace App\Http\Controllers\_Payment\Api\Generate;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Faculty;
-use App\Models\Payment\PeriodPath;
 use App\Models\Payment\Student;
-use App\Models\Payment\ActiveYear;
-use App\Models\Payment\Year;
-use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
-use App\Models\Payment\PaymentBill;
-use App\Models\Payment\PaymentDetail;
-use App\Models\Payment\MasterJob;
-use App\Jobs\Payment\GenerateInvoice;
 use App\Jobs\Payment\GenerateBulkInvoice;
-use App\Models\Payment\DiscountReceiver;
-use App\Models\Payment\ScholarshipReceiver;
-use App\Models\Payment\CreditSchema;
-use App\Models\Payment\DispensationSubmission;
-use App\Models\Payment\CreditSubmission;
-use App\Models\PMB\PaymentRegisterDetail;
 use App\Http\Requests\Payment\Generate\StudentInvoiceUpdateRequest;
-use Carbon\Carbon;
-use Illuminate\Contracts\Database\Query\Builder;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB as FacadesDB;
-use Illuminate\Support\Facades\DB;
 use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
 use App\Enums\Payment\LogStatus;
 use App\Services\Payment\StudentInvoice;
-
+use Carbon\Carbon;
 use Config;
 
 class StudentInvoiceController extends Controller
@@ -118,7 +101,7 @@ class StudentInvoiceController extends Controller
     {
         if ($request->generate_checkbox) {
             $log = $this->addToLog('Generate Bulk Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
-            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from,$log);
+            GenerateBulkInvoice::dispatch($request->generate_checkbox, $request->from,$log,$this->is_admission);
             return json_encode(array('success' => true, 'message' => "Generate Tagihan Sedang Diproses"));
         } else {
             return json_encode(array('success' => false, 'message' => "Belum ada data yang dipilih!"));
