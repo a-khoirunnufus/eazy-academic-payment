@@ -22,7 +22,7 @@ class GenerateController extends Controller
         $year = Year::all();
         $path = Path::all();
         $period = Period::all();
-        $yearCode = $this->getActiveSchoolYearId();
+        $yearCode = $this->getActiveSchoolYearCode();
         return view('pages._payment.generate.new-student-invoice.index', compact('year','path','period','yearCode'));
     }
 
