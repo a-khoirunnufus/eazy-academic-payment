@@ -49,6 +49,13 @@ class StudentBalanceController extends Controller
         return $datatable->toJson();
     }
 
+    public function studentListIndex(Request $request)
+    {
+        $data = \DB::table('finance.vw_student_balance_master')->orderBy('fullname')->get();
+
+        return response()->json($data->toArray());
+    }
+
     public function refreshStudentList()
     {
         try {
@@ -103,7 +110,7 @@ class StudentBalanceController extends Controller
 
     public function withdrawDatatable(Request $request)
     {
-        $query = StudentBalanceWithdraw::orderBy('sbw_time', 'asc');
+        $query = StudentBalanceWithdraw::orderBy('sbw_issued_time', 'asc');
         $query = $this->applyRelation($query, $request, ['student', 'issuer']);
         $query = $this->applyFilterWithOperator($query, $request, [
             'student_number',
