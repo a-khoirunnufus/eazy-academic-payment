@@ -11,7 +11,7 @@
     <script>
         $(async function() {
 
-            const data = await $.get({url: `${_baseURL}{{ $resourceUrl }}`, async: true});
+            const data = await getRequestCache(`${_baseURL}{{ $resourceUrl }}`);
 
             const valueFrom = "{{ $value }}";
             const labelTemplate = "{{ $labelTemplate }}";

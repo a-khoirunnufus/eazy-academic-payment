@@ -26,5 +26,4 @@ class Studyprogram extends Model
     {
         return $this->belongsTo(Student::class, 'studyprogram_id', 'studyprogram_id')->with('payment');
     }
-
 }

@@ -110,6 +110,12 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         });
     });
 
+    // Students Balance
+    Route::group(['prefix' => 'students-balance'], function() {
+        Route::get('/', fn() => view('pages._payment.students-balance.index'))->name('payment.students-balance.index');
+        Route::get('withdraw', fn() => view('pages._payment.students-balance.withdraw'))->name('payment.students-balance.withdraw');
+    });
+
     // Student Routes
     Route::group([
         'middleware' => ['student_access'],
@@ -145,4 +151,3 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
-

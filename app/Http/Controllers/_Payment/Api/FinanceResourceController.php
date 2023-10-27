@@ -9,6 +9,7 @@ use App\Models\Payment\Faculty;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
+use App\Models\Payment\LectureType;
 
 class FinanceResourceController extends Controller
 {
@@ -93,6 +94,12 @@ class FinanceResourceController extends Controller
     {
         $data = Path::find($path_id);
 
+        return response()->json($data->toArray());
+    }
+
+    public function lectureTypeIndex()
+    {
+        $data = LectureType::all();
         return response()->json($data->toArray());
     }
 }

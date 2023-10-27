@@ -27,6 +27,11 @@ class StudentBalanceTrans extends Model
      * RELATIONSHIPS
      */
 
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_number', 'student_number');
+    }
+
     public function type()
     {
         return $this->belongsTo(Type::class, 'sbtt_name', 'sbtt_name');

@@ -5,9 +5,9 @@ namespace App\Traits\Models;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
-trait LoadDTColumnByRequest
+trait LoadDatatableColumnByRequest
 {
-    public function applyDTColumn($datatable, Request $request, $mapping)
+    public function applyDatatableColumn($datatable, Request $request, $mapping)
     {
         if ( !$request->get('withLoadedColumn') ) return $datatable;
 

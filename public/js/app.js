@@ -1100,11 +1100,7 @@ function unescapeHtml(text) {
  * Cache Helper
  */
 
-function getRequestCache(url) {
-    const disableCache = true;
-    const displayLogs = true;
-    const cacheExpiredTime = 1000 * 60 * 30; // 30 Minutes
-
+function getRequestCache(url, {disableCache = false, cacheExpiredTime = 1000*60*60*12, displayLogs = true} = {}) {
     return new Promise((resolve, reject) => {
         caches.open('eazy-cache').then(cache => {
             cache.match(url).then(async (response) => {
@@ -1129,7 +1125,7 @@ function getRequestCache(url) {
                         );
                     } else {
                         const date = new Date(response.headers.get('date'))
-                        // if cached file is older than 6 hours
+                        // if cached file is older than 12 hours
                         if ( Date.now() > date.getTime() + cacheExpiredTime ){
 
                             displayLogs && console.log(`${url} cache EXPIRED, get data and update cache.`);

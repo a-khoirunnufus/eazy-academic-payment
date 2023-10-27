@@ -80,4 +80,37 @@ trait DatatableManualFilter {
             }
         });
     }
+
+    public function applyManualFilterWoFc($datatable, $request, $filter_columns, $search_columns)
+    {
+        $filters = $request->get('filters') ?? [];
+
+        $datatable->filter(function ($query) use($filters, $search_columns) {
+
+            /**
+             * FILTER
+             */
+            foreach ($filters as $filter) {
+                $column = $filter['column'];
+                $operator = $filter['operator'];
+                $value = $filter['value'];
+                $query->where($column, $operator, $value);
+            }
+
+            /**
+             * SEARCH
+             */
+            if (request()->get('search')['value'] !== null) {
+                $query->where(function($query) use ($search_columns){
+                    foreach ($search_columns as $idx => $col) {
+                        if ($idx == 0) {
+                            $query->where($col, 'ilike', "%" . request()->get('search')['value'] . "%");
+                        } else {
+                            $query->orWhere($col, 'ilike', "%" . request()->get('search')['value'] . "%");
+                        }
+                    }
+                });
+            }
+        });
+    }
 }
