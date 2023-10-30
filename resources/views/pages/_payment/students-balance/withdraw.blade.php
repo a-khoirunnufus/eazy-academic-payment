@@ -59,6 +59,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="form-add-withdraw" onsubmit="#">
+                <input type="hidden" name="student_id" />
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="form-label">Mahasiswa <span class="text-danger">*</span></label>
@@ -67,15 +68,15 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Total Saldo Mahasiswa</label>
-                        <input type="text" class="form-control" name="name" disabled />
+                        <input id="selected-student-total-balance" type="number" class="form-control" disabled />
                     </div>
                     <div class="form-group">
                         <label class="form-label">Jumlah Penarikan <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="name" />
+                        <input type="number" class="form-control" name="withdraw_amount" />
                     </div>
                     <div class="form-group">
                         <label class="form-label">File Terkait</label>
-                        <input type="file" class="form-control" name="name" />
+                        <input type="file" class="form-control" name="related_files" />
                     </div>
                     <div class="mt-2">
                         <small>
@@ -271,17 +272,58 @@
                 });
             },
             studentsBalanceList: async function() {
-                const data = await getRequestCache(`${_baseURL}/api/payment/students-balance`);
-                const formatted = data.map(item => ({
-                    id: item.student_id,
-                    text: `${item.student_id} - ${item.fullname}`,
-                }));
+                // const data = await getRequestCache(`${_baseURL}/api/payment/students-balance`);
+                // const formatted = data.map(item => ({
+                //     id: item.student_id,
+                //     text: `${item.student_id} - ${item.fullname}`,
+                //     'data-balance': item.current_balance,
+                // }));
 
                 $('#select-students-balance-list').select2({
-                    data: formatted,
+                    ajax: {
+                        url: `${_baseURL}/api/payment/students-balance`,
+                        data: function (params) {
+                            var query = {
+                                search: params.term,
+                                page: params.page || 1
+                            }
+
+                            // Query parameters will be ?search=[term]&page=[page]
+                            return query;
+                        },
+                        delay: 500,
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+
+                            const formattedData = data.data.map(item => ({
+                                id: item.student_id,
+                                text: `${item.student_id} - ${item.fullname}`,
+                                'data-balance': item.current_balance,
+                            }));
+
+                            return {
+                                results: formattedData,
+                                pagination: {
+                                    more: (params.page * data.per_page) < data.total
+                                }
+                            };
+                        },
+                    },
+                    placeholder: 'Pilih Mahasiswa',
                     minimumResultsForSearch: 6,
                     dropdownParent: $("#modal-withdraw")
-                });
+                })
+                .on('select2:select', function (e) {
+                    const studentId = e.currentTarget.value;
+                    $('#form-add-withdraw input[name="student_id"]').val(studentId);
+
+                    const data = e.params.data;
+                    const balance = data["data-balance"];
+                    $('#selected-student-total-balance').val(balance);
+
+                    $('#form-add-withdraw input[name="withdraw_amount"').attr('max', balance);
+                })
+                .val(0).trigger('change');
             },
         }
     </script>

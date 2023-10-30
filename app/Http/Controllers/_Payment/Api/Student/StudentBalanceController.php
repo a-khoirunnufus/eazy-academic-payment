@@ -51,7 +51,16 @@ class StudentBalanceController extends Controller
 
     public function studentListIndex(Request $request)
     {
-        $data = \DB::table('finance.vw_student_balance_master')->orderBy('fullname')->get();
+        $search = $request->get('search');
+
+        $query = \DB::table('finance.vw_student_balance_master');
+
+        if ($search) {
+            $query->where('fullname', 'ilike', '%'.$search.'%');
+            $query->orWhere('student_id', 'ilike', '%'.$search.'%');
+        }
+
+        $data = $query->orderBy('fullname')->paginate(30);
 
         return response()->json($data->toArray());
     }
