@@ -259,6 +259,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListIndex');
         Route::get('datatable', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListDatatable');
         Route::get('refresh', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@refreshStudentList');
+        Route::post('withdraw', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@withdrawStore');
         Route::get('withdraw-datatable', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@withdrawDatatable');
     });
 

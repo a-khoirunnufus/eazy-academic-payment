@@ -41,6 +41,7 @@
     <table id="table-withdraw-history" class="table table-striped">
         <thead>
             <tr>
+                <th>Aksi</th>
                 <th>Nama / NIM</th>
                 <th>Jumlah Penarikan</th>
                 <th>Diproses Oleh</th>
@@ -58,12 +59,12 @@
                 <h5 class="modal-title">Tambah Penarikan Saldo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form-add-withdraw" onsubmit="#">
+            <form id="form-add-withdraw" onsubmit="_withdrawActions.add(event)">
                 <input type="hidden" name="student_id" />
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="form-label">Mahasiswa <span class="text-danger">*</span></label>
-                        <select id="select-students-balance-list" class="form-select">
+                        <select id="select-students-balance-list" class="form-select" required>
                         </select>
                     </div>
                     <div class="form-group">
@@ -72,11 +73,11 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Jumlah Penarikan <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" name="withdraw_amount" />
+                        <input type="number" class="form-control" name="sbw_amount" required />
                     </div>
                     <div class="form-group">
                         <label class="form-label">File Terkait</label>
-                        <input type="file" class="form-control" name="related_files" />
+                        <input type="file" class="form-control" name="sbw_related_files" />
                     </div>
                     <div class="mt-2">
                         <small>
@@ -164,7 +165,7 @@
                         },
                         // 4
                         {
-                            data: 'sbw_issue_time',
+                            data: 'sbw_issued_time',
                             render: (data) => {
                                 return this.template.dateTimeCell(data);
                             }
@@ -242,7 +243,29 @@
         }
 
         const _withdrawActions = {
-            add: () => {
+            add: async (e) => {
+                e.preventDefault();
+
+                const confirmed = await _swalConfirmSync({
+                    title: 'Konfirmasi',
+                    text: 'Apakah anda yakin ingin menambahkan data?',
+                });
+
+                if(!confirmed) return;
+
+                const data = FormDataJson.toJson('#form-add-withdraw');
+                $.post(`${_baseURL}/api/payment/students-balance/withdraw`, data)
+                    .done(data => {
+                        // console.log(data);
+                        _toastr.success(data.message, 'Sukses');
+                        $('#modal-withdraw').modal('hide');
+                        _withdrawHistoryTable.reload();
+                    })
+                    .fail(jqXHR => {
+                        // console.log(jqXHR);
+                        _toastr.error(jqXHR.responseJSON.message, 'Gagal');
+                        $('#modal-withdraw').modal('hide');
+                    });
             }
         }
     </script>
@@ -272,13 +295,6 @@
                 });
             },
             studentsBalanceList: async function() {
-                // const data = await getRequestCache(`${_baseURL}/api/payment/students-balance`);
-                // const formatted = data.map(item => ({
-                //     id: item.student_id,
-                //     text: `${item.student_id} - ${item.fullname}`,
-                //     'data-balance': item.current_balance,
-                // }));
-
                 $('#select-students-balance-list').select2({
                     ajax: {
                         url: `${_baseURL}/api/payment/students-balance`,
