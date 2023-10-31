@@ -300,7 +300,7 @@ const _datatableTemplates = {
     dateTimeCell: function(data, {nowrap = true, bold = false, additionalClass = ''} = {}) {
         return `
             <span class="${nowrap ? 'text-nowrap' : ''} ${bold ? 'fw-bold' : ''} ${additionalClass}">
-                ${moment(data).format('DD/MM/YYYY HH:mm:ss')}
+                ${moment(data).format('DD/MM/YYYY HH:mm')}
             </span>
         `;
     },

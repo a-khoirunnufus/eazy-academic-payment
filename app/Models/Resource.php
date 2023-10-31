@@ -11,6 +11,8 @@ class Resource extends Model
 {
     use HasUuid, HasResource;
 
+    protected $table = "temp.resources";
+
     protected $fillable = [
         'filepath'
     ];

@@ -256,8 +256,11 @@ Route::group(['prefix' => 'payment'], function(){
     });
 
     Route::group(['prefix' => 'students-balance'], function(){
-        Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListDatatable');
-        Route::get('/refresh', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@refreshStudentList');
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListIndex');
+        Route::get('datatable', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListDatatable');
+        Route::get('refresh', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@refreshStudentList');
+        Route::post('withdraw', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@withdrawStore');
+        Route::get('withdraw-datatable', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@withdrawDatatable');
     });
 
     // Student Group Routes
@@ -391,8 +394,8 @@ Route::get('download', function(Request $request) {
 Route::get('download-cloud', function(Request $request) {
     if(config('app.disable_cloud_storage')) {
         return response()->json([
-            'error' => 'Resource not found',
-        ], 404);
+            'message' => 'storage access disabled',
+        ], 500);
     }
 
     $path = $request->query('path');
