@@ -26,7 +26,7 @@ class StoreRequest extends FormRequest
         return [
             'student_id' => ['required', Rule::exists('App\Models\Payment\Student', 'student_id')],
             'sbw_amount' => 'required|min:1',
-            'sbw_related_files' => 'nullable|json',
+            'sbw_related_files' => 'nullable',
         ];
     }
 }

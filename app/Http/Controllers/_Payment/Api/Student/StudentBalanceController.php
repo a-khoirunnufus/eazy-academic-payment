@@ -5,6 +5,7 @@ namespace App\Http\Controllers\_Payment\Api\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StudentBalanceWithdraw\StoreRequest;
 use App\Models\Payment\Student;
@@ -118,14 +119,8 @@ class StudentBalanceController extends Controller
 
     public function withdrawDatatable(Request $request)
     {
-        $query = StudentBalanceWithdraw::orderBy('sbw_issued_time', 'asc');
-        $query = $this->applyRelation($query, $request, ['student', 'issuer']);
-        $query = $this->applyFilterWithOperator($query, $request, [
-            'student_number',
-            'sbw_amount',
-            'sbw_issued_by',
-            'sbw_issued_time',
-        ]);
+        $query = DB::table('finance.vw_student_balance_withdraw_master')->orderBy('issued_time', 'desc');
+        $query = $this->applyFilterWoFc($query, $request, ['amount', 'issuer_id', 'issued_time']);
 
         $datatable = datatables($query);
 
@@ -156,11 +151,24 @@ class StudentBalanceController extends Controller
                 throw new Exception('Balance is not sufficient', 2);
             }
 
+            $url_files = [];
+            if (config('app.disable_cloud_storage')) {
+                foreach ($validated['sbw_related_files'] as $file) {
+                    $upload_success = Storage::disk('minio')->putFile('payment/student_balance_withdraw', $file);
+                    if ($upload_success) {
+                        array_push($url_files, $upload_success);
+                    } else {
+                        throw new \Exception('Failed uploading file!');
+                    }
+                }
+            }
+
             $withdraw = StudentBalanceWithdraw::create([
                 'student_number' => $student->student_number,
                 'sbw_amount' => (int)$validated['sbw_amount'],
                 'sbw_issued_by' => $user->user_id,
                 'sbw_issued_time' => $this->getCurrentDateTime(),
+                'sbw_related_files' => $url_files,
             ]);
 
             StudentBalanceTrans::create([

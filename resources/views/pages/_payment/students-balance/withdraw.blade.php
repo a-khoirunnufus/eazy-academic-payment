@@ -32,34 +32,35 @@
 </div>
 
 <div class="my-2">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-withdraw">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-add-withdraw">
         <i data-feather="plus"></i> &nbsp; Tambah Penarikan Saldo
     </button>
 </div>
 
 <div class="card">
-    <table id="table-withdraw-history" class="table table-striped">
+    <table id="table-withdraw-history" class="table responsive table-striped nowrap" width="100%">
         <thead>
             <tr>
-                <th>Aksi</th>
+                <!-- <th>Aksi</th> -->
                 <th>Nama / NIM</th>
                 <th>Jumlah Penarikan</th>
                 <th>Diproses Oleh</th>
                 <th>Waktu</th>
+                <th>File Terkait</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 </div>
 
-<div class="modal fade" id="modal-withdraw" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modal-add-withdraw" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Penarikan Saldo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="form-add-withdraw" onsubmit="_withdrawActions.add(event)">
+            <form id="form-add-withdraw" enctype="multipart/form-data" onsubmit="_withdrawActions.add(event)">
                 <input type="hidden" name="student_id" />
                 <div class="modal-body">
                     <div class="form-group">
@@ -77,7 +78,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">File Terkait</label>
-                        <input type="file" class="form-control" name="sbw_related_files" />
+                        <input type="file" class="form-control mb-1" name="sbw_related_files[]" multiple />
                     </div>
                     <div class="mt-2">
                         <small>
@@ -94,6 +95,199 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modal-detail-withdraw" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Penarikan Saldo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-3">
+                            Nama / NIM
+                        </div>
+                        <div class="col-1">:</div>
+                        <div class="col-8">
+                            Ahmad Khoirunnufus<br>
+                            1301180069
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-3">
+                            Jumlah Penarikan
+                        </div>
+                        <div class="col-1">:</div>
+                        <div class="col-8">
+                            Rp10.000.000,00
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-3">
+                            Diproses Oleh
+                        </div>
+                        <div class="col-1">:</div>
+                        <div class="col-8">
+                            Admin
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-3">
+                            Waktu
+                        </div>
+                        <div class="col-1">:</div>
+                        <div class="col-8">
+                            01/01/2001 10:00
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-3">
+                            File Terkait
+                        </div>
+                        <div class="col-1">:</div>
+                        <div class="col-8">
+                            <a href="#" class="btn btn-link p-0">
+                                Download File 1
+                            </a><br>
+                            <a href="#" class="btn btn-link p-0">
+                                Download File 2
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- <div class="modal fade dtr-bs-modal show" style="display: block;" aria-modal="true" role="dialog">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h4 class="modal-title">Details of undefined</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <table class="table">
+               <tbody>
+                  <tr data-dt-row="8" data-dt-column="2">
+                     <td>Product:</td>
+                     <td>
+                        <div class="d-flex justify-content-start align-items-center customer-name">
+                           <div class="avatar-wrapper">
+                              <div class="avatar me-2 rounded-2 bg-label-secondary"><img src="../../assets/img/ecommerce-images/product-9.png" alt="Product-9" class="rounded-2"></div>
+                           </div>
+                           <div class="d-flex flex-column"><span class="fw-medium text-nowrap">Air Jordan</span><small class="text-muted">Air Jordan is a line of basketball shoes produced by Nike</small></div>
+                        </div>
+                     </td>
+                  </tr>
+                  <tr data-dt-row="8" data-dt-column="3">
+                     <td>Reviewer:</td>
+                     <td>
+                        <div class="d-flex justify-content-start align-items-center customer-name">
+                           <div class="avatar-wrapper">
+                              <div class="avatar me-2"><img src="../../assets/img/avatars/5.png" alt="Avatar" class="rounded-circle"></div>
+                           </div>
+                           <div class="d-flex flex-column"><a href="app-ecommerce-customer-details-overview.html"><span class="fw-medium">Gisela Leppard</span></a><small class="text-muted text-nowrap">gleppard8@yandex.ru</small></div>
+                        </div>
+                     </td>
+                  </tr>
+                  <tr data-dt-row="8" data-dt-column="4">
+                     <td>Review:</td>
+                     <td>
+                        <div>
+                           <div class="read-only-ratings ps-0 mb-2 jq-ry-container" readonly="readonly" style="width: 112px;">
+                              <div class="jq-ry-group-wrapper">
+                                 <div class="jq-ry-normal-group jq-ry-group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="gray">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="gray" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="gray" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="gray" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="gray" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                 </div>
+                                 <div class="jq-ry-rated-group jq-ry-group" style="width: 38.3929%;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#f39c12">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#f39c12" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#f39c12" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#f39c12" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star-filled" width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#f39c12" style="margin-left: 3px;">
+                                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                       <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" stroke-width="0"></path>
+                                    </svg>
+                                 </div>
+                              </div>
+                           </div>
+                           <p class="h6 mb-1 text-truncate">Ut mauris</p>
+                           <small class="text-break pe-3">Fusce consequat. Nulla nisl. Nunc nisl.</small>
+                        </div>
+                     </td>
+                  </tr>
+                  <tr data-dt-row="8" data-dt-column="5">
+                     <td>Date:</td>
+                     <td><span class="text-nowrap">Apr 20, 2020</span></td>
+                  </tr>
+                  <tr data-dt-row="8" data-dt-column="6">
+                     <td>Status:</td>
+                     <td><span class="badge bg-label-success" text-capitalize="">Published</span></td>
+                  </tr>
+                  <tr data-dt-row="8" data-dt-column="7">
+                     <td>Actions:</td>
+                     <td>
+                        <div class="text-xxl-center">
+                           <div class="dropdown">
+                              <a href="javascript:;" class="btn dropdown-toggle hide-arrow text-body p-0" data-bs-toggle="dropdown"><i class="ti ti-dots-vertical"></i></a>
+                              <div class="dropdown-menu dropdown-menu-end">
+                                 <a href="javascript:;" class="dropdown-item">Download</a><a href="javascript:;" class="dropdown-item">Edit</a><a href="javascript:;" class="dropdown-item">Duplicate</a>
+                                 <div class="dropdown-divider"></div>
+                                 <a href="javascript:;" class="dropdown-item delete-record text-danger">Delete</a>
+                              </div>
+                           </div>
+                        </div>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+      </div>
+   </div>
+</div> -->
 
 @endsection
 
@@ -135,16 +329,10 @@
                     stateSave: false,
                     order: [],
                     columns: [
-                        // 0
+                        // 0 fullname
                         {
-                            data: 'sbw_id',
-                            render: (data) => {
-                                return this.template.rowAction(data);
-                            }
-                        },
-                        // 1 fullname
-                        {
-                            data: 'student.fullname',
+                            orderable: false,
+                            searchable: false,
                             render: (data, _, row) => {
                                 return this.template.listCell([
                                     {text: row.student.fullname, bold: true, small: false, nowrap: true},
@@ -152,28 +340,50 @@
                                 ]);
                             }
                         },
-                        // 2
+                        // 1
                         {
                             data: 'sbw_amount',
+                            searchable: false,
                             render: (data) => {
                                 return this.template.currencyCell(data);
                             }
                         },
-                        // 3
+                        // 2
                         {
                             data: 'issuer.user_fullname'
+                            searchable: false,
+                            orderable: false,
                         },
-                        // 4
+                        // 3
                         {
                             data: 'sbw_issued_time',
+                            searchable: false,
                             render: (data) => {
                                 return this.template.dateTimeCell(data);
                             }
-                        }
+                        },
+                        // 4
+                        {
+                            data: 'sbw_related_files',
+                            searchable: false,
+                            orderable: false,
+                            render: (data) => {
+                                if (!data || data?.length == 0) return '-';
+
+                                return `<div class="d-flex flex-column" style="gap: .5rem">
+                                    ${data.map(item => (`
+                                        <a href="#" class="btn btn-link p-0 d-block text-start">
+                                            <i data-feather="file"></i> &nbsp;Download
+                                        </a>
+                                    `)).join('')}
+                                </div>`
+                            }
+                        },
+                        //5
+                        { data: ''}
                     ],
+                    responsive: false,
                     scrollX: true,
-                    scrollY: "60vh",
-                    scrollCollapse: true,
                     language: {
                         search: '_INPUT_',
                         searchPlaceholder: "Cari Data",
@@ -253,19 +463,26 @@
 
                 if(!confirmed) return;
 
-                const data = FormDataJson.toJson('#form-add-withdraw');
-                $.post(`${_baseURL}/api/payment/students-balance/withdraw`, data)
-                    .done(data => {
-                        // console.log(data);
-                        _toastr.success(data.message, 'Sukses');
-                        $('#modal-withdraw').modal('hide');
-                        _withdrawHistoryTable.reload();
-                    })
-                    .fail(jqXHR => {
-                        // console.log(jqXHR);
-                        _toastr.error(jqXHR.responseJSON.message, 'Gagal');
-                        $('#modal-withdraw').modal('hide');
-                    });
+                const formData = new FormData($('#form-add-withdraw').get(0));
+
+                $.ajax({
+                    url: `${_baseURL}/api/payment/students-balance/withdraw`,
+                    type: 'post',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                })
+                .done(data => {
+                    // console.log(data);
+                    _toastr.success(data.message, 'Sukses');
+                    $('#modal-add-withdraw').modal('hide');
+                    _withdrawHistoryTable.reload();
+                })
+                .fail(jqXHR => {
+                    // console.log(jqXHR);
+                    _toastr.error(jqXHR.responseJSON.message, 'Gagal');
+                    $('#modal-add-withdraw').modal('hide');
+                });
             }
         }
     </script>
@@ -327,7 +544,7 @@
                     },
                     placeholder: 'Pilih Mahasiswa',
                     minimumResultsForSearch: 6,
-                    dropdownParent: $("#modal-withdraw")
+                    dropdownParent: $("#modal-add-withdraw")
                 })
                 .on('select2:select', function (e) {
                     const studentId = e.currentTarget.value;
