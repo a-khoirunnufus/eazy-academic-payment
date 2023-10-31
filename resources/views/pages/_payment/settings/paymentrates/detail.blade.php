@@ -210,6 +210,7 @@
                         data: 'ppm.ppm_id',
                         orderable: false,
                         render: (data, _, row) => {
+                            // console.log(row);
                             return this.template.rowAction(data)
                         }
                     },
@@ -561,9 +562,9 @@
                                 <div class="row">
                                     <div class="col-lg-12 col-md-12">
                                         <label class="form-label">Tipe Tagihan</label>
-                                        <select class="form-select select2" eazy-select2-active id="typePayment" name="type_payment">
-                                            @foreach (\Config::get('payment-service.payment_type') as $key => $item)
-                                                <option value="{{ $item['value'] }}">{{ $item['title'] }}</option>
+                                        <select class="form-select select2" eazy-select2-active id="typePayment" name="payment_type">
+                                            @foreach ($types as $key => $item)
+                                                <option value="{{ $item->msct_id }}">{{ $item->msct_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -912,7 +913,20 @@
             logActivity(title,url);
         },
         componentTable: function(row,is_admission) {
-            let html = '<div>';
+            let html_type = '<div>';
+            if(is_admission == 0){
+                if(row.type){
+                    html_type += '<h6 class="fw-bolder">Jenis Tagihan</h6><ul>'
+                    html_type += `<li>${row.type.type.msct_name}</li></ul>`;
+                }
+            }else{
+                if(row.typeNew){
+                    html_type += '<h6 class="fw-bolder">Jenis Tagihan</h6><ul>'
+                    html_type += `<li>${row.typeNew.type.msct_name}</li></ul>`;
+                }
+            }
+            html_type += '</div>';
+            let html = html_type+'<div>';
             let component_schema = is_admission == 0 ? `row.component` : `row.component_new`;
             if (Object.keys(component_schema).length > 0) {
                 html += '<h6 class="fw-bolder">Komponen Tagihan</h6><ul>';

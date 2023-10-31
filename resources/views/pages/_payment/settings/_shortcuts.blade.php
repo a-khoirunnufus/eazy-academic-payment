@@ -31,6 +31,14 @@
             <span>Tarif Per<br>Mata Kuliah</span>
         </div>
     </a>
+    <a href="{{ route('payment.settings.sks-rates') }}" class="eazy-shortcut-item {{ $active == 'sks-rates' ? 'active' : '' }}">
+        <div class="eazy-shortcut-icon">
+            <i data-feather="book"></i>
+        </div>
+        <div class="eazy-shortcut-label">
+            <span>Tarif Per<br>SKS</span>
+        </div>
+    </a>
     <a href="{{ route('payment.settings.registration-form') }}" class="eazy-shortcut-item {{ $active == 'registration-form' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="file-text"></i>

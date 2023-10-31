@@ -64,8 +64,14 @@ class SettingsController extends Controller
             ->get();
         $periods = Period::all();
         $paths = Path::all();
-
         return view('pages._payment.settings.paymentrates.index', compact('school_years', 'periods', 'paths'));
+    }
+
+    public function sksrates()
+    {
+        $studyProgram = Studyprogram::all();
+        $faculty = Faculty::all();
+        return view('pages._payment.settings.sksrates.index', compact('studyProgram', 'faculty'));
     }
 
     public function paymentratesdetail($id)
@@ -89,8 +95,9 @@ class SettingsController extends Controller
                 $data['tahun'] = $data->period->schoolyear->msy_year.' - '.$semester;
             }
         }
+        $types = ComponentType::where('msct_is_show',1)->orderBy('msct_id')->get();
 
-        return view('pages._payment.settings.paymentrates.detail',compact('data','id'));
+        return view('pages._payment.settings.paymentrates.detail',compact('data','id','types'));
     }
 
     public function creditSchema()

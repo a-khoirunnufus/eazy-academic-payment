@@ -35,6 +35,7 @@ class PaymentRateUpdateRequest extends FormRequest
             'cse_csd_id' => 'nullable',
             'is_admission' => 'nullable',
             'title' => 'nullable',
+            'payment_type' => 'required',
         ];
     }
 }

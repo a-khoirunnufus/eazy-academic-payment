@@ -17,6 +17,8 @@ use App\Models\Payment\PeriodPathMajor;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Component;
 use App\Models\Payment\ComponentDetail;
+use App\Models\Payment\ComponentType;
+use App\Models\Payment\PaymentType;
 use App\Models\Payment\CreditSchema;
 use App\Models\Payment\CreditSchemaDetail;
 use App\Models\Payment\CreditSchemaPeriodPath;
@@ -101,7 +103,9 @@ class PaymentRatesController extends Controller
             $search = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->where('cd_is_admission',0)->get();
             $searchNew = ComponentDetail::with('component')->where('mma_id', $mma_id)->where('mlt_id', $mlt_id)->where('path_id', $path_id)->where('period_id', $period_id)->where('cd_is_admission',1)->get();
             $creditNew = CreditSchemaPeriodPath::with('creditSchema')->where('ppm_id', $item->ppm_id)->where('cs_is_admission',1)->get();
-            $data = ['ppm' => $item, 'credit' => $item->credit->where('cs_is_admission',0)->toArray(), 'creditNew' => $creditNew, 'component' => $search, 'componentNew' => $searchNew, 'ppm_id' => $item->ppm_id, 'ppd_id' => $id];
+            $paymentType = PaymentType::with('type')->where('ppm_id', $item->ppm_id)->where('ptp_is_admission',0)->first();
+            $paymentTypeNew = PaymentType::with('type')->where('ppm_id', $item->ppm_id)->where('ptp_is_admission',1)->first();
+            $data = ['ppm' => $item, 'credit' => $item->credit->where('cs_is_admission',0)->toArray(), 'creditNew' => $creditNew, 'component' => $search, 'componentNew' => $searchNew, 'ppm_id' => $item->ppm_id, 'ppd_id' => $id,'type' => $paymentType,'typeNew' => $paymentTypeNew];
             $collection->push($data);
         }
         return datatables($collection)->toJson();
@@ -232,6 +236,19 @@ class PaymentRatesController extends Controller
                     }
                 }
             }
+            if (isset($validated['payment_type'])) {
+                $data = PaymentType::where('msct_id', $validated['payment_type'])->where('ppm_id', $validated['main_ppm_id'])->where('ptp_is_admission',$validated['is_admission'])->first();
+                $paymentType = ComponentType::findorfail($validated['payment_type']);
+                if (!$data) {
+                    PaymentType::create([
+                        'msct_id' => $validated['payment_type'],
+                        'ppm_id' => $validated['main_ppm_id'],
+                        'ptp_is_admission' => $validated['is_admission'],
+                    ]);
+                    $this->addToLogDetail($log_id,$this->getLogTitle('Add Payment Type '.$paymentType->msct_name.' at '.$validated['title']),LogStatus::Success);
+                }
+                $this->addToLogDetail($log_id,$this->getLogTitle('Update Payment Type '.$paymentType->msct_name.' at '.$validated['title']),LogStatus::Success);
+            }
             $text = "Berhasil memperbarui tarif dan pembayaran";
             DB::commit();
         } catch (\Exception $e) {
@@ -315,9 +332,11 @@ class PaymentRatesController extends Controller
             if($is_admission == null){
                 ComponentDetail::where('ppm_id',$ppm_id)->delete();
                 CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->delete();
+                PaymentType::where('ppm_id',$ppm_id)->delete();
             }else{
                 ComponentDetail::where('ppm_id',$ppm_id)->where('cd_is_admission',$is_admission)->delete();
                 CreditSchemaPeriodPath::where('ppm_id',$ppm_id)->where('cs_is_admission',$is_admission)->delete();
+                PaymentType::where('ppm_id',$ppm_id)->where('ptp_is_admission',$is_admission)->delete();
             }
 
             $this->addToLogDetail($log_id,$this->getLogTitle($ppm->majorLectureType->studyProgram->studyprogram_name.' - '.$ppm->majorLectureType->lectureType->mlt_name),LogStatus::Success);
