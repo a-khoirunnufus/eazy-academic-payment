@@ -2,15 +2,17 @@
 
 namespace App\Models\Payment;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
 use App\Models\Payment\ComponentDetail;
-use App\Models\Payment\Payment;
 use App\Models\Payment\LectureType;
+use App\Models\Payment\Payment;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
+use App\Models\Payment\StudentBalanceTrans;
 use App\Models\Payment\Year;
-use App\Models\User;
 
 class Student extends Model
 {
@@ -23,6 +25,21 @@ class Student extends Model
     protected $fillable = [
         'path_id','period_id','msy_id','mlt_id','student_number','student_id','fullname','studyprogram_id'
     ];
+
+    /**
+     * ACCESSORS
+     */
+
+    public function computedCurrentBalance(): Attribute
+    {
+        $last_transaction = $this->balanceTrans->sortByDesc('sbt_time')->first();
+        $balance = $last_transaction?->sbt_closing_balance ?? 0;
+        return Attribute::make(get: fn () => $balance);
+    }
+
+    /**
+     * RELATIONS
+     */
 
     public function lectureType()
     {
@@ -63,11 +80,16 @@ class Student extends Model
 
     public function studyProgram()
     {
-        return $this->belongsTo(Studyprogram::class, 'studyprogram_id','studyprogram_id')->with('faculty');
+        return $this->belongsTo(Studyprogram::class, 'studyprogram_id', 'studyprogram_id')->with('faculty');
     }
 
     public function user()
     {
         return $this->belongsTo(User::class, 'email', 'user_email');
+    }
+
+    public function balanceTrans()
+    {
+        return $this->hasMany(StudentBalanceTrans::class, 'student_number', 'student_number');
     }
 }

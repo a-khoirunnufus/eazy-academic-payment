@@ -43,12 +43,14 @@
     });
 
     async function renderBalanceInfo() {
-        const {balance} = await $.ajax({
-            url: `${_baseURL}/api/payment/student-balance`,
-            data: {student_number: studentMaster.student_number},
+        const res = await $.ajax({
+            url: `${_baseURL}/api/payment/student-balance/transaction`,
+            data: {student_id: studentMaster.student_id},
             processData: true,
             type: 'get'
         });
+
+        const balance = res?.sbt_closing_balance ?? 0;
 
         $('#student-balance-amount').text(Rupiah.format(balance));
     }
@@ -59,9 +61,16 @@
             this.instance = $('#table-balance-transaction').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL+'/api/payment/student-balance/dt-transaction',
+                    url: _baseURL+'/api/payment/student-balance/transaction-datatable',
                     data: function(d) {
-                        d.student_number = studentMaster.student_number;
+                        d.withData = ['type'];
+                        d.withFilter = [
+                            {
+                                column: 'student_number',
+                                operator: '=',
+                                value: studentMaster.student_number
+                            }
+                        ];
                     },
                 },
                 stateSave: false,

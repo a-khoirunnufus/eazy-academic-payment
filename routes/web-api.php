@@ -255,6 +255,11 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('{pma_id}/process-approval', 'App\Http\Controllers\_Payment\Api\Approval\ManualPaymentController@processApproval');
     });
 
+    Route::group(['prefix' => 'students-balance'], function(){
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@studentListDatatable');
+        Route::get('/refresh', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@refreshStudentList');
+    });
+
     // Student Group Routes
     Route::group([], function() {
 
@@ -288,8 +293,8 @@ Route::group(['prefix' => 'payment'], function(){
         });
 
         Route::group(['prefix' => 'student-balance'], function() {
-            Route::get('/', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@balance');
-            Route::get('/dt-transaction', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@dtTransaction');
+            Route::get('/transaction', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@transactionShow');
+            Route::get('/transaction-datatable', 'App\Http\Controllers\_Payment\Api\Student\StudentBalanceController@transactionDatatable');
         });
 
         Route::group(['prefix' => 'student-credit'], function(){
@@ -329,6 +334,8 @@ Route::group(['prefix' => 'payment'], function(){
 
         Route::get('registration-path', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPathIndex');
         Route::get('registration-path/{path_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPathShow');
+
+        Route::get('lecture-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@lectureTypeIndex');
     });
 
     // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');

@@ -995,17 +995,13 @@
             console.log('payment method changed');
 
             // get student balance
-            const {balance: studentBalance} = await $.ajax({
-                async: true,
-                url: `${_baseURL}/api/payment/student-balance`,
-                data: {
-                    student_type: 'student',
-                    student_number: studentMaster.student_number,
-                    participant_id: null,
-                },
+            const res = await $.ajax({
+                url: `${_baseURL}/api/payment/student-balance/transaction`,
+                data: {student_id: studentMaster.student_id},
                 processData: true,
                 type: 'get'
             });
+            const balance = res?.sbt_closing_balance ?? 0;
 
             // clear selected payment method (ui)
             $('.payment-method-list__item').each(function() {

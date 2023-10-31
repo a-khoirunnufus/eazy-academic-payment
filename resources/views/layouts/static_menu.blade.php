@@ -268,6 +268,28 @@
                     </li>
                 </ul>
             </li>
+
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
+                    <i data-feather="check-circle"></i>
+                    <span class="menu-title text-truncate">Saldo Mahasiswa</span>
+                </a>
+                <ul class="menu-content">
+                    <li class="manu__item nav-item {{ 'payment.students-balance.index' == request()->route()->getName() ? 'active' : '' }} mb-50">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.students-balance.index') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">List Mahasiswa</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'payment.students-balance.withdraw' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.students-balance.withdraw') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Penarikan Saldo</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <li class="nav-item mb-50 {{ 'payment.settings.index' == request()->route()->getName() ? 'active' : '' }}">
                 <a class="d-flex align-items-center fw-bold" href="{{ route('payment.settings.index') }}">
                     <i data-feather="settings"></i>
