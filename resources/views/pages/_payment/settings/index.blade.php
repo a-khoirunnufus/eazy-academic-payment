@@ -29,6 +29,15 @@
                     </span>
                 </button>
             </div>
+            <div class="step" data-target="#masterdata-vertical" role="tab" id="masterdata-vertical-trigger">
+                <button type="button" class="step-trigger" aria-selected="false">
+                    <span class="bs-stepper-box">2</span>
+                    <span class="bs-stepper-label">
+                        <span class="bs-stepper-title">Masterdata</span>
+                        <span class="bs-stepper-subtitle">Rules & Options</span>
+                    </span>
+                </button>
+            </div>
             {{-- <div class="step" data-target="#personal-info-vertical" role="tab" id="personal-info-vertical-trigger">
                 <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">2</span>
@@ -37,8 +46,8 @@
                         <span class="bs-stepper-subtitle">Add Personal Info</span>
                     </span>
                 </button>
-            </div>
-            <div class="step" data-target="#address-step-vertical" role="tab" id="address-step-vertical-trigger">
+            </div> --}}
+            {{-- <div class="step" data-target="#address-step-vertical" role="tab" id="address-step-vertical-trigger">
                 <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">3</span>
                     <span class="bs-stepper-label">
@@ -110,6 +119,70 @@
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Edit Tagihan Mahasiswa Baru<br>
                             <small class="text-muted">Membatasi tanggal akhir untuk edit tagihan mahasiswa baru.</small></label>
                         <input type="date" id="vertical-email" name="payment_edit_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_edit_lock_new_cache')->pluck('value')[0]}}" required>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary waves-effect waves-float waves-light btn-submit-action">
+                        <span class="align-middle d-sm-inline-block d-none"><i data-feather="save"></i> Save</span>
+                    </button>
+                </div>
+                </form>
+            </div>
+            <div id="masterdata-vertical" class="content dstepper-block" role="tabpanel" aria-labelledby="masterdata-vertical-trigger">
+
+                <form action="{{ route('payment.settings.update') }}" method="post">
+                @csrf
+                <div class="content-header">
+                    <h5 class="mb-0">Jenis Tagihan</h5>
+                    <small class="text-muted">Pengaturan default jenis tagihan.</small>
+                </div>
+                <div class="row">
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Default Jenis Tagihan Mahasiswa Lama<br>
+                        <small class="text-muted">Menentukan default jenis tagihan mahasiswa lama.</small></label>
+                        <select class="form-select select2" eazy-select2-active name="payment_type_default_cache">
+                            @foreach ($types as $key => $item)
+                                <option value="{{ $item->msct_id }}" @if($item->msct_id == $settings->where('name','payment_type_default_cache')->pluck('value')[0]) selected @endif>{{ $item->msct_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">Default Jenis Tagihan Mahasiswa Baru<br>
+                        <small class="text-muted">Menentukan default jenis tagihan mahasiswa baru.</small></label>
+                        <select class="form-select select2" eazy-select2-active name="payment_type_default_new_cache">
+                            @foreach ($types as $key => $item)
+                                <option value="{{ $item->msct_id }}" @if($item->msct_id == $settings->where('name','payment_type_default_new_cache')->pluck('value')[0]) selected @endif>{{ $item->msct_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <hr>
+                <div class="content-header">
+                    <h5 class="mb-0">SKS</h5>
+                    <small class="text-muted">Pengaturan masterdata SKS.</small>
+                </div>
+                <div class="row">
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">SKS Normal<br>
+                        <small class="text-muted">Default harga untuk SKS normal.</small></label>
+                        <input type="number" id="vertical-username" name="payment_sks_fee_cache" class="form-control" value="{{$settings->where('name','payment_sks_fee_cache')->pluck('value')[0]}}" required>
+                    </div>
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label" for="vertical-username">SKS Praktikum<br>
+                            <small class="text-muted">Default harga untuk SKS Praktikum.</small></label>
+                        <input type="number" id="vertical-email" name="payment_sks_practicum_fee_cache" class="form-control" value="{{$settings->where('name','payment_sks_practicum_fee_cache')->pluck('value')[0]}}" required>
+                    </div>
+                </div>
+                <hr>
+                <div class="content-header mt-1">
+                    <h5 class="mb-0">Mata Kuliah</h5>
+                    <small class="text-muted">Pengaturan harga default mata kuliah.</small>
+                </div>
+                <div class="row">
+                    <div class="mb-1 col-md-12">
+                        <label class="form-label" for="vertical-username">Harga Default Mata Kuliah<br>
+                        <small class="text-muted">Default harga untuk mata kuliah yang belum disetting.</small></label>
+                        <input type="number" id="vertical-username" name="payment_subject_fee_cache" class="form-control" value="{{$settings->where('name','payment_subject_fee_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">

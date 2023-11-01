@@ -24,7 +24,8 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = Settings::all();
-        return view('pages._payment.settings.index', compact('settings'));
+        $types = ComponentType::where('msct_is_show',1)->orderBy('msct_id')->get();
+        return view('pages._payment.settings.index', compact('settings','types'));
     }
 
     public function update(Request $request)

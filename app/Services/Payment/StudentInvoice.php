@@ -249,13 +249,18 @@ class StudentInvoice {
                 ->whereRelation('periodPath.period', 'msy_id', $student->msy_id)
                 ->whereRelation('majorLectureType', 'mma_id', $student->studyprogram_id)
                 ->whereRelation('majorLectureType', 'mlt_id', $student->mlt_id)->firstorfail();
-                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->first();
+                if($paymentType){
+                    $type = $paymentType->msct_id;
+                }else{
+                    $type = $this->getCacheSetting('payment_type_default_cache');
+                }
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
                     'student_number' => $student->student_number,
-                    'prr_type' => $paymentType->msct_id,
+                    'prr_type' => $type,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                 ]);
 
@@ -406,12 +411,17 @@ class StudentInvoice {
                 ->whereRelation('periodPath.period', 'msy_id', $data->student->msy_id)
                 ->whereRelation('majorLectureType', 'mma_id', $data->student->studyprogram_id)
                 ->whereRelation('majorLectureType', 'mlt_id', $data->student->mlt_id)->firstorfail();
-                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->first();
+                if($paymentType){
+                    $type = $paymentType->msct_id;
+                }else{
+                    $type = $this->getCacheSetting('payment_type_default_cache');
+                }
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
-                    'prr_type' => $paymentType->msct_id,
+                    'prr_type' => $type,
                     'student_number' => $data->student->student_number,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                     'prr_dispensation_date' => $data->prr_dispensation_date,
