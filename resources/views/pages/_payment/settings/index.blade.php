@@ -165,12 +165,12 @@
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">SKS Normal<br>
                         <small class="text-muted">Default harga untuk SKS normal.</small></label>
-                        <input type="number" id="vertical-username" name="payment_sks_fee_cache" class="form-control" value="{{$settings->where('name','payment_sks_fee_cache')->pluck('value')[0]}}" required>
+                        <input type="text" class="form-control payment_sks_fee_cache" value="{{$settings->where('name','payment_sks_fee_cache')->pluck('value')[0]}}" required>
                     </div>
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">SKS Praktikum<br>
                             <small class="text-muted">Default harga untuk SKS Praktikum.</small></label>
-                        <input type="number" id="vertical-email" name="payment_sks_practicum_fee_cache" class="form-control" value="{{$settings->where('name','payment_sks_practicum_fee_cache')->pluck('value')[0]}}" required>
+                        <input type="text" class="form-control payment_sks_practicum_fee_cache" value="{{$settings->where('name','payment_sks_practicum_fee_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <hr>
@@ -182,7 +182,7 @@
                     <div class="mb-1 col-md-12">
                         <label class="form-label" for="vertical-username">Harga Default Mata Kuliah<br>
                         <small class="text-muted">Default harga untuk mata kuliah yang belum disetting.</small></label>
-                        <input type="number" id="vertical-username" name="payment_subject_fee_cache" class="form-control" value="{{$settings->where('name','payment_subject_fee_cache')->pluck('value')[0]}}" required>
+                        <input type="text" class="form-control payment_subject_fee_cache" value="{{$settings->where('name','payment_subject_fee_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
@@ -337,6 +337,9 @@
             }
         })
     });
+    _numberCurrencyFormat.load('payment_subject_fee_cache');
+    _numberCurrencyFormat.load('payment_sks_practicum_fee_cache');
+    _numberCurrencyFormat.load('payment_sks_fee_cache');
 </script>
 @if (session('message'))
     <script>

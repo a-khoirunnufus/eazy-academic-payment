@@ -612,6 +612,7 @@ const _toastr = {
     }
 }
 
+
 /**
  * SWAL CONFIRMATION HELPER
  */
@@ -1205,4 +1206,18 @@ function fetchLogActivity(url){
     $.get(_baseURL + url, (log) => {
         $('#logList').html(log);
     })
+}
+
+/**
+ * NUMBER INPUT HELPER
+ */
+const _numberCurrencyFormat = {
+    load: function(selector){
+        $(`<input type="hidden" name="${selector}" id="${selector}" required>`).insertAfter( `.${selector}` );
+        easyNumberSeparator({
+            selector: `.${selector}`,
+            separator: '.',
+            resultInput: `#${selector}`,
+        })
+    }
 }

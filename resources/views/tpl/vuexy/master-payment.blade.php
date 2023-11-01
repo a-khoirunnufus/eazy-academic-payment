@@ -184,8 +184,9 @@
         const _baseURL = "{{ url('/') }}"
         const _csrfToken = "{{ csrf_token() }}"
     </script>
-    <script src="{{ url('js/app.js') }}?version={{ config('version.js_config') }}"></script>
     <script src="{{ url('js/setting.js') }}?version={{ config('version.js_config') }}"></script>
+    <script src="{{ url('js/app.js') }}?version={{ config('version.js_config') }}"></script>
+    <script src="{{ url('js/easy-number-separator.js') }}"></script>
     <script src="{{ url('js/static-data.js') }}"></script>
 
     <script>
