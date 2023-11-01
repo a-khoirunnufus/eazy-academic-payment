@@ -30,10 +30,11 @@ use Carbon\Carbon;
 
 use App\Traits\Models\LoadDataRelationByRequest;
 use App\Traits\Models\LoadDataAppendByRequest;
+use App\Traits\Models\QueryFilterExtendByRequest;
 
 class StudentInvoiceController extends Controller
 {
-    use LoadDataRelationByRequest, LoadDataAppendByRequest;
+    use LoadDataRelationByRequest, LoadDataAppendByRequest, QueryFilterExtendByRequest;
 
     /**
      * Bill Master
@@ -57,6 +58,7 @@ class StudentInvoiceController extends Controller
             'year',
             'dispensation',
         ]);
+        $query = $this->applyFilterWithOperator($query, $request, ['prr_school_year']);
 
         $query = $query->where('student_number', $validated['student_number']);
         if ($validated['status'] == 'unpaid') $query = $query->whereIn('prr_status', ['belum lunas', 'kredit']);

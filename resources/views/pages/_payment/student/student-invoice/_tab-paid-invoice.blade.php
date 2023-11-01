@@ -1,3 +1,26 @@
+<div class="d-flex flex-row gap-1 pb-2 px-1 border-bottom">
+    <x-select-option
+        title="Tahun Akademik"
+        select-id="school-year-filter"
+        resource-url="/api/payment/resource/school-year"
+        value="msy_code"
+        label-template=":msy_year :msy_semester"
+        :label-template-items="['msy_year', [
+            'key' => 'msy_semester',
+            'mapping' => [
+                '1' => 'Ganjil',
+                '2' => 'Genap',
+                '3' => 'Antara',
+            ],
+        ]]"
+    />
+    <div class="d-flex align-items-end">
+        <button onclick="_paidInvoiceTable.reload()" class="btn btn-info text-nowrap">
+            <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+        </button>
+    </div>
+</div>
+
 <table id="table-paid-invoice" class="table table-striped">
     <thead>
         <tr>
@@ -49,6 +72,20 @@
                             'computed_final_bill',
                             'computed_payment_status',
                         ];
+
+                        let filters = [];
+
+                        if (assignFilter('#school-year-filter')) {
+                            filters.push({
+                                column: 'prr_school_year',
+                                operator: '=',
+                                value: assignFilter('#school-year-filter'),
+                            });
+                        }
+
+                        if (filters.length > 0) {
+                            d.withFilter = filters;
+                        }
                     },
                 },
                 ordering: false,

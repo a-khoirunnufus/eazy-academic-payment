@@ -648,6 +648,18 @@
         xhr.send();
     }
 
+    function assignFilter(selector, prefix = null, postfix = null) {
+        let value = $(selector).val();
+
+        if (value === '#ALL')
+            return null;
+
+        if (value)
+            value = `${prefix ?? ''}${value}${postfix ?? ''}`;
+
+        return value;
+    }
+
     // async function renderHeaderInfo() {
     //     const studentType = userMaster.participant ? 'new_student' : 'student';
     //     const studentId = studentType == 'new_student' ? userMaster.participant.par_id : userMaster.student.student_id;
