@@ -497,8 +497,8 @@ class StudentInvoice {
                         $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                     }
                 }
-                $data = Payment::findorfail($prr_id);
-                $data->delete();
+                // $data = Payment::findorfail($prr_id);
+                // $data->delete();
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
