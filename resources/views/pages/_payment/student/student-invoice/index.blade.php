@@ -440,8 +440,8 @@
                     </div>
                     <div class="col text-end">
                         <p>Kepada : ${student.name}</p>
-                        <p>id mahasiswa : ${student.number}</p>
-                        <p>program Studi : ${student.studyprogram}</p>
+                        <p>NIM : ${student.number}</p>
+                        <p>Program Studi : ${student.studyprogram}</p>
                     </div>
                 </div>
                 <table class="table">
@@ -477,8 +477,8 @@
                     '</div>'+
                     '<div class="col text-end">'+
                         `<p>Kepada : ${student.name}</p>`+
-                        `<p>id mahasiswa : ${student.number}</p>`+
-                        `<p>program Studi : ${student.studyprogram}</p>`+
+                        `<p>NIM : ${student.number}</p>`+
+                        `<p>Program Studi : ${student.studyprogram}</p>`+
                     '</div>'+
                 '</div>'+
                 '<table class="table">'+
@@ -613,8 +613,8 @@
                     </div>
                     <div class="col text-end">
                         <p>Kepada : ${student.name}</p>
-                        <p>id mahasiswa : ${student.number}</p>
-                        <p>program Studi : ${student.studyprogram}</p>
+                        <p>NIM : ${student.number}</p>
+                        <p>Program Studi : ${student.studyprogram}</p>
                     </div>
                 </div>
                 ${tableKomponen}
@@ -634,8 +634,8 @@
                     '</div>'+
                     '<div class="col text-end">'+
                         `<p>Kepada : ${student.name}</p>`+
-                        `<p>id mahasiswa : ${student.number}</p>`+
-                        `<p>program Studi : ${student.studyprogram}</p>`+
+                        `<p>NIM : ${student.number}</p>`+
+                        `<p>Program Studi : ${student.studyprogram}</p>`+
                     '</div>'+
                 '</div>'+
                 tableKomponen +
