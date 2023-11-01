@@ -47,7 +47,7 @@ class Register extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'reg_id','reg_id')->with('paymentDetail','paymentBill');
+        return $this->belongsTo(Payment::class, 'reg_id','reg_id')->with('paymentDetail','paymentBill','paymentType');
     }
 
     public function period()

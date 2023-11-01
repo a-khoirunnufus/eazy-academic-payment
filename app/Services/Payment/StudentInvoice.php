@@ -12,6 +12,8 @@ use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\PaymentType;
+use App\Models\Payment\PeriodPathMajor;
 use App\Models\Payment\MasterJob;
 use App\Jobs\Payment\GenerateInvoice;
 use App\Jobs\Payment\GenerateBulkInvoice;
@@ -231,6 +233,7 @@ class StudentInvoice {
             ->where('period_id', $student->period_id)
             ->where('msy_id', $student->msy_id)
             ->where('mlt_id', $student->mlt_id)
+            ->where('mma_id', $student->studyprogram_id)
             ->where('cd_is_admission', $this->is_admission)
             ->get();
         if (!$components->isEmpty()) {
@@ -240,11 +243,19 @@ class StudentInvoice {
             }
             DB::beginTransaction();
             try {
+                $ppm = PeriodPathMajor::with('periodPath','majorLectureType')
+                ->whereRelation('periodPath', 'path_id', $student->path_id)
+                ->whereRelation('periodPath', 'period_id', $student->period_id)
+                ->whereRelation('periodPath.period', 'msy_id', $student->msy_id)
+                ->whereRelation('majorLectureType', 'mma_id', $student->studyprogram_id)
+                ->whereRelation('majorLectureType', 'mlt_id', $student->mlt_id)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
                     'student_number' => $student->student_number,
+                    'prr_type' => $paymentType->msct_id,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                 ]);
 
@@ -378,6 +389,7 @@ class StudentInvoice {
         ->where('period_id', $data->student->period_id)
         ->where('msy_id', $data->student->msy_id)
         ->where('mlt_id', $data->student->mlt_id)
+        ->where('mma_id', $data->student->studyprogram_id)
         ->where('cd_is_admission', $this->is_admission)
         ->get();
 
@@ -388,10 +400,18 @@ class StudentInvoice {
             }
             DB::beginTransaction();
             try {
+                $ppm = PeriodPathMajor::with('periodPath','majorLectureType')
+                ->whereRelation('periodPath', 'path_id', $data->student->path_id)
+                ->whereRelation('periodPath', 'period_id', $data->student->period_id)
+                ->whereRelation('periodPath.period', 'msy_id', $data->student->msy_id)
+                ->whereRelation('majorLectureType', 'mma_id', $data->student->studyprogram_id)
+                ->whereRelation('majorLectureType', 'mlt_id', $data->student->mlt_id)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
+                    'prr_type' => $paymentType->msct_id,
                     'student_number' => $data->student->student_number,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                     'prr_dispensation_date' => $data->prr_dispensation_date,
@@ -467,6 +487,8 @@ class StudentInvoice {
                         $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                     }
                 }
+                $data = Payment::findorfail($prr_id);
+                $data->delete();
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent($data->student,null,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {

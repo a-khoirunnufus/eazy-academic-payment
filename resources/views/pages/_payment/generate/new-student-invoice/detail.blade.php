@@ -131,6 +131,7 @@
                 <th>Nama -<br> Nomor Pendaftaran</th>
                 <th>Tahun Masuk -<br> Jenis Perkuliahan</th>
                 <th>Periode Masuk -<br> Jalur Masuk</th>
+                <th>Jenis <br> Tagihan</th>
                 <th>Total <br> Tagihan</th>
                 <th class="text-center">Status <br> Tagihan</th>
                 <th>Nama</th>
@@ -143,7 +144,7 @@
                 <th>Jenis Perkuliahan</th>
                 <th>Status Mahasiswa</th>
                 <th>Total Tagihan</th>
-                <th>Status</th>
+                <th class="text-center">Status</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -228,6 +229,16 @@
                         }
                     },
                     {
+                        name: 'payment.payment_type',
+                        render: (data, _, row) => {
+                            return `
+                                <div>
+                                    <span class="text-nowrap fw-bold">${(row.payment) ? row.payment.payment_type.msct_name : "-"}</span>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
                         name: 'payment.prr_id',
                         render: (data, _, row) => {
                             return `
@@ -237,24 +248,7 @@
                             `;
                         }
                     },
-                    {
-                        name: 'payment.prr_id',
-                        render: (data, _, row) => {
-                            var status = "";
-                            if(row.payment){
-                                if(row.payment.prr_status == 'lunas'){
-                                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
-                                }else{
-                                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
-                                }
-                            }
-                            return `
-                                <div class="d-flex justify-content-center">
-                                    ${status}
-                                </div>
-                            `;
-                        }
-                    },
+
                     {
                         name: 'participant.par_fullname',
                         data: 'participant.par_fullname'
@@ -328,6 +322,24 @@
                             }else {
                                 return ""
                             }
+                        }
+                    },
+                    {
+                        name: 'payment.prr_id',
+                        render: (data, _, row) => {
+                            var status = "";
+                            if(row.payment){
+                                if(row.payment.prr_status == 'lunas'){
+                                    status = '<div class="badge bg-success" style="font-size: inherit">Lunas</div>'
+                                }else{
+                                    status = '<div class="badge bg-danger" style="font-size: inherit">Belum Lunas</div>'
+                                }
+                            }
+                            return `
+                                <div class="d-flex justify-content-center">
+                                    ${status}
+                                </div>
+                            `;
                         }
                     },
                 ],

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\PMB\Register;
 use App\Models\HR\MsStudent;
 use App\Models\Payment\Year;
+use App\Models\Payment\ComponentType;
 use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\DispensationSubmission;
 use App\Enums\Payment\BillStatus;
@@ -30,7 +31,8 @@ class Payment extends Model
         'student_number',
         'prr_school_year',
         'par_id',
-        'prr_dispensation_date'
+        'prr_dispensation_date',
+        'prr_type'
     ];
 
     /**
@@ -207,6 +209,11 @@ class Payment extends Model
     public function year()
     {
         return $this->hasOne(Year::class, 'msy_code', 'prr_school_year');
+    }
+
+    public function paymentType()
+    {
+        return $this->belongsTo(ComponentType::class, 'prr_type', 'msct_id');
     }
 
     // pengajuan dispensasi yang diapprove

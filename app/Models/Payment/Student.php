@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\LectureType;
 use App\Models\Payment\Payment;
+use App\Models\Payment\PaymentType;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
 use App\Models\Payment\StudentBalanceTrans;
@@ -68,7 +69,7 @@ class Student extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill');
+        return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill','paymentType');
     }
 
     public function getComponent()

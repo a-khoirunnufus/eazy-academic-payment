@@ -12,6 +12,8 @@ use App\Models\Payment\ComponentDetail;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentBill;
 use App\Models\Payment\PaymentDetail;
+use App\Models\Payment\PaymentType;
+use App\Models\Payment\PeriodPathMajor;
 use App\Models\Payment\MasterJob;
 use App\Jobs\Payment\GenerateInvoice;
 use App\Jobs\Payment\GenerateBulkInvoice;
@@ -247,6 +249,7 @@ class NewStudentInvoice {
             ->where('period_id', $student->ms_period_id)
             ->where('msy_id', $student->ms_school_year_id)
             ->where('mlt_id', $student->reg_major_lecture_type_pass)
+            ->where('mma_id', $student->reg_major_pass)
             ->where('cd_is_admission', $this->is_admission)
             ->get();
         if (!$components->isEmpty()) {
@@ -256,11 +259,19 @@ class NewStudentInvoice {
             }
             DB::beginTransaction();
             try {
+                $ppm = PeriodPathMajor::with('periodPath','majorLectureType')
+                ->whereRelation('periodPath', 'path_id', $student->ms_path_id)
+                ->whereRelation('periodPath', 'period_id', $student->ms_period_id)
+                ->whereRelation('periodPath.period', 'msy_id', $student->ms_school_year_id)
+                ->whereRelation('majorLectureType', 'mma_id', $student->reg_major_pass)
+                ->whereRelation('majorLectureType', 'mlt_id', $student->reg_major_lecture_type_pass)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
                     'reg_id' => $student->reg_id,
+                    'prr_type' => $paymentType->msct_id,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                 ]);
 
@@ -394,6 +405,7 @@ class NewStudentInvoice {
         ->where('period_id', $data->register->ms_period_id)
         ->where('msy_id', $data->register->ms_school_year_id)
         ->where('mlt_id', $data->register->reg_major_lecture_type_pass)
+        ->where('mma_id', $data->register->reg_major_pass)
         ->where('cd_is_admission', $this->is_admission)
         ->get();
 
@@ -404,11 +416,19 @@ class NewStudentInvoice {
             }
             DB::beginTransaction();
             try {
+                $ppm = PeriodPathMajor::with('periodPath','majorLectureType')
+                ->whereRelation('periodPath', 'path_id', $data->register->ms_path_id)
+                ->whereRelation('periodPath', 'period_id', $data->register->ms_period_id)
+                ->whereRelation('periodPath.period', 'msy_id', $data->register->ms_school_year_id)
+                ->whereRelation('majorLectureType', 'mma_id', $data->register->reg_major_pass)
+                ->whereRelation('majorLectureType', 'mlt_id', $data->register->reg_major_lecture_type_pass)->firstorfail();
+                $paymentType = PaymentType::where('ppm_id',$ppm->ppm_id)->where('ptp_is_admission',$this->is_admission)->firstorfail();
                 $payment = Payment::create([
                     'prr_status' => 'belum lunas',
                     'prr_total' => $prr_total,
                     'prr_paid_net' => $prr_total,
                     'reg_id' => $data->register->reg_id,
+                    'prr_type' => $paymentType->msct_id,
                     'prr_school_year' => $this->getActiveSchoolYearCode(),
                     'prr_dispensation_date' => $data->prr_dispensation_date,
                 ]);
@@ -483,6 +503,8 @@ class NewStudentInvoice {
                         $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,'Proses regenerate pengajuan kredit gagal, harap melakukan approval ulang'),LogStatus::Failed);
                     }
                 }
+                $data = Payment::findorfail($prr_id);
+                $data->delete();
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent(null,$data->register,'Berhasil regenerate tagihan mahasiswa'),LogStatus::Success);
                 DB::commit();
             } catch (\Exception $e) {
