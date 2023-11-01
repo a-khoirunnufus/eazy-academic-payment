@@ -186,7 +186,6 @@
                             orderable: false,
                             render: (data) => {
                                 const files = JSON.parse(unescapeHtml(data));
-                                console.log(files);
 
                                 if (!files || files?.length == 0) return '-';
 

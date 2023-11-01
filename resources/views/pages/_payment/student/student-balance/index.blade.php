@@ -1,6 +1,6 @@
 @extends('tpl.vuexy.master-payment')
 
-@section('page_title', 'Saldo Mahasiswa')
+@section('page_title', 'Saldo Saya')
 @section('sidebar-size', 'collapsed')
 @section('url_back', '')
 
@@ -9,6 +9,9 @@
 @endsection
 
 @section('content')
+
+    @include('pages._payment.student.student-balance._shortcuts', ['active' => 'index'])
+
     <div class="card">
         <div class="card-body">
             <p>Total Saldo</p>
@@ -117,6 +120,10 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: _datatableBtnExportTemplate({
+                    btnTypes: ['print', 'csv', 'excel', 'pdf', 'copy'],
+                    exportColumns: [0, 1, 2, 3],
+                }),
                 initComplete: function() {
                     $('.overpayment-transaction-actions').html(`
                         <h5>Riwayat Transaksi</h5>

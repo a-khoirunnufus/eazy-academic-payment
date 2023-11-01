@@ -120,7 +120,7 @@ class StudentBalanceController extends Controller
     public function withdrawDatatable(Request $request)
     {
         $query = DB::table('finance.vw_student_balance_withdraw_master');
-        $this->applyFilterWoFc($query, $request, ['amount', 'issuer_id', 'issued_time']);
+        $this->applyFilterWoFc($query, $request, ['student_id', 'amount', 'issuer_id', 'issued_time']);
 
         $datatable = datatables($query);
 
@@ -152,7 +152,7 @@ class StudentBalanceController extends Controller
             }
 
             $url_files = [];
-            if (!config('app.disable_cloud_storage')) {
+            if (!config('app.disable_cloud_storage') && isset($validated['sbw_related_files'])) {
                 foreach ($validated['sbw_related_files'] as $file) {
                     $upload_success = Storage::disk('minio')->putFile('payment/student_balance_withdraw', $file);
                     if ($upload_success) {
@@ -174,7 +174,7 @@ class StudentBalanceController extends Controller
             StudentBalanceTrans::create([
                 'student_number' => $student->student_number,
                 'sbt_opening_balance' => $student_current_balance,
-                'sbt_amount' => (int)$validated['sbw_amount'],
+                'sbt_amount' => (int)$validated['sbw_amount'] * -1,
                 'sbtt_name' => 'withdraw',
                 'sbtt_associate_id' => $withdraw->sbw_id,
                 'sbt_closing_balance' => $student_current_balance - (int)$validated['sbw_amount'],
