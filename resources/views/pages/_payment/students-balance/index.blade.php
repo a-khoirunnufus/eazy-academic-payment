@@ -83,7 +83,6 @@
 
 @endsection
 
-
 @section('js_section')
     <script>
         $(function() {
@@ -95,7 +94,7 @@
             init: function() {
                 this.instance = $('#table-list-student').DataTable({
                     ajax: {
-                        url: _baseURL + '/api/payment/students-balance',
+                        url: _baseURL + '/api/payment/students-balance/datatable',
                         data: function(d) {
                             let filters = [];
 

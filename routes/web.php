@@ -113,8 +113,8 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 
     // Students Balance
     Route::group(['prefix' => 'students-balance'], function() {
-        Route::get('/', fn() => view('pages._payment.students-balance.index'))->name('payment.students-balance.index');
-        Route::get('withdraw', fn() => view('pages._payment.students-balance.withdraw'))->name('payment.students-balance.withdraw');
+        Route::get('/', 'App\Http\Controllers\_Payment\StudentsBalanceController@index')->name('payment.students-balance.index');
+        Route::get('withdraw', 'App\Http\Controllers\_Payment\StudentsBalanceController@withdraw')->name('payment.students-balance.withdraw');
     });
 
     // Student Routes
