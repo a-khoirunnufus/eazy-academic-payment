@@ -117,7 +117,7 @@
                 </select>
             </div>
             <div class="d-flex align-items-end">
-                <button class="btn btn-info" onclick="_ratesPerCourseTable.reload()">
+                <button class="btn btn-info" onclick="_ratesPerSKSTable.reload()">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -126,7 +126,7 @@
 </div>
 
 <div class="card">
-    <table id="rates-per-course-table" class="table table-striped">
+    <table id="rates-per-sks-table" class="table table-striped">
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
@@ -139,7 +139,7 @@
         <tbody></tbody>
     </table>
 </div>
-
+{{--
 <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen modal-dialog-centered">
         <div class="modal-content">
@@ -215,7 +215,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 @endsection
 
 
@@ -223,7 +223,6 @@
 <script>
     var dataCopy = null;
     var spIdCopy = null;
-    var cIdCopy = null;
     var searchInput = '#ALL';
     var dt;
 
@@ -237,27 +236,27 @@
     // $('#prevTable').DataTable();
 
     $(function() {
-        _ratesPerCourseTable.init()
+        _ratesPerSKSTable.init()
     })
 
     const _Filter = {
         init: function() {
             _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'mcr_studyprogram_id',
+                optionUrl: _baseURL + '/api/payment/settings/sksrates/studyprogram',
+                nameField: 'msr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name'
             });
         }
     }
 
-    const _ratesPerCourseTable = {
+    const _ratesPerSKSTable = {
         ..._datatable,
         init: function() {
-            dt = this.instance = $('#rates-per-course-table').DataTable({
+            dt = this.instance = $('#rates-per-sks-table').DataTable({
                 serverSide: true,
                 ajax: {
-                    url: _baseURL + '/api/payment/settings/courserates/index',
+                    url: _baseURL + '/api/payment/settings/sksrates/index',
                     data: function(d) {
                         d.custom_filter = {
                             'studyprogram_id': $('select[name="studyprogram-filter"]').val(),
@@ -269,14 +268,14 @@
                 columns: [
                     {
                         name: 'action',
-                        data: 'mcr_id',
+                        data: 'msr_id',
                         orderable: false,
                         render: (data, _, row) => {
                             return this.template.rowAction(row)
                         }
                     },
                     {
-                        name: 'course.subject_code',
+                        name: 'study_program.studyprogram_name',
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -287,22 +286,22 @@
                         }
                     },
                     {
-                        name: 'mcr_tingkat',
-                        data: 'mcr_tingkat',
+                        name: 'msr_tingkat',
+                        data: 'msr_tingkat',
                         render: (data) => {
                             return 'Tingkat ' + data;
                         }
                     },
                     {
-                        name: 'mcr_rate',
-                        data: 'mcr_rate',
+                        name: 'msr_rate',
+                        data: 'msr_rate',
                         render: (data) => {
                             return Rupiah.format(data);
                         }
                     },
                     {
-                        name: 'mcr_rate',
-                        data: 'mcr_rate',
+                        name: 'msr_rate_practicum',
+                        data: 'msr_rate_practicum',
                         render: (data) => {
                             return Rupiah.format(data);
                         }
@@ -319,20 +318,69 @@
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        className: 'btn btn-outline-secondary dropdown-toggle',
+                        text: feather.icons['external-link'].toSvg({class: 'font-small-4 me-50'}) + 'Export',
+                        buttons: [
+                            {
+                                extend: 'print',
+                                text: feather.icons['printer'].toSvg({class: 'font-small-4 me-50'}) + 'Print',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'csv',
+                                text: feather.icons['file-text'].toSvg({class: 'font-small-4 me-50'}) + 'Csv',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: feather.icons['file'].toSvg({class: 'font-small-4 me-50'}) + 'Excel',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: feather.icons['clipboard'].toSvg({class: 'font-small-4 me-50'}) + 'Pdf',
+                                orientation: 'landscape',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            },
+                            {
+                                extend: 'copy',
+                                text: feather.icons['copy'].toSvg({class: 'font-small-4 me-50'}) + 'Copy',
+                                className: 'dropdown-item',
+                                exportOptions: {
+                                    columns: [1,2,3,4]
+                                }
+                            }
+                        ],
+                    }
+                ],
                 initComplete: function() {
                     $('.rate-per-course-actions').html(`
                         <div style="margin-bottom: 7px">
-                            <button onclick="_ratesPerCourseTableActions.add()" class="btn btn-info me-1">
+                            <button onclick="_ratesPerSKSTableActions.add()" class="btn btn-info me-1">
                                 <span style="vertical-align: middle">
                                     <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
                                     Tambah Tarif Per SKS
                                 </span>
                             </button>
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">Import</button>
                         </div>
                     `)
                     $('.myFilter').html(`
-                        <div id="rates-per-course-table_filter" class="dataTables_filter">
+                        <div id="rates-per-sks-table_filter" class="dataTables_filter">
                             <label><input type="text" class="form-control" placeholder="Cari Data" id="searchInput" onkeypress="keyListener(event)"></label>
                         </div>
                     `)
@@ -349,9 +397,9 @@
                             <i data-feather="more-vertical" style="width: 18px; height: 18px"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a onclick="_ratesPerCourseTableActions.edit(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerCourseTableActions.copy(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
-                            <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
+                            <a onclick="_ratesPerSKSTableActions.edit(${row.study_program.studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
+                            <a onclick="_ratesPerSKSTableActions.copy(${row.study_program.studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
+                            <a onclick="_ratesPerSKSTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
                 `
@@ -359,16 +407,16 @@
         }
     }
 
-    const _ratesPerCourseTableActions = {
-        tableRef: _ratesPerCourseTable,
-        courseRateInputField: function(id = 0, rate = 0, is_package = null, tingkat = null) {
-            $('#courseRateInput').append(`
-                <div class="d-flex flex-wrap align-items-center mb-1 courseRateInputField" style="gap:10px"
+    const _ratesPerSKSTableActions = {
+        tableRef: _ratesPerSKSTable,
+        SKSRateInputField: function(id = 0, rate = 0, rate_practicum = 0, tingkat = null) {
+            $('#SKSRateInput').append(`
+                <div class="d-flex flex-wrap align-items-center mb-1 SKSRateInputField" style="gap:10px"
                     id="comp-order-preview-0">
-                    <input type="hidden" name="mcr_id[]" value="${id}">
+                    <input type="hidden" name="id[]" value="${id}">
                     <div class="flex-fill">
                         <label class="form-label">Tingkat</label>
-                        <select class="form-select select2" eazy-select2-active name="mcr_tingkat[]" id="tingkat${id}" value="">
+                        <select class="form-select select2" eazy-select2-active name="msr_tingkat[]" id="tingkat${id}" value="">
                             <option value="1">Tingkat 1</option>
                             <option value="2">Tingkat 2</option>
                             <option value="3">Tingkat 3</option>
@@ -378,19 +426,19 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif SKS Normal</label>
-                        <input type="text" class="form-control comp_price" name="mcr_rate[]" value="${rate}"
-                            placeholder="Tarif Mata Kuliah">
+                        <input type="text" class="form-control comp_price" name="msr_rate[]" value="${rate}"
+                            placeholder="Tarif SKS Normal">
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif SKS Praktikum</label>
-                        <input type="text" class="form-control comp_price" name="mcr_rate[]" value="${rate}"
-                            placeholder="Tarif Mata Kuliah">
+                        <input type="text" class="form-control comp_price" name="msr_rate_practicum[]" value="${rate_practicum}"
+                            placeholder="Tarif Praktikum">
                     </div>
                     <div class="d-flex align-content-end">
                         <div class="">
                             <label class="form-label" style="opacity: 0">#</label>
                             <a class="btn btn-danger text-white btn-sm d-flex" style="height: 36px"
-                            onclick="_ratesPerCourseTableActions.courseRateDeleteField(this,${id})"> <i class="bx bx-trash m-auto"></i> </a>
+                            onclick="_ratesPerSKSTableActions.courseRateDeleteField(this,${id})"> <i class="bx bx-trash m-auto"></i> </a>
                         </div>
                     </div>
                 </div>
@@ -399,55 +447,23 @@
                 $("#tingkat" + id + "").val(tingkat);
                 $("#tingkat" + id + "").trigger('change');
             }
-            if (is_package) {
-                $("#paket" + id + "").val(is_package);
-                $("#paket" + id + "").trigger('change');
-            }
         },
         courseRateDeleteField: function(e, id) {
             if (id === 0) {
-                $(e).parents('.courseRateInputField').get(0).remove();
+                $(e).parents('.SKSRateInputField').get(0).remove();
             } else {
-                _ratesPerCourseTableActions.delete(e, id);
+                _ratesPerSKSTableActions.delete(e, id);
             }
         },
-        // courseRateStore: function(){
-        //     const formData = new FormData($('#coureRateForm')[0]);
-        //     $.post(_baseURL + '/api/payment/settings/courserates/store',$("#coureRateForm").serialize(), function(data){
-        //         data = JSON.parse(data)
-        //         Swal.fire({
-        //             icon: 'success',
-        //             text: data.message,
-        //         }).then(() => {
-        //             this.tableRef.reload()
-        //         })
-        //         $("#programStudy").val("").trigger("change");
-        //         $("#courseId").val("").trigger("change");
-        //         $('#courseRateInput').empty();
-        //         $("#mainModal").modal('hide');
-        //     }).fail((error) => {
-        //         Swal.fire({
-        //             icon: 'error',
-        //             text: data.text,
-        //         });
-        //     })
-        // },
-        add: function() {
-            // $("#mainModal").modal('show');
-            // $('#mainModal').on('hidden.bs.modal', function (event) {
-            //     $("#programStudy").val("").trigger("change");
-            //     $("#courseId").val("").trigger("change");
-            //     $('#courseRateInput').empty();
-            //     $("#mainModal").modal('hide');
-            // });
 
+        add: function() {
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Tarif Per SKS',
                 modalSize: 'lg',
                 config: {
                     formId: 'form-add-rates-per-course',
-                    formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
+                    formActionUrl: _baseURL + '/api/payment/settings/sksrates/store',
                     formType: 'add',
                     isTwoColumn: false,
                     fields: {
@@ -458,7 +474,7 @@
                                     <div class="row">
                                         <div class="col-lg-12 col-md-12">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id">
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="msr_studyprogram_id">
                                             </select>
                                         </div>
                                     </div>
@@ -474,13 +490,13 @@
                                     <div>
                                     <button type="button"
                                         class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
-                                        onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
+                                        onclick="_ratesPerSKSTableActions.SKSRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
-                                    <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>
+                                    <button type="button" class="btn btn-success" onclick="_ratesPerSKSTableActions.paste('component')">Paste</button>
                                     </div>
 
                                 </div>
-                                <div id="courseRateInput">
+                                <div id="SKSRateInput">
                                 </div>
                                 `
                             },
@@ -493,46 +509,35 @@
                     </small>`,
                     callback: function() {
                         // ex: reload table
-                        _ratesPerCourseTable.reload()
+                        _ratesPerSKSTable.reload()
                     },
                 },
             });
             $('#programStudy').empty().trigger("change");
-            $('#courseRateInput').empty();
+            $('#SKSRateInput').empty();
             _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'mcr_studyprogram_id',
+                optionUrl: _baseURL + '/api/payment/settings/sksrates/studyprogram',
+                nameField: 'msr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name'
             });
 
             $("#programStudy").change(function() {
-                studyProgramId = $(this).val();
-                $('#courseId').empty().trigger("change");
-                $('#courseRateInput').empty();
-                _options.load({
-                    optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
-                    nameField: 'mcr_course_id',
-                    idData: 'course_id',
-                    nameData: 'subject_name'
-                });
+                $('#SKSRateInput').empty();
+                _ratesPerSKSTableActions.tarif("#programStudy");
             })
-            $("#courseId").change(function() {
-                _ratesPerCourseTableActions.tarif("#courseId");
-            })
-
         },
         tarif: function(e) {
-            courseId = $(e).val();
-            if (courseId) {
-                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
+            studyProgram = $(e).val();
+            if (studyProgram) {
+                $.post(_baseURL + '/api/payment/settings/sksrates/getbystudyprogramid/' + studyProgram, {
                     _method: 'GET'
                 }, function(data) {
                     data = JSON.parse(data)
-                    $('#courseRateInput').empty();
+                    $('#SKSRateInput').empty();
                     if (Object.keys(data).length > 0) {
                         data.map(item => {
-                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
+                            _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
                         })
                     }
                     console.log(data);
@@ -544,15 +549,15 @@
                 })
             }
         },
-        edit: function(spId, cId) {
+        edit: function(spId) {
 
             Modal.show({
                 type: 'form',
-                modalTitle: 'Edit Tarif Matakuliah',
+                modalTitle: 'Edit Tarif SKS',
                 modalSize: 'lg',
                 config: {
-                    formId: 'form-edit-rates-per-course',
-                    formActionUrl: _baseURL + '/api/payment/settings/courserates/store',
+                    formId: 'form-edit-sks-per-course',
+                    formActionUrl: _baseURL + '/api/payment/settings/sksrates/store',
                     formType: 'edit',
                     isTwoColumn: false,
                     fields: {
@@ -561,18 +566,12 @@
                             content: {
                                 template: `<div class="mb-2">
                                     <div class="row">
-                                        <div class="col-lg-6 col-md-6">
+                                        <div class="col-lg-12 col-md-12">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id" disabled>
+                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="msr_studyprogram_id" disabled>
                                             </select>
                                         </div>
-                                        <div class="col-lg-6 col-md-6">
-                                            <label class="form-label">Mata Kuliah</label>
-                                            <select class="form-select select2" eazy-select2-active id="courseId" name="mcr_course_id" disabled>
-                                            </select>
-                                        </div>
-                                        <input type="hidden" name="mcr_studyprogram_id" value="${spId}" />
-                                        <input type="hidden" name="mcr_course_id" value="${cId}" />
+                                        <input type="hidden" name="msr_studyprogram_id" value="${spId}" />
                                     </div>
                                 </div>`
                             },
@@ -585,10 +584,10 @@
                                     <h4 class="fw-bolder mb-0">Tarif Per Tingkat</h4>
                                     <button type="button"
                                         class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
-                                        onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
+                                        onclick="_ratesPerSKSTableActions.SKSRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
                                 </div>
-                                <div id="courseRateInput">
+                                <div id="SKSRateInput">
                                 </div>
                                 `
                             },
@@ -601,48 +600,35 @@
                     </small>`,
                     callback: function() {
                         // ex: reload table
-                        _ratesPerCourseTable.reload()
+                        _ratesPerSKSTable.reload()
                     },
                 },
             });
 
             $('#programStudy').empty().trigger("change");
-            $('#courseRateInput').empty();
+            $('#SKSRateInput').empty();
             _options.load({
-                optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                nameField: 'mcr_studyprogram_id',
+                optionUrl: _baseURL + '/api/payment/settings/sksrates/studyprogram',
+                nameField: 'msr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name',
                 val: spId
             });
 
             $("#programStudy").change(function() {
-                studyProgramId = $(this).val();
-                $('#courseId').empty().trigger("change");
-                $('#courseRateInput').empty();
-                _options.load({
-                    optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
-                    nameField: 'mcr_course_id',
-                    idData: 'course_id',
-                    nameData: 'subject_name',
-                    val: cId
-                });
-            })
-
-            $("#courseId").change(function() {
-                courseId = $(this).val();
-                if (courseId) {
-                    $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + courseId, {
+                $('#SKSRateInput').empty();
+                studyProgram = $(this).val();
+                if (studyProgram) {
+                    $.post(_baseURL + '/api/payment/settings/sksrates/getbystudyprogramid/' + studyProgram, {
                         _method: 'GET'
                     }, function(data) {
                         data = JSON.parse(data)
-                        $('#courseRateInput').empty();
+                        $('#SKSRateInput').empty();
                         if (Object.keys(data).length > 0) {
                             data.map(item => {
-                                _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
+                                _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
                             })
                         }
-                        console.log(data);
                     }).fail((error) => {
                         Swal.fire({
                             icon: 'error',
@@ -653,17 +639,17 @@
             })
         },
         delete: function(e, id = 0) {
-            let data = _ratesPerCourseTable.getRowData(e);
-            let mcrId = 0;
+            let data = _ratesPerSKSTable.getRowData(e);
+            let msrId = 0;
             if (id == 0) {
-                mcrId = data.mcr_id;
+                msrId = data.msr_id;
             } else {
-                mcrId = id;
+                msrId = id;
             }
-            console.log(mcrId);
+            console.log(msrId);
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah anda yakin ingin menghapus tarif mata kuliah ini?',
+                text: 'Apakah anda yakin ingin menghapus tarif SKS ini?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ea5455',
@@ -672,7 +658,7 @@
                 cancelButtonText: 'Batal',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post(_baseURL + '/api/payment/settings/courserates/delete/' + mcrId, {
+                    $.post(_baseURL + '/api/payment/settings/sksrates/delete/' + msrId, {
                         _method: 'DELETE'
                     }, function(data) {
                         data = JSON.parse(data)
@@ -680,9 +666,9 @@
                             icon: 'success',
                             text: data.message,
                         }).then(() => {
-                            _ratesPerCourseTable.reload();
+                            _ratesPerSKSTable.reload();
                             if (id != 0) {
-                                _ratesPerCourseTableActions.tarif("#courseId");
+                                _ratesPerSKSTableActions.tarif("#programStudy");
                             }
                         });
                     }).fail((error) => {
@@ -695,47 +681,21 @@
                 }
             })
         },
-        copy: function(spId, cId) {
+        copy: function(spId) {
             spIdCopy = spId;
-            cIdCopy = cId;
         },
         paste: function(type) {
-            if (type == "prodi") {
-                $('#programStudy').empty().trigger("change");
-                $('#courseRateInput').empty();
-                _options.load({
-                    optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                    nameField: 'mcr_studyprogram_id',
-                    idData: 'studyprogram_id',
-                    nameData: 'studyprogram_name',
-                    val: spIdCopy
-                });
-
-                $("#programStudy").change(function() {
-                    studyProgramId = $(this).val();
-                    $('#courseId').empty().trigger("change");
-                    $('#courseRateInput').empty();
-                    _options.load({
-                        optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
-                        nameField: 'mcr_course_id',
-                        idData: 'course_id',
-                        nameData: 'subject_name',
-                        val: cIdCopy
-                    });
-                })
-            }
             if (type == "component") {
-                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + cIdCopy, {
+                $.post(_baseURL + '/api/payment/settings/sksrates/getbystudyprogramid/' + spIdCopy, {
                     _method: 'GET'
                 }, function(data) {
                     data = JSON.parse(data)
-                    $('#courseRateInput').empty();
+                    $('#SKSRateInput').empty();
                     if (Object.keys(data).length > 0) {
                         data.map(item => {
-                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
+                            _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
                         })
                     }
-                    console.log(data);
                 }).fail((error) => {
                     Swal.fire({
                         icon: 'error',
@@ -744,75 +704,6 @@
                 })
             }
         }
-    }
-
-    function myImport(type) {
-        console.log('import actions');
-        var x = document.getElementById("MyFile");
-        console.log(x.files);
-        var txt = "";
-        if ('files' in x) {
-            if (x.files.length > 0) {
-                var formData = new FormData();
-                formData.append("file", x.files[0]);
-                formData.append("_token", "{{ csrf_token() }}");
-                var xhr = new XMLHttpRequest();
-                xhr.onload = function() {
-                    var response = JSON.parse(this.responseText);
-                    if (type == "preview") {
-                        // $('#prevTable').DataTable().clear().destroy();
-                        // $('#prevTable').DataTable().empty();
-
-                        var target = document.querySelector('#prevTable').querySelector('tbody');
-                        target.innerHTML = '';
-                        for (var i = 0; i < response.length; i++) {
-                            var element = '<tr>';
-                            element += '<td rowspan="' + response[i].tarif_per_tingkat.length + '" class="text-center align-middle">' + response[i].program_studi_id.split('-')[1] + '</td>'
-                            element += '<td rowspan="' + response[i].tarif_per_tingkat.length + '" class="text-center align-middle">' + response[i].course_id.split('-')[1] + '</td>'
-                            for (var j = 0; j < response[i].tarif_per_tingkat.length; j++) {
-                                if (j >= 1) {
-                                    element += j == 1 ? '</tr><tr>' : '<tr>'
-                                }
-                                element += '<td>' + response[i].tarif_per_tingkat[j].tingkat + '</td>'
-                                element += '<td>' + response[i].tarif_per_tingkat[j].tarif + '</td>'
-                                element += '<td>' + response[i].tarif_per_tingkat[j].paket.split('-')[1] + '</td>'
-                                if (j >= 1) {
-                                    element += '</tr>'
-                                }
-                            }
-                            element += response[i].tarif_per_tingkat.length > 1 ? '' : '</tr>';
-                            console.log(element);
-                            target.innerHTML += element
-                        }
-                        // $('#prevTable').DataTable();
-                    } else {
-                        console.log(response)
-                        if (response.status) {
-                            $('#importModal').modal('hide')
-                            Swal.fire(response.message, '', 'success');
-                            dt.clear().destroy();
-                            _ratesPerCourseTable.init()
-                        }
-                    }
-                }
-                var endpoint = "";
-                if (type == "preview") {
-                    endpoint = _baseURL + '/api/payment/settings/courserates/preview';
-                } else {
-                    endpoint = _baseURL + '/api/payment/settings/courserates/import';
-                }
-                xhr.open("POST", endpoint, true);
-                xhr.send(formData);
-            }
-        }
-    }
-
-    function importBtn() {
-        $('#myModalContainer').addClass('d-flex').removeClass('d-none');
-    }
-
-    function closeImport() {
-        $('#myModalContainer').addClass("d-none").removeClass("d-flex");
     }
 
     function setProdiFilter(id) {
@@ -829,12 +720,8 @@
                 `)
             })
         }
-        xhr.open("GET", _baseURL + "/api/payment/settings/courserates/studyprogram/" + id, true);
+        xhr.open("GET", _baseURL + "/api/payment/settings/sksrates/studyprogram/" + id, true);
         xhr.send();
-    }
-
-    function downloadTemplate() {
-        window.open(_baseURL + "/payment/settings/courserates/template");
     }
 
     function keyListener(event){
@@ -842,7 +729,7 @@
             searchInput = $('#searchInput').val();
             $('#searchInput').val('');
             // dt.ajax.reload();
-            _ratesPerCourseTable.reload();
+            _ratesPerSKSTable.reload();
         }
     }
 </script>

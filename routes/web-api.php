@@ -56,6 +56,17 @@ Route::group(['prefix' => 'payment'], function(){
         Route::post('courserates/preview', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@preview');
         Route::delete('courserates/delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@delete');
 
+        Route::group(['prefix' => 'sksrates'], function(){
+            Route::get('index', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@index');
+            // Route::get('template', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@template');
+            Route::get('studyprogram/{id?}', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@getStudyProgram');
+            Route::get('getbystudyprogramid/{id}', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@getSKSRateByStudyProgramId');
+            Route::post('store', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@store');
+            // Route::post('import', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@import');
+            // Route::post('preview', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@preview');
+            Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Settings\SKSRatesController@delete');
+        });
+
         Route::get('paymentrates/index', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@index');
         Route::get('paymentrates/getrowdata/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@getRowData');
         Route::get('paymentrates/detail/{id}', 'App\Http\Controllers\_Payment\Api\Settings\PaymentRatesController@detail');
