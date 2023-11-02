@@ -21,8 +21,7 @@ class ComponentInvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $query = Component::query();
-        $query = $query->orderBy('msc_id');
+        $query = Component::with('componentType')->orderBy('msc_id')->get();
         // $query = $this->loadRelation($query, $request, ['faculty']);
         // $query = $this->applyFilter($query, $request, [
         //     'studyprogram_active_status', 'faculty_id'

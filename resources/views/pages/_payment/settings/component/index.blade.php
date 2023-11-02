@@ -23,6 +23,7 @@
         <thead>
             <tr>
                 <th class="text-center">Aksi</th>
+                <th>Jenis Tagihan</th>
                 <th>Kode Komponen</th>
                 <th>Komponen Tagihan</th>
                 <th class="text-center">Mahasiswa Lama</th>
@@ -137,6 +138,7 @@
                             return this.template.rowAction(data)
                         }
                     },
+                    {name: 'component_type.msct_name', data: 'component_type.msct_name'},
                     {name: 'msc_name', data: 'msc_name'},
                     {name: 'msc_description', data: 'msc_description'},
                     {

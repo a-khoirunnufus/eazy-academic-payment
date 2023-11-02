@@ -5,6 +5,7 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Payment\ComponentType;
 
 class Component extends Model
 {
@@ -20,4 +21,9 @@ class Component extends Model
     protected $fillable = [
         'msc_name','msc_description','active_status','msc_is_student','msc_is_new_student','msc_is_participant','msct_id'
     ];
+
+    public function componentType()
+    {
+        return $this->belongsTo(ComponentType::class, 'msct_id', 'msct_id');
+    }
 }
