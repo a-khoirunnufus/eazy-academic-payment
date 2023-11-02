@@ -113,7 +113,12 @@ class StudentInvoice {
             ->with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
         }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
-            ->select('hr.ms_student.*');
+        ->leftJoin('finance.payment_re_register as prr', function ($join) use ($schoolYearCode) {
+            $join->on('prr.student_number', '=', 'hr.ms_student.student_number');
+            $join->where('prr.prr_school_year', '=', $schoolYearCode);
+            $join->where('prr.deleted_at', '=', null);
+        })
+        ->select('hr.ms_student.*');
         if ($data['f'] != 0 && $data['f']) {
             $query = $query->where('sp.faculty_id', $data['f']);
         }

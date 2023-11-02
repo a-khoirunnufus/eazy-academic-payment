@@ -114,6 +114,11 @@ class NewStudentInvoice {
             ->with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
         }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'pmb.register.reg_major_pass')
+        ->leftJoin('finance.payment_re_register', function ($join) use ($schoolYearCode) {
+            $join->on('finance.payment_re_register.reg_id', '=', 'pmb.register.reg_id');
+            $join->where('finance.payment_re_register.prr_school_year', '=', $schoolYearCode);
+            $join->where('finance.payment_re_register.deleted_at', '=', null);
+        })
             ->where('ms_school_year_id',$schoolYearId)
             ->where('re_register_status',1)
             ->select('pmb.register.*');
@@ -201,7 +206,7 @@ class NewStudentInvoice {
         $student = Register::query()
             ->with('studyProgram', 'lectureType', 'period', 'path', 'year', 'getComponent')
             ->leftJoin('finance.payment_re_register', function ($join) use ($activeSchoolYearCode) {
-                $join->on('finance.payment_re_register.student_number', '=', 'pmb.register.reg_id');
+                $join->on('finance.payment_re_register.reg_id', '=', 'pmb.register.reg_id');
                 $join->where('finance.payment_re_register.prr_school_year', '=', $activeSchoolYearCode);
                 $join->where('finance.payment_re_register.deleted_at', '=', null);
             });
