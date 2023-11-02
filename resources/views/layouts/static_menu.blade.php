@@ -277,7 +277,7 @@
 
             <li class="nav-item mb-50">
                 <a class="d-flex align-items-center fw-bold" href="#">
-                    <i data-feather="check-circle"></i>
+                    <i data-feather="dollar-sign"></i>
                     <span class="menu-title text-truncate">Saldo Mahasiswa</span>
                 </a>
                 <ul class="menu-content">

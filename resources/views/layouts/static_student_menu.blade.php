@@ -23,11 +23,25 @@
                     <span class="menu-title text-truncate">Tagihan</span>
                 </a>
             </li>
-            <li class="nav-item mb-50 {{ 'payment.student-balance.index' == request()->route()->getName() ? 'active' : '' }}">
-                <a class="d-flex align-items-center fw-bold" href="{{ route('payment.student-balance.index') }}">
-                    <i data-feather="file-text"></i>
+            <li class="nav-item mb-50">
+                <a class="d-flex align-items-center fw-bold" href="#">
+                    <i data-feather="dollar-sign"></i>
                     <span class="menu-title text-truncate">Saldo Mahasiswa</span>
                 </a>
+                <ul class="menu-content">
+                    <li class="manu__item nav-item {{ 'payment.student-balance.index' == request()->route()->getName() ? 'active' : '' }} mb-50">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.student-balance.index') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Saldo Saya</span>
+                        </a>
+                    </li>
+                    <li class="menu__item nav-item {{ 'payment.student-balance.withdraw' == request()->route()->getName() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ route('payment.student-balance.withdraw') }}">
+                            <i data-feather="circle"></i>
+                            <span class="menu-title text-truncate">Riwayat Penarikan Saldo</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
             <li class="nav-item mb-50 {{ 'payment.student-credit.index' == request()->route()->getName() ? 'active' : '' }}">
                 <a class="d-flex align-items-center fw-bold" href="{{ route('payment.student-credit.index') }}">

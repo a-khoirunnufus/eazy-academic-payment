@@ -16,4 +16,11 @@ class StudentBalanceController extends Controller
 
         return view('pages._payment.student.student-balance.index', compact('student'));
     }
+
+    public function withdraw(Request $request)
+    {
+        $student = $this->getStudentData();
+
+        return view('pages._payment.student.student-balance.withdraw', compact('student'));
+    }
 }

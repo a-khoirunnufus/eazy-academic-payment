@@ -128,7 +128,10 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
             Route::get('invoice-cicilan', 'App\Http\Controllers\_Payment\StudentInvoiceController@invoiceCicilan');
         });
 
-        Route::get('/student-balance', 'App\Http\Controllers\_Payment\StudentBalanceController@index')->name('payment.student-balance.index');
+        Route::group(['prefix' => 'student-balance'], function() {
+            Route::get('/', 'App\Http\Controllers\_Payment\StudentBalanceController@index')->name('payment.student-balance.index');
+            Route::get('withdraw', 'App\Http\Controllers\_Payment\StudentBalanceController@withdraw')->name('payment.student-balance.withdraw');
+        });
 
         Route::group(['prefix' => 'student-dispensation'], function () {
             Route::get('index', 'App\Http\Controllers\_Payment\StudentDispensationController@index')->name('payment.student-dispensation.index');

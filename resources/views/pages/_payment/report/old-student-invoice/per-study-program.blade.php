@@ -17,10 +17,6 @@
             top: unset;
             bottom: 1.75rem;
         }
-
-        table.dataTable.align-top td {
-            vertical-align: top;
-        }
     </style>
 @endsection
 
