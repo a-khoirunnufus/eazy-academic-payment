@@ -578,15 +578,31 @@ const _options = {
     load: function({optionUrl, nameField, idData, nameData, val = null}){
         $.get(optionUrl, (data) => {
             JSON.parse(data).map(item => {
-                $("[name="+nameField+"]").append(`
-                    <option value="`+item[idData]+`">`+item[nameData]+`</option>
-                `)
-            })
+                        $("[name="+nameField+"]").append(`
+                            <option value="`+item[idData]+`">`+item[nameData]+`</option>
+                        `)
+                })
             val ? $("[name="+nameField+"]").val(val) : ""
             $("[name="+nameField+"]").trigger('change')
-            selectRefresh()
         })
-    }
+    },
+    loadSync: function({optionUrl, nameField, idData, nameData, val = null}) {
+        return new Promise((resolve, reject) => {
+            $.get(optionUrl)
+                .done(data => {
+                    JSON.parse(data).forEach(item => {
+                        $("[name="+nameField+"]").append(`
+                            <option value="`+item[idData]+`">`+item[nameData]+`</option>
+                        `)
+                    });
+                    val && $("[name="+nameField+"]").val(val).trigger('change');
+                    resolve(true);
+                })
+                .fail(res => {
+                    reject(res.responseJSON);
+                });
+        });
+    },
 }
 
 /**
@@ -1021,6 +1037,22 @@ function select2Replace() {
             minimumResultsForSearch: -1,
         });
     });
+}
+
+function selectInit(elms = ['.select2'], inModal = false, options = null) {
+    if (!options) {
+        options = {
+            placeholder: "Pilih Opsi yang Tersedia",
+            minimumResultsForSearch: 6,
+        };
+    }
+
+    elms.forEach(item => {
+        $(item).select2({
+            ...options,
+            dropdownParent: inModal ? $(item).parents('.modal').get(0) : null,
+        });
+    })
 }
 
 function selectRefresh() {

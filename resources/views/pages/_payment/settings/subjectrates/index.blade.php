@@ -103,7 +103,7 @@
                 <select class="form-select select2" name="faculty-filter" onchange="setProdiFilter(this.value)">
                     <option value="#ALL" selected>Semua Fakultas</option>
                     @foreach($faculty as $item)
-                    <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
+                        <option value="{{ $item->faculty_id }}">{{ $item->faculty_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -257,7 +257,7 @@
     const _ratesPerCourseTable = {
         ..._datatable,
         init: function() {
-            dt = this.instance = $('#rates-per-course-table').DataTable({
+            this.instance = $('#rates-per-course-table').DataTable({
                 serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/payment/settings/courserates/index',
@@ -381,7 +381,8 @@
                     searchInput = '#ALL';
                     feather.replace()
                 }
-            })
+            });
+            dt = this.instance;
         },
         template: {
             rowAction: function(row) {
@@ -410,7 +411,7 @@
                     <input type="hidden" name="mcr_id[]" value="${id}">
                     <div class="flex-fill">
                         <label class="form-label">Tingkat</label>
-                        <select class="form-select select2" eazy-select2-active name="mcr_tingkat[]" id="tingkat${id}" value="">
+                        <select class="form-select" name="mcr_tingkat[]" id="tingkat${id}" value="">
                             <option value="1">Tingkat 1</option>
                             <option value="2">Tingkat 2</option>
                             <option value="3">Tingkat 3</option>
@@ -426,7 +427,7 @@
                     <div class="flex-fill text-center">
                         <label class="form-label">Paket</label>
                         <div class="d-flex justify-content-center">
-                            <select class="form-select select2" eazy-select2-active name="mcr_is_package[]" id="paket${id}" value="">
+                            <select class="form-select" name="mcr_is_package[]" id="paket${id}" value="">
                                 <option value="0">Tidak</option>
                                 <option value="1">Ya</option>
                             </select>
@@ -441,13 +442,16 @@
                     </div>
                 </div>
             `);
+
+            // selectInit(['select[name="mcr_tingkat[]"]', 'select[name="mcr_is_package[]"]'], true);
+
             if (tingkat) {
                 $("#tingkat" + id + "").val(tingkat);
-                $("#tingkat" + id + "").trigger('change');
+                // $("#tingkat" + id + "").trigger('change.select2');
             }
             if (is_package) {
                 $("#paket" + id + "").val(is_package);
-                $("#paket" + id + "").trigger('change');
+                // $("#paket" + id + "").trigger('change.select2');
             }
         },
         courseRateDeleteField: function(e, id) {
@@ -479,14 +483,6 @@
         //     })
         // },
         add: function() {
-            // $("#mainModal").modal('show');
-            // $('#mainModal').on('hidden.bs.modal', function (event) {
-            //     $("#programStudy").val("").trigger("change");
-            //     $("#courseId").val("").trigger("change");
-            //     $('#courseRateInput').empty();
-            //     $("#mainModal").modal('hide');
-            // });
-
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Tarif Matakuliah',
@@ -505,12 +501,12 @@
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id">
+                                            <select class="form-select" id="programStudy" name="mcr_studyprogram_id">
                                             </select>
                                         </div>
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Mata Kuliah</label>
-                                            <select class="form-select select2" eazy-select2-active name="mcr_course_id" id="courseId">
+                                            <select class="form-select" name="mcr_course_id" id="courseId">
                                             </select>
                                         </div>
                                     </div>
@@ -543,35 +539,45 @@
                     <small style="color:#163485">
                         *Pastikan Data Yang Anda Masukkan <strong>Lengkap</strong> dan <strong>Benar</strong>
                     </small>`,
-                    callback: function() {
-                        // ex: reload table
-                        _ratesPerCourseTable.reload()
+                    callback: () => {
+                        _ratesPerCourseTable.reload();
                     },
                 },
             });
-            $('#programStudy').empty().trigger("change");
-            $('#courseRateInput').empty();
-            _options.load({
+
+            selectInit(['#programStudy', '#courseId'], true);
+
+            _options.loadSync({
                 optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
                 nameField: 'mcr_studyprogram_id',
                 idData: 'studyprogram_id',
                 nameData: 'studyprogram_name'
-            });
+            }).then(res => {
+                $('#programStudy').val('');
+                $('#programStudy').trigger('change.select2');
+            })
 
-            $("#programStudy").change(function() {
-                studyProgramId = $(this).val();
-                $('#courseId').empty().trigger("change");
+            $("#programStudy").on('select2:select', function(e) {
+                const studyProgramId = $(this).val();
+                if(!studyProgramId) return;
+
+                $('#courseId').empty();
                 $('#courseRateInput').empty();
-                _options.load({
+
+                _options.loadSync({
                     optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
                     nameField: 'mcr_course_id',
                     idData: 'course_id',
                     nameData: 'subject_name'
-                });
-            })
-            $("#courseId").change(function() {
+                }).then(res => {
+                    $('#courseId').val('');
+                    $('#courseId').trigger('change.select2');
+                })
+            });
+
+            $("#courseId").on('select2:select', function() {
                 _ratesPerCourseTableActions.tarif("#courseId");
-            })
+            });
 
         },
         tarif: function(e) {
@@ -583,11 +589,10 @@
                     data = JSON.parse(data)
                     $('#courseRateInput').empty();
                     if (Object.keys(data).length > 0) {
-                        data.map(item => {
+                        data.forEach(item => {
                             _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
                         })
                     }
-                    console.log(data);
                 }).fail((error) => {
                     Swal.fire({
                         icon: 'error',
@@ -615,12 +620,12 @@
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
-                                            <select class="form-select select2" eazy-select2-active id="programStudy" name="mcr_studyprogram_id" disabled>
+                                            <select class="form-select" id="programStudy" name="mcr_studyprogram_id" disabled>
                                             </select>
                                         </div>
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Mata Kuliah</label>
-                                            <select class="form-select select2" eazy-select2-active id="courseId" name="mcr_course_id" disabled>
+                                            <select class="form-select" id="courseId" name="mcr_course_id" disabled>
                                             </select>
                                         </div>
                                         <input type="hidden" name="mcr_studyprogram_id" value="${spId}" />

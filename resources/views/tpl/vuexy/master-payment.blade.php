@@ -193,6 +193,13 @@
         $(document).ready(function () {
             _activeSchoolYear.load()
         });
+
+        // Fix bug error scrolling on modal with select2 elements
+        $(document).on('select2:close', '.modal .select2-hidden-accessible', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
     </script>
 
     @stack('laravel-component-setup')

@@ -64,9 +64,10 @@ class CourseRatesController extends Controller
     {
         if ($id != null) {
             $studyProgram = Studyprogram::where('faculty_id', '=', $id)->get();
-            return $studyProgram->toJson();
+        } else {
+            $studyProgram = Studyprogram::all();
         }
-        $studyProgram = Studyprogram::all();
+
         return $studyProgram->toJson();
     }
 
