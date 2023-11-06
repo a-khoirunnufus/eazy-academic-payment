@@ -182,6 +182,15 @@ class Payment extends Model
         return Attribute::make(get: fn () => $amount);
     }
 
+    public function computedAdminCost(): Attribute
+    {
+        $amount = 0;
+        if ($this->paymentBill->isNotEmpty()) {
+            $amount = $this->paymentBill->sum('prrb_admin_cost');
+        }
+        return Attribute::make(get: fn () => $amount);
+    }
+
     /**
      * RELATIONS
      */

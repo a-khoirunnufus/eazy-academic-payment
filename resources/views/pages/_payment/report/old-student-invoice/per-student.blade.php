@@ -143,6 +143,7 @@
                 <th rowspan="2">Nama (NIM)<br>Angkatan<br>Periode Masuk<br>Jalur Masuk</th>
                 <th rowspan="2">Program Studi<br>Fakultas</th>
                 <th colspan="4" class="text-center">Rincian</th>
+                <th rowspan="2">Biaya Admin</th>
                 <th rowspan="2">
                     Total Final Tagihan<br>
                     (A+B)-(C+D)
@@ -405,26 +406,33 @@
                     },
                     // 8
                     {
-                        data: 'final_bill',
+                        data: 'admin_cost',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-primary'});
                         }
                     },
                     // 9
                     {
+                        data: 'final_bill',
+                        render: (data) => {
+                            return this.template.currencyCell(data, {bold: true, additionalClass: 'text-primary'});
+                        }
+                    },
+                    // 10
+                    {
                         data: 'total_paid',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
                         }
                     },
-                    // 10
+                    // 11
                     {
                         data: 'total_not_paid',
                         render: (data) => {
                             return this.template.currencyCell(data, {bold: true, additionalClass: 'text-danger'});
                         }
                     },
-                    // 11
+                    // 12
                     {
                         data: 'prr_status',
                         render: (data) => {
@@ -482,6 +490,11 @@
                         visible: false,
                     },
                     {
+                        title: 'Biaya Admin',
+                        data: 'admin_cost',
+                        visible: false,
+                    },
+                    {
                         title: 'Total Nominal Final Tagihan',
                         data: 'final_bill',
                         visible: false,
@@ -534,7 +547,7 @@
                     '>',
                 buttons: _datatableBtnExportTemplate({
                     btnTypes: ['excel', 'csv'],
-                    exportColumns: [12,13,14,15,16,17,18,19,20,21,22,23]
+                    exportColumns: [13,14,15,16,17,18,19,20,21,22,23,24,25]
                 }),
                 initComplete: function() {}
             });

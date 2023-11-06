@@ -78,6 +78,7 @@
                 <th rowspan="2">Program Studi<br>Fakultas</th>
                 <th rowspan="2">Jumlah Tagihan</th>
                 <th colspan="4" class="text-center">Rincian</th>
+                <th rowspan="2">Biaya Admin</th>
                 <th rowspan="2">
                     Total Final Tagihan<br>
                     (A+B)-(C+D)
@@ -101,6 +102,7 @@
                 <th id="sum-invoice-penalty"></th>
                 <th id="sum-invoice-scholarship"></th>
                 <th id="sum-invoice-discount"></th>
+                <th id="sum-admin-cost"></th>
                 <th id="sum-final-bill"></th>
                 <th id="sum-total-paid"></th>
                 <th id="sum-total-not-paid"></th>
@@ -208,19 +210,26 @@
                         },
                         // 7
                         {
+                            data: 'admin_cost',
+                            render: (data) => {
+                                return this.template.currencyCell(data);
+                            }
+                        },
+                        // 8
+                        {
                             data: 'final_bill',
                             render: (data) => {
                                 return this.template.currencyCell(data, {bold: true, additionalClass: 'text-primary'});
                             }
                         },
-                        // 8
+                        // 9
                         {
                             data: 'total_paid',
                             render: (data) => {
                                 return this.template.currencyCell(data, {bold: true, additionalClass: 'text-success'});
                             }
                         },
-                        // 9
+                        // 10
                         {
                             data: 'total_not_paid',
                             render: (data) => {
@@ -296,6 +305,12 @@
                             visible: false,
                         },
                         {
+                            name: 'exp_admin_cost_nominal',
+                            title: 'Total Biaya Admin',
+                            data: 'admin_cost',
+                            visible: false,
+                        },
+                        {
                             name: 'exp_invoice_final_bill_nominal',
                             title: 'Total Nominal Final Tagihan',
                             data: 'final_bill',
@@ -346,7 +361,7 @@
                         '>',
                     buttons: _datatableBtnExportTemplate({
                         btnTypes: ['excel', 'csv'],
-                        exportColumns: [10,11,12,13,14,15,16,17,18,19,20,21,22]
+                        exportColumns: [11,12,13,14,15,16,17,18,19,20,21,22,23,24]
                     }),
                     initComplete: () => {}
                 });
@@ -362,6 +377,7 @@
                 let sumInvoicePenalty = 0;
                 let sumInvoiceScholarship = 0;
                 let sumInvoiceDiscount = 0;
+                let sumAdminCost = 0;
                 let sumFinalBill = 0;
                 let sumTotalPaid = 0;
                 let sumTotalNotPaid = 0;
@@ -374,6 +390,7 @@
                     sumInvoicePenalty += studyprogram.invoice_penalty;
                     sumInvoiceScholarship += studyprogram.invoice_scholarship;
                     sumInvoiceDiscount += studyprogram.invoice_discount;
+                    sumAdminCost += studyprogram.admin_cost;
                     sumFinalBill += studyprogram.final_bill;
                     sumTotalPaid += studyprogram.total_paid;
                     sumTotalNotPaid += studyprogram.total_not_paid;
@@ -397,6 +414,10 @@
 
                 $('.dataTables_scrollFoot #sum-invoice-discount').html(
                     _datatableTemplates.currencyCell(sumInvoiceDiscount)
+                );
+
+                $('.dataTables_scrollFoot #sum-admin-cost').html(
+                    _datatableTemplates.currencyCell(sumAdminCost)
                 );
 
                 $('.dataTables_scrollFoot #sum-final-bill').html(

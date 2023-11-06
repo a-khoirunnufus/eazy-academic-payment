@@ -363,20 +363,20 @@ Route::group(['prefix' => 'payment'], function(){
 // REPORT GROUP ROUTE
 Route::group(['prefix' => 'report'], function(){
     Route::group(['prefix' => 'old-student-invoice'], function(){
-        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudent');
-        Route::get('/studyprogram', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentPerStudyprogram');
-        Route::get('/student', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentPerStudent');
-        Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudentHistory');
-        Route::post('/export', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@exportOldStudentPerProdi');
+        // Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@oldStudent');
+        Route::get('/studyprogram', 'App\Http\Controllers\_Payment\Api\Report\InvoiceStudentController@oldStudentPerStudyprogram');
+        Route::get('/student', 'App\Http\Controllers\_Payment\Api\Report\InvoiceStudentController@oldStudentPerStudent');
+        Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\Report\InvoiceStudentController@oldStudentHistory');
+        Route::post('/export', 'App\Http\Controllers\_Payment\Api\Report\InvoiceStudentController@exportOldStudentPerProdi');
     });
     Route::group(['prefix' => 'new-student-invoice'], function(){
-        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudent');
-        Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@newStudentHistory');
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@newStudent');
+        Route::get('/student-history/{student_number}', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@newStudentHistory');
     });
     Route::group(['prefix' => 'registrant-invoice'], function(){
-        Route::get('/', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentRegistrant');
+        Route::get('/', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@studentRegistrant');
     });
-    Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@getProdi');
+    Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\Report\StudyprogramController@getProdi');
 });
 
 // DOWNLOAD LOCAL
