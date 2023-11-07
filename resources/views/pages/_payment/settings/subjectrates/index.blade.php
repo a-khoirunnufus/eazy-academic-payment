@@ -425,7 +425,7 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif</label>
-                        <input type="text" class="form-control comp_price" name="mcr_rate[]" value="${rate}"
+                        <input type="text" class="form-control comp_price tarif_matakuliah" value="${rate}"
                             placeholder="Tarif Mata Kuliah">
                     </div>
                     <div class="flex-fill text-center">
@@ -446,6 +446,7 @@
                     </div>
                 </div>
             `);
+            _numberCurrencyFormat.load('tarif_matakuliah','mcr_rate',1);
 
             // selectInit(['select[name="mcr_tingkat[]"]', 'select[name="mcr_is_package[]"]'], true);
 

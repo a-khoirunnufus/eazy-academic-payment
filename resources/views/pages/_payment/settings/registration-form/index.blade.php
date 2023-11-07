@@ -247,7 +247,7 @@
                         rate: {
                             title: 'Nominal Tarif',
                             content: {
-                                template: `<input type="number" name="rate" class="form-control" placeholder="Masukkan nominal tarif" />`,
+                                template: `<input type="number" class="form-control rate_registration" placeholder="Masukkan nominal tarif" />`,
                             },
                         },
                     },
@@ -257,6 +257,7 @@
                     },
                 },
             });
+            _numberCurrencyFormat.load('rate_registration','rate');
         },
         edit: function(id) {
             $.get(_baseURL + '/api/dt/registration-form/id/' + id, function(result, status) {
@@ -291,7 +292,7 @@
                             rate: {
                                 title: 'Nominal Tarif',
                                 content: {
-                                    template: `<input type="number" name="rate" value="${data.rate}" class="form-control" placeholder="Masukkan nominal tarif" />`,
+                                    template: `<input type="text" value="${data.rate}" class="form-control rate_registration" placeholder="Masukkan nominal tarif" />`,
                                 },
                             },
                         },
@@ -301,6 +302,7 @@
                         },
                     },
                 });
+                _numberCurrencyFormat.load('rate_registration','rate');
             })
 
         },

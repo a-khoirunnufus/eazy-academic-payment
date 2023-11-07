@@ -426,7 +426,7 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif SKS Normal</label>
-                        <input type="text" class="form-control comp_price" name="msr_rate[]" value="${rate}"
+                        <input type="text" class="form-control comp_price tarif_sks" value="${rate}"
                             placeholder="Tarif SKS Normal">
                     </div>
                     <div class="flex-fill">
@@ -443,6 +443,7 @@
                     </div>
                 </div>
             `);
+            _numberCurrencyFormat.load('tarif_sks','msr_rate',1);
             if (tingkat) {
                 $("#tingkat" + id + "").val(tingkat);
                 $("#tingkat" + id + "").trigger('change');

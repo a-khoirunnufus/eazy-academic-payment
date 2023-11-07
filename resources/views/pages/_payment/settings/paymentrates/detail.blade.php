@@ -476,7 +476,7 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Harga Komponen Biaya</label>
-                        <input type="text" class="form-control comp_price" name="cd_fee[]" value="${rate}"
+                        <input type="text" class="form-control comp_price harga_komponen_biaya" value="${rate}"
                             placeholder="Tarif Komponen">
                     </div>
                     <div class="d-flex align-content-end">
@@ -488,6 +488,7 @@
                     </div>
                 </div>
             `);
+            _numberCurrencyFormat.load('harga_komponen_biaya','cd_fee',1);
             $.get(_baseURL + '/api/payment/settings/paymentrates/component/'+is_admission, (data) => {
                 JSON.parse(data).map(item => {
                     $("#component" + isId).append(`
