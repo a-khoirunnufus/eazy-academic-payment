@@ -81,9 +81,9 @@ class ReportController extends Controller
     }
 
     function registrantInvoice(){
-        $angkatan = Year::all();
-        $periode = Period::all();
-        $jalur = Path::all();
-        return view('pages._payment.report.registrant-invoice', compact('angkatan', 'periode', 'jalur'));
+        $current_year = $this->getActiveSchoolYearCode();
+        $current_year = Year::where('msy_code', $current_year)->first();
+
+        return view('pages._payment.report.registrant-invoice', compact('current_year'));
     }
 }

@@ -14,7 +14,13 @@ class InvoiceRegistrantController extends Controller
 
     public function datatable(Request $request)
     {
-        $query = DB::table('finance.vw_invoice_registration_master');
+        \Log::debug($request->all());
+        $validated = $request->validate([
+            'school_year' => 'required',
+        ]);
+
+        $query = DB::table('finance.vw_invoice_registration_master')
+            ->where('registration_year_id', $validated['school_year']);
 
         $this->applyFilterWoFc(
             $query,
@@ -29,6 +35,8 @@ class InvoiceRegistrantController extends Controller
                 'payment_status',
             ]
         );
+
+        \Log::debug($query->toSql());
 
         $datatable = datatables($query);
 

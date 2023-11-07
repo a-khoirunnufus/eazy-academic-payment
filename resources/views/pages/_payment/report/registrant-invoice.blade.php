@@ -6,562 +6,513 @@
 
 @section('css_section')
 <style>
-    .nav-tabs.custom .nav-item {
-        flex-grow: 1;
+    table.dataTable thead th {
+        white-space: nowrap
     }
-
-    .nav-tabs.custom .nav-link {
-        width: -webkit-fill-available !important;
-        height: 50px !important;
+    table.dtr-details-custom td {
+        padding: 10px 1.4rem;
     }
-
-    .nav-tabs.custom .nav-link.active {
-        background-color: #f2f2f2 !important;
-    }
-
-    .toHistory:hover,
-    .toHistory:hover small {
-        cursor: pointer;
-        color: #5399f5 !important;
-    }
-
-    .select-filtering {
-        min-width: 150px !important;
-    }
-
-    .space {
-        margin-left: 10px;
-    }
-
-    #forExport_wrapper {
-        display: none !important;
+    .dtr-bs-modal .modal-dialog {
+        max-width: max-content;
     }
 </style>
 @endsection
 
 @section('content')
+
 <div class="card">
-    <div class="nav-tabs-shadow nav-align-top">
-        <ul class="nav nav-tabs custom border-bottom" role="tablist">
-            <li class="nav-item">
-                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-invoice-detail">Detail Tagihan Pendaftar</button>
-            </li>
-            <!-- <li class="nav-item">
-                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-payment-history">Riwayat Pembayaran</button>
-            </li> -->
-        </ul>
-        <div class="tab-content">
-
-            <!-- REGISTRANT INVOICE DETAIL -->
-            <div class="tab-pane fade show active" id="navs-invoice-detail" role="tabpanel">
-                <div class="px-1 py-2 border-bottom">
-                    <div class="d-flex">
-                        <div class="select-filtering">
-                            <label class="form-label">Angkatan</label>
-                            <select class="form-select select2 select-filter" id="filterData">
-                                <option value="#ALL">Semua Tahun</option>
-                                @foreach($angkatan as $item)
-                                <option value="{{ $item->msy_id }}">{{ $item->msy_year.' '.($item->msy_semester == 2 ? 'Genap' : 'Ganjil') }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space select-filtering">
-                            <label class="form-label">Jalur Masuk</label>
-                            <select class="form-select select2 select-filter" id="pathData">
-                                <option value="#ALL">Semua Jalur Masuk</option>
-                                @foreach($jalur as $item)
-                                <option value="{{ $item->path_id }}">{{ $item->path_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space select-filtering">
-                            <label class="form-label">Periode Masuk</label>
-                            <select class="form-select select2 select-filter" id="periodData">
-                                <option value="#ALL">Semua Periode Masuk</option>
-                                @foreach($periode as $item)
-                                <option value="{{ $item->period_id }}">{{ $item->period_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="space align-self-end">
-                            <button class="btn btn-info" onclick="filter()">
-                                <i data-feather="filter"></i>&nbsp;&nbsp;Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <table id="registrant-invoice-detail-table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Nama</th>
-                            <th rowspan="2">Jalur / Periode</th>
-                            <th rowspan="2">Metode Pembayaran</th>
-                            <th rowspan="2">Nomor Tagihan</th>
-                            <th rowspan="2">Tanggal Pembayaran</th>
-                            <th colspan="2" class="text-center">Jenis Tagihan</th>
-                            <th rowspan="2">
-                                Total Harus Dibayar<br>
-                                (A-B)
-                            </th>
-                            <th rowspan="2">Status</th>
-                        </tr>
-                        <tr>
-                            <th>Tagihan(A)</th>
-                            <th>Potongan(B)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <table id="forExport" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Nama</th>
-                            <th rowspan="2">Jalur</th>
-                            <th rowspan="2">periode</th>
-                            <th rowspan="2">Metode Pembayaran</th>
-                            <th rowspan="2">Nomor Tagihan</th>
-                            <th rowspan="2">Tanggal Pembayaran</th>
-                            <th colspan="2">Jenis Tagihan</th>
-                            <th rowspan="2">status</th>
-                        </tr>
-                        <tr>
-                            <th>Nama Tagihan</th>
-                            <th>Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+    <div class="card-body">
+        <div class="datatable-filter multiple-row">
+            <x-select-option
+                title="Tahun Akademik"
+                select-id="school-year-filter"
+                resource-url="/api/payment/resource/school-year"
+                value="msy_id"
+                :default-value="$current_year->msy_id"
+                :default-label="$current_year->msy_year.' '.($current_year->msy_semester == 1 ? 'Ganjil' : ($current_year->msy_semester == 2 ? 'Genap' : 'Antara'))"
+                label-template=":msy_year :msy_semester"
+                :label-template-items="['msy_year', [
+                    'key' => 'msy_semester',
+                    'mapping' => [
+                        '1' => 'Ganjil',
+                        '2' => 'Genap',
+                        '3' => 'Antara',
+                    ],
+                ]]"
+                without-all-option="1"
+            />
+            <x-select-option
+                title="Periode Masuk"
+                select-id="period-filter"
+                resource-url="/api/payment/resource/registration-period"
+                value="period_id"
+                label-template=":period_name"
+                :label-template-items="['period_name']"
+            />
+            <x-select-option
+                title="Jalur Masuk"
+                select-id="path-filter"
+                resource-url="/api/payment/resource/registration-path"
+                value="path_id"
+                label-template=":path_name"
+                :label-template-items="['path_name']"
+            />
+            <x-select-option
+                title="Fakultas"
+                select-id="faculty-filter"
+                resource-url="/api/payment/resource/faculty"
+                value="faculty_id"
+                label-template=":faculty_name"
+                :label-template-items="['faculty_name']"
+            />
+            <div>
+                <label class="form-label">Program Studi</label>
+                <select id="studyprogram-filter" class="form-select"></select>
             </div>
-
-            <!-- REGISTRANT PAYMENT HISTORY -->
-            <!-- <div class="tab-pane fade" id="navs-payment-history" role="tabpanel">
-                <table id="registrant-payment-history-table" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Tanggal Pembayaran</th>
-                            <th>Komponen Tagihan</th>
-                            <th>Nominal Pembayaran</th>
-                            <th>Metode Pembayaran</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div> -->
+            <x-select-option
+                title="Jenis Perkuliahan"
+                select-id="lecture-type-filter"
+                resource-url="/api/payment/resource/lecture-type"
+                value="mlt_id"
+                label-template=":mlt_name"
+                :label-template-items="['mlt_name']"
+            />
+            <div>
+                <label class="form-label">Nominal Tagihan Gross</label>
+                <select id="nominal-gross-filter" class="form-select"></select>
+            </div>
+            <div>
+                <label class="form-label">Nominal Tagihan Nett</label>
+                <select id="nominal-nett-filter" class="form-select"></select>
+            </div>
+            <div>
+                <label class="form-label">Status Tagihan</label>
+                <select id="status-filter" class="form-select select2">
+                    <option value="#ALL" selected>Semua Status Tagihan</option>
+                    <option value="lunas">Lunas</option>
+                    <option value="belum lunas">Belum Lunas</option>
+                    <option value="kredit">Kredit</option>
+                </select>
+            </div>
+            <div class="d-flex align-items-end">
+                <button onclick="_registrantInvoiceTable.reload()" class="btn btn-info text-nowrap">
+                    <i data-feather="filter"></i>&nbsp;&nbsp;Filter
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<div class="card">
+    <table id="registrant-invoice-table" class="table table-striped">
+        <thead>
+            <tr>
+                <th class="text-center">Aksi</th>
+                <th>Nomor Tagihan</th>
+                <th>Pendaftar</th>
+                <th>Komponen Tagihan</th>
+                <th>Nominal Tagihan (Gross)</th>
+                <th>Nominal Tagihan (Nett)</th>
+                <th>Status Tagihan</th>
+                <th>Tahun Akademik</th>
+                <th>Periode / Jalur</th>
+                <th>Pilihan 1</th>
+                <th>Pilihan 2</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
 @endsection
 
 @section('js_section')
 <script>
-    var dtDetail, dtHistory, student = null;
-
-    var dtExport = $('#forExport').DataTable({
-        paging: false,
-        dom: 'Bfrtip',
-        buttons: [
-            'copy',
-            'excel',
-            'csv',
-            {
-                extend: 'pdf',
-                orientation: 'landscape',
-                pageSize: 'LEGAL'
-            }
-        ]
-    });
-
-    $(document).ready(function() {
-        select2Replace();
-    });
-
     $(function() {
-        _oldStudentInvoiceDetailTable.init();
-        _oldStudentPaymentHistoryTable.init()
+        _registrantInvoiceTable.init();
     })
 
-    const _oldStudentInvoiceDetailTable = {
-        ..._datatable,
-        init: function(byFilter = '#ALL', path = '#ALL', period = '#ALL', searchData = '#ALL') {
-            var jsonData = [];
-            dtDetail = this.instance = $('#registrant-invoice-detail-table').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: _baseURL + '/api/report/registrant-invoice',
-                    data: {
-                        angkatan: byFilter,
-                        path: path,
-                        period: period,
-                        search: searchData,
-                    },
-                    dataSrc: function(json) {
-                        var data = [];
-                        for (var i = 0; i < json.data.length; i++) {
-                            if (json.data[i].payment_register === null) {
-                                console.log(i + " Value is null");
-                            } else {
-                                if (searchData != '#ALL') {
-                                    var row = json.data[i];
-                                    var isFound = false;
-
-                                    if (!isFound && '' + row.participant.par_fullname.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound && '' + row.path.path_name.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound && '' + row.period.period_name.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound && '' + row.payment_register.payment_reg_method.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound && '' + row.payment_register.payment_reg_total.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound && '' + row.payment_register.payment_reg_status.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                        data.push(json.data[i]);
-                                        isFound = true;
-                                    }
-
-                                    if (!isFound) {
-                                        var start = 0;
-                                        while (!isFound && start < row.payment_register.payment_register_detail.length) {
-                                            if (!isFound && '' + row.payment_register.payment_register_detail[start].payment_rd_amount.toString().toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                                data.push(json.data[i]);
-                                                isFound = true;
-                                            }
-
-                                            if (!isFound && '' + row.payment_register.payment_register_detail[start].payment_rd_component.toLowerCase().search(searchData.toLowerCase()) >= 0) {
-                                                data.push(json.data[i]);
-                                                isFound = true;
-                                            }
-                                            start++;
-                                        }
-                                    }
-                                } else {
-                                    data.push(json.data[i]);
-                                }
-                            }
-                        }
-                        jsonData = data;
-                        json.data = data;
-                        return json.data;
-                    }
-                },
-                columns: [{
-                        name: 'student_name',
-                        data: 'participant.par_fullname',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {
-                                bold: true
-                            });
-                        }
-                    },
-                    {
-                        name: 'path_n_period',
-                        render: (data, _, row) => {
-                            return this.template.titleWithSubtitleCell(row.path.path_name, row.period.period_name);
-                        }
-                    },
-                    {
-                        name: 'payment',
-                        render: (data, _, row) => {
-                            try {
-                                return row.payment_register.payment_reg_method;
-                            } catch (err) {
-                                return "";
-                            }
-                        }
-                    },
-                    {
-                        name: 'invoice_number',
-                        data: 'payment.payment_reg_invoice_num'
-                    },
-                    {
-                        name: 'paid_date',
-                        data: 'payment.payment_reg_paid_date'
-                    },
-                    {
-                        name: 'invoice_a',
-                        render: (data, _, row) => {
-                            var listData = [];
-                            var payment = row.payment_register.payment_register_detail;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].payment_rd_component != "biaya discount") {
-                                    listData.push({
-                                        name: payment[i].payment_rd_component,
-                                        nominal: payment[i].payment_rd_amount
-                                    })
-                                }
-                            }
-                            return this.template.invoiceDetailCell(listData, row.payment_register.payment_reg_total);
-                        }
-                    },
-                    {
-                        name: 'invoice_b',
-                        render: (data, _, row) => {
-                            var listData = [];
-                            var payment = row.payment_register.payment_register_detail;
-                            var total = 0;
-                            for (var i = 0; i < payment.length; i++) {
-                                if (payment[i].payment_rd_component == "biaya discount") {
-                                    listData.push({
-                                        name: payment[i].payment_rd_component,
-                                        nominal: payment[i].payment_rd_amount
-                                    })
-                                    total += payment[i].payment_rd_amount;
-                                }
-                            }
-                            return this.template.invoiceDetailCell(listData, '' + total);
-                        }
-                    },
-                    {
-                        name: 'total_must_be_paid',
-                        data: 'total_must_be_paid',
-                        render: (data, _, row) => {
-                            return this.template.currencyCell(row.payment_register.payment_reg_total, {
-                                bold: true,
-                                additionalClass: 'text-danger'
-                            });
-                        }
-                    },
-                    {
-                        name: 'status',
-                        data: 'payment.payment_reg_status',
-                        render: (data) => {
-                            if(data == 'lunas'){
-                                return this.template.badgeCell(data, 'success');
-                            }else{
-                                return this.template.badgeCell(data, 'danger');
-                            }
-                        }
-                    },
-                ],
-                drawCallback: function(settings) {
-                    feather.replace();
-                },
-                dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"registrant-invoice-detail-actions">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end"  <".search_filter">lB> >' +
-                    '>' +
-                    '<"eazy-table-wrapper" t>' +
-                    '<"d-flex justify-content-between mx-2 row"' +
-                    '<"col-sm-12 col-md-6"i>' +
-                    '<"col-sm-12 col-md-6"p>' +
-                    '>',
-                buttons: [{
-                        extend: 'collection',
-                        text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
-                        className: 'btn btn-outline-secondary dropdown-toggle',
-                        buttons: [{
-                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
-                                className: 'dropdown-item',
-                                action: function(e, dt, node, config){
-                                    getPdf();
-                                }
-                            },
-                            {
-                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file font-small-4 me-50"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>Excel</span>',
-                                className: 'dropdown-item',
-                                action: function(e, dt, node, config){
-                                    getExcel();
-                                }
-                            },
-                            {
-                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text font-small-4 me-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Csv</span>',
-                                className: 'dropdown-item',
-                                action: function(e, dt, node, config){
-                                    getCsv();
-                                }
-                            },
-                            {
-                                text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy font-small-4 me-50"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</span>',
-                                className: 'dropdown-item',
-                                action: function(e, dt, node, config){
-                                    getCopy();
-                                }
-                            }
-                        ]
-                    },
-                ],
-                initComplete: function() {
-                    $('.registrant-invoice-detail-actions').html(`
-                        <h5 class="mb-0">Daftar Tagihan</h5>
-                    `)
-                    $('.search_filter').html(`
-                    <div class="dataTables_filter">
-                        <label><input type="text" id="searchFilterDetail" class="form-control" placeholder="Cari Data" onkeydown="searchDataDetail(event)"></label>
-                    </div>
-                    `)
-                    feather.replace();
-                    setExportDataTableExport(jsonData);
-                }
-            })
-        },
-        template: _datatableTemplates,
-    }
-
-    const _oldStudentPaymentHistoryTable = {
+    const _registrantInvoiceTable = {
         ..._datatable,
         init: function() {
-            this.instance = $('#registrant-payment-history-table').DataTable({
-                serverSide: true,
+            this.instance = $('#registrant-invoice-table').DataTable({
                 ajax: {
-                    url: _baseURL + '/api/dt/report-registrant-payment-history',
+                    url: _baseURL + '/api/payment/report/registrant-invoice/datatable',
+                    data: function(d) {
+                        d.school_year = assignFilter('#school-year-filter');
+                        let filters = [];
+
+                        if (assignFilter('#period-filter')) {
+                            filters.push({
+                                column: 'registration_period_id',
+                                operator: '=',
+                                value: assignFilter('#period-filter'),
+                            });
+                        }
+
+                        if (assignFilter('#path-filter')) {
+                            filters.push({
+                                column: 'registration_path_id',
+                                operator: '=',
+                                value: assignFilter('#path-filter'),
+                            });
+                        }
+
+                        if (assignFilter('#faculty-filter')) {
+                            filters.push({
+                                column: 'registration_majors',
+                                operator: 'ilike',
+                                value: assignFilter('#faculty-filter', '%"faculty_id":"', '"%'),
+                            });
+                        }
+
+                        if (assignFilter('#studyprogram-filter')) {
+                            filters.push({
+                                column: 'registration_majors',
+                                operator: 'ilike',
+                                value: assignFilter('#studyprogram-filter', '%"major_id":"', '"%'),
+                            });
+                        }
+
+                        if (assignFilter('#lecture-type-filter')) {
+                            filters.push({
+                                column: 'registration_majors',
+                                operator: 'ilike',
+                                value: assignFilter('#lecture-type-filter', '%"major_lecture_type_id":"', '"%'),
+                            });
+                        }
+
+                        if (assignFilter('#status-filter')) {
+                            filters.push({
+                                column: 'payment_status',
+                                operator: '=',
+                                value: assignFilter('#status-filter'),
+                            });
+                        }
+
+                        const nominalGrossFilter = assignFilter('#nominal-gross-filter');
+                        if (nominalGrossFilter) {
+                            const addFilters = nominalGrossFilter.split('&')
+                                .map(item => item.split('.'))
+                                .map(item => ({
+                                    column: 'invoice_nominal_gross',
+                                    operator: item[0],
+                                    value: item[1]
+                                }));
+
+                            filters = [...filters, ...addFilters];
+                        }
+
+                        const nominalNettFilter = assignFilter('#nominal-nett-filter');
+                        if (nominalNettFilter) {
+                            const addFilters = nominalNettFilter.split('&')
+                                .map(item => item.split('.'))
+                                .map(item => ({
+                                    column: 'invoice_nominal_nett',
+                                    operator: item[0],
+                                    value: item[1]
+                                }));
+
+                            filters = [...filters, ...addFilters];
+                        }
+
+                        if (filters.length > 0) {
+                            d.withFilter = filters;
+                        }
+                    },
                 },
-                columns: [{
-                        name: 'payment_date',
-                        data: 'payment_date',
-                        render: (data) => {
-                            return this.template.dateCell(data);
-                        }
-                    },
+                stateSave: false,
+                order: [],
+                columns: [
                     {
-                        name: 'invoice_component',
-                        data: 'invoice_component',
-                        render: (data) => {
-                            return this.template.defaultCell(data, {
-                                bold: true
-                            });
-                        }
-                    },
-                    {
-                        name: 'payment_nominal',
-                        data: 'payment_nominal',
-                        render: (data) => {
-                            return this.template.currencyCell(data, {
-                                bold: true
-                            });
-                        }
-                    },
-                    {
-                        name: 'payment',
+                        data: 'invoice_id',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
                         render: (data, _, row) => {
-                            return this.template.listDetailCell(row.payment_method_detail, row.payment_method_name);
+                            return this.template.rowAction();
+                        }
+                    },
+                    {
+                        data: 'invoice_id',
+                        render: (data) => {
+                            return this.template.defaultCell(data, {bold: true});
+                        }
+                    },
+                    {
+                        data: 'registrant_fullname',
+                        render: (data, _, row) => {
+                            return this.template.listCell([
+                                {text: row.registrant_fullname, bold: true, small: false, nowrap: true},
+                                {text: row.registrant_number, bold: false, small: true, nowrap: true},
+                            ]);
+                        }
+                    },
+                    {
+                        data: 'invoice_items',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            if (!data) return '';
+                            let jsonData = JSON.parse(unescapeHtml(data));
+                            return this.template.listCell(
+                                jsonData.map(item => ({
+                                    text: `<span class="fw-bold">${item.component}</span> : ${Rupiah.format(item.amount)}`,
+                                    bold: false,
+                                    small: false,
+                                    nowrap: true,
+                                }))
+                            );
+                        }
+                    },
+                    {
+                        data: 'invoice_nominal_gross',
+                        searchable: false,
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        data: 'invoice_nominal_nett',
+                        searchable: false,
+                        render: (data) => {
+                            return this.template.currencyCell(data);
+                        }
+                    },
+                    {
+                        data: 'payment_status',
+                        searchable: false,
+                        render: (data) => {
+                            let bsColor = 'secondary';
+                            if (data == 'lunas') bsColor = 'success';
+                            if (data == 'belum lunas') bsColor = 'danger';
+                            if (data == 'kredit') bsColor = 'warning';
+                            return this.template.badgeCell(data, bsColor, {centered: false});
+                        }
+                    },
+                    {
+                        data: 'registration_year_name',
+                        orderable: false,
+                        render: (data) => {
+                            return this.template.defaultCell(data);
+                        }
+                    },
+                    {
+                        data: 'registration_period_name',
+                        orderable: false,
+                        render: (data, _, row) => {
+                            return this.template.listCell([
+                                {text: row.registration_period_name, bold: true, small: false, nowrap: true},
+                                {text: row.registration_path_name, bold: false, small: true, nowrap: true},
+                            ]);
+                        }
+                    },
+                    {
+                        data: 'registration_majors',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            if (!data) return '';
+                            let jsonData = JSON.parse(unescapeHtml(data));
+                            jsonData = jsonData[0];
+                            // console.log(jsonData)
+                            return this.template.listCell([
+                                {text: `${jsonData.major_name} (${jsonData.major_type.toUpperCase()} ${jsonData.major_lecture_type_name})`, bold: true, small: false, nowrap: true},
+                                {text: jsonData.faculty_name, bold: false, small: true, nowrap: true},
+                            ]);
+                        }
+                    },
+                    {
+                        data: 'registration_majors',
+                        searchable: false,
+                        orderable: false,
+                        render: (data, _, row) => {
+                            if (!data) return '';
+                            let jsonData = JSON.parse(unescapeHtml(data));
+                            jsonData = jsonData[1];
+                            if (!jsonData) return '';
+                            // console.log(jsonData)
+                            return this.template.listCell([
+                                {text: `${jsonData.major_name} (${jsonData.major_type.toUpperCase()} ${jsonData.major_lecture_type_name})`, bold: true, small: false, nowrap: true},
+                                {text: jsonData.faculty_name, bold: false, small: true, nowrap: true},
+                            ]);
                         }
                     },
                 ],
+                responsive: {
+                    details: {
+                        display: DataTable.Responsive.display.modal({
+                            header: function (row) {
+                                return 'Detail Tagihan Pendaftar';
+                            }
+                        }),
+                        renderer: function ( api, rowIdx, columns ) {
+                            var data = $.map( columns, function ( col, i ) {
+                                if (i == 0) return '';
+                                return (
+                                    '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
+                                        '<td class="align-top">'+col.title+':'+'</td> '+
+                                        '<td class="align-top">'+col.data+'</td>'+
+                                    '</tr>'
+                                );
+                            } ).join('');
+
+                            return data ?
+                                $('<table class="table table-bordered dtr-details-custom mb-0" />').append( data ) :
+                                false;
+                        },
+                        type: 'none',
+                    }
+                },
                 drawCallback: function(settings) {
                     feather.replace();
                 },
+                scrollX: true,
+                scrollY: "60vh",
+                scrollCollapse: true,
+                language: {
+                    search: '_INPUT_',
+                    searchPlaceholder: "Cari Data",
+                    lengthMenu: '_MENU_',
+                    paginate: { 'first': 'First', 'last': 'Last', 'next': 'Next', 'previous': 'Prev' },
+                    processing: "Loading...",
+                    emptyTable: "Tidak ada data",
+                    infoEmpty:  "Menampilkan 0",
+                    lengthMenu: "_MENU_",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                    infoFiltered: "(difilter dari _MAX_ entri)",
+                    zeroRecords: "Tidak ditemukan data yang cocok"
+                },
                 dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"registrant-payment-history-actions">>' +
+                    '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
                     '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                     '>' +
-                    '<"eazy-table-wrapper" t>' +
+                    'tr' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
                     '>',
-                initComplete: function() {
-                    $('.registrant-payment-history-actions').html(`
-                        <h5 class="mb-0">Daftar Riwayat Pembayaran</h5>
-                    `)
-                    feather.replace();
-                }
-            })
+                // buttons: _datatableBtnExportTemplate({
+                //     btnTypes: ['excel', 'csv'],
+                //     exportColumns: [13,14,15,16,17,18,19,20,21,22,23,24,25]
+                // }),
+                initComplete: function() {}
+            });
+            this.implementSearchDelay();
         },
-        template: _datatableTemplates,
-    }
-
-    function filter() {
-        var angkatan = $('select[id="filterData"]').val();
-        var jalur = $('select[id="pathData"]').val();
-        var periode = $('select[id="periodData"]').val();
-        dtDetail.clear().destroy()
-        _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode)
-    }
-
-    function searchDataDetail(event) {
-        if (event.key == 'Enter') {
-            var angkatan = $('select[id="filterData"]').val();
-            var jalur = $('select[id="pathData"]').val();
-            var periode = $('select[id="periodData"]').val();
-            var find = $('#searchFilterDetail').val();
-            $('#searchFilterDetail').val('');
-            dtDetail.clear().destroy();
-            _oldStudentInvoiceDetailTable.init(angkatan, jalur, periode, find)
+        template: {
+            ..._datatableTemplates,
+            rowAction: function() {
+                return `
+                    <button type="button" class="btn btn-light btn-sm btn-icon round">
+                        <i data-feather="info"></i>
+                    </button>
+                `
+            },
         }
     }
 
-    function setExportDataTableExport(data){
-        dtExport.clear().destroy();
-        var listData = [];
+    function assignFilter(selector, prefix = null, postfix = null) {
+        let value = $(selector).val();
 
-        data.forEach((row) => {
-            row.payment_register.payment_register_detail.forEach((list) => {
-                listData.push({
-                    par_fullname: row.participant.par_fullname,
-                    path_name: row.path.path_name,
-                    period_name: row.period.period_name,
-                    payment_reg_method: row.payment_register.payment_reg_method,
-                    payment_reg_invoice_num: row.payment_register.payment_reg_invoice_num,
-                    payment_reg_paid_date: row.payment_register.payment_reg_paid_date,
-                    payment_rd_component: list.payment_rd_component,
-                    payment_rd_amount: list.payment_rd_amount,
-                    payment_reg_status: row.payment_register.payment_reg_status
-                })
-            })
-        })
+        if (value === '#ALL')
+            return null;
 
-        dtExport = $('#forExport').DataTable({
-            paging: false,
-            dom: 'Bfrtip',
-            buttons: [
-                'copyHtml5',
-                'excelHtml5',
-                'csvHtml5',
-                {
-                    extend: 'pdf',
-                    orientation: 'landscape',
-                    pageSize: 'LEGAL'
-                }
-            ],
-            data: listData,
-            serverSide: false,
-            columns: [
-                { data: 'par_fullname' },
-                { data: 'path_name' },
-                { data: 'period_name' },
-                { data: 'payment_reg_method' },
-                { data: 'payment_reg_invoice_num' },
-                { data: 'payment_reg_paid_date' },
-                { data: 'payment_rd_component' },
-                { data: 'payment_rd_amount' },
-                { data: 'payment_reg_status' },
-            ]
-        });
-    }
+        if (value)
+            value = `${prefix ?? ''}${value}${postfix ?? ''}`;
 
-    function getPdf(){
-        var pdfButton = $('#forExport_wrapper .buttons-pdf');
-        pdfButton.click();
-    }
-
-    function getExcel(){
-        var pdfButton = $('#forExport_wrapper .buttons-excel');
-        pdfButton.click();
-    }
-
-    function getCsv(){
-        var pdfButton = $('#forExport_wrapper .buttons-csv');
-        pdfButton.click();
-    }
-
-    function getCopy(){
-        var pdfButton = $('#forExport_wrapper .buttons-copy');
-        pdfButton.click();
+        return value;
     }
 </script>
 @endsection
+
+@push('laravel-component-setup')
+    <script>
+        $(function() {
+            setupFilters.studyprogram();
+            setupFilters.nominalGross();
+            setupFilters.nominalNett();
+        });
+
+        const setupFilters = {
+            studyprogram: async function() {
+                const data = await $.get({
+                    async: true,
+                    url: `${_baseURL}/api/payment/resource/studyprogram`,
+                });
+
+                const formatted = data.map(item => {
+                    return {
+                        id: item.studyprogram_id,
+                        text: item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                    };
+                });
+
+                $('#studyprogram-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Program Studi"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+
+                $('#faculty-filter').change(async function() {
+                    const facultyId = this.value;
+                    const studyprograms = await $.get({
+                        async: true,
+                        url: `${_baseURL}/api/payment/resource/studyprogram`,
+                        data: {
+                            faculty: facultyId != '#ALL' ? facultyId : null,
+                        },
+                        processData: true,
+                    });
+                    const options = [
+                        new Option('Semua Program Studi', '#ALL', false, false),
+                        ...studyprograms.map(item => {
+                            return new Option(
+                                item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                                item.studyprogram_id,
+                                false,
+                                false,
+                            );
+                        })
+                    ];
+                    $('#studyprogram-filter').empty().append(options).trigger('change');
+                });
+            },
+            nominalGross: async function() {
+                const formatted = [
+                    {id: '>.0&<=.100000', text: 'Rp1,00 sampai Rp100.000,00'},
+                    {id: '>.100000&<=.500000', text: 'Rp100.001,00 sampai Rp500.000,00'},
+                    {id: '>.500000&<=.1000000', text: 'Rp500.001,00 sampai Rp1.000.000,00'},
+                    {id: '>.1000000', text: 'Lebih dari Rp1.000.001,00'},
+                ];
+
+                $('#nominal-gross-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Nominal"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+            },
+            nominalNett: async function() {
+                const formatted = [
+                    {id: '>.0&<=.100000', text: 'Rp1,00 sampai Rp100.000,00'},
+                    {id: '>.100000&<=.500000', text: 'Rp100.001,00 sampai Rp500.000,00'},
+                    {id: '>.500000&<=.1000000', text: 'Rp500.001,00 sampai Rp1.000.000,00'},
+                    {id: '>.1000000', text: 'Lebih dari Rp1.000.001,00'},
+                ];
+
+                $('#nominal-nett-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Nominal"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+            },
+
+        }
+    </script>
+@endpush
