@@ -375,6 +375,8 @@ Route::group(['prefix' => 'report'], function(){
     });
     Route::group(['prefix' => 'registrant-invoice'], function(){
         Route::get('/', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@studentRegistrant');
+        Route::get('datatable', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@datatable');
+        Route::get('refresh', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@refresh');
     });
     Route::get('/getProdi/{faculty}', 'App\Http\Controllers\_Payment\Api\Report\StudyprogramController@getProdi');
 });
