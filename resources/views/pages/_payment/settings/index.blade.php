@@ -20,7 +20,7 @@
 <section class="vertical-wizard">
     <div class="bs-stepper vertical vertical-wizard-example">
         <div class="bs-stepper-header">
-            <div class="step active" data-target="#account-details-vertical" role="tab" id="account-details-vertical-trigger">
+            <div class="step" data-target="#account-details-vertical" role="tab" id="account-details-vertical-trigger">
                 <button type="button" class="step-trigger" aria-selected="true">
                     <span class="bs-stepper-box">1</span>
                     <span class="bs-stepper-label">
@@ -30,7 +30,7 @@
                 </button>
             </div>
             <div class="step" data-target="#masterdata-vertical" role="tab" id="masterdata-vertical-trigger">
-                <button type="button" class="step-trigger" aria-selected="false">
+                <button type="button" class="step-trigger" aria-selected="true">
                     <span class="bs-stepper-box">2</span>
                     <span class="bs-stepper-label">
                         <span class="bs-stepper-title">Masterdata</span>
@@ -67,9 +67,9 @@
             </div> --}}
         </div>
         <div class="bs-stepper-content">
-            <div id="account-details-vertical" class="content dstepper-block active" role="tabpanel" aria-labelledby="account-details-vertical-trigger">
-
+            <div id="account-details-vertical" class="content" role="tabpanel" aria-labelledby="account-details-vertical-trigger">
                 <form action="{{ route('payment.settings.update') }}" method="post">
+                <input type="hidden" name="tabId" value=1>
                 @csrf
                 <div class="content-header">
                     <h5 class="mb-0">Regenerate</h5>
@@ -128,9 +128,9 @@
                 </div>
                 </form>
             </div>
-            <div id="masterdata-vertical" class="content dstepper-block" role="tabpanel" aria-labelledby="masterdata-vertical-trigger">
-
+            <div id="masterdata-vertical" class="content" role="tabpanel" aria-labelledby="masterdata-vertical-trigger">
                 <form action="{{ route('payment.settings.update') }}" method="post">
+                <input type="hidden" name="tabId" value=2>
                 @csrf
                 <div class="content-header">
                     <h5 class="mb-0">Jenis Tagihan</h5>
@@ -340,6 +340,12 @@
     _numberCurrencyFormat.load('payment_subject_fee_cache');
     _numberCurrencyFormat.load('payment_sks_practicum_fee_cache');
     _numberCurrencyFormat.load('payment_sks_fee_cache');
+    $(document).ready(function () {
+        var stepper = new Stepper($('.bs-stepper')[0]);
+        @if (session('tabId'))
+            stepper.to({{session("tabId")}});
+        @endif
+    })
 </script>
 @if (session('message'))
     <script>

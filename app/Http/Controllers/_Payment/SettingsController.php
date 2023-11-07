@@ -37,7 +37,7 @@ class SettingsController extends Controller
             );
         }
         Cache::flush();
-        return redirect()->back()->with('message','Update settings berhasil!');
+        return redirect()->back()->with(['message'=>'Update settings berhasil!','tabId'=>$request['tabId']]);
     }
 
     public function subjectrates()
