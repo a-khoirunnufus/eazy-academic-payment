@@ -693,7 +693,7 @@
                     $('#SKSRateInput').empty();
                     if (Object.keys(data).length > 0) {
                         data.map(item => {
-                            _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
+                            _ratesPerSKSTableActions.SKSRateInputField(0, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
                         })
                     }
                 }).fail((error) => {

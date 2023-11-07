@@ -71,20 +71,31 @@ class SKSRatesController extends Controller
     public function store(SKSRateRequest $request)
     {
         $validated = $request->validated();
-
         DB::beginTransaction();
         try {
             $count = count($validated['msr_tingkat']);
             for ($i = 0; $i < $count; $i++) {
                 if ($validated['id'][$i] == 0) {
-                    SKSRate::create([
-                        'msr_studyprogram_id' => $validated['msr_studyprogram_id'],
-                        'msr_tingkat' => $validated['msr_tingkat'][$i],
-                        'msr_rate' => $validated['msr_rate'][$i],
-                        'msr_active_status' => 1,
-                        'msr_rate_practicum' => $validated['msr_rate_practicum'][$i],
-                    ]);
-                    $text = "Berhasil menambahkan tarif SKS";
+                    $data = SKSRate::where('msr_studyprogram_id',$validated['msr_studyprogram_id'])->where('msr_tingkat',$validated['msr_tingkat'][$i])->first();
+                    if($data){
+                        $data->update([
+                            'msr_studyprogram_id' => $validated['msr_studyprogram_id'],
+                            'msr_tingkat' => $validated['msr_tingkat'][$i],
+                            'msr_rate' => $validated['msr_rate'][$i],
+                            'msr_active_status' => 1,
+                            'msr_rate_practicum' => $validated['msr_rate_practicum'][$i],
+                        ]);
+                        $text = "Berhasil memperbarui tarif SKS";
+                    }else{
+                        SKSRate::create([
+                            'msr_studyprogram_id' => $validated['msr_studyprogram_id'],
+                            'msr_tingkat' => $validated['msr_tingkat'][$i],
+                            'msr_rate' => $validated['msr_rate'][$i],
+                            'msr_active_status' => 1,
+                            'msr_rate_practicum' => $validated['msr_rate_practicum'][$i],
+                        ]);
+                        $text = "Berhasil menambahkan tarif SKS";
+                    }
                 } else {
                     $data = SKSRate::findorfail($validated['id'][$i]);
                     $data->update([

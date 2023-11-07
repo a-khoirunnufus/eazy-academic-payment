@@ -95,15 +95,30 @@ class CourseRatesController extends Controller
             $count = count($validated['mcr_tingkat']);
             for ($i = 0; $i < $count; $i++) {
                 if ($validated['mcr_id'][$i] == 0) {
-                    CourseRate::create([
-                        'mcr_course_id' => $validated['mcr_course_id'],
-                        'mcr_tingkat' => $validated['mcr_tingkat'][$i],
-                        'mcr_rate' => $validated['mcr_rate'][$i],
-                        'mcr_active_status' => 1,
-                        'mcr_is_package' => $validated['mcr_is_package'][$i],
-                        'mcr_studyprogram_id' => $validated['mcr_studyprogram_id'],
-                    ]);
-                    $text = "Berhasil menambahkan tarif mata kuliah";
+                    $data = CourseRate::where('mcr_studyprogram_id',$validated['mcr_studyprogram_id'])
+                    ->where('mcr_course_id',$validated['mcr_course_id'])
+                    ->where('mcr_tingkat',$validated['mcr_tingkat'][$i])->first();
+                    if($data){
+                        $data->update([
+                            'mcr_course_id' => $validated['mcr_course_id'],
+                            'mcr_tingkat' => $validated['mcr_tingkat'][$i],
+                            'mcr_rate' => $validated['mcr_rate'][$i],
+                            'mcr_active_status' => 1,
+                            'mcr_is_package' => $validated['mcr_is_package'][$i],
+                            'mcr_studyprogram_id' => $validated['mcr_studyprogram_id'],
+                        ]);
+                        $text = "Berhasil memperbarui tarif mata kuliah";
+                    }else{
+                        CourseRate::create([
+                            'mcr_course_id' => $validated['mcr_course_id'],
+                            'mcr_tingkat' => $validated['mcr_tingkat'][$i],
+                            'mcr_rate' => $validated['mcr_rate'][$i],
+                            'mcr_active_status' => 1,
+                            'mcr_is_package' => $validated['mcr_is_package'][$i],
+                            'mcr_studyprogram_id' => $validated['mcr_studyprogram_id'],
+                        ]);
+                        $text = "Berhasil menambahkan tarif mata kuliah";
+                    }
                 } else {
                     $data = CourseRate::findorfail($validated['mcr_id'][$i]);
                     $data->update([

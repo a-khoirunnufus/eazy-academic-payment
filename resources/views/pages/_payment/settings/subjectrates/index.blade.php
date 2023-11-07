@@ -311,7 +311,11 @@
                         name: 'mcr_tingkat',
                         data: 'mcr_tingkat',
                         render: (data) => {
-                            return 'Tingkat ' + data;
+                            let tingkat = data;
+                            if(data == 5){
+                                tingkat = "> 4";
+                            }
+                            return 'Tingkat ' + tingkat;
                         }
                     },
                     {
