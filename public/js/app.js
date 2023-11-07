@@ -1244,8 +1244,8 @@ function fetchLogActivity(url){
  * NUMBER INPUT HELPER
  */
 const _numberCurrencyFormat = {
-    load: function(selector){
-        $(`<input type="hidden" name="${selector}" id="${selector}" required>`).insertAfter( `.${selector}` );
+    load: function(selector, nameAttr = null){
+        $(`<input type="hidden" name="${nameAttr ?? selector}" id="${selector}" required>`).insertAfter( `.${selector}` );
         easyNumberSeparator({
             selector: `.${selector}`,
             separator: '.',

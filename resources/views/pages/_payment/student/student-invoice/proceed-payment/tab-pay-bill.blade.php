@@ -349,7 +349,7 @@
         managerElm: document.querySelector('#paymentMethodManager'),
         setupManager: function() {
             this.managerElm.addEventListener('paymentMethodChange', (event) => {
-                console.log('event payload', event.detail);
+                // console.log('event payload', event.detail);
 
                 const paymentMethodKey = event.detail.paymentMethod.mpm_key;
                 const paymentMethodName = event.detail.paymentMethod.mpm_name;
@@ -824,7 +824,7 @@
                         amount: {
                             title: 'Nominal yang dibayar',
                             content: {
-                                template: '<input type="number" name="amount" class="form-control" />',
+                                template: '<input type="text" class="form-control input-evidence-transfer-amount" />',
                             },
                         },
                         receiver_account_number: {
@@ -867,6 +867,17 @@
                         payBillModal.open(prrbId);
                     },
                 },
+            });
+
+            _numberCurrencyFormat.load('input-evidence-transfer-amount', 'amount');
+
+            $("#form-upload-evidence input[name=payment_time]").flatpickr({
+                dateFormat: 'd/m/Y H:i',
+                enableTime: true,
+                time_24hr: true,
+                allowInput: true,
+                hourIncrement: 1,
+                minuteIncrement: 1,
             });
         },
         openPaymentApprovalDetailModal: async function(prrbId, pmaId) {
@@ -992,16 +1003,21 @@
 
         },
         paymentMethodChangeHandler: async function(e) {
-            console.log('payment method changed');
+            // console.log('payment method changed');
 
-            // get student balance
-            const res = await $.ajax({
-                url: `${_baseURL}/api/payment/student-balance/transaction`,
-                data: {student_id: studentMaster.student_id},
-                processData: true,
-                type: 'get'
-            });
-            const balance = res?.sbt_closing_balance ?? 0;
+            let studentBalance = 0;
+            try {
+                // get student balance
+                const res = await $.ajax({
+                    url: `${_baseURL}/api/payment/student-balance/transaction`,
+                    data: {student_id: studentMaster.student_id},
+                    processData: true,
+                    type: 'get'
+                });
+                studentBalance = res?.sbt_closing_balance ?? 0;
+            } catch (error) {
+                console.log(error.responseJSON.message);
+            }
 
             // clear selected payment method (ui)
             $('.payment-method-list__item').each(function() {

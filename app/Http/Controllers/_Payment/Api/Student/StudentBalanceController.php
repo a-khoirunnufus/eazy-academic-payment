@@ -114,6 +114,10 @@ class StudentBalanceController extends Controller
             $transaction = StudentBalanceTrans::find($validated['transaction_id']);
         }
 
+        if ($transaction == null) {
+            return response()->json(['message' => 'no transaction found!'], 404);
+        }
+
         return response()->json($transaction->toArray());
     }
 
