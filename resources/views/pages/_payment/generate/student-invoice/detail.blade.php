@@ -420,13 +420,28 @@
         },
         template: {
             rowAction: function(row) {
-                let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
-                let edit = ``;
-                let optional = ``;
+                let action = `<a onclick="_studentInvoiceDetailTableAction.generate(this,1)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan</a>`;
+                let edit = `<a class="dropdown-item disabled" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit Tagihan</a>`;
+                let optional = `<a class="dropdown-item disabled" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
+                let deleteAction = '';
                 if(row.payment){
                     edit = `<a onclick="_studentInvoiceDetailTableAction.edit(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit Tagihan</a>`;
-                    action = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
-                    optional = `<a onclick="_studentInvoiceDetailTableAction.regenerate(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
+                    deleteAction = `<a onclick="_studentInvoiceDetailTableAction.delete(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="trash"></i>&nbsp;&nbsp;Delete Tagihan</a>`;
+                    if(row.payment.prr_type == 6 || row.payment.prr_type == 5){
+                        optional = ``;
+                    }else{
+                        optional = `<a onclick="_studentInvoiceDetailTableAction.regenerate(event)" class="dropdown-item" href="javascript:void(0);"><i data-feather="refresh-cw"></i>&nbsp;&nbsp;Regenerate Tagihan</a>`;
+                    }
+                    action = '';
+                }
+                if(row.registration){
+                    if(row.payment){
+                        if(row.payment.prr_type == 3 && row.payment.prr_status != 'belum lunas'){
+                            action = `<a onclick="_studentInvoiceDetailTableAction.generate(this,3)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan Mata Kuliah</a>`;
+                        }else if(row.payment.prr_type == 2 && row.payment.prr_status != 'belum lunas'){
+                            action = `<a onclick="_studentInvoiceDetailTableAction.generate(this,2)" class="dropdown-item" href="javascript:void(0);"><i data-feather="mail"></i>&nbsp;&nbsp;Generate Tagihan SKS</a>`;
+                        }
+                    }
                 }
                 return `
                     <div class="dropdown d-flex justify-content-center">
@@ -437,6 +452,7 @@
                             <a onclick="_invoiceAction.detail(event,_studentInvoiceDetailTable)" class="dropdown-item" href="javascript:void(0);"><i data-feather="eye"></i>&nbsp;&nbsp;Detail Mahasiswa</a>
                             ${edit}
                             ${action}
+                            ${deleteAction}
                             ${optional}
                         </div>
                     </div>
@@ -485,7 +501,7 @@
                 header = d;
             })
         },
-        generate: function(e) {
+        generate: function(e,prr_type) {
             let data = _studentInvoiceDetailTable.getRowData(e);
             Swal.fire({
                 title: 'Konfirmasi',
@@ -500,6 +516,7 @@
                 if (result.isConfirmed) {
                     let requestData = {
                         student_number: data.student_number,
+                        prr_type: prr_type,
                         url: `{{ request()->path() }}`
                     };
                     $.post(_baseURL + '/api/payment/generate/student-invoice/student', requestData, (data) => {

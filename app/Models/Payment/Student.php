@@ -14,6 +14,7 @@ use App\Models\Payment\Period;
 use App\Models\Payment\Path;
 use App\Models\Payment\StudentBalanceTrans;
 use App\Models\Payment\Year;
+use App\Models\Academic\Registration;
 
 class Student extends Model
 {
@@ -69,7 +70,7 @@ class Student extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill','paymentType');
+        return $this->hasMany(Payment::class, 'student_number','student_number')->with('paymentDetail','paymentBill','paymentType');
     }
 
     public function getComponent()
@@ -92,5 +93,10 @@ class Student extends Model
     public function balanceTrans()
     {
         return $this->hasMany(StudentBalanceTrans::class, 'student_number', 'student_number');
+    }
+
+    public function registration()
+    {
+        return $this->hasOne(Registration::class, 'student_number','student_number')->with('studentStudyCard');
     }
 }

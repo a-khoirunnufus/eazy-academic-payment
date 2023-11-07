@@ -15,6 +15,8 @@ use App\Models\Payment\PaymentDetail;
 use App\Models\Payment\PaymentType;
 use App\Models\Payment\PeriodPathMajor;
 use App\Models\Payment\MasterJob;
+use App\Models\Payment\CourseRate;
+use App\Models\Payment\SKSRate;
 use App\Jobs\Payment\GenerateInvoice;
 use App\Jobs\Payment\GenerateBulkInvoice;
 use App\Models\Payment\DiscountReceiver;
@@ -45,7 +47,7 @@ class StudentInvoice {
      *                      if invoice not found return null instead.
      */
 
-    public function getSchoolYear($prr_school_year){
+    public function getSchoolYear($prr_school_year = null){
         $schoolYearCode = $this->getActiveSchoolYearCode();
         if(isset($prr_school_year)){
             $schoolYearCode = $prr_school_year;
@@ -110,14 +112,15 @@ class StudentInvoice {
     public function getDetailIndex($request,$schoolYearCode,$data){
         $query = Student::query();
         $query = $query->with('lectureType', 'period', 'path', 'year', 'studyProgram')
-            ->with(['payment' => function ($query) use ($schoolYearCode) {
+        ->with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
-        }])->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
-        ->leftJoin('finance.payment_re_register as prr', function ($join) use ($schoolYearCode) {
-            $join->on('prr.student_number', '=', 'hr.ms_student.student_number');
-            $join->where('prr.prr_school_year', '=', $schoolYearCode);
-            $join->where('prr.deleted_at', '=', null);
-        })
+        }])
+        ->with(['registration' => function ($query) use ($schoolYearCode) {
+            $query->where('school_year_code', $schoolYearCode);
+            $query->where('using_subject_package', false);
+            $query->where('approval_status', 1);
+        }])
+        ->join('masterdata.ms_studyprogram as sp', 'sp.studyprogram_id', 'hr.ms_student.studyprogram_id')
         ->select('hr.ms_student.*');
         if ($data['f'] != 0 && $data['f']) {
             $query = $query->where('sp.faculty_id', $data['f']);
@@ -134,7 +137,24 @@ class StudentInvoice {
         if ($request->query('period') !== "all") {
             $query = $query->where('period_id', '=', $request->query('period'));
         }
-        return $query;
+        $query = $query->get();
+        $result = [];
+        foreach($query as $key => $item){
+            if($item->payment()->exists()){
+                foreach($item->payment as $p){
+                    $copy = $item->replicate();
+                    $copy->student_number = $item->student_number;
+                    $copy->setRelation('payment', $p);
+                    $result[] = $copy;
+                }
+            }else{
+                $copy = $item->replicate();
+                $copy->student_number = $item->student_number;
+                $copy->setRelation('payment', null);
+                $result[] = $copy;
+            }
+        }
+        return $result;
     }
 
     public function getDetailHeader($schoolYearCode,$data){
@@ -229,6 +249,198 @@ class StudentInvoice {
             ->groupBy('hr.ms_student.studyprogram_id', 'masterdata.ms_faculties.faculty_id')
             ->get();
         return $student;
+    }
+
+    public function storeCourseGenerate($student,$log_id)
+    {
+        if(!$student->payment){
+            $text= 'Tagihan Awal Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }else{
+            foreach ($student->payment as $item) {
+                if($item->prr_status == 'belum lunas'){
+                    $text= 'Tagihan Awal Belum Lunas';
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                }
+            }
+        }
+
+        if(!$student->registration){
+            $text= 'Data Registrasi Mata Kuliah Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }else{
+            if($student->registration->approval_status != 1){
+                $text= 'Registrasi Mata Kuliah Belum Selesai';
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            }
+        }
+
+        if(!$student->registration->studentStudyCard){
+            $text= 'Data KRS Kosong';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }
+
+        $rateSum = 0;
+        DB::beginTransaction();
+        try {
+            $payment = Payment::create([
+                'prr_status' => 'belum lunas',
+                'prr_total' => 0,
+                'prr_paid_net' => 0,
+                'student_number' => $student->student_number,
+                'prr_type' => 6,
+                'prr_school_year' => $this->getActiveSchoolYearCode(),
+            ]);
+
+            foreach($student->registration->studentStudyCard as $item) {
+                if(!$item->course){
+                    $text= 'Data Course '.$item->course_id.' Tidak Ditemukan';
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                    return json_encode(array('success' => false, 'message' => $text));
+                }else{
+                    if(!$item->course->subject){
+                        $text= 'Data Subject '.$item->course->subject_id.' Tidak Ditemukan';
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                        return json_encode(array('success' => false, 'message' => $text));
+                    }
+                }
+                $courseId = $item->course_id;
+                $tingkat = $item->course->subject->grade ? $item->course->subject->grade : 5;
+                $subjectName = $item->course->subject->subject_name ? $item->course->subject->subject_name : 'Unknown';
+                $studyProgramId = $student->studyprogram_id;
+
+                $courseRate = CourseRate::where('mcr_course_id',$courseId)
+                ->where('mcr_tingkat',$tingkat)
+                ->where('mcr_studyprogram_id',$studyProgramId)
+                ->where('mcr_active_status',1)->first();
+                if(!$courseRate){
+                    $rate = (int)$this->getCacheSetting('payment_subject_fee_cache');
+                }else{
+                    $rate = $courseRate->mcr_rate;
+                }
+                $rateSum = $rateSum+$rate;
+
+                PaymentDetail::create([
+                    'prr_id' => $payment->prr_id,
+                    'prrd_component' => $subjectName,
+                    'prrd_amount' => $rate,
+                    'is_plus' => 1,
+                    'type' => 'component',
+                ]);
+            }
+
+            $payment->update([
+                'prr_total' => $rateSum,
+                'prr_paid_net' => $rateSum
+            ]);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student),LogStatus::Success);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
+            return response()->json($e->getMessage());
+        }
+
+        $text = "Berhasil generate Tagihan Mata Kuliah mahasiswa " . $student->fullname;
+        return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function storeSKSGenerate($student,$log_id)
+    {
+        if(!$student->payment){
+            $text= 'Tagihan Awal Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }else{
+            foreach ($student->payment as $item) {
+                if($item->prr_status == 'belum lunas'){
+                    $text= 'Tagihan Awal Belum Lunas';
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                }
+            }
+        }
+
+        if(!$student->registration){
+            $text= 'Data Registrasi Mata Kuliah Tidak Ditemukan';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }else{
+            if($student->registration->approval_status != 1){
+                $text= 'Registrasi Mata Kuliah Belum Selesai';
+                $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            }
+        }
+
+        if(!$student->registration->studentStudyCard){
+            $text= 'Data KRS Kosong';
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+        }
+
+        $rateSum = 0;
+        DB::beginTransaction();
+        try {
+            $payment = Payment::create([
+                'prr_status' => 'belum lunas',
+                'prr_total' => 0,
+                'prr_paid_net' => 0,
+                'student_number' => $student->student_number,
+                'prr_type' => 5,
+                'prr_school_year' => $this->getActiveSchoolYearCode(),
+            ]);
+
+            foreach($student->registration->studentStudyCard as $item) {
+                if(!$item->course){
+                    $text= 'Data Course '.$item->course_id.' Tidak Ditemukan';
+                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                    return json_encode(array('success' => false, 'message' => $text));
+                }else{
+                    if(!$item->course->subject){
+                        $text= 'Data Subject '.$item->course->subject_id.' Tidak Ditemukan';
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                        return json_encode(array('success' => false, 'message' => $text));
+                    }
+                }
+                $sumCredit = (int)$item->course->subject->credit ? $item->course->subject->credit : 0;
+                $practicumCredit = (int)$item->course->subject->practice_credit ? $item->course->subject->practice_credit : 0;
+                $normalCredit = $sumCredit-$practicumCredit;
+                $subjectName = $item->course->subject->subject_name ? $item->course->subject->subject_name : 'Unknown';
+                $tingkat = $item->course->subject->grade ? $item->course->subject->grade : 5;
+                $studyProgramId = $student->studyprogram_id;
+
+                $SKSRate = SKSRate::where('msr_tingkat',$tingkat)
+                ->where('msr_studyprogram_id',$studyProgramId)
+                ->where('msr_active_status',1)->first();
+                if(!$SKSRate){
+                    $normalRate = (int)$this->getCacheSetting('payment_sks_fee_cache');
+                    $practicumRate = (int)$this->getCacheSetting('payment_sks_practicum_fee_cache');
+                }else{
+                    $normalRate = (int)$SKSRate->msr_rate;
+                    $practicumRate = (int)$SKSRate->msr_rate_practicum;
+                }
+                $rate = ($normalCredit*$normalRate)+($practicumCredit*$practicumRate);
+                $rateSum = $rateSum+$rate;
+
+                PaymentDetail::create([
+                    'prr_id' => $payment->prr_id,
+                    'prrd_component' => $subjectName.': '.$normalCredit.'SKS Normal@Rp.'.number_format($normalRate, 2).' dan '.$practicumCredit.' SKS Praktikum@Rp.'.number_format($practicumRate, 2),
+                    'prrd_amount' => $rate,
+                    'is_plus' => 1,
+                    'type' => 'component',
+                ]);
+            }
+
+            $payment->update([
+                'prr_total' => $rateSum,
+                'prr_paid_net' => $rateSum
+            ]);
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student),LogStatus::Success);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
+            return response()->json($e->getMessage());
+        }
+
+        $text = "Berhasil generate Tagihan SKS mahasiswa " . $student->fullname;
+        return json_encode(array('success' => true, 'message' => $text));
     }
 
     public function storeStudentGenerate($student,$log_id)

@@ -5,6 +5,7 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Payment\Studyprogram;
+use App\Models\Payment\Subject;
 
 class Course extends Model
 {
@@ -21,5 +22,10 @@ class Course extends Model
     public function studyProgram()
     {
         return $this->belongsTo(Studyprogram::class, 'studyprogram_id','studyprogram_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id','subject_id');
     }
 }

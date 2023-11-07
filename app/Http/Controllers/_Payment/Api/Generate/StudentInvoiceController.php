@@ -46,7 +46,7 @@ class StudentInvoiceController extends Controller
         $data = $studentInvoice->getDataQuery($request,$list);
         $schoolYearCode = $studentInvoice->getSchoolYear($request->query()['year']);
         $query = $studentInvoice->getDetailIndex($request,$schoolYearCode,$data);
-        return datatables($query->get())->toJson();
+        return datatables($query)->toJson();
     }
 
     // Header Per Prodi / Fakultas
@@ -90,9 +90,39 @@ class StudentInvoiceController extends Controller
     public function studentGenerate(Request $request)
     {
         $studentInvoice = new StudentInvoice();
-        $student = Student::with('getComponent')->findorfail($request['student_number']);
-        $log = $this->addToLog('Generate Tagihan Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
-        $result = $studentInvoice->storeStudentGenerate($student,$log->log_id);
+        $student = Student::query();
+        $schoolYearCode = $studentInvoice->getSchoolYear();
+        if($request->prr_type == 3){
+            $title = 'Mata Kuliah ';
+            $student = $student->with(['payment' => function ($query) use ($schoolYearCode) {
+                $query->where('prr_school_year', $schoolYearCode);
+            }])->with(['registration' => function ($query) use ($schoolYearCode) {
+                $query->where('school_year_code', $schoolYearCode);
+                $query->where('using_subject_package', false);
+                $query->where('approval_status', 1);
+            }]);
+        }else if($request->prr_type == 2){
+            $title = 'SKS ';
+            $student = $student->with(['payment' => function ($query) use ($schoolYearCode) {
+                $query->where('prr_school_year', $schoolYearCode);
+            }])->with(['registration' => function ($query) use ($schoolYearCode) {
+                $query->where('school_year_code', $schoolYearCode);
+                $query->where('using_subject_package', false);
+                $query->where('approval_status', 1);
+            }]);
+        }else{
+            $title = '';
+            $student = $student->with('getComponent');
+        }
+        $student = $student->findorfail($request['student_number']);
+        $log = $this->addToLog('Generate Tagihan '.$title.'Mahasiswa Lama',$this->getAuthId(),LogStatus::Process,$request->url);
+        if($request->prr_type == 3){
+            $result = $studentInvoice->storeCourseGenerate($student,$log->log_id);
+        }else if($request->prr_type == 2){
+            $result = $studentInvoice->storeSKSGenerate($student,$log->log_id);
+        }else{
+            $result = $studentInvoice->storeStudentGenerate($student,$log->log_id);
+        }
         $this->updateLogStatus($log,$result);
         return $result;
     }
