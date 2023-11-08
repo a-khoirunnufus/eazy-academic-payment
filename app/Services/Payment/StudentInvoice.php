@@ -67,7 +67,6 @@ class StudentInvoice {
         $student = Student::with(['payment' => function ($query) use ($schoolYearCode) {
             $query->where('prr_school_year', $schoolYearCode);
         }])->get();
-
         $result = collect();
         foreach ($query as $item) {
             $collection = collect();
@@ -82,8 +81,10 @@ class StudentInvoice {
                 $total_student = $student->whereIn('studyprogram_id', $arrSp)->count();
                 foreach ($filter as $t) {
                     if ($t->payment) {
-                        $total_invoice = $total_invoice + $t->payment->prr_total;
-                        $total_generate = $total_generate + 1;
+                        foreach($t->payment as $p){
+                            $total_invoice = $total_invoice + $p->prr_total;
+                            $total_generate = $total_generate + 1;
+                        }
                     }
                 }
             }
@@ -97,8 +98,10 @@ class StudentInvoice {
                     $total_generate = 0;
                     foreach ($filter as $t) {
                         if ($t->payment) {
-                            $total_invoice = $total_invoice + $t->payment->prr_total;
-                            $total_generate = $total_generate + 1;
+                            foreach($t->payment as $p){
+                                $total_invoice = $total_invoice + $p->prr_total;
+                                $total_generate = $total_generate + 1;
+                            }
                         }
                     }
                     $data = ['faculty' => null, 'study_program' => $sp, 'total_student' => $total_student, 'total_invoice' => $total_invoice, 'total_generate' => $total_generate];
