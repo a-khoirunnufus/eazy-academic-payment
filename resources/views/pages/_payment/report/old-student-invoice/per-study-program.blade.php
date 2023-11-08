@@ -351,7 +351,7 @@
                         zeroRecords: "Tidak ditemukan data yang cocok"
                     },
                     dom: '<"d-flex justify-content-between align-items-center header-actions mx-0 row"' +
-                        '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"old-student-invoice-actions">>' +
+                        '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"custom-actions">>' +
                         '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
                         '>' +
                         'tr' +
@@ -363,7 +363,9 @@
                         btnTypes: ['excel', 'csv'],
                         exportColumns: [11,12,13,14,15,16,17,18,19,20,21,22,23,24]
                     }),
-                    initComplete: () => {}
+                    initComplete: () => {
+                        feather.replace();
+                    }
                 });
 
                 this.implementSearchDelay();
@@ -441,9 +443,15 @@
             },
         }
 
-        function assignFilter(selector) {
-            const value = $(selector).val();
-            if (value === '#ALL') return null;
+        function assignFilter(selector, prefix = null, postfix = null) {
+            let value = $(selector).val();
+
+            if (value === '#ALL')
+                return null;
+
+            if (value)
+                value = `${prefix ?? ''}${value}${postfix ?? ''}`;
+
             return value;
         }
     </script>

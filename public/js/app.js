@@ -315,7 +315,7 @@ const _datatableTemplates = {
     },
     badgeCell: function(label, bsColor, {centered = true, nowrap = true, additionalClass = ''} = {}) {
         return `
-            <div class="d-flex ${centered ? 'justify-content-center' : ''}">
+            <div class="d-flex ${centered ? 'justify-content-center' : ''} py-0">
                 <div class="badge bg-${bsColor} ${nowrap ? 'text-nowrap' : ''} ${additionalClass}" style="font-size: inherit">${label}</div>
             </div>
         `;
@@ -338,9 +338,9 @@ const _datatableTemplates = {
             </div>
         `;
     },
-    listCell: function(listData) {
+    listCell: function(listData, {maxWidth = null} = {}) {
         return `
-            <div class="d-flex flex-column" style="gap: 8px">
+            <div class="d-flex flex-column py-0" style="gap: 4px;${maxWidth ? 'width: max-content; max-width: '+maxWidth : ''}">
                 ${
                     listData.map(item => {
                         return `
