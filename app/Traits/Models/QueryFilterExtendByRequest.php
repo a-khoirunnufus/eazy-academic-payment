@@ -44,16 +44,15 @@ trait QueryFilterExtendByRequest
     {
         $filters = collect($request->get('withFilter'));
 
-        foreach ($params as $item) {
-            $filter = $filters->where('column', $item)->first();
-            if (!$filter) continue;
+        foreach ($filters as $filter) {
+            if (in_array($filter['column'], $params)) {
+                $column = $filter['column'];
+                $operator = $filter['operator'];
+                $value = $filter['value'];
 
-            $column = $filter['column'];
-            $operator = $filter['operator'];
-            $value = $filter['value'];
-
-            $path = explode(".", $column);
-            $query->where($column, $operator, $value);
+                $path = explode(".", $column);
+                $query->where($column, $operator, $value);
+            }
         }
     }
 }
