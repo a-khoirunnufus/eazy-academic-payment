@@ -17,6 +17,7 @@ use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
 use App\Enums\Payment\LogStatus;
 use App\Services\Payment\StudentInvoice;
+use App\Services\Payment\LeaveInvoice;
 use Carbon\Carbon;
 use Config;
 
@@ -87,6 +88,13 @@ class StudentInvoiceController extends Controller
      /**
      * Function
      */
+
+    public function studentLeave(Request $request){
+        $leave = new LeaveInvoice();
+        $result = $leave->storeLeaveGenerate($request['student_number']);
+        return $result;
+    }
+
     public function studentGenerate(Request $request)
     {
         $studentInvoice = new StudentInvoice();
