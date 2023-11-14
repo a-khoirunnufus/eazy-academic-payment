@@ -227,8 +227,8 @@
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Lama</span>
                         </a>
                     </li>
-                    <li class="menu__item nav-item {{ 'report/new-student-invoice' == request()->path() ? 'active' : '' }}">
-                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/new-student-invoice') }}">
+                    <li class="menu__item nav-item {{ 'payment/report/new-student-invoice/studyprogram' == request()->path() ? 'active' : '' }}">
+                        <a class="d-flex align-items-center fw-bold" href="{{ url('payment/report/new-student-invoice/studyprogram') }}">
                             <i data-feather="circle"></i>
                             <span class="menu-title text-truncate">Laporan Pembayaran<br>Tagihan Mahasiswa<br>Baru</span>
                         </a>
