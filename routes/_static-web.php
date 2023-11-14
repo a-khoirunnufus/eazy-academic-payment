@@ -20,8 +20,8 @@ Route::get('/setting/rates-per-course', fn() => view('pages.setting.rates-per-co
 Route::get('/generate/old-student-invoice', fn() => view('pages.generate.old-student-invoice'));
 Route::get('/generate/new-student-invoice', fn() => view('pages.generate.new-student-invoice'));
 Route::get('/generate/student-invoice-detail', fn() => view('pages.generate.student-invoice-detail'));
-Route::get('/generate/other-invoice', fn() => view('pages.generate.other-invoice'));
-Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-invoice-detail'));
+// Route::get('/generate/other-invoice', fn() => view('pages.generate.other-invoice'));
+// Route::get('/generate/other-invoice-detail', fn() => view('pages.generate.other-invoice-detail'));
 
 // Route::get('/report/old-student-invoice', function(Request $request) {
 //     if ($request->query('type') == 'student') {

@@ -31,12 +31,12 @@
             <span>Beasiswa <br> Mahasiswa</span>
         </div>
     </a>
-    {{-- <a href="{{ url('generate/other-invoice') }}" class="eazy-shortcut-item {{ $active == 'other-invoice' ? 'active' : '' }}">
+    <a href="{{ route('payment.generate.other-invoice') }}" class="eazy-shortcut-item {{ $active == 'other-invoice' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="clipboard"></i>
         </div>
         <div class="eazy-shortcut-label">
             <span>Tagihan <br> Lainnya</span>
         </div>
-    </a> --}}
+    </a>
 </div>

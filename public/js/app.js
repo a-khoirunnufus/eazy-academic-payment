@@ -1254,10 +1254,19 @@ const _numberCurrencyFormat = {
         }else{
             $(`<input type="hidden" name="${name}" id="${selector}" required>`).insertAfter( `.${selector}` );
         }
+        $(`.${selector}`).attr('onkeypress','return _numberCurrencyFormat.isNumberKey(event)');
         easyNumberSeparator({
             selector: `.${selector}`,
             separator: '.',
             resultInput: `#${selector}`,
         })
+    },
+
+    isNumberKey: function(evt){
+        var charCode = (evt.which) ? evt.which : evt.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57)){
+            return false;
+        }
+        return true;
     }
 }

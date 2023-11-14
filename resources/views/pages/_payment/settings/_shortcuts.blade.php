@@ -39,6 +39,14 @@
             <span>Tarif Per<br>SKS</span>
         </div>
     </a>
+    <a href="{{ route('payment.settings.other-rates') }}" class="eazy-shortcut-item {{ $active == 'other-rates' ? 'active' : '' }}">
+        <div class="eazy-shortcut-icon">
+            <i data-feather="book"></i>
+        </div>
+        <div class="eazy-shortcut-label">
+            <span>Tarif<br>Lainnya</span>
+        </div>
+    </a>
     <a href="{{ route('payment.settings.registration-form') }}" class="eazy-shortcut-item {{ $active == 'registration-form' ? 'active' : '' }}">
         <div class="eazy-shortcut-icon">
             <i data-feather="file-text"></i>

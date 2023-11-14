@@ -39,6 +39,7 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
         Route::get('payment-rates/detail/{id}', 'App\Http\Controllers\_Payment\SettingsController@paymentratesdetail')->name('payment.settings.payment-rates.detail');
         Route::get('subject-rates', 'App\Http\Controllers\_Payment\SettingsController@subjectrates')->name('payment.settings.subject-rates');
         Route::get('sks-rates', 'App\Http\Controllers\_Payment\SettingsController@sksrates')->name('payment.settings.sks-rates');
+        Route::get('other-rates', 'App\Http\Controllers\_Payment\SettingsController@otherRates')->name('payment.settings.other-rates');
         Route::get('courserates/template', 'App\Http\Controllers\_Payment\Api\Settings\CourseRatesController@template');
         Route::get('credit-schema', 'App\Http\Controllers\_Payment\SettingsController@creditSchema')->name('payment.settings.credit-schema');
         Route::get('registration-form', 'App\Http\Controllers\_Payment\SettingsController@registrationForm')->name('payment.settings.registration-form');
@@ -52,6 +53,9 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 
         Route::get('student-invoice', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoice')->name('payment.generate.student-invoice');
         Route::get('student-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@StudentInvoiceDetail')->name('payment.generate.student-invoice-detail');
+
+        Route::get('other-invoice', 'App\Http\Controllers\_Payment\GenerateController@otherInvoice')->name('payment.generate.other-invoice');
+        Route::get('other-invoice/detail', 'App\Http\Controllers\_Payment\GenerateController@otherInvoiceDetail')->name('payment.generate.other-invoice-detail');
 
         Route::get('discount', 'App\Http\Controllers\_Payment\GenerateController@discount')->name('payment.generate.discount');
         Route::get('scholarship', 'App\Http\Controllers\_Payment\GenerateController@scholarship')->name('payment.generate.scholarship');

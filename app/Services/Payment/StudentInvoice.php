@@ -68,6 +68,7 @@ class StudentInvoice {
             $query->where('prr_school_year', $schoolYearCode);
         }])->get();
         $result = collect();
+        $types = [1,2,3];
         foreach ($query as $item) {
             $collection = collect();
             $arrSp = [];
@@ -83,7 +84,9 @@ class StudentInvoice {
                     if ($t->payment) {
                         foreach($t->payment as $p){
                             $total_invoice = $total_invoice + $p->prr_total;
-                            $total_generate = $total_generate + 1;
+                            if(in_array($p->prr_type, $types)){
+                                $total_generate = $total_generate + 1;
+                            }
                         }
                     }
                 }
@@ -100,7 +103,9 @@ class StudentInvoice {
                         if ($t->payment) {
                             foreach($t->payment as $p){
                                 $total_invoice = $total_invoice + $p->prr_total;
-                                $total_generate = $total_generate + 1;
+                                if(in_array($p->prr_type, $types)){
+                                    $total_generate = $total_generate + 1;
+                                }
                             }
                         }
                     }

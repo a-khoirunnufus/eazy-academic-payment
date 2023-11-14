@@ -59,6 +59,27 @@ class GenerateController extends Controller
         return view('pages._payment.generate.student-invoice.detail',compact('data','year','path','period'));
     }
 
+    public function otherInvoice()
+    {
+        $year = Year::all();
+        $path = Path::all();
+        $period = Period::all();
+        $yearCode = $this->getActiveSchoolYearCode();
+        return view('pages._payment.generate.other-invoice.index', compact('year','path','period','yearCode'));
+    }
+
+    public function otherInvoiceDetail(Request $request)
+    {
+        $data['f'] = $request->query()['f'];
+        $data['sp'] = $request->query()['sp'];
+        $data['year'] = $request->query()['year'];
+
+        $year = Year::all();
+        $path = Path::all();
+        $period = Period::all();
+        return view('pages._payment.generate.other-invoice.detail',compact('data','year','path','period'));
+    }
+
     public function discount()
     {
         $period = Year::orderBy('msy_code')->get();

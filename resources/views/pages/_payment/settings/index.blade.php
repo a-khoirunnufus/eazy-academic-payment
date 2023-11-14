@@ -79,12 +79,12 @@
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Regenerate Tagihan Mahasiswa Lama<br>
                         <small class="text-muted">Membatasi tanggal akhir untuk regenerate tagihan mahasiswa lama.</small></label>
-                        <input type="date" id="vertical-username" name="payment_regenerate_lock_cache" class="form-control" value="{{$settings->where('name','payment_regenerate_lock_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-username" name="payment_regenerate_lock_cache" class="form-control datepicker" value="{{$settings->where('name','payment_regenerate_lock_cache')->pluck('value')[0]}}" required>
                     </div>
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Regenerate Tagihan Mahasiswa Baru<br>
                             <small class="text-muted">Membatasi tanggal akhir untuk regenerate tagihan mahasiswa baru.</small></label>
-                        <input type="date" id="vertical-email" name="payment_regenerate_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_regenerate_lock_new_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-email" name="payment_regenerate_lock_new_cache" class="form-control datepicker" value="{{$settings->where('name','payment_regenerate_lock_new_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <hr>
@@ -96,12 +96,12 @@
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Hapus Tagihan Mahasiswa Lama<br>
                         <small class="text-muted">Membatasi tanggal akhir untuk hapus tagihan mahasiswa lama.</small></label>
-                        <input type="date" id="vertical-username" name="payment_delete_lock_cache" class="form-control" value="{{$settings->where('name','payment_delete_lock_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-username" name="payment_delete_lock_cache" class="form-control datepicker" value="{{$settings->where('name','payment_delete_lock_cache')->pluck('value')[0]}}" required>
                     </div>
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Hapus Tagihan Mahasiswa Baru<br>
                             <small class="text-muted">Membatasi tanggal akhir untuk hapus tagihan mahasiswa baru.</small></label>
-                        <input type="date" id="vertical-email" name="payment_delete_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_delete_lock_new_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-email" name="payment_delete_lock_new_cache" class="form-control datepicker" value="{{$settings->where('name','payment_delete_lock_new_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <hr>
@@ -113,12 +113,12 @@
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Edit Tagihan Mahasiswa Lama<br>
                         <small class="text-muted">Membatasi tanggal akhir untuk edit tagihan mahasiswa lama.</small></label>
-                        <input type="date" id="vertical-username" name="payment_edit_lock_cache" class="form-control" value="{{$settings->where('name','payment_edit_lock_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-username" name="payment_edit_lock_cache" class="form-control datepicker" value="{{$settings->where('name','payment_edit_lock_cache')->pluck('value')[0]}}" required>
                     </div>
                     <div class="mb-1 col-md-6">
                         <label class="form-label" for="vertical-username">Batas Tanggal Akhir Edit Tagihan Mahasiswa Baru<br>
                             <small class="text-muted">Membatasi tanggal akhir untuk edit tagihan mahasiswa baru.</small></label>
-                        <input type="date" id="vertical-email" name="payment_edit_lock_new_cache" class="form-control" value="{{$settings->where('name','payment_edit_lock_new_cache')->pluck('value')[0]}}" required>
+                        <input type="date" id="vertical-email" name="payment_edit_lock_new_cache" class="form-control datepicker" value="{{$settings->where('name','payment_edit_lock_new_cache')->pluck('value')[0]}}" required>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
@@ -341,8 +341,8 @@
     _numberCurrencyFormat.load('payment_sks_practicum_fee_cache');
     _numberCurrencyFormat.load('payment_sks_fee_cache');
     $(document).ready(function () {
-        var stepper = new Stepper($('.bs-stepper')[0]);
         @if (session('tabId'))
+            var stepper = new Stepper($('.bs-stepper')[0]);
             stepper.to({{session("tabId")}});
         @endif
     })
