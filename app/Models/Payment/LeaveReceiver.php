@@ -17,7 +17,7 @@ class LeaveReceiver extends Model
     protected $primaryKey = 'mlr_id';
 
     protected $fillable = [
-        'student_number','msy_id','mlr_nominal','mlr_status','prr_id'
+        'student_number','msy_code','mlr_nominal','mlr_status','prr_id'
     ];
 
     public function payment()
@@ -27,7 +27,7 @@ class LeaveReceiver extends Model
 
     public function year()
     {
-        return $this->belongsTo(Year::class, 'msy_id','msy_id');
+        return $this->belongsTo(Year::class, 'msy_code','msy_code');
     }
 
     public function student()

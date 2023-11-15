@@ -81,7 +81,7 @@ class LeaveInvoice {
 
             $payment = LeaveReceiver::create([
                 'student_number' => $student->student_number,
-                'msy_id' => $this->getActiveSchoolYearId(),
+                'msy_code' => $this->getActiveSchoolYearCode(),
                 'mlr_nominal' => $prr_total,
                 'mlr_status' => $bool_status,
                 'prr_id' => $payment->prr_id,
