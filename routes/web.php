@@ -92,26 +92,23 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
     // Report
     Route::group(['prefix' => 'report'], function () {
         Route::group(['prefix' => 'old-student-invoice'], function () {
-            Route::get('/studyprogram', 'App\Http\Controllers\_Payment\ReportController@oldStudentPerStudyprogram');
-            Route::get('/student', 'App\Http\Controllers\_Payment\ReportController@oldStudentPerStudent');
-            Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
-            Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentDetail');
+            Route::get('/studyprogram', 'App\Http\Controllers\_Payment\ReportController@invoiceOldStudentPerStudyprogram');
+            Route::get('/student', 'App\Http\Controllers\_Payment\ReportController@invoiceOldStudentPerStudent');
         });
-        Route::group(['prefix' => 'new-student-invoice'], function(){
-            Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudent');
-            Route::get('/download-perstudent', 'App\Http\Controllers\_Payment\Api\ReportControllerApi@studentExport');
-            Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentDetail');
+        Route::group(['prefix' => 'new-student-invoice'], function() {
+            Route::get('/studyprogram', 'App\Http\Controllers\_Payment\ReportController@invoiceNewStudentPerStudyprogram');
+            Route::get('/student', 'App\Http\Controllers\_Payment\ReportController@invoiceNewStudentPerStudent');
         });
-        Route::group(['prefix' => 'old-student-receivables'], function(){
+        Route::group(['prefix' => 'old-student-receivables'], function() {
             Route::get('/', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivable');
             Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@oldStudentReceivableDetail');
         });
-        Route::group(['prefix' => 'new-student-receivables'], function(){
+        Route::group(['prefix' => 'new-student-receivables'], function() {
             Route::get('/', 'App\Http\Controllers\_Payment\ReportController@newStudentReceivables');
             Route::get('/program-study/{programStudy}', 'App\Http\Controllers\_Payment\ReportController@newStudentReceivableDetail');
         });
-        Route::group(['prefix' => 'registrant-invoice'], function(){
-            Route::get('/', 'App\Http\Controllers\_Payment\ReportController@registrantInvoice');
+        Route::group(['prefix' => 'registrant-invoice'], function() {
+            Route::get('/', 'App\Http\Controllers\_Payment\ReportController@invoiceRegistrant');
         });
     });
 

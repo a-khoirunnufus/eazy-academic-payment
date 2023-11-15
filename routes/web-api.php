@@ -280,6 +280,20 @@ Route::group(['prefix' => 'payment'], function(){
             Route::get('datatable', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@datatable');
             Route::get('refresh', 'App\Http\Controllers\_Payment\Api\Report\InvoiceRegistrantController@refresh');
         });
+
+        Route::group(['prefix' => 'new-student-invoice'], function(){
+            Route::get('studyprogram/datatable', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudyprogramDatatable');
+            Route::get('studyprogram/refresh', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudyprogramRefresh');
+            Route::get('studyprogram/refresh-info', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudyprogramRefreshInfo');
+            Route::get('studyprogram/export', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudyprogramExport');
+
+            Route::get('student/datatable', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudentDatatable');
+            Route::get('student/refresh', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudentRefresh');
+            Route::get('student/refresh-info', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudentRefreshInfo');
+            Route::get('student/export', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@perStudentExport');
+
+            Route::get('bill/datatable', 'App\Http\Controllers\_Payment\Api\Report\InvoiceNewStudentController@invoiceBillDatatable');
+        });
     });
 
     // Student Group Routes

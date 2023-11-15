@@ -14,7 +14,6 @@ class InvoiceRegistrantController extends Controller
 
     public function datatable(Request $request)
     {
-        \Log::debug($request->all());
         $validated = $request->validate([
             'school_year' => 'required',
         ]);
@@ -35,8 +34,6 @@ class InvoiceRegistrantController extends Controller
                 'payment_status',
             ]
         );
-
-        \Log::debug($query->toSql());
 
         $datatable = datatables($query);
 

@@ -38,6 +38,15 @@
                     </span>
                 </button>
             </div>
+            <div class="step" data-target="#report-vertical" role="tab" id="report-vertical-trigger">
+                <button type="button" class="step-trigger" aria-selected="true">
+                    <span class="bs-stepper-box">3</span>
+                    <span class="bs-stepper-label">
+                        <span class="bs-stepper-title">Laporan</span>
+                        <span class="bs-stepper-subtitle">Options</span>
+                    </span>
+                </button>
+            </div>
             {{-- <div class="step" data-target="#personal-info-vertical" role="tab" id="personal-info-vertical-trigger">
                 <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">2</span>
@@ -128,6 +137,7 @@
                 </div>
                 </form>
             </div>
+
             <div id="masterdata-vertical" class="content" role="tabpanel" aria-labelledby="masterdata-vertical-trigger">
                 <form action="{{ route('payment.settings.update') }}" method="post">
                 <input type="hidden" name="tabId" value=2>
@@ -192,6 +202,32 @@
                 </div>
                 </form>
             </div>
+
+            <div id="report-vertical" class="content" role="tabpanel" aria-labelledby="report-vertical-trigger">
+                <form action="{{ route('payment.settings.update') }}" method="post">
+                    @csrf
+                    <input type="hidden" name="tabId" value="3">
+                    <div class="content-header">
+                        <h5 class="mb-0">Pembayaran Tagihan Mahasiswa Baru</h5>
+                        <!-- <small class="text-muted">subtitle.</small> -->
+                    </div>
+                    <div class="row mb-1">
+                        <div class="col-12">
+                            <label class="form-label" for="vertical-username">Sumber Data</label>
+                            <select class="form-select w-100 select2" name="payment_report_invoice_new_student_source" value="{{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] }}">
+                                <option value="finance" {{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] == 'finance' ? 'selected' : '' }}>Finance</option>
+                                <option value="admission" {{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] == 'admission' ? 'selected' : '' }}>Admission</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary waves-effect waves-float waves-light btn-submit-action">
+                            <span class="align-middle d-sm-inline-block d-none"><i data-feather="save"></i> Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <div id="personal-info-vertical" class="content dstepper-block" role="tabpanel" aria-labelledby="personal-info-vertical-trigger">
                 <div class="content-header">
                     <h5 class="mb-0">Personal Info</h5>

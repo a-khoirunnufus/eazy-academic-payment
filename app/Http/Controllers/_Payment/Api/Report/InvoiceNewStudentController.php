@@ -3,254 +3,267 @@
 namespace App\Http\Controllers\_Payment\Api\Report;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use App\Models\Payment\Faculty;
 use App\Models\Payment\Payment;
-use App\Models\PMB\Register;
-use App\Models\Payment\Studyprogram;
+use App\Models\Payment\PaymentBill;
 use App\Models\Payment\Year;
-use App\Traits\Payment\General as PaymentGeneral;
-use App\Traits\Models\DatatableManualFilter;
-use App\Traits\Models\DatatableManualSort;
+use App\Models\Payment\Settings;
+use App\Models\Admission\Payment as AdmissionPayment;
+use App\Models\Admission\PaymentBill as AdmissionPaymentBill;
+use App\Traits\Models\QueryFilterExtendByRequest;
+use App\Traits\Payment\General;
+use App\Exports\Payment\Report\InvoiceNewStudentPerStudentExport;
+use App\Exports\Payment\Report\InvoiceNewStudentPerStudyprogramExport;
 
-use Yajra\DataTables\DataTables;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Maatwebsite\Excel\Excel;
 
 class InvoiceNewStudentController extends Controller
 {
-    function newStudent(Request $request)
+    use General, QueryFilterExtendByRequest;
+
+    private $source = '';
+    private $table_source = '';
+    private $table_source_studyprogram = '';
+
+    public function __construct()
     {
-        // $list_studyProgram = $this->getColomns('ms.studyprogram_id', 'ms.studyprogram_type', 'ms.studyprogram_name')->distinct()->get();
-        $year = Year::query();
-        if ($request->get('data_filter') !== '#ALL' && $request->get('data_filter') !== NULL) {
-            $year = $year->where('msy_id', '=', $request->get('data_filter'));
+        $setting_source = Settings::where('name', 'payment_report_invoice_new_student_source')->first()->value;
+
+        if ($setting_source == 'finance') {
+            $this->source = 'finance';
+            $this->table_source = 'finance.vw_invoice_new_student_finance_master';
+            $this->table_source_studyprogram = 'finance.vw_invoice_new_student_finance_per_studyprogram';
         }
-        $year = $year->get();
-        $data = [];
-        $id_faculty = $request->get('id_faculty');
-        $id_prodi = $request->get('id_prodi');
-
-        $dataStudent = [];
-        $spesifikProdi = $request->get('prodi');
-        $prodi_filter_angkatan = $request->get('prodi_filter_angkatan');
-        $prodi_search_filter = $request->get('prodi_search_filter');
-        $prodi_path_filter = $request->get('prodi_path_filter');
-        $prodi_period_filter = $request->get('prodi_period_filter');
-
-        foreach ($year as $tahun) {
-            $list_studyProgram = $this->getNew('ms.*')->where('msy.msy_id', '=', $tahun->msy_id);
-            if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
-                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $spesifikProdi);
-            }
-            if ($id_faculty !== '#ALL' && $id_faculty !== NULL) {
-                $list_studyProgram = $list_studyProgram->where('ms.faculty_id', '=', $id_faculty);
-            }
-            if ($id_prodi !== '#ALL' && $id_prodi !== NULL) {
-                $list_studyProgram = $list_studyProgram->where('ms.studyprogram_id', '=', $id_prodi);
-            }
-            $list_studyProgram = $list_studyProgram->distinct()->get();
-
-            foreach ($list_studyProgram as $studyProgram) {
-                // $listStudent = $this->getColomns('ms2.*','ms2.student_id', 'ms2.fullname');
-                $prr_list_reg_id = DB::table('finance.payment_re_register as prr')
-                                            ->whereNull('prr.deleted_at')
-                                            ->whereNotNull('prr.reg_id')
-                                            ->select('prr.reg_id');
-                $list_reg_id = array();
-                foreach($prr_list_reg_id->get() as $item){
-                    array_push($list_reg_id, $item->reg_id);
-                }
-                $listStudent = $this->getNew(
-                    'p.par_id',
-                    'p.par_fullname',
-                    'p.par_nik',
-                    'p.par_phone',
-                    'p.par_birthday',
-                    'p.par_gender',
-                    'p.par_religion',
-                    'r.reg_id',
-                    'r.ms_period_id',
-                    'r.ms_path_id'
-                )->whereIn('r.reg_id', $list_reg_id);
-                if ($prodi_filter_angkatan !== '#ALL' && $prodi_filter_angkatan !== NULL) {
-                    $listStudent->where(DB::raw("SUBSTR(TO_CHAR(r.reg_major_pass_date, 'YYYY-MM-DD'), 1, 4)"), '=', $prodi_filter_angkatan);
-                }
-                if ($prodi_path_filter !== '#ALL' && $prodi_path_filter !== NULL) {
-                    $listStudent->where('r.ms_path_id', '=', $prodi_path_filter);
-                }
-                if ($prodi_period_filter !== '#ALL' && $prodi_period_filter !== NULL) {
-                    $listStudent->where('r.ms_period_id', '=', $prodi_period_filter);
-                }
-                $listStudent->where('ms.studyprogram_id', '=', $studyProgram->studyprogram_id)->where('msy.msy_id', '=', $tahun->msy_id)->distinct();
-
-                $studyProgram->student = $listStudent->get();
-                $studyProgram->year = $tahun;
-                $studyProgram->faculty = Faculty::where('faculty_id', '=', $studyProgram->faculty_id)->get();
-
-                foreach ($studyProgram->student as $list_student) {
-                    $listPayment = $this->getNew('prr.*')
-                        ->where('prr.reg_id', '=', $list_student->reg_id)
-                        ->distinct()->get();
-
-                    $denda = 0;
-                    $beasiswa = 0;
-                    $potongan = 0;
-                    foreach ($listPayment as $list_payment) {
-                        $listPaymentDetail = $this->getNew('prrd.*')
-                            ->where('prrd.prr_id', '=', $list_payment->prr_id)
-                            ->distinct()
-                            ->get();
-                        $total_prrd_amount = 0;
-                        foreach ($listPaymentDetail as $pd) {
-                            switch ($pd->type) {
-                                case "component":
-                                    $total_prrd_amount += $pd->prrd_amount;
-                                    break;
-                                case "denda":
-                                    $denda += $pd->prrd_amount;
-                                    break;
-                                case "scholarship":
-                                    $beasiswa += $pd->prrd_amount;
-                                    break;
-                                case "discount":
-                                    $potongan += $pd->prrd_amount;
-                                    break;
-                            }
-                        }
-
-                        $listPaymentBill = $this->getNew('prrb.*')
-                            ->where('prrb.prr_id', '=', $list_payment->prr_id)
-                            ->distinct()
-                            ->get();
-                        $total_paid = 0;
-                        foreach ($listPaymentBill as $pb) {
-                            $manual_payment = DB::table('finance.payment_re_register_transaction')
-                                                ->where('prrb_id', '=', $pb->prrb_id)
-                                                ->whereNull('deleted_at')
-                                                ->get();
-                            if(count($manual_payment) > 0){
-                                $total = 0;
-                                foreach($manual_payment as $mp){
-                                    $total += $mp->prrt_amount;
-                                }
-                                if($total >= $pb->prrb_amount){
-                                    $pb_update = DB::table('finance.payment_re_register_bill')
-                                                ->where('prrb_id', '=', $pb->prrb_id)
-                                                ->update(['prrb_status' => 'lunas']);
-                                }
-                                $total_paid += $total;
-                            }
-                            if(count($manual_payment) < 1){
-                                $total_paid += $pb->prrb_status == 'lunas' ? $pb->prrb_amount : 0;
-                            }
-                        }
-
-                        $list_payment->payment_detail = $listPaymentDetail;
-                        $list_payment->payment_bill = $listPaymentBill;
-                        $list_payment->prr_total = ($total_prrd_amount + $denda) - ($beasiswa + $potongan);
-                        $list_payment->prr_amount = $total_prrd_amount + $denda;
-                        $list_payment->prr_paid = $total_paid;
-                        $list_payment->penalty = $denda;
-                        $list_payment->schoolarsip = $beasiswa;
-                        $list_payment->discount = $potongan;
-                        $list_student->payment = $list_payment;
-                    }
-
-                    if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
-                        $detail_prodi = $studyProgram;
-                        unset($detail_prodi->student);
-                        $list_student->studyprogram = $detail_prodi;
-                        array_push($dataStudent, $list_student);
-                    }
-                }
-                array_push($data, $studyProgram);
-            }
+        elseif ($setting_source == 'admission') {
+            $this->source = 'admission';
+            $this->table_source = 'finance.vw_invoice_new_student_admission_master';
+            $this->table_source_studyprogram = 'finance.vw_invoice_new_student_admission_per_studyprogram';
         }
-
-        if ($spesifikProdi !== '#ALL' && $spesifikProdi !== NULL) {
-            if ($prodi_search_filter !== '#ALL' && $prodi_search_filter !== NULL) {
-                $data_filter = [];
-                foreach ($dataStudent as $list) {
-                    $row = json_encode($list);
-                    if (strpos($row, $prodi_search_filter)) {
-                        array_push($data_filter, $list);
-                    }
-                }
-                return DataTables($data_filter)->toJson();
-            }
-            return DataTables($dataStudent)->toJson();
-        }
-
-        if ($request->get('search_filter') !== '#ALL' && $request->get('search_filter') !== NULL) {
-            $data_filter = [];
-            foreach ($data as $list) {
-                $row = json_encode($list);
-                $find = $request->get('search_filter');
-                if (strpos($row, $find)) {
-                    array_push($data_filter, $list);
-                }
-            }
-            return DataTables($data_filter)->toJson();
-        }
-
-        // return json_encode($data);
-        return DataTables($data)->toJson();
     }
 
-    function newStudentHistory($student_number, Request $request)
+    public function perStudentDatatable(Request $request)
     {
-        $search = $request->get('search_filter');
-        $data = $this->getNew('prrb.*')->where('p.par_id', '=', $student_number)->distinct()->get();
-        foreach ($data as $items) {
-            $items->method = DB::select('SELECT prr_method FROM finance.payment_re_register WHERE prr_id = ?', [$items->prr_id])[0]->prr_method;
+        $query = DB::table($this->table_source);
+
+        $this->applyFilterWoFc(
+            $query,
+            $request,
+            [
+                'invoice_nominal_total',
+                'invoice_component_total_amount',
+                'invoice_penalty_total_amount',
+                'invoice_scholarship_total_amount',
+                'invoice_discount_total_amount',
+                'payment_admin_cost',
+                'payment_total_paid',
+                'payment_total_unpaid',
+                'payment_status',
+                'registration_year_id',
+                'registration_period_id',
+                'registration_path_id',
+                'registration_major_id',
+                'registration_faculty_id',
+                'registration_major_lecture_type_id',
+            ]
+        );
+
+        $datatable = datatables($query);
+
+        return $datatable->toJson();
+    }
+
+    public function perStudentRefreshInfo()
+    {
+        if ($this->source == 'finance') {
+            $info = DB::table('finance.log_view_refresh_info')
+                ->where('view_name', 'finance.vw_invoice_new_student_finance_master')
+                ->first();
         }
 
-        if ($search !== '#ALL' && $search !== NULL) {
-            $data_filter = [];
-            foreach ($data as $list) {
-                $row = json_encode($list);
-                if (strpos($row, $search)) {
-                    array_push($data_filter, $list);
-                }
+        if ($this->source == 'admission') {
+            $info = DB::table('finance.log_view_refresh_info')
+                ->where('view_name', 'finance.vw_invoice_new_student_admission_master')
+                ->first();
+        }
+
+        return response()->json($info);
+    }
+
+    public function perStudentRefresh()
+    {
+        try {
+            if ($this->source == 'finance') {
+                DB::statement('REFRESH MATERIALIZED VIEW finance.vw_invoice_new_student_finance_master');
+                DB::table('finance.log_view_refresh_info')
+                    ->where('view_name', 'finance.vw_invoice_new_student_finance_master')
+                    ->update(['last_refresh_time' => $this->getCurrentDateTime()]);
             }
-            return DataTables($data_filter)->toJson();
+
+            if ($this->source == 'admission') {
+                DB::statement('REFRESH MATERIALIZED VIEW finance.vw_invoice_new_student_admission_master');
+                DB::table('finance.log_view_refresh_info')
+                    ->where('view_name', 'finance.vw_invoice_new_student_admission_master')
+                    ->update(['last_refresh_time' => $this->getCurrentDateTime()]);
+            }
+        } catch (\Throwable $th) {
+            throw $th;
         }
 
-        return DataTables($data)->toJson();
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil memperbaharui data.'
+        ]);
     }
 
-    private function getColomns()
+    public function perStudentExport(Request $request)
     {
-        $list_colomns = func_get_args();
-        return DB::table('masterdata.ms_studyprogram as ms')
-            ->select($list_colomns)
-            ->join('hr.ms_student as ms2', 'ms2.studyprogram_id', '=', 'ms.studyprogram_id')
-            ->join('finance.payment_re_register as prr', 'prr.student_number', '=', 'ms2.student_number')
-            ->join('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'ms2.msy_id')
-            ->join('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
-            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
-            ->whereNull('prr.deleted_at')
-            ->whereNull('prrd.deleted_at')
-            ->whereNull('prrb.deleted_at');
+        $validated = $request->validate([
+            'type' => 'required|in:csv,excel',
+            'filter' => 'nullable',
+        ]);
+
+        $options = [
+            'file_name' => 'invoice_new_student.xlsx',
+            'source' => $this->source,
+            'filters' => $validated['filter'] ?? [],
+        ];
+
+        if ($validated['type'] == 'csv') {
+            $options['writer_type'] = Excel::CSV;
+            $options['headers'] = [
+                'Content-Type' => 'text/csv',
+            ];
+        }
+        elseif ($validated['type'] == 'excel') {
+            $options['writer_type'] = Excel::XLSX;
+            $options['headers'] = [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+        }
+
+        return new InvoiceNewStudentPerStudentExport($options);
     }
 
-    private function getNew()
+    public function invoiceBillDatatable(Request $request)
     {
-        $list_colomns = func_get_args();
-        return DB::table('masterdata.ms_studyprogram as ms')
-            ->select($list_colomns)
-            ->join('pmb.register as r', 'r.reg_major_pass', '=', 'ms.studyprogram_id')
-            ->join('pmb.participant as p', 'r.par_id', '=', 'p.par_id')
-            ->join('masterdata.ms_school_year as msy', 'msy.msy_id', '=', 'r.ms_school_year_id')
-            ->join('finance.payment_re_register as prr', 'prr.reg_id', '=', 'r.reg_id')
-            ->join('finance.payment_re_register_detail as prrd', 'prrd.prr_id', '=', 'prr.prr_id')
-            ->join('finance.payment_re_register_bill as prrb', 'prrb.prr_id', '=', 'prr.prr_id')
-            ->whereNull('prr.deleted_at')
-            ->whereNull('prrd.deleted_at')
-            ->whereNull('prrb.deleted_at');
+        $invoice_id = $request->get('invoice_id');
+
+        if ($this->source == 'finance') {
+            $bills = PaymentBill::where('prr_id', $invoice_id)
+                ->get()
+                ->toArray();
+        }
+
+        if ($this->source == 'admission') {
+            $bills = AdmissionPaymentBill::where('prr_id', $invoice_id)
+                ->get()
+                ->toArray();
+            $bills = array_map(function($item) {
+                return [
+                    ...$item,
+                    'prrb_due_date' => $item['prrb_expired_date'],
+                ];
+            }, $bills);
+        }
+
+        return datatables($bills)->toJson();
+    }
+
+    public function perStudyprogramDatatable(Request $request)
+    {
+        $query = DB::table($this->table_source_studyprogram);
+
+        $this->applyFilterWoFc(
+            $query,
+            $request,
+            [
+                'registration_year_id',
+                'registration_period_id',
+                'registration_path_id',
+                'registration_major_id',
+                'registration_faculty_id',
+                'registration_major_lecture_type_id',
+                'invoice_nominal_total',
+            ]
+        );
+
+        $datatable = datatables($query);
+
+        return $datatable->toJson();
+    }
+
+    public function perStudyprogramRefreshInfo()
+    {
+        if ($this->source == 'finance') {
+            $info = DB::table('finance.log_view_refresh_info')
+                ->where('view_name', 'finance.vw_invoice_new_student_finance_per_studyprogram')
+                ->first();
+        }
+
+        if ($this->source == 'admission') {
+            $info = DB::table('finance.log_view_refresh_info')
+                ->where('view_name', 'finance.vw_invoice_new_student_admission_per_studyprogram')
+                ->first();
+        }
+
+        return response()->json($info);
+    }
+
+    public function perStudyprogramRefresh()
+    {
+        \Log::debug($this->getCurrentDateTime());
+        try {
+            if ($this->source == 'finance') {
+                DB::statement('REFRESH MATERIALIZED VIEW finance.vw_invoice_new_student_finance_per_studyprogram');
+                DB::table('finance.log_view_refresh_info')
+                    ->where('view_name', 'finance.vw_invoice_new_student_finance_per_studyprogram')
+                    ->update(['last_refresh_time' => $this->getCurrentDateTime()]);
+            }
+
+            if ($this->source == 'admission') {
+                DB::statement('REFRESH MATERIALIZED VIEW finance.vw_invoice_new_student_admission_per_studyprogram');
+                DB::table('finance.log_view_refresh_info')
+                    ->where('view_name', 'finance.vw_invoice_new_student_admission_per_studyprogram')
+                    ->update(['last_refresh_time' => $this->getCurrentDateTime()]);
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil memperbaharui data.'
+        ]);
+    }
+
+    public function perStudyprogramExport(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:csv,excel',
+            'filter' => 'nullable',
+        ]);
+
+        $options = [
+            'file_name' => 'invoice_new_student.xlsx',
+            'source' => $this->source,
+            'filters' => $validated['filter'] ?? [],
+        ];
+
+        if ($validated['type'] == 'csv') {
+            $options['writer_type'] = Excel::CSV;
+            $options['headers'] = [
+                'Content-Type' => 'text/csv',
+            ];
+        }
+        elseif ($validated['type'] == 'excel') {
+            $options['writer_type'] = Excel::XLSX;
+            $options['headers'] = [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+        }
+
+        return new InvoiceNewStudentPerStudyprogramExport($options);
     }
 }
