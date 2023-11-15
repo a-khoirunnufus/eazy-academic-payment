@@ -24,7 +24,7 @@ class SettingsController extends Controller
     public function index()
     {
         $settings = Settings::all();
-        $types = ComponentType::where('msct_is_show',1)->where('msct_first_payment',1)->orderBy('msct_id')->get();
+        $types = ComponentType::where('msct_is_show',1)->where('msct_main_payment',1)->orderBy('msct_id')->get();
         return view('pages._payment.settings.index', compact('settings','types'));
     }
 
@@ -78,7 +78,7 @@ class SettingsController extends Controller
     public function otherRates()
     {
         // $studyProgram = Studyprogram::all();
-        $types = ComponentType::where('msct_is_show',1)->where('msct_first_payment',0)->orderBy('msct_id')->get();
+        $types = ComponentType::where('msct_is_show',1)->where('msct_main_payment',0)->orderBy('msct_id')->get();
         $periode = DB::select("SELECT msy_year, msy_code from masterdata.ms_school_year");
         $jalur_pendaftaran = DB::select("SELECT path_id, path_name from pmb.ms_path");
         $gelombang = DB::select("SELECT period_id, period_name from pmb.ms_period");
