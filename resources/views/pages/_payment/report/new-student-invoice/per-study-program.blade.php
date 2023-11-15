@@ -223,7 +223,7 @@
                 columnDefs: [
                     {
                         visible: false,
-                        targets: [1,2,4,5,6,7,8],
+                        targets: [1,4,5,6,7,8],
                     },
                     {
                         searchable: true,
