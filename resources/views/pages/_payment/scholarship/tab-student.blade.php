@@ -1,6 +1,7 @@
 <table id="invoice-component-table" class="table table-striped">
     <thead>
         <tr>
+            <th></th>
             <th class="text-center">Aksi</th>
             <th>Mahasiswa</th>
             <th>Fakultas - Prodi</th>
@@ -22,6 +23,102 @@
     </thead>
     <tbody></tbody>
 </table>
+
+<div class="modal fade" id="copy-data-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Salin Data Penerima Beasiswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="section-border mb-1">
+                    <h5 class="fw-bolder mb-1">Data Tersalin</h5>
+                    <div class="eazy-table-wrapper">
+                        <table id="table-copied-data" class="table table-sm table-striped" style="width: 100%; font-size: .9rem;">
+                            <thead>
+                                <tr>
+                                    <th class="text-nowrap">Mahasiswa</th>
+                                    <th class="text-nowrap">Fakultas - Prodi</th>
+                                    <th class="text-nowrap">Beasiswa</th>
+                                    <th class="text-nowrap">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="odd">
+                                    <td class="sorting_1">
+                                        <div>
+                                            <span class="text-nowrap">Bella Putri</span><br>
+                                            <small class="text-nowrap text-secondary">469063</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="text-nowrap">S1 Farmasi</span><br>
+                                            <small class="text-nowrap text-secondary">Fakultas Farmasi</small>
+                                        </div>
+                                    </td>
+                                    <td><span class="">Beasiswa Yayasan</span> <br></td>
+                                    <td>Rp&nbsp;2.400.000,00</td>
+                                </tr>
+                                <tr class="odd">
+                                    <td class="sorting_1">
+                                        <div>
+                                            <span class="text-nowrap">Budi budidi</span><br>
+                                            <small class="text-nowrap text-secondary">469063</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="text-nowrap">S1 Farmasi</span><br>
+                                            <small class="text-nowrap text-secondary">Fakultas Farmasi</small>
+                                        </div>
+                                    </td>
+                                    <td><span class="">Beasiswa Yayasan</span> <br></td>
+                                    <td>Rp&nbsp;2.400.000,00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="section-border">
+                    <h5 class="fw-bolder mb-1">Kustomisasi Data</h5>
+                    <form>
+                        <div class="form-group">
+                            <label class="form-label">Periode</label>
+                            <select class="form-select">
+                                <option selected>Pilih Periode</option>
+                                <option value="1">2022/2023 Ganjil</option>
+                                <option value="2">2022/2023 Genap</option>
+                                <option value="3">2023/2024 Ganjl</option>
+                                <option value="3">2023/2024 Genap</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <div>
+                                <span class="d-inline-block me-1">
+                                    <input type="radio" name="msr_status" value="1" class="form-check-input" checked>&nbsp; Aktif
+                                </span>
+                                <span class="d-inline-block">
+                                    <input type="radio" name="msr_status" value="0" class="form-check-input">&nbsp; Tidak Aktif
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button class="btn btn-secondary">
+                    Batal
+                </button>
+                <button class="btn btn-success">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @prepend('scripts')
 <script>
@@ -56,7 +153,16 @@
                         return json.data;
                     }
                 },
-                columns: [{
+                order: [[2, 'asc']],
+                columns: [
+                    {
+                        orderable: false,
+                        searchable: false,
+                        render: () => {
+                            return '<input class="form-check-input" type="checkbox" />';
+                        }
+                    },
+                    {
                         name: 'action',
                         data: 'id',
                         orderable: false,
@@ -291,9 +397,12 @@
                         <div style="margin-bottom: 7px">
                             <button onclick="_scholarshipReceiverTableActions.add()" class="btn btn-info">
                                 <span style="vertical-align: middle">
-                                    <i data-feather="plus" style="width: 18px; height: 18px;"></i>&nbsp;&nbsp;
+                                    <i data-feather="plus"></i>&nbsp;&nbsp;
                                     Tambah Penerima
                                 </span>
+                            </button>
+                            <button class="btn btn-outline-primary ms-1" onclick="$('#copy-data-modal').modal('show')">
+                                <i data-feather="copy"></i>&nbsp;&nbsp;Salin Data
                             </button>
                         </div>
                     `)

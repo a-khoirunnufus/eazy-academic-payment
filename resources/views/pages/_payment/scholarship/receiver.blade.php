@@ -7,9 +7,10 @@
 
 @section('css_section')
 <style>
-    .eazy-table-wrapper {
-        width: 100%;
-        overflow-x: auto;
+    .section-border {
+        border: 1px solid gainsboro;
+        border-radius: 6px;
+        padding: 1rem;
     }
 </style>
 @endsection
@@ -20,7 +21,7 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="datatable-filter one-row">
+        <div class="datatable-filter multiple-row">
             <div>
                 <label class="form-label">Periode Awal</label>
                 <select name="md_period_start_filter" class="form-select" eazy-select2-active>
