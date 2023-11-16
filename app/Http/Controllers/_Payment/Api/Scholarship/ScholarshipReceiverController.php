@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Payment\Scholarship;
 use App\Models\Payment\ScholarshipReceiver;
 use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverRequest;
+use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverBatchRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Year;
@@ -121,6 +122,8 @@ class ScholarshipReceiverController extends Controller
         DB::beginTransaction();
         try {
             $data = Scholarship::findOrFail($validated["ms_id"]);
+
+            // update data
             if (array_key_exists("msc_id", $validated)) {
                 $receiver = ScholarshipReceiver::findOrFail($validated["msc_id"]);
                 if($receiver->msr_status_generate == 1){
@@ -140,7 +143,10 @@ class ScholarshipReceiverController extends Controller
                     $receiver->update($validated);
                 }
                 $text = "Berhasil memperbarui penerima beasiswa";
-            } else {
+            }
+
+            // create data
+            else {
                 $realization = $data->ms_realization + $validated["msr_nominal"];
                 if ($realization > $data->ms_budget) {
                     $text = "Budget Tidak Mencukupi";
@@ -157,6 +163,60 @@ class ScholarshipReceiverController extends Controller
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function storeBatch(ScholarshipReceiverBatchRequest $request)
+    {
+        /**
+         * [
+         *  [
+         *      'ms_id' => 5,
+         *      'student_number' => 1874,
+         *      'msr_period' => 1,
+         *      'msr_nominal' => 1000000,
+         *      'msr_status' => 1,
+         *  ],
+         *  ...
+         * ]
+         */
+
+        $validated = $request->validated();
+
+        try {
+            DB::beginTransaction();
+
+            // validation: budget checking
+            foreach ($validated as $receiver) {
+                $scholarship = Scholarship::find($receiver["ms_id"]);
+                $available_budget = $scholarship->ms_nominal - $scholarship->ms_budget;
+                if ($available_budget <= 0) {
+                    throw new \Exception('Budget tidak cukup untuk beasiswa: '.$scholarship->ms_name, 1);
+                }
+            }
+
+            foreach ($validated as $receiver_data) {
+                ScholarshipReceiver::create($receiver_data);
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            if ($th->getCode() == 1) {
+                return response()->json([
+                    'message' => $th->getMessage(),
+                    'success' => false,
+                ], 422);
+            } else {
+                throw $th;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil menambahkan penerima beasiswa',
+        ]);
+
     }
 
     public function delete($id)
