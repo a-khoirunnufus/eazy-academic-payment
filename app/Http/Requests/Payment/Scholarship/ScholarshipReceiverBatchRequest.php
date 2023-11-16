@@ -6,16 +6,12 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Payment\Student;
 use App\Models\Payment\Scholarship;
-use App\Models\Payment\Period;
+use App\Models\Payment\Year;
 
 class ScholarshipReceiverBatchRequest extends FormRequest
 {
     private $receiver_count;
 
-    public function __construct()
-    {
-        $this->$receiver_count = count($this->get('student_number') ?? []);
-    }
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -45,7 +41,7 @@ class ScholarshipReceiverBatchRequest extends FormRequest
             'ms_id.*' => Rule::exists(Scholarship::class, 'ms_id'),
 
             'msr_period' => 'required|array|size:'.$this->receiver_count,
-            'msr_period.*' => Rule::exists(Period::class, 'period_id'),
+            'msr_period.*' => Rule::exists(Year::class, 'msy_id'),
 
             'msr_nominal' => 'required|array|size:'.$this->receiver_count,
             'msr_nominal.*' => 'numeric',
@@ -53,5 +49,10 @@ class ScholarshipReceiverBatchRequest extends FormRequest
             'msr_status' => 'required|array|size:'.$this->receiver_count,
             'msr_status.*' => 'in:0,1',
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        $this->receiver_count = count($this->get('student_number') ?? []);
     }
 }

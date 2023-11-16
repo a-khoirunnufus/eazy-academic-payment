@@ -181,21 +181,27 @@ class ScholarshipReceiverController extends Controller
          */
 
         $validated = $request->validated();
+        $receiver_count = count($validated['student_number']);
 
         try {
             DB::beginTransaction();
 
             // validation: budget checking
-            foreach ($validated as $receiver) {
-                $scholarship = Scholarship::find($receiver["ms_id"]);
+            for ($i=0; $i < $receiver_count; $i++) {
+
+                $scholarship = Scholarship::find($validated["ms_id"][$i]);
                 $available_budget = $scholarship->ms_nominal - $scholarship->ms_budget;
                 if ($available_budget <= 0) {
                     throw new \Exception('Budget tidak cukup untuk beasiswa: '.$scholarship->ms_name, 1);
                 }
-            }
 
-            foreach ($validated as $receiver_data) {
-                ScholarshipReceiver::create($receiver_data);
+                ScholarshipReceiver::create([
+                    'student_number' => $validated['student_number'][$i],
+                    'ms_id' => $validated['ms_id'][$i],
+                    'msr_period' => $validated['msr_period'][$i],
+                    'msr_nominal' => $validated['msr_nominal'][$i],
+                    'msr_status' => $validated['msr_status'][$i],
+                ]);
             }
 
             DB::commit();

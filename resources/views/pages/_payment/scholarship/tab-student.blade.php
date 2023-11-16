@@ -24,97 +24,36 @@
     <tbody></tbody>
 </table>
 
-<div class="modal fade" id="copy-data-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+<div class="modal fade" id="modal-copy-data" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Salin Data Penerima Beasiswa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="section-border mb-1">
-                    <h5 class="fw-bolder mb-1">Data Tersalin</h5>
-                    <div class="eazy-table-wrapper">
-                        <table id="table-copied-data" class="table table-sm table-striped" style="width: 100%; font-size: .9rem;">
+                <div class="eazy-table-wrapper">
+                    <form id="form-copy-data">
+                        <table id="table-copied-data" class="table table-striped" style="width: 100%; font-size: .9rem;">
                             <thead>
                                 <tr>
                                     <th class="text-nowrap">Mahasiswa</th>
                                     <th class="text-nowrap">Fakultas - Prodi</th>
                                     <th class="text-nowrap">Beasiswa</th>
+                                    <th class="text-nowrap">Periode</th>
                                     <th class="text-nowrap">Nominal</th>
+                                    <th class="text-nowrap">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="odd">
-                                    <td class="sorting_1">
-                                        <div>
-                                            <span class="text-nowrap">Bella Putri</span><br>
-                                            <small class="text-nowrap text-secondary">469063</small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <span class="text-nowrap">S1 Farmasi</span><br>
-                                            <small class="text-nowrap text-secondary">Fakultas Farmasi</small>
-                                        </div>
-                                    </td>
-                                    <td><span class="">Beasiswa Yayasan</span> <br></td>
-                                    <td>Rp&nbsp;2.400.000,00</td>
-                                </tr>
-                                <tr class="odd">
-                                    <td class="sorting_1">
-                                        <div>
-                                            <span class="text-nowrap">Budi budidi</span><br>
-                                            <small class="text-nowrap text-secondary">469063</small>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <span class="text-nowrap">S1 Farmasi</span><br>
-                                            <small class="text-nowrap text-secondary">Fakultas Farmasi</small>
-                                        </div>
-                                    </td>
-                                    <td><span class="">Beasiswa Yayasan</span> <br></td>
-                                    <td>Rp&nbsp;2.400.000,00</td>
-                                </tr>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-                <div class="section-border">
-                    <h5 class="fw-bolder mb-1">Kustomisasi Data</h5>
-                    <form>
-                        <div class="form-group">
-                            <label class="form-label">Periode</label>
-                            <select class="form-select">
-                                <option selected>Pilih Periode</option>
-                                <option value="1">2022/2023 Ganjil</option>
-                                <option value="2">2022/2023 Genap</option>
-                                <option value="3">2023/2024 Ganjl</option>
-                                <option value="3">2023/2024 Genap</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <div>
-                                <span class="d-inline-block me-1">
-                                    <input type="radio" name="msr_status" value="1" class="form-check-input" checked>&nbsp; Aktif
-                                </span>
-                                <span class="d-inline-block">
-                                    <input type="radio" name="msr_status" value="0" class="form-check-input">&nbsp; Tidak Aktif
-                                </span>
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
             <div class="modal-footer d-flex justify-content-end">
-                <button class="btn btn-secondary">
-                    Batal
-                </button>
-                <button class="btn btn-success">
-                    Simpan
-                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-success" onclick="storeBatch()">Simpan</button>
             </div>
         </div>
     </div>
@@ -158,8 +97,8 @@
                     {
                         orderable: false,
                         searchable: false,
-                        render: () => {
-                            return '<input class="form-check-input" type="checkbox" />';
+                        render: (data, type, row, meta) => {
+                            return `<input data-dt-row="${meta.row}" class="check-receiver form-check-input" type="checkbox" />`;
                         }
                     },
                     {
@@ -168,7 +107,6 @@
                         orderable: false,
                         searchable: false,
                         render: (data, _, row) => {
-                            console.log(row);
                             return this.template.rowAction(row)
                         }
                     },
@@ -401,7 +339,7 @@
                                     Tambah Penerima
                                 </span>
                             </button>
-                            <button class="btn btn-outline-primary ms-1" onclick="$('#copy-data-modal').modal('show')">
+                            <button class="btn btn-outline-primary ms-1" onclick="openModalCopyData()">
                                 <i data-feather="copy"></i>&nbsp;&nbsp;Salin Data
                             </button>
                         </div>
@@ -732,6 +670,105 @@
             }
             console.log(text)
         }
+    }
+
+    async function openModalCopyData() {
+        const schoolYear = await $.get({
+            async: true,
+            url: `${_baseURL}/api/payment/resource/school-year`,
+        });
+
+        let htmlRows = '';
+
+        $('input.check-receiver:checked').each(function() {
+            const rowIdx = $(this).data('dt-row');
+            const row = _scholarshipReceiverTable.instance.row(parseInt(rowIdx)).data();
+
+            htmlRows += `
+                <tr>
+                    <td>
+                        <div>
+                            ${_datatableTemplates.titleWithSubtitleCell(row.student.fullname, row.student.student_id)}
+                            <input type="hidden" name="student_number[]" value="${row.student_number}" />
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            ${_datatableTemplates.titleWithSubtitleCell(
+                                row.student.study_program.studyprogram_type.toUpperCase()+' '+row.student.study_program.studyprogram_name,
+                                row.student.study_program.faculty.faculty_name
+                            )}
+                        </div>
+                    </td>
+                    <td>
+                        ${_datatableTemplates.titleWithSubtitleCell(
+                            row.scholarship.ms_name,
+                            row.scholarship.ms_from ?? '-'
+                        )}
+                        <input type="hidden" name="ms_id[]" value="${row.ms_id}" />
+                    </td>
+                    <td>
+                        <select name="msr_period[]" class="form-select" value="${row.msr_period}">
+                            ${schoolYear.map(item => `
+                                <option value="${item.msy_id}" ${row.msr_period == item.msy_id ? 'selected' : ''}>${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
+                            `)}
+                        </select>
+                    </td>
+                    <td>
+                        <input name="msr_nominal[]" class="form-control" type="number" value="${row.msr_nominal}" />
+                    </td>
+                    <td>
+                        <select name="msr_status[]" class="form-select" value="${row.msr_status}">
+                            <option value="1" ${row.msr_status == 1 ? 'selected' : ''}>Aktif</option>
+                            <option value="0" ${row.msr_status == 0 ? 'selected' : ''}>Tidak Aktif</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        });
+
+        if (htmlRows == '') {
+            htmlRows = '<tr><td colspan="6" class="text-center">Tidak ada data yang dipilih</td></tr>';
+        }
+
+        $('#table-copied-data tbody').html(htmlRows);
+
+        $('#modal-copy-data').modal('show');
+    }
+
+    async function storeBatch() {
+        const confirmed = await _swalConfirmSync({
+            title: 'Konfirmasi',
+            text: 'Apakah anda yakin ingin menambahkan data?',
+        });
+
+        if (!confirmed) return;
+
+
+        try {
+            const formData = new FormData($('#form-copy-data')[0]);
+
+            const res = await $.ajax({
+                async: true,
+                url: _baseURL + '/api/payment/scholarship-receiver/store-batch',
+                type: 'post',
+                data: formData,
+                contentType: false,
+                processData: false,
+            });
+
+            if (res.success) {
+                _toastr.success(res.message, 'Berhasil');
+            } else {
+                _toastr.error(res.message, 'Gagal');
+            }
+        } catch (error) {
+            _toastr.error(error.responseJSON.message, 'Gagal');
+        } finally {
+            $('#modal-copy-data').modal('hide');
+            _scholarshipReceiverTable.reload();
+        }
+
     }
 </script>
 @endprepend
