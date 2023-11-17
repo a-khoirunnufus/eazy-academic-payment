@@ -5,21 +5,21 @@ namespace App\Services\Payment;
 use App\Models\Payment\Student;
 use App\Models\Payment\Payment;
 use App\Models\Payment\PaymentDetail;
-use App\Models\Payment\LeaveReceiver;
+use App\Models\Payment\GraduationReceiver;
 use App\Traits\Payment\LogActivity;
 use App\Traits\Payment\General;
 use App\Enums\Payment\LogStatus;
 use Carbon\Carbon;
 use DB;
 
-class LeaveInvoice {
+class GraduationInvoice {
     use LogActivity, General;
 
     private $is_admission = 0;
-    private $type_id = 7; #finance.ms_component_type
-    private $title = "cuti";
+    private $type_id = 8; #finance.ms_component_type
+    private $title = "wisuda";
 
-    public function storeLeaveGenerate($studentNumber)
+    public function storeGenerate($studentNumber)
     {
         $student = Student::with('getComponent')->findorfail($studentNumber);
         $components = $student->getComponent()
@@ -37,7 +37,7 @@ class LeaveInvoice {
                 $prr_total = $prr_total + $item->cd_fee;
             }
         }
-        $default = $this->getCacheSetting('payment_leave_default_cache');
+        $default = $this->getCacheSetting('payment_graduation_default_cache');
         if($default){
             $prr_total = $prr_total+ (int)$default;
         }
@@ -80,11 +80,11 @@ class LeaveInvoice {
                 ]);
             }
 
-            $payment = LeaveReceiver::create([
+            $payment = GraduationReceiver::create([
                 'student_number' => $student->student_number,
                 'msy_code' => $this->getActiveSchoolYearCode(),
-                'mlr_nominal' => $prr_total,
-                'mlr_status' => $bool_status,
+                'mgr_nominal' => $prr_total,
+                'mgr_status' => $bool_status,
                 'prr_id' => $payment->prr_id,
             ]);
             DB::commit();

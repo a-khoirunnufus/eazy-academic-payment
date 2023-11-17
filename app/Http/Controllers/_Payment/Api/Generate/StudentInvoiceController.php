@@ -18,6 +18,8 @@ use App\Traits\Payment\General;
 use App\Enums\Payment\LogStatus;
 use App\Services\Payment\StudentInvoice;
 use App\Services\Payment\LeaveInvoice;
+use App\Services\Payment\ReactiveInvoice;
+use App\Services\Payment\GraduationInvoice;
 use Carbon\Carbon;
 use Config;
 
@@ -90,8 +92,20 @@ class StudentInvoiceController extends Controller
      */
 
     public function studentLeave(Request $request){
-        $leave = new LeaveInvoice();
-        $result = $leave->storeLeaveGenerate($request['student_number']);
+        $data = new LeaveInvoice();
+        $result = $data->storeLeaveGenerate($request['student_number']);
+        return $result;
+    }
+
+    public function studentReactive(Request $request){
+        $data = new ReactiveInvoice();
+        $result = $data->storeGenerate($request['student_number']);
+        return $result;
+    }
+
+    public function studentGraduation(Request $request){
+        $data = new GraduationInvoice();
+        $result = $data->storeGenerate($request['student_number']);
         return $result;
     }
 
