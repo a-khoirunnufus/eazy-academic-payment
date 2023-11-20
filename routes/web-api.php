@@ -229,6 +229,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('study-program', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@study_program');
         Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@store');
+        Route::post('validate-batch', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@validateBatch');
         Route::post('store-batch', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@storeBatch');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@delete');
         Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverController@exportData');
@@ -373,6 +374,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('registration-path/{path_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@registrationPathShow');
 
         Route::get('lecture-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@lectureTypeIndex');
+
+        Route::get('scholarship/{ms_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@show');
     });
 
     // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');

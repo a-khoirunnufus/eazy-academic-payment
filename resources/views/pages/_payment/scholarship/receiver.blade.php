@@ -12,6 +12,21 @@
         border-radius: 6px;
         padding: 1rem;
     }
+    .form-control.w-200,
+    .form-select.w-200 {
+        width: 200px !important;
+    }
+
+    table.dtr-details-custom td {
+        padding: 10px 0;
+    }
+    table.dtr-details-custom td > * {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .dtr-bs-modal .modal-dialog {
+        max-width: max-content;
+    }
 </style>
 @endsection
 
@@ -97,5 +112,12 @@
 
 
 @section('js_section')
-@stack('scripts')
+<script>
+    // enabling multiple modal open
+    $(document).on('show.bs.modal', '.modal', function() {
+        const zIndex = 1040 + 10 * $('.modal:visible').length;
+        $(this).css('z-index', zIndex);
+        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    });
+</script>
 @endsection

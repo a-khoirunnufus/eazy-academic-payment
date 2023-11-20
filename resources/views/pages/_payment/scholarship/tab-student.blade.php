@@ -25,13 +25,16 @@
 </table>
 
 <div class="modal fade" id="modal-copy-data" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-fullscreen" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Salin Data Penerima Beasiswa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="d-flex flex-row justify-content-end mb-1 w-100">
+                    <button class="btn btn-primary" onclick="validateData()">Validasi Data</button>
+                </div>
                 <div class="eazy-table-wrapper">
                     <form id="form-copy-data">
                         <table id="table-copied-data" class="table table-striped" style="width: 100%; font-size: .9rem;">
@@ -40,9 +43,26 @@
                                     <th class="text-nowrap">Mahasiswa</th>
                                     <th class="text-nowrap">Fakultas - Prodi</th>
                                     <th class="text-nowrap">Beasiswa</th>
-                                    <th class="text-nowrap">Periode</th>
-                                    <th class="text-nowrap">Nominal</th>
-                                    <th class="text-nowrap">Status</th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Periode</span>
+                                        <select id="select-all-period" class="form-select w-200">
+                                            <option selected>Pilih Periode Batch</option>
+                                        </select>
+                                    </th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Nominal</span>
+                                        <input id="input-all-nominal" type="number" class="form-control w-200" placeholder="Masukkan Nominal Batch"/>
+                                    </th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Status Aktif</span>
+                                        <select id="select-all-status" class="form-select w-200">
+                                            <option selected>Pilih Status Batch</option>
+                                            <option value="1">Aktif</option>
+                                            <option value="0">Tidak Aktif</option>
+                                        </select>
+                                    </th>
+                                    <th class="text-nowrap">Status Salin</th>
+                                    <th class="text-nowrap">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,15 +79,59 @@
     </div>
 </div>
 
+<div class="modal fade dtr-bs-modal" id="modal-scholarship-detail" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Beasiswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="custom-body"></div>
+        </div>
+    </div>
+</div>
+
 @prepend('scripts')
 <script>
     var dt = null;
     var dataDt = [];
+
     $(function() {
         _scholarshipReceiverTable.init();
         for (var i = 7; i <= 15; i++) {
             dt.column(i).visible(false)
         }
+
+        $.get({url: `${_baseURL}/api/payment/resource/school-year`})
+            .then(schoolYears => {
+                $('#select-all-period').append(
+                    schoolYears.map(item => `
+                        <option value="${item.msy_id}">${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
+                    `).join('')
+                );
+            });
+
+        $('select#select-all-period').on('change', function() {
+            const selectedValue = $(this).val();
+            $('#form-copy-data select[name="msr_period[]"]').each(function() {
+                $(this).val(selectedValue);
+            });
+        });
+
+        $('input#input-all-nominal').on('change', function() {
+            const currentValue = $(this).val();
+            $('#form-copy-data input[name="msr_nominal[]"]').each(function() {
+                $(this).val(currentValue);
+            });
+        });
+
+        $('select#select-all-status').on('change', function() {
+            const selectedValue = $(this).val();
+            $('#form-copy-data select[name="msr_status[]"]').each(function() {
+                $(this).val(selectedValue);
+            });
+        });
+
     })
 
     const _scholarshipReceiverTable = {
@@ -701,27 +765,52 @@
                         </div>
                     </td>
                     <td>
-                        ${_datatableTemplates.titleWithSubtitleCell(
-                            row.scholarship.ms_name,
-                            row.scholarship.ms_from ?? '-'
-                        )}
+                        <div>
+                            <span class="fw-bold text-nowrap">
+                                ${row.scholarship.ms_name}&nbsp;
+                                <a class="btn d-inline-block p-0" onclick="showScholarshipDetailModal(${row.scholarship.ms_id})"><i data-feather="info"></i></a>
+                            </span>
+                            ${
+                                row.scholarship.ms_from
+                                    ? `<br><small class="text-secondary  text-nowrap">${row.scholarship.ms_from ?? '-'}</small>`
+                                    : ''
+                            }
+                        </div>
                         <input type="hidden" name="ms_id[]" value="${row.ms_id}" />
                     </td>
                     <td>
-                        <select name="msr_period[]" class="form-select" value="${row.msr_period}">
-                            ${schoolYear.map(item => `
-                                <option value="${item.msy_id}" ${row.msr_period == item.msy_id ? 'selected' : ''}>${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
-                            `)}
+                        <select name="msr_period[]" class="form-select w-200" value="${row.msr_period}">
+                            ${
+                                schoolYear
+                                    .filter(item => {
+                                        return item.msy_code >= row.scholarship.period_start.msy_code && item.msy_code <= row.scholarship.period_end.msy_code;
+                                    })
+                                    .map(item => `
+                                        <option value="${item.msy_id}" ${row.msr_period == item.msy_id ? 'selected' : ''}>${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
+                                    `)
+                                    .join('')
+                            }
                         </select>
                     </td>
                     <td>
-                        <input name="msr_nominal[]" class="form-control" type="number" value="${row.msr_nominal}" />
+                        <input name="msr_nominal[]" class="form-control w-200" type="number" value="${row.msr_nominal}" />
                     </td>
                     <td>
-                        <select name="msr_status[]" class="form-select" value="${row.msr_status}">
+                        <select name="msr_status[]" class="form-select w-200" value="${row.msr_status}">
                             <option value="1" ${row.msr_status == 1 ? 'selected' : ''}>Aktif</option>
                             <option value="0" ${row.msr_status == 0 ? 'selected' : ''}>Tidak Aktif</option>
                         </select>
+                    </td>
+                    <td>
+                        <div class="badge bg-success text-nowrap" style="font-size: inherit">
+                            Data Valid
+                        </div>
+                        <input type="hidden" name="is_data_valid[]" value="1" />
+                    </td>
+                    <td>
+                        <a class="btn btn-icon btn-sm btn-danger" onclick="deleteCopyRow(this)">
+                            <i data-feather="trash"></i>
+                        </a>
                     </td>
                 </tr>
             `;
@@ -734,6 +823,62 @@
         $('#table-copied-data tbody').html(htmlRows);
 
         $('#modal-copy-data').modal('show');
+
+        feather.replace();
+
+        validateData();
+    }
+
+    async function deleteCopyRow(elm) {
+        const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin menghapus?',
+            });
+
+        if(!confirmed) return;
+
+        $(elm).parents('tr')[0].remove();
+    }
+
+    function validateData() {
+        return new Promise(async (resolve, reject) => {
+            const data = FormDataJson.toJson("#form-copy-data");
+
+            const res = await $.ajax({
+                async: true,
+                url: _baseURL + '/api/payment/scholarship-receiver/validate-batch',
+                type: 'post',
+                data: data,
+            });
+
+            console.log(res);
+
+            $(`#table-copied-data tbody tr td:nth-child(7)`).html(`
+                <div class="badge bg-success text-nowrap" style="font-size: inherit">
+                    Data Valid
+                </div>
+                <input type="hidden" name="is_data_valid[]" value="1" />
+            `);
+
+            if (Object.keys(res).length > 0) {
+                for (const key in res) {
+                    const rowIdx = key.split('_')[1];
+                    $(`#table-copied-data tbody > tr:nth-child(${rowIdx}) td:nth-child(7)`).html(`
+                        <div class="badge bg-danger text-nowrap" style="font-size: inherit">
+                            Data Tidak Valid
+                        </div>
+                        <input type="hidden" name="is_data_valid[]" value="0" />
+                        <ul class="list-group mt-1">
+                            ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;">${msg}</li>`).join('')}
+                        </ul>
+                    `);
+                }
+
+                resolve(false);
+            }
+
+            resolve(true);
+        })
     }
 
     async function storeBatch() {
@@ -741,9 +886,13 @@
             title: 'Konfirmasi',
             text: 'Apakah anda yakin ingin menambahkan data?',
         });
-
         if (!confirmed) return;
 
+        const isDataValid = await validateData();
+        if (!isDataValid) {
+            _toastr.error('Masih terdapat data yang belum valid, silahkan sesuaikan data.', 'Gagal');
+            return;
+        }
 
         try {
             const formData = new FormData($('#form-copy-data')[0]);
@@ -769,6 +918,67 @@
             _scholarshipReceiverTable.reload();
         }
 
+    }
+
+    async function showScholarshipDetailModal(id) {
+        const scholarship = await $.ajax({
+            async: true,
+            url: _baseURL + '/api/payment/resource/scholarship/' + id,
+        });
+
+        let html = `
+            <tr>
+                <td class="align-top px-1" style="width: 200px">Nama Beasiswa</td>
+                <td class="align-top px-0" style="width: 5px">:</td>
+                <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                    ${scholarship.ms_name}
+                </td>
+            </tr>
+            <tr>
+                <td class="align-top px-1" style="width: 200px">Rekanan</td>
+                <td class="align-top px-0" style="width: 5px">:</td>
+                <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                    ${scholarship.ms_from ?? '-'}
+                </td>
+            </tr>
+            <tr>
+                <td class="align-top px-1" style="width: 200px">Periode Awal</td>
+                <td class="align-top px-0" style="width: 5px">:</td>
+                <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                    ${scholarship.period_start.msy_year}
+                    ${
+                        scholarship.period_start.msy_semester == 1 ? 'Ganjil'
+                            : scholarship.period_start.msy_semester == 2 ? 'Genap'
+                                : 'Antara'
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td class="align-top px-1" style="width: 200px">Periode Akhir</td>
+                <td class="align-top px-0" style="width: 5px">:</td>
+                <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                    ${scholarship.period_end.msy_year}
+                    ${
+                        scholarship.period_end.msy_semester == 1 ? 'Ganjil'
+                            : scholarship.period_end.msy_semester == 2 ? 'Genap'
+                                : 'Antara'
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td class="align-top px-1" style="width: 200px">Anggaran Tersedia</td>
+                <td class="align-top px-0" style="width: 5px">:</td>
+                <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                    ${Rupiah.format(scholarship.ms_budget - scholarship.ms_realization)}
+                </td>
+            </tr>
+        `;
+
+        html = $('<table class="table table-bordered dtr-details-custom mb-0" />').append(html);
+
+        $('#modal-scholarship-detail .custom-body').html(html);
+
+        $('#modal-scholarship-detail').modal('show');
     }
 </script>
 @endprepend
