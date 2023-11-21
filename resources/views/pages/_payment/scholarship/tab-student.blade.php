@@ -1,7 +1,9 @@
 <table id="table-scholarship-receiver-student" class="table table-striped">
     <thead>
         <tr>
-            <th></th>
+            <th>
+                <input id="check-all-receiver" class="form-check-input" type="checkbox" />
+            </th>
             <th class="text-center">Aksi</th>
             <th>Mahasiswa</th>
             <th>Fakultas - Prodi</th>
@@ -89,6 +91,18 @@
         for (var i = 8; i <= 16; i++) {
             dt.column(i).visible(false)
         }
+
+        $('#table-scholarship-receiver-student #check-all-receiver').on('change', function() {
+            if (this.checked) {
+                $('#table-scholarship-receiver-student input.check-receiver').each(function() {
+                    $(this).prop('checked', true);
+                });
+            } else {
+                $('#table-scholarship-receiver-student input.check-receiver').each(function() {
+                    $(this).prop('checked', false);
+                });
+            }
+        });
 
         copyStudentReceiverActions.setupElements();
     })
@@ -444,7 +458,7 @@
             $("#ms_id").change(function() {
                 ms_id = $(this).val();
                 $.get(_baseURL + '/api/payment/scholarship-receiver/period/' + ms_id, (data) => {
-                    console.log(data);
+                    // console.log(data);
                     if (Object.keys(data).length > 0) {
                         $("#msr_period").empty();
                         data.map(item => {
@@ -664,7 +678,7 @@
         `)
 
         var id = $(elm).val();
-        console.log(id);
+        // console.log(id);
         if (id != '#ALL') {
             var xhr = new XMLHttpRequest();
             xhr.onload = function() {
@@ -692,7 +706,7 @@
                 dt.clear().destroy();
                 _scholarshipReceiverStudentTable.init(text);
             }
-            console.log(text)
+            // console.log(text)
         }
     }
 
@@ -841,7 +855,7 @@
                     data: data,
                 });
 
-                console.log(res);
+                // console.log(res);
 
                 $(`#table-copied-data-student tbody tr td:nth-child(7)`).html(`
                     <div class="badge bg-success text-nowrap" style="font-size: inherit">

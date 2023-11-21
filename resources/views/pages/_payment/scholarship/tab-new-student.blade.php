@@ -1,7 +1,9 @@
 <table id="table-scholarship-receiver-new-student" class="table table-striped">
     <thead>
         <tr>
-            <th></th>
+            <th>
+                <input id="check-all-receiver" class="form-check-input" type="checkbox" />
+            </th>
             <th class="text-center">Aksi</th>
             <th>Mahasiswa</th>
             <th>Fakultas - Prodi</th>
@@ -89,6 +91,18 @@
         for (var i = 8; i <= 16; i++) {
             dt.column(i).visible(false)
         }
+
+        $('#table-scholarship-receiver-new-student #check-all-receiver').on('change', function() {
+            if (this.checked) {
+                $('#table-scholarship-receiver-new-student input.check-receiver').each(function() {
+                    $(this).prop('checked', true);
+                });
+            } else {
+                $('#table-scholarship-receiver-new-student input.check-receiver').each(function() {
+                    $(this).prop('checked', false);
+                });
+            }
+        });
 
         copyNewStudentReceiverActions.setupElements();
     })
@@ -447,7 +461,7 @@
             $("#ms_id_new").change(function() {
                 ms_id = $(this).val();
                 $.get(_baseURL + '/api/payment/scholarship-receiver-new/period/' + ms_id, (data) => {
-                    console.log(data);
+                    // console.log(data);
                     if (Object.keys(data).length > 0) {
                         $("#msr_period_new").empty();
                         data.map(item => {
@@ -796,7 +810,6 @@
             $(elm).parents('tr')[0].remove();
         },
         validateData: () => {
-            console.log('new student');
             return new Promise(async (resolve, reject) => {
                 const data = FormDataJson.toJson("#form-copy-data-new-student");
 
@@ -807,7 +820,7 @@
                     data: data,
                 });
 
-                console.log(res);
+                // console.log(res);
 
                 $(`#table-copied-data-new-student tbody tr td:nth-child(7)`).html(`
                     <div class="badge bg-success text-nowrap" style="font-size: inherit">
