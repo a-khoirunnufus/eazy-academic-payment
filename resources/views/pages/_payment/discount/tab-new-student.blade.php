@@ -1,6 +1,9 @@
-<table id="discount-new-student-table" class="table table-striped">
+<table id="table-discount-receiver-new-student" class="table table-striped">
     <thead>
         <tr>
+            <th>
+                <input id="check-all-receiver" class="form-check-input" type="checkbox" />
+            </th>
             <th class="text-center">Aksi</th>
             <th>Mahasiswa</th>
             <th>Fakultas - Prodi</th>
@@ -20,6 +23,61 @@
     <tbody></tbody>
 </table>
 
+<div class="modal fade" id="modal-copy-data-new-student" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-fullscreen" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Salin Data Penerima Potongan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-row justify-content-end mb-1 w-100">
+                    <button class="btn btn-primary" onclick="copyNewStudentReceiverActions.validateData()">Validasi Data</button>
+                </div>
+                <div class="eazy-table-wrapper">
+                    <form id="form-copy-data-new-student">
+                        <table id="table-copied-data-new-student" class="table table-striped" style="width: 100%; font-size: .9rem;">
+                            <thead>
+                                <tr>
+                                    <th class="text-nowrap">Mahasiswa</th>
+                                    <th class="text-nowrap">Fakultas - Prodi</th>
+                                    <th class="text-nowrap">Potongan</th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Periode</span>
+                                        <select id="select-all-period" class="form-select w-200">
+                                            <option selected>Pilih Periode Batch</option>
+                                        </select>
+                                    </th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Nominal</span>
+                                        <input id="input-all-nominal" type="number" class="form-control w-200" placeholder="Masukkan Nominal Batch"/>
+                                    </th>
+                                    <th class="text-nowrap">
+                                        <span class="d-block" style="margin-bottom: 10px">Status Aktif</span>
+                                        <select id="select-all-status" class="form-select w-200">
+                                            <option selected>Pilih Status Batch</option>
+                                            <option value="1">Aktif</option>
+                                            <option value="0">Tidak Aktif</option>
+                                        </select>
+                                    </th>
+                                    <th class="text-nowrap">Status Salin</th>
+                                    <th class="text-nowrap">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-success" onclick="copyNewStudentReceiverActions.storeBatch()">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @prepend('scripts')
     <script>
         /**
@@ -28,12 +86,26 @@
 
         $(function() {
             _discountReceiverNewStudentTable.init();
+
+            $('#table-discount-receiver-new-student #check-all-receiver').on('change', function() {
+                if (this.checked) {
+                    $('#table-discount-receiver-new-student input.check-receiver').each(function() {
+                        $(this).prop('checked', true);
+                    });
+                } else {
+                    $('#table-discount-receiver-new-student input.check-receiver').each(function() {
+                        $(this).prop('checked', false);
+                    });
+                }
+            });
+
+            copyNewStudentReceiverActions.setupElements();
         })
 
         const _discountReceiverNewStudentTable = {
             ..._datatable,
             init: function() {
-                this.instance = $('#discount-new-student-table').DataTable({
+                this.instance = $('#table-discount-receiver-new-student').DataTable({
                     serverSide: true,
                     ajax: {
                         url: _baseURL + '/api/payment/discount-receiver-new/index',
@@ -66,9 +138,16 @@
                             return json.data;
                         }
                     },
-                    order: [[0, 'asc']],
+                    order: [[2, 'asc']],
                     stateSave: false,
                     columns: [
+                        {
+                            orderable: false,
+                            searchable: false,
+                            render: (data, type, row, meta) => {
+                                return `<input data-dt-row="${meta.row}" class="check-receiver form-check-input" type="checkbox" />`;
+                            }
+                        },
                         {
                             name: 'action',
                             data: 'mdr_id',
@@ -183,8 +262,8 @@
                             visible: false,
                         },
                         {
-                            name: 'msr_status_generate',
-                            data: 'msr_status_generate',
+                            name: 'mdr_status_generate',
+                            data: 'mdr_status_generate',
                             searchable: false,
                             render: (data, _, row) => {
                                 let status = "Belum Digenerate";
@@ -201,9 +280,9 @@
                         feather.replace();
                     },
                     dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
-                        '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"invoice-component-new-student-actions d-flex align-items-end">>' +
+                        '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"custom-actions-new-student d-flex align-items-end">>' +
                         '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                        '>t' +
+                        '><"eazy-table-wrapper"t>' +
                         '<"d-flex justify-content-between mx-2 row"' +
                         '<"col-sm-12 col-md-6"i>' +
                         '<"col-sm-12 col-md-6"p>' +
@@ -212,12 +291,13 @@
                         extend: 'collection',
                         text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link font-small-4 me-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Export</span>',
                         className: 'btn btn-outline-secondary dropdown-toggle',
-                        buttons: [{
+                        buttons: [
+                            {
                                 text: '<span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clipboard font-small-4 me-50"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Pdf</span>',
                                 className: 'dropdown-item',
                                 extend: 'pdf',
                                 exportOptions: {
-                                    columns: [7, 8, 9, 10, 3, 4, 5, 11]
+                                    columns: [8, 9, 10, 11, 4, 5, 6, 12]
                                 }
                             },
                             {
@@ -248,7 +328,7 @@
                                 className: 'dropdown-item',
                                 extend: 'csv',
                                 exportOptions: {
-                                    columns: [7, 8, 9, 10, 3, 4, 12, 11]
+                                    columns: [8, 9, 10, 11, 4, 5, 6, 12]
                                 }
                             },
                             {
@@ -256,13 +336,13 @@
                                 className: 'dropdown-item',
                                 extend: 'copy',
                                 exportOptions: {
-                                    columns: [7, 8, 9, 10, 3, 4, 12, 11]
+                                    columns: [8, 9, 10, 11, 4, 5, 6, 12]
                                 }
                             }
                         ]
                     }, ],
                     initComplete: function() {
-                        $('.invoice-component-new-student-actions').html(`
+                        $('.custom-actions-new-student').html(`
                             <div style="margin-bottom: 7px">
                                 <button onclick="_discountReceiverNewStudentTableActions.add()" class="btn btn-info">
                                     <span style="vertical-align: middle">
@@ -270,12 +350,15 @@
                                         Tambah Penerima
                                     </span>
                                 </button>
+                                <button class="btn btn-outline-primary ms-1" onclick="copyNewStudentReceiverActions.openModalCopyData()">
+                                    <i data-feather="copy"></i>&nbsp;&nbsp;Salin Data
+                                </button>
                             </div>
                         `)
                         // $('.search-filter').html(`
-                        //     <div id="discount-new-student-table_filter" class="dataTables_filter">
+                        //     <div id="table-discount-receiver-new-student_filter" class="dataTables_filter">
                         //         <label>
-                        //             <input type="search" class="form-control" placeholder="Cari Data" aria-controls="discount-new-student-table">
+                        //             <input type="search" class="form-control" placeholder="Cari Data" aria-controls="table-discount-receiver-new-student">
                         //         </label>
                         //     </div>
                         // `);
@@ -562,40 +645,271 @@
             },
         }
 
-        // function getStudyProgram(val) {
-        //     $('select[name="study_program_filter"]').html(`
-        //         <option value="#ALL" selected>Semua Program Studi</option>
-        //     `);
+        const copyNewStudentReceiverActions = {
+            setupElements: () => {
+                $.get({url: `${_baseURL}/api/payment/resource/school-year`})
+                    .then(schoolYears => {
+                        $('#modal-copy-data-new-student #select-all-period').append(
+                            schoolYears.map(item => `
+                                <option value="${item.msy_id}">${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
+                            `).join('')
+                        );
+                    });
 
-        //     if (val != '#ALL') {
-        //         var xhr = new XMLHttpRequest();
-        //         xhr.onload = function() {
-        //             var data = JSON.parse(this.responseText);
-        //             for (var i = 0; i < data.length; i++) {
-        //                 $('select[name="study_program_filter"]').append(`
-        //                     <option value="${data[i].studyprogram_id}">${data[i].studyprogram_type+" "+data[i].studyprogram_name}</option>
-        //                 `);
-        //             }
-        //         }
-        //         xhr.open("GET", _baseURL + '/api/payment/discount-receiver/faculty/' + val);
-        //         xhr.send();
-        //     }
-        // }
+                $('#modal-copy-data-new-student select#select-all-period').on('change', function() {
+                    const selectedValue = $(this).val();
+                    $('#form-copy-data-new-student select[name="mdr_period[]"]').each(function() {
+                        $(this).val(selectedValue);
+                    });
+                });
 
-        // function searchFilter(event, elm) {
-        //     var key = event.key;
-        //     var text = elm.value;
-        //     if (key == 'Enter') {
-        //         elm.value = "";
-        //         if (text == '') {
-        //             dt.clear().destroy();
-        //             _discountReceiverNewStudentTable.init();
-        //         } else {
-        //             dt.clear().destroy();
-        //             _discountReceiverNewStudentTable.init(text);
-        //         }
-        //         console.log(text);
-        //     }
-        // }
+                $('#modal-copy-data-new-student input#input-all-nominal').on('change', function() {
+                    const currentValue = $(this).val();
+                    $('#form-copy-data-new-student input[name="mdr_nominal[]"]').each(function() {
+                        $(this).val(currentValue);
+                    });
+                });
+
+                $('#modal-copy-data-new-student select#select-all-status').on('change', function() {
+                    const selectedValue = $(this).val();
+                    $('#form-copy-data-new-student select[name="mdr_status[]"]').each(function() {
+                        $(this).val(selectedValue);
+                    });
+                });
+            },
+            openModalCopyData: async () => {
+                const schoolYear = await $.get({
+                    async: true,
+                    url: `${_baseURL}/api/payment/resource/school-year`,
+                });
+
+                let htmlRows = '';
+
+                $('#table-discount-receiver-new-student input.check-receiver:checked').each(function() {
+                    const rowIdx = $(this).data('dt-row');
+                    const row = _discountReceiverNewStudentTable.instance.row(parseInt(rowIdx)).data();
+
+                    htmlRows += `
+                        <tr>
+                            <td>
+                                <div>
+                                    ${_datatableTemplates.titleWithSubtitleCell(row.new_student.participant.par_fullname, row.new_student.reg_number)}
+                                    <input type="hidden" name="reg_id[]" value="${row.reg_id}" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    ${_datatableTemplates.titleWithSubtitleCell(
+                                        row.new_student.studyprogram.studyprogram_type.toUpperCase()+' '+row.new_student.studyprogram.studyprogram_name,
+                                        row.new_student.studyprogram.faculty.faculty_name
+                                    )}
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="fw-bold text-nowrap">
+                                        ${row.discount.md_name}&nbsp;
+                                        <a class="btn d-inline-block p-0" onclick="copyNewStudentReceiverActions.showDiscountDetailModal(${row.discount.md_id})"><i data-feather="info"></i></a>
+                                    </span>
+                                    ${
+                                        row.discount.md_from
+                                            ? `<br><small class="text-secondary  text-nowrap">${row.discount.md_from ?? '-'}</small>`
+                                            : ''
+                                    }
+                                </div>
+                                <input type="hidden" name="md_id[]" value="${row.md_id}" />
+                            </td>
+                            <td>
+                                <select name="mdr_period[]" class="form-select w-200" value="${row.mdr_period}">
+                                    ${
+                                        schoolYear
+                                            .filter(item => {
+                                                return item.msy_code >= row.discount.period_start.msy_code && item.msy_code <= row.discount.period_end.msy_code;
+                                            })
+                                            .map(item => `
+                                                <option value="${item.msy_id}" ${row.mdr_period == item.msy_id ? 'selected' : ''}>${item.msy_year} ${item.msy_semester == 1 ? 'Ganjil' : 'Genap'}</option>
+                                            `)
+                                            .join('')
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <input name="mdr_nominal[]" class="form-control w-200" type="number" value="${row.mdr_nominal}" />
+                            </td>
+                            <td>
+                                <select name="mdr_status[]" class="form-select w-200" value="${row.mdr_status}">
+                                    <option value="1" ${row.mdr_status == 1 ? 'selected' : ''}>Aktif</option>
+                                    <option value="0" ${row.mdr_status == 0 ? 'selected' : ''}>Tidak Aktif</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="badge bg-success text-nowrap" style="font-size: inherit">
+                                    Data Valid
+                                </div>
+                                <input type="hidden" name="is_data_valid[]" value="1" />
+                            </td>
+                            <td>
+                                <a class="btn btn-icon btn-sm btn-danger" onclick="copyNewStudentReceiverActions.deleteCopyRow(this)">
+                                    <i data-feather="trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                if (htmlRows == '') {
+                    htmlRows = '<tr><td colspan="6" class="text-center">Tidak ada data yang dipilih</td></tr>';
+                }
+
+                $('#modal-copy-data-new-student #table-copied-data-new-student tbody').html(htmlRows);
+
+                $('#modal-copy-data-new-student').modal('show');
+
+                feather.replace();
+
+                copyNewStudentReceiverActions.validateData();
+            },
+            deleteCopyRow: async (elm) => {
+                const confirmed = await _swalConfirmSync({
+                        title: 'Konfirmasi',
+                        text: 'Apakah anda yakin ingin menghapus?',
+                    });
+
+                if(!confirmed) return;
+
+                $(elm).parents('tr')[0].remove();
+            },
+            validateData: () => {
+                return new Promise(async (resolve, reject) => {
+                    const data = FormDataJson.toJson("#form-copy-data-new-student");
+
+                    const res = await $.ajax({
+                        async: true,
+                        url: _baseURL + '/api/payment/discount-receiver-new/validate-batch',
+                        type: 'post',
+                        data: data,
+                    });
+
+                    // console.log(res);
+
+                    $(`#table-copied-data-new-student tbody tr td:nth-child(7)`).html(`
+                        <div class="badge bg-success text-nowrap" style="font-size: inherit">
+                            Data Valid
+                        </div>
+                        <input type="hidden" name="is_data_valid[]" value="1" />
+                    `);
+
+                    if (Object.keys(res).length > 0) {
+                        for (const key in res) {
+                            const rowIdx = key.split('_')[1];
+                            $(`#table-copied-data-new-student tbody > tr:nth-child(${rowIdx}) td:nth-child(7)`).html(`
+                                <div class="badge bg-danger text-nowrap" style="font-size: inherit">
+                                    Data Tidak Valid
+                                </div>
+                                <input type="hidden" name="is_data_valid[]" value="0" />
+                                <ul class="list-group mt-1">
+                                    ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;">${msg}</li>`).join('')}
+                                </ul>
+                            `);
+                        }
+
+                        resolve(false);
+                    }
+
+                    resolve(true);
+                })
+            },
+            storeBatch: async () => {
+                const confirmed = await _swalConfirmSync({
+                    title: 'Konfirmasi',
+                    text: 'Apakah anda yakin ingin menambahkan data?',
+                });
+                if (!confirmed) return;
+
+                const isDataValid = await copyNewStudentReceiverActions.validateData();
+                if (!isDataValid) {
+                    _toastr.error('Masih terdapat data yang belum valid, silahkan sesuaikan data.', 'Gagal');
+                    return;
+                }
+
+                try {
+                    const formData = new FormData($('#form-copy-data-new-student')[0]);
+
+                    const res = await $.ajax({
+                        async: true,
+                        url: _baseURL + '/api/payment/discount-receiver-new/store-batch',
+                        type: 'post',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                    });
+
+                    if (res.success) {
+                        _toastr.success(res.message, 'Berhasil');
+                    } else {
+                        _toastr.error(res.message, 'Gagal');
+                    }
+                } catch (error) {
+                    _toastr.error(error.responseJSON.message, 'Gagal');
+                } finally {
+                    $('#modal-copy-data-new-student').modal('hide');
+                    _discountReceiverNewStudentTable.reload();
+                }
+
+            },
+            showDiscountDetailModal: async (id) => {
+                const discount = await $.ajax({
+                    async: true,
+                    url: _baseURL + '/api/payment/resource/discount/' + id,
+                });
+
+                let html = `
+                    <tr>
+                        <td class="align-top px-1" style="width: 200px">Nama Potongan</td>
+                        <td class="align-top px-0" style="width: 5px">:</td>
+                        <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                            ${discount.md_name}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-top px-1" style="width: 200px">Periode Awal</td>
+                        <td class="align-top px-0" style="width: 5px">:</td>
+                        <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                            ${discount.period_start.msy_year}
+                            ${
+                                discount.period_start.msy_semester == 1 ? 'Ganjil'
+                                    : discount.period_start.msy_semester == 2 ? 'Genap'
+                                        : 'Antara'
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-top px-1" style="width: 200px">Periode Akhir</td>
+                        <td class="align-top px-0" style="width: 5px">:</td>
+                        <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                            ${discount.period_end.msy_year}
+                            ${
+                                discount.period_end.msy_semester == 1 ? 'Ganjil'
+                                    : discount.period_end.msy_semester == 2 ? 'Genap'
+                                        : 'Antara'
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-top px-1" style="width: 200px">Anggaran Tersedia</td>
+                        <td class="align-top px-0" style="width: 5px">:</td>
+                        <td class="align-top px-1" style="min-width: 400px; max-width: fit-content">
+                            ${Rupiah.format(discount.md_budget - discount.md_realization)}
+                        </td>
+                    </tr>
+                `;
+
+                html = $('<table class="table table-bordered dtr-details-custom mb-0" />').append(html);
+
+                $('#modal-discount-detail .custom-body').html(html);
+
+                $('#modal-discount-detail').modal('show');
+            },
+        };
     </script>
 @endprepend
