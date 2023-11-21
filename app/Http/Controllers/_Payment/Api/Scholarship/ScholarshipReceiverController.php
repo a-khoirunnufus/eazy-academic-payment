@@ -27,9 +27,8 @@ class ScholarshipReceiverController extends Controller
             return !is_null($item) && $item != '#ALL';
         });
 
-        $query = ScholarshipReceiver::with(['scholarship.periodStart', 'scholarship.periodEnd', 'student.studyProgram.faculty']);
+        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'student.studyProgram.faculty']);
         $query = $query->where('reg_id', '=', null);
-        $query = $query->with('period', 'student', 'scholarship');
 
         if (isset($filters['md_period_start_filter'])) {
             $query->whereHas('scholarship', function ($q) use ($filters) {

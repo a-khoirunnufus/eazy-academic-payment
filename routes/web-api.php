@@ -242,6 +242,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('study-program', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@study_program');
         Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@store');
+        Route::post('validate-batch', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@validateBatch');
+        Route::post('store-batch', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@storeBatch');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@delete');
         Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipReceiverNewStudentController@exportData');
     });
