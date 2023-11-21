@@ -7,11 +7,6 @@
 
 @section('css_section')
 <style>
-    .section-border {
-        border: 1px solid gainsboro;
-        border-radius: 6px;
-        padding: 1rem;
-    }
     .form-control.w-200,
     .form-select.w-200 {
         width: 200px !important;
@@ -108,6 +103,19 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade dtr-bs-modal" id="modal-scholarship-detail" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Beasiswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="custom-body"></div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 
