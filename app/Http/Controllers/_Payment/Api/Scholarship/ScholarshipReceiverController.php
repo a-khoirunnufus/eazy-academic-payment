@@ -223,7 +223,7 @@ class ScholarshipReceiverController extends Controller
             // budget checking
             $scholarship = Scholarship::find($validated["ms_id"][$i]);
             $available_budget = $scholarship->ms_budget - $scholarship->ms_realization;
-            if ($available_budget < $validated['msr_nominal'][$i]) {
+            if ($available_budget < (int)$validated['msr_nominal'][$i]) {
                 $errors[] = 'Budget beasiswa tidak cukup!';
             }
 

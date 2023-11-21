@@ -198,6 +198,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@student');
         Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@store');
+        Route::post('validate-batch', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@validateBatch');
+        Route::post('store-batch', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@storeBatch');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@delete');
         Route::get('faculty/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@studyProgram');
         Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverController@exportData');
@@ -378,6 +380,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('lecture-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@lectureTypeIndex');
 
         Route::get('scholarship/{ms_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@show');
+        Route::get('discount/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@show');
     });
 
     // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');

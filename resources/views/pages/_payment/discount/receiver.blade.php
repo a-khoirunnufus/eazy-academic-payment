@@ -7,9 +7,20 @@
 
 @section('css_section')
 <style>
-    .eazy-table-wrapper {
-        width: 100%;
-        overflow-x: auto;
+    .form-control.w-200,
+    .form-select.w-200 {
+        width: 200px !important;
+    }
+
+    table.dtr-details-custom td {
+        padding: 10px 0;
+    }
+    table.dtr-details-custom td > * {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .dtr-bs-modal .modal-dialog {
+        max-width: max-content;
     }
 </style>
 @endsection
@@ -86,10 +97,30 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade dtr-bs-modal" id="modal-discount-detail" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Potongan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="custom-body"></div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
     <script>
+        // enabling multiple modal open
+        $(document).on('show.bs.modal', '.modal', function() {
+            const zIndex = 1040 + 10 * $('.modal:visible').length;
+            $(this).css('z-index', zIndex);
+            setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+        });
+
         function refreshTableDiscountReceiver() {
             if ($('#navs-student').hasClass('active')) {
                 _discountReceiverTable.reload();

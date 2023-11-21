@@ -4,9 +4,12 @@ namespace App\Http\Controllers\_Payment\API\Discount;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Payment\Discount;
 use App\Models\Payment\DiscountReceiver;
 use App\Http\Requests\Payment\Discount\DiscountReceiverRequest;
+use App\Http\Requests\Payment\Discount\DiscountReceiverBatchRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Year;
@@ -21,7 +24,7 @@ class DiscountReceiverController extends Controller
 
     public function index(Request $request)
     {
-        $query = DiscountReceiver::with('period','student','discount')
+        $query = DiscountReceiver::with(['period', 'discount.periodStart', 'discount.periodEnd', 'student.studyProgram.faculty'])
             ->where('reg_id', '=', null);
 
         $datatable = datatables($query);
@@ -129,6 +132,148 @@ class DiscountReceiverController extends Controller
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function validateBatch(Request $request)
+    {
+        $receiver_count = count($request->get('student_number') ?? []);
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'student_number' => 'required|array',
+                'student_number.*' => Rule::exists(Student::class, 'student_number'),
+                'md_id' => 'required|array|size:'.$receiver_count,
+                'md_id.*' => Rule::exists(Discount::class, 'md_id'),
+                'mdr_period' => 'required|array|size:'.$receiver_count,
+                'mdr_period.*' => Rule::exists(Year::class, 'msy_id'),
+                'mdr_nominal' => 'required|array|size:'.$receiver_count,
+                'mdr_nominal.*' => 'numeric',
+                'mdr_status' => 'required|array|size:'.$receiver_count,
+                'mdr_status.*' => 'in:0,1',
+            ],
+            [],
+            [
+                'student_number' => 'NIM Mahasiswa',
+                'md_id' => 'Potongan',
+                'mdr_period' => 'Periode',
+                'mdr_nominal' => 'Nominal',
+                'mdr_status' => 'Status',
+                'student_number.*' => 'NIM Mahasiswa',
+                'md_id.*' => 'Potongan',
+                'mdr_period.*' => 'Periode',
+                'mdr_nominal.*' => 'Nominal',
+                'mdr_status.*' => 'Status',
+            ]
+        );
+
+        $validation_errors = [];
+
+        if ($validator->fails()) {
+            $errors = $validator->errors()->toArray();
+            foreach ($errors as $key => $values) {
+                $attr = explode('.', $key);
+                $row_idx = (int)$attr[1] + 1;
+                foreach ($values as $value) {
+                    $validation_errors['row_'.$row_idx][] = $value;
+                }
+            }
+            return response()->json($validation_errors);
+        }
+
+        $validated = $validator->validated();
+
+        // validation
+        for ($i=0; $i < $receiver_count; $i++) {
+
+            $errors = [];
+
+            // budget checking
+            $discount = Discount::find($validated["md_id"][$i]);
+            $available_budget = $discount->md_budget - $discount->md_realization;
+            if ($available_budget < (int)$validated['mdr_nominal'][$i]) {
+                \Log::debug($available_budget);
+                \Log::debug($validated['mdr_nominal'][$i]);
+                $errors[] = 'Budget potongan tidak cukup!';
+            }
+
+            // duplicate data
+            $discount_receiver = DiscountReceiver::where([
+                'md_id' => $validated['md_id'][$i],
+                'student_number' => $validated['student_number'][$i],
+                'mdr_period' => $validated['mdr_period'][$i],
+            ])->exists();
+            if ($discount_receiver) {
+                $errors[] = 'Data duplikat!';
+            }
+
+            if (count($errors) > 0) {
+                $validation_errors['row_'.($i+1)] = $errors;
+            }
+        }
+
+        return response()->json($validation_errors);
+    }
+
+    public function storeBatch(DiscountReceiverBatchRequest $request)
+    {
+        /**
+         * [
+         *  [
+         *      'md_id' => 5,
+         *      'student_number' => 1874,
+         *      'mdr_period' => 1,
+         *      'mdr_nominal' => 1000000,
+         *      'mdr_status' => 1,
+         *  ],
+         *  ...
+         * ]
+         */
+
+        $validated = $request->validated();
+        $receiver_count = count($validated['student_number']);
+
+        try {
+            DB::beginTransaction();
+
+            // validation: budget checking
+            for ($i=0; $i < $receiver_count; $i++) {
+
+                $discount = Discount::find($validated["md_id"][$i]);
+                $available_budget = $discount->md_budget - $discount->md_realization;
+                $is_applied = $available_budget >= (int)$validated['mdr_nominal'][$i];
+                if (!$is_applied) {
+                    throw new \Exception('Budget tidak cukup untuk potongan: '.$discount->md_name, 1);
+                }
+
+                DiscountReceiver::create([
+                    'student_number' => $validated['student_number'][$i],
+                    'md_id' => $validated['md_id'][$i],
+                    'mdr_period' => $validated['mdr_period'][$i],
+                    'mdr_nominal' => $validated['mdr_nominal'][$i],
+                    'mdr_status' => $validated['mdr_status'][$i],
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            if ($th->getCode() == 1) {
+                return response()->json([
+                    'message' => $th->getMessage(),
+                    'success' => false,
+                ], 422);
+            } else {
+                throw $th;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil menambahkan penerima potongan',
+        ]);
+
     }
 
     public function delete($id)
