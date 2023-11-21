@@ -211,6 +211,8 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('student', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@student');
         Route::get('period/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@period');
         Route::post('store', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@store');
+        Route::post('validate-batch', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@validateBatch');
+        Route::post('store-batch', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@storeBatch');
         Route::delete('delete/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@delete');
         Route::get('faculty/{id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@studyProgram');
         Route::post('exportData', 'App\Http\Controllers\_Payment\Api\Discount\DiscountReceiverNewStudentController@exportData');

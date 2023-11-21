@@ -192,8 +192,6 @@ class DiscountReceiverController extends Controller
             $discount = Discount::find($validated["md_id"][$i]);
             $available_budget = $discount->md_budget - $discount->md_realization;
             if ($available_budget < (int)$validated['mdr_nominal'][$i]) {
-                \Log::debug($available_budget);
-                \Log::debug($validated['mdr_nominal'][$i]);
                 $errors[] = 'Budget potongan tidak cukup!';
             }
 
