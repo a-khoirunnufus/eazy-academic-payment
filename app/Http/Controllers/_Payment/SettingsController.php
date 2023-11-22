@@ -28,17 +28,17 @@ class SettingsController extends Controller
         return view('pages._payment.settings.index', compact('settings','types'));
     }
 
-    public function update(Request $request)
-    {
-        unset($request['_token']);
-        foreach ($request->all() as $key => $item) {
-            Settings::where('name', $key)->update(
-                ['value' => $item]
-            );
-        }
-        Cache::flush();
-        return redirect()->back()->with(['message'=>'Update settings berhasil!','tabId'=>$request['tabId']]);
-    }
+    // public function update(Request $request)
+    // {
+    //     unset($request['_token']);
+    //     foreach ($request->all() as $key => $item) {
+    //         Settings::where('name', $key)->update(
+    //             ['value' => $item]
+    //         );
+    //     }
+    //     Cache::flush();
+    //     return redirect()->back()->with(['message'=>'Update settings berhasil!','tabId'=>$request['tabId']]);
+    // }
 
     public function subjectrates()
     {

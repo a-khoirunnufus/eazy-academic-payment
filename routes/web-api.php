@@ -37,6 +37,8 @@ Route::group(['prefix' => 'data'], function () {
 Route::group(['prefix' => 'payment'], function(){
     // Settings
     Route::group(['prefix' => 'settings'], function(){
+
+        Route::post('update/{name}', 'App\Http\Controllers\_Payment\Api\Settings\SettingsController@update');
         // Component Invoices
         Route::get('component/index', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@index');
         Route::get('component-type', 'App\Http\Controllers\_Payment\Api\Settings\ComponentInvoiceController@getComponentType');

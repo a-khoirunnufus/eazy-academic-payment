@@ -150,7 +150,7 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
     // Settings Route
     Route::group(['prefix' => 'settings'], function() {
         Route::get('/', 'App\Http\Controllers\_Payment\SettingsController@index')->name('payment.settings.index');
-        Route::post('/update', 'App\Http\Controllers\_Payment\SettingsController@update')->name('payment.settings.update');
+        // Route::post('/update', 'App\Http\Controllers\_Payment\SettingsController@update')->name('payment.settings.update');
     });
 
 });
