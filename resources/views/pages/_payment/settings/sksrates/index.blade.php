@@ -222,7 +222,8 @@
 @section('js_section')
 <script>
     var dataCopy = null;
-    var spIdCopy = null;
+    var dataRecent = null;
+    var isCopied = false;
     var searchInput = '#ALL';
     var dt;
 
@@ -398,7 +399,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_ratesPerSKSTableActions.edit(${row.study_program.studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerSKSTableActions.copy(${row.study_program.studyprogram_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
+                            <a onclick="_ratesPerSKSTableActions.copy(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
                             <a onclick="_ratesPerSKSTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
@@ -410,6 +411,9 @@
     const _ratesPerSKSTableActions = {
         tableRef: _ratesPerSKSTable,
         SKSRateInputField: function(id = 0, rate = 0, rate_practicum = 0, tingkat = null) {
+            let rand = (Math.floor(Math.random()*500));
+            let tarifSKS = "tarif_sks_"+rand;
+            let tarifPracticum = "tarif_practicum_"+rand;
             $('#SKSRateInput').append(`
                 <div class="d-flex flex-wrap align-items-center mb-1 SKSRateInputField" style="gap:10px"
                     id="comp-order-preview-0">
@@ -426,12 +430,12 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif SKS Normal</label>
-                        <input type="text" class="form-control comp_price tarif_sks" value="${rate}"
+                        <input type="text" class="form-control comp_price ${tarifSKS}" value="${rate}"
                             placeholder="Tarif SKS Normal">
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif SKS Praktikum</label>
-                        <input type="text" class="form-control comp_price" name="msr_rate_practicum[]" value="${rate_practicum}"
+                        <input type="text" class="form-control comp_price ${tarifPracticum}" value="${rate_practicum}"
                             placeholder="Tarif Praktikum">
                     </div>
                     <div class="d-flex align-content-end">
@@ -443,7 +447,8 @@
                     </div>
                 </div>
             `);
-            _numberCurrencyFormat.load('tarif_sks','msr_rate',1);
+            _numberCurrencyFormat.load(tarifSKS,'msr_rate',1);
+            _numberCurrencyFormat.load(tarifPracticum,'msr_rate_practicum',1);
             if (tingkat) {
                 $("#tingkat" + id + "").val(tingkat);
                 $("#tingkat" + id + "").trigger('change');
@@ -458,6 +463,10 @@
         },
 
         add: function() {
+            let paste = `<button type="button" class="btn btn-success" disabled>Paste</button>`;
+            if(isCopied){
+                paste = `<button type="button" class="btn btn-success" onclick="_ratesPerSKSTableActions.paste('component')">Paste</button>`;
+            }
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Tarif Per SKS',
@@ -493,7 +502,7 @@
                                         class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesPerSKSTableActions.SKSRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
-                                    <button type="button" class="btn btn-success" onclick="_ratesPerSKSTableActions.paste('component')">Paste</button>
+                                    ${paste}
                                     </div>
 
                                 </div>
@@ -537,11 +546,11 @@
                     data = JSON.parse(data)
                     $('#SKSRateInput').empty();
                     if (Object.keys(data).length > 0) {
+                        dataRecent = data;
                         data.map(item => {
                             _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
                         })
                     }
-                    console.log(data);
                 }).fail((error) => {
                     Swal.fire({
                         icon: 'error',
@@ -682,27 +691,28 @@
                 }
             })
         },
-        copy: function(spId) {
-            spIdCopy = spId;
+        copy: function(e) {
+            dataCopy = _ratesPerSKSTable.getRowData(e);
+            isCopied = true;
         },
         paste: function(type) {
-            if (type == "component") {
-                $.post(_baseURL + '/api/payment/settings/sksrates/getbystudyprogramid/' + spIdCopy, {
-                    _method: 'GET'
-                }, function(data) {
-                    data = JSON.parse(data)
+            let pasted = false;
+            if(dataCopy){
+                if(dataRecent){
                     $('#SKSRateInput').empty();
-                    if (Object.keys(data).length > 0) {
-                        data.map(item => {
-                            _ratesPerSKSTableActions.SKSRateInputField(0, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
-                        })
-                    }
-                }).fail((error) => {
-                    Swal.fire({
-                        icon: 'error',
-                        text: data.text,
-                    });
-                })
+                    dataRecent.map(item => {
+                        if(item.msr_tingkat == dataCopy.msr_tingkat){
+                            _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, dataCopy.msr_rate, dataCopy.msr_rate_practicum, item.msr_tingkat)
+                            pasted = true;
+                        }else{
+                            _ratesPerSKSTableActions.SKSRateInputField(item.msr_id, item.msr_rate, item.msr_rate_practicum, item.msr_tingkat)
+                        }
+                    })
+                }
+            }
+            console.log(pasted)
+            if(!pasted){
+                _ratesPerSKSTableActions.SKSRateInputField(0, dataCopy.msr_rate, dataCopy.msr_rate_practicum, dataCopy.msr_tingkat)
             }
         }
     }

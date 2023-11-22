@@ -225,6 +225,8 @@
 @section('js_section')
 <script>
     var dataCopy = null;
+    var dataRecent = null;
+    var isCopied = false;
     var spIdCopy = null;
     var cIdCopy = null;
     var searchInput = '#ALL';
@@ -397,7 +399,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a onclick="_ratesPerCourseTableActions.edit(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="edit"></i>&nbsp;&nbsp;Edit</a>
-                            <a onclick="_ratesPerCourseTableActions.copy(${row.study_program.studyprogram_id},${row.mcr_course_id})" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
+                            <a onclick="_ratesPerCourseTableActions.copy(this)" class="dropdown-item" href="javascript:void(0);"><i data-feather="clipboard"></i>&nbsp;&nbsp;Salin</a>
                             <a onclick="_ratesPerCourseTableActions.delete(this)" class="dropdown-item"><i data-feather="trash"></i>&nbsp;&nbsp;Delete</a>
                         </div>
                     </div>
@@ -409,6 +411,8 @@
     const _ratesPerCourseTableActions = {
         tableRef: _ratesPerCourseTable,
         courseRateInputField: function(id = 0, rate = 0, is_package = null, tingkat = null) {
+            let rand = (Math.floor(Math.random()*500));
+            let tarifMataKuliah = "tarif_matakuliah_"+rand;
             $('#courseRateInput').append(`
                 <div class="d-flex flex-wrap align-items-center mb-1 courseRateInputField" style="gap:10px"
                     id="comp-order-preview-0">
@@ -425,7 +429,7 @@
                     </div>
                     <div class="flex-fill">
                         <label class="form-label">Tarif</label>
-                        <input type="text" class="form-control comp_price tarif_matakuliah" value="${rate}"
+                        <input type="text" class="form-control comp_price ${tarifMataKuliah}" value="${rate}"
                             placeholder="Tarif Mata Kuliah">
                     </div>
                     <div class="flex-fill text-center">
@@ -446,7 +450,7 @@
                     </div>
                 </div>
             `);
-            _numberCurrencyFormat.load('tarif_matakuliah','mcr_rate',1);
+            _numberCurrencyFormat.load(tarifMataKuliah,'mcr_rate',1);
 
             // selectInit(['select[name="mcr_tingkat[]"]', 'select[name="mcr_is_package[]"]'], true);
 
@@ -488,6 +492,10 @@
         //     })
         // },
         add: function() {
+            let paste = `<button type="button" class="btn btn-success" disabled>Paste</button>`;
+            if(isCopied){
+                paste = `<button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>`;
+            }
             Modal.show({
                 type: 'form',
                 modalTitle: 'Tambah Tarif Matakuliah',
@@ -502,7 +510,6 @@
                             type: 'custom-field',
                             content: {
                                 template: `<div class="mb-2">
-                                    <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('prodi')">Paste</button>
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6">
                                             <label class="form-label">Program Studi</label>
@@ -529,7 +536,7 @@
                                         class="btn btn-info text-white edit-component waves-effect waves-float waves-light"
                                         onclick="_ratesPerCourseTableActions.courseRateInputField()"> <i class="bx bx-plus m-auto"></i> Tambah Tingkat
                                     </button>
-                                    <button type="button" class="btn btn-success" onclick="_ratesPerCourseTableActions.paste('component')">Paste</button>
+                                    ${paste}
                                     </div>
 
                                 </div>
@@ -594,6 +601,7 @@
                     data = JSON.parse(data)
                     $('#courseRateInput').empty();
                     if (Object.keys(data).length > 0) {
+                        dataRecent = data;
                         data.forEach(item => {
                             _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
                         })
@@ -757,53 +765,28 @@
                 }
             })
         },
-        copy: function(spId, cId) {
-            spIdCopy = spId;
-            cIdCopy = cId;
+        copy: function(e) {
+            dataCopy = _ratesPerCourseTable.getRowData(e);
+            isCopied = true;
         },
         paste: function(type) {
-            if (type == "prodi") {
-                $('#programStudy').empty().trigger("change");
-                $('#courseRateInput').empty();
-                _options.load({
-                    optionUrl: _baseURL + '/api/payment/settings/courserates/studyprogram',
-                    nameField: 'mcr_studyprogram_id',
-                    idData: 'studyprogram_id',
-                    nameData: 'studyprogram_name',
-                    val: spIdCopy
-                });
-
-                $("#programStudy").change(function() {
-                    studyProgramId = $(this).val();
-                    $('#courseId').empty().trigger("change");
+            let pasted = false;
+            if(dataCopy){
+                if(dataRecent){
                     $('#courseRateInput').empty();
-                    _options.load({
-                        optionUrl: _baseURL + '/api/payment/settings/courserates/course/' + studyProgramId,
-                        nameField: 'mcr_course_id',
-                        idData: 'course_id',
-                        nameData: 'subject_name',
-                        val: cIdCopy
-                    });
-                })
-            }
-            if (type == "component") {
-                $.post(_baseURL + '/api/payment/settings/courserates/getbycourseid/' + cIdCopy, {
-                    _method: 'GET'
-                }, function(data) {
-                    data = JSON.parse(data)
-                    $('#courseRateInput').empty();
-                    if (Object.keys(data).length > 0) {
-                        data.map(item => {
+                    dataRecent.map(item => {
+                        if(item.mcr_tingkat == dataCopy.mcr_tingkat){
+                            _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, dataCopy.mcr_rate, dataCopy.mcr_is_package, item.mcr_tingkat)
+                            pasted = true;
+                        }else{
                             _ratesPerCourseTableActions.courseRateInputField(item.mcr_id, item.mcr_rate, item.mcr_is_package, item.mcr_tingkat)
-                        })
-                    }
-                    console.log(data);
-                }).fail((error) => {
-                    Swal.fire({
-                        icon: 'error',
-                        text: data.text,
-                    });
-                })
+                        }
+                    })
+                }
+            }
+            // console.log(pasted)
+            if(!pasted){
+                _ratesPerCourseTableActions.courseRateInputField(0, dataCopy.mcr_rate, dataCopy.mcr_is_package, dataCopy.mcr_tingkat)
             }
         }
     }
