@@ -4,9 +4,12 @@ namespace App\Http\Controllers\_Payment\API\Scholarship;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Payment\Scholarship;
 use App\Models\Payment\ScholarshipReceiver;
 use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverRequest;
+use App\Http\Requests\Payment\Scholarship\ScholarshipReceiverBatchRequest;
 use App\Models\Payment\Student;
 use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Year;
@@ -24,9 +27,8 @@ class ScholarshipReceiverController extends Controller
             return !is_null($item) && $item != '#ALL';
         });
 
-        $query = ScholarshipReceiver::query();
+        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'student.studyProgram.faculty']);
         $query = $query->where('reg_id', '=', null);
-        $query = $query->with('period', 'student', 'scholarship');
 
         if (isset($filters['md_period_start_filter'])) {
             $query->whereHas('scholarship', function ($q) use ($filters) {
@@ -121,6 +123,8 @@ class ScholarshipReceiverController extends Controller
         DB::beginTransaction();
         try {
             $data = Scholarship::findOrFail($validated["ms_id"]);
+
+            // update data
             if (array_key_exists("msc_id", $validated)) {
                 $receiver = ScholarshipReceiver::findOrFail($validated["msc_id"]);
                 if($receiver->msr_status_generate == 1){
@@ -140,7 +144,10 @@ class ScholarshipReceiverController extends Controller
                     $receiver->update($validated);
                 }
                 $text = "Berhasil memperbarui penerima beasiswa";
-            } else {
+            }
+
+            // create data
+            else {
                 $realization = $data->ms_realization + $validated["msr_nominal"];
                 if ($realization > $data->ms_budget) {
                     $text = "Budget Tidak Mencukupi";
@@ -157,6 +164,146 @@ class ScholarshipReceiverController extends Controller
             return response()->json($e->getMessage());
         }
         return json_encode(array('success' => true, 'message' => $text));
+    }
+
+    public function validateBatch(Request $request)
+    {
+        $receiver_count = count($request->get('student_number') ?? []);
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'student_number' => 'required|array',
+                'student_number.*' => Rule::exists(Student::class, 'student_number'),
+                'ms_id' => 'required|array|size:'.$receiver_count,
+                'ms_id.*' => Rule::exists(Scholarship::class, 'ms_id'),
+                'msr_period' => 'required|array|size:'.$receiver_count,
+                'msr_period.*' => Rule::exists(Year::class, 'msy_id'),
+                'msr_nominal' => 'required|array|size:'.$receiver_count,
+                'msr_nominal.*' => 'numeric',
+                'msr_status' => 'required|array|size:'.$receiver_count,
+                'msr_status.*' => 'in:0,1',
+            ],
+            [],
+            [
+                'student_number' => 'NIM Mahasiswa',
+                'ms_id' => 'Beasiswa',
+                'msr_period' => 'Periode',
+                'msr_nominal' => 'Nominal',
+                'msr_status' => 'Status',
+                'student_number.*' => 'NIM Mahasiswa',
+                'ms_id.*' => 'Beasiswa',
+                'msr_period.*' => 'Periode',
+                'msr_nominal.*' => 'Nominal',
+                'msr_status.*' => 'Status',
+            ]
+        );
+
+        $validation_errors = [];
+
+        if ($validator->fails()) {
+            $errors = $validator->errors()->toArray();
+            foreach ($errors as $key => $values) {
+                $attr = explode('.', $key);
+                $row_idx = (int)$attr[1] + 1;
+                foreach ($values as $value) {
+                    $validation_errors['row_'.$row_idx][] = $value;
+                }
+            }
+            return response()->json($validation_errors);
+        }
+
+        $validated = $validator->validated();
+
+        // validation
+        for ($i=0; $i < $receiver_count; $i++) {
+
+            $errors = [];
+
+            // budget checking
+            $scholarship = Scholarship::find($validated["ms_id"][$i]);
+            $available_budget = $scholarship->ms_budget - $scholarship->ms_realization;
+            if ($available_budget < (int)$validated['msr_nominal'][$i]) {
+                $errors[] = 'Budget beasiswa tidak cukup!';
+            }
+
+            // duplicate data
+            $scholarship_receiver = ScholarshipReceiver::where([
+                'ms_id' => $validated['ms_id'][$i],
+                'student_number' => $validated['student_number'][$i],
+                'msr_period' => $validated['msr_period'][$i],
+            ])->exists();
+            if ($scholarship_receiver) {
+                $errors[] = 'Data duplikat!';
+            }
+
+            if (count($errors) > 0) {
+                $validation_errors['row_'.($i+1)] = $errors;
+            }
+        }
+
+        return response()->json($validation_errors);
+    }
+
+    public function storeBatch(ScholarshipReceiverBatchRequest $request)
+    {
+        /**
+         * [
+         *  [
+         *      'ms_id' => 5,
+         *      'student_number' => 1874,
+         *      'msr_period' => 1,
+         *      'msr_nominal' => 1000000,
+         *      'msr_status' => 1,
+         *  ],
+         *  ...
+         * ]
+         */
+
+        $validated = $request->validated();
+        $receiver_count = count($validated['student_number']);
+
+        try {
+            DB::beginTransaction();
+
+            // validation: budget checking
+            for ($i=0; $i < $receiver_count; $i++) {
+
+                $scholarship = Scholarship::find($validated["ms_id"][$i]);
+                $available_budget = $scholarship->ms_budget - $scholarship->ms_realization;
+                $is_applied = $available_budget >= (int)$validated['msr_nominal'][$i];
+                if (!$is_applied) {
+                    throw new \Exception('Budget tidak cukup untuk beasiswa: '.$scholarship->ms_name, 1);
+                }
+
+                ScholarshipReceiver::create([
+                    'student_number' => $validated['student_number'][$i],
+                    'ms_id' => $validated['ms_id'][$i],
+                    'msr_period' => $validated['msr_period'][$i],
+                    'msr_nominal' => $validated['msr_nominal'][$i],
+                    'msr_status' => $validated['msr_status'][$i],
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+
+            if ($th->getCode() == 1) {
+                return response()->json([
+                    'message' => $th->getMessage(),
+                    'success' => false,
+                ], 422);
+            } else {
+                throw $th;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil menambahkan penerima beasiswa',
+        ]);
+
     }
 
     public function delete($id)
