@@ -646,7 +646,7 @@
                 url: `${_baseURL}/api/payment/resource/school-year`,
             });
 
-            let htmlRows = '';
+            $('#modal-copy-data-new-student #table-copied-data-new-student tbody').empty();
 
             $('#table-scholarship-receiver-new-student input.check-receiver:checked').each(function() {
                 const rowIdx = $(this).data('dt-row');
@@ -765,7 +765,7 @@
                             </div>
                             <input type="hidden" name="is_data_valid[]" value="0" />
                             <ul class="list-group" style="margin-top: 5px">
-                                ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;">${msg}</li>`).join('')}
+                                ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem; padding: 0 5px;">${msg}</li>`).join('')}
                             </ul>
                         `);
                     }

@@ -25,7 +25,7 @@ class DiscountReceiverNewStudentController extends Controller
 
     public function index(Request $request)
     {
-        $query = DiscountReceiver::with(['period', 'discount.periodStart', 'discount.periodEnd', 'newStudent.studyProgram.faculty'])
+        $query = DiscountReceiver::with(['period', 'discount.periodStart', 'discount.periodEnd', 'newStudent.studyProgram.faculty', 'newStudent.participant'])
             ->where('reg_id', '!=', null);
 
         $datatable = datatables($query);
@@ -35,21 +35,15 @@ class DiscountReceiverNewStudentController extends Controller
             $request,
             [
                 // filter attributes
-                'period.msy_code',
-                'period.msy_code',
+                'mdr_period',
                 'md_id',
-                'newStudent.studyprogram.faculty_id',
-                'newStudent.reg_major_pass',
+                'newStudent.studyProgram.faculty_id',
+                'newStudent.studyProgram.studyprogram_id',
             ],
             [
                 // search attributes
                 'newStudent.participant.par_fullname',
                 'newStudent.reg_number',
-                'newStudent.studyprogram.studyprogram_name',
-                'newStudent.studyprogram.faculty.faculty_name',
-                'discount.md_name',
-                'period.msy_year',
-                'mdr_nominal',
             ],
         );
 

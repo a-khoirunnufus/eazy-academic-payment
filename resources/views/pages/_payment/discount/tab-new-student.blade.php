@@ -11,13 +11,6 @@
             <th>Periode </th>
             <th>Nominal</th>
             <th>Status</th>
-            <th>Nim</th>
-            <th>Nama</th>
-            <th>Fakultas</th>
-            <th>prodi</th>
-            <th>Status</th>
-            <th>Nominal</th>
-            <th>Generate</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -31,30 +24,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex flex-row justify-content-end mb-1 w-100">
-                    <button class="btn btn-primary" onclick="copyNewStudentReceiverActions.validateData()">Validasi Data</button>
-                </div>
                 <div class="eazy-table-wrapper">
                     <form id="form-copy-data-new-student">
-                        <table id="table-copied-data-new-student" class="table table-striped" style="width: 100%; font-size: .9rem;">
+                        <table id="table-copied-data-new-student" class="table table-striped table-sm" style="width: 100%; font-size: .9rem;">
                             <thead>
                                 <tr>
                                     <th class="text-nowrap">Mahasiswa</th>
-                                    <th class="text-nowrap">Fakultas - Prodi</th>
                                     <th class="text-nowrap">Potongan</th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Periode</span>
-                                        <select id="select-all-period" class="form-select w-200">
+                                        <select id="select-all-period" class="form-select form-select-sm w-150">
                                             <option selected>Pilih Periode Batch</option>
                                         </select>
                                     </th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Nominal</span>
-                                        <input id="input-all-nominal" type="number" class="form-control w-200" placeholder="Masukkan Nominal Batch"/>
+                                        <input type="text" class="form-control form-control-sm w-150 input-all-nominal" placeholder="Masukkan Nominal"/>
                                     </th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Status Aktif</span>
-                                        <select id="select-all-status" class="form-select w-200">
+                                        <select id="select-all-status" class="form-select form-select-sm w-150">
                                             <option selected>Pilih Status Batch</option>
                                             <option value="1">Aktif</option>
                                             <option value="0">Tidak Aktif</option>
@@ -72,6 +61,7 @@
             </div>
             <div class="modal-footer d-flex justify-content-end">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary" onclick="copyNewStudentReceiverActions.validateData()">Validasi Data</button>
                 <button class="btn btn-success" onclick="copyNewStudentReceiverActions.storeBatch()">Simpan</button>
             </div>
         </div>
@@ -106,37 +96,14 @@
             ..._datatable,
             init: function() {
                 this.instance = $('#table-discount-receiver-new-student').DataTable({
-                    serverSide: true,
                     ajax: {
                         url: _baseURL + '/api/payment/discount-receiver-new/index',
-                        data: function(d) {
-                            d.filters = [
-                                {
-                                    column: 'period.msy_code',
-                                    operator: '=',
-                                    value: $('select[name="period"]').val(),
-                                },
-                                {
-                                    column: 'md_id',
-                                    operator: '=',
-                                    value: $('select[name="discount_filter"]').val(),
-                                },
-                                {
-                                    column: 'newStudent.studyprogram.faculty_id',
-                                    operator: '=',
-                                    value: $('select[name="faculty_filter"]').val(),
-                                },
-                                {
-                                    column: 'newStudent.reg_major_pass',
-                                    operator: '=',
-                                    value: $('select[name="study_program_filter"]').val(),
-                                },
-                            ];
+                        data: (d) => {
+                            const filters = this.getFilters();
+                            if (filters.length > 0) {
+                                d.filters = filters;
+                            }
                         },
-                        dataSrc: function(json) {
-                            dataDt = json.data;
-                            return json.data;
-                        }
                     },
                     order: [[2, 'asc']],
                     stateSave: false,
@@ -220,69 +187,27 @@
                                 return '<div class="badge ' + bg + '">' + status + '</div>'
                             }
                         },
-                        {
-                            name: 'student_number',
-                            data: 'new_student.reg_number',
-                            visible: false,
-                        },
-                        {
-                            name: 'student_number',
-                            data: 'new_student.participant.par_fullname',
-                            visible: false,
-                        },
-                        {
-                            name: 'student_number',
-                            data: 'new_student.studyprogram.faculty.faculty_name',
-                            visible: false,
-                        },
-                        {
-                            name: 'student_number',
-                            data: 'student_number',
-                            visible: false,
-                            render: (data, _, row) => {
-                                return row.new_student.studyprogram.studyprogram_type + " " + row.new_student.studyprogram.studyprogram_name
-                            }
-                        },
-                        {
-                            name: 'mdr_status',
-                            data: 'mdr_status',
-                            visible: false,
-                            searchable: false,
-                            render: (data, _, row) => {
-                                let status = "Tidak Aktif";
-                                if (row.mdr_status === 1) {
-                                    status = "Aktif";
-                                }
-                                return status
-                            }
-                        },
-                        {
-                            name: 'mdr_nominal',
-                            data: 'mdr_nominal',
-                            visible: false,
-                        },
-                        {
-                            name: 'mdr_status_generate',
-                            data: 'mdr_status_generate',
-                            searchable: false,
-                            render: (data, _, row) => {
-                                let status = "Belum Digenerate";
-                                let bg = "bg-danger";
-                                if (row.mdr_status_generate === 1) {
-                                    status = "Sudah Digenerate";
-                                    bg = "bg-success";
-                                }
-                                return '<div class="badge ' + bg + '">' + status + '</div>'
-                            }
-                        },
                     ],
                     drawCallback: function(settings) {
                         feather.replace();
                     },
+                    language: {
+                        search: '_INPUT_',
+                        searchPlaceholder: "Cari Data",
+                        lengthMenu: '_MENU_',
+                        paginate: { 'first': 'First', 'last': 'Last', 'next': 'Next', 'previous': 'Prev' },
+                        processing: "Loading...",
+                        emptyTable: "Tidak ada data",
+                        infoEmpty:  "Menampilkan 0",
+                        lengthMenu: "_MENU_",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                        infoFiltered: "(difilter dari _MAX_ entri)",
+                        zeroRecords: "Tidak ditemukan data yang cocok"
+                    },
                     dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                         '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"custom-actions-new-student d-flex align-items-end">>' +
-                        '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" flB> >' +
-                        '><"eazy-table-wrapper"t>' +
+                        '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end"flB> >' +
+                        '><"eazy-table-wrapper"tr>' +
                         '<"d-flex justify-content-between mx-2 row"' +
                         '<"col-sm-12 col-md-6"i>' +
                         '<"col-sm-12 col-md-6"p>' +
@@ -355,13 +280,6 @@
                                 </button>
                             </div>
                         `)
-                        // $('.search-filter').html(`
-                        //     <div id="table-discount-receiver-new-student_filter" class="dataTables_filter">
-                        //         <label>
-                        //             <input type="search" class="form-control" placeholder="Cari Data" aria-controls="table-discount-receiver-new-student">
-                        //         </label>
-                        //     </div>
-                        // `);
                         feather.replace()
                     }
                 })
@@ -394,7 +312,44 @@
                         </div>
                     `
                 }
-            }
+            },
+            getFilters: function() {
+                let filters = [];
+
+                if (assignFilter('#period-filter')) {
+                    filters.push({
+                        column: 'mdr_period',
+                        operator: '=',
+                        value: assignFilter('#period-filter'),
+                    });
+                }
+
+                if (assignFilter('#discount-filter')) {
+                    filters.push({
+                        column: 'md_id',
+                        operator: '=',
+                        value: assignFilter('#discount-filter'),
+                    });
+                }
+
+                if (assignFilter('#faculty-filter')) {
+                    filters.push({
+                        column: 'newStudent.studyProgram.faculty_id',
+                        operator: '=',
+                        value: assignFilter('#faculty-filter'),
+                    });
+                }
+
+                if (assignFilter('#studyprogram-filter')) {
+                    filters.push({
+                        column: 'newStudent.studyProgram.studyprogram_id',
+                        operator: '=',
+                        value: assignFilter('#studyprogram-filter'),
+                    });
+                }
+
+                return filters;
+            },
         }
 
         const _componentFormNewStudent = {
@@ -663,12 +618,16 @@
                     });
                 });
 
-                $('#modal-copy-data-new-student input#input-all-nominal').on('change', function() {
+                $('#modal-copy-data-new-student input.input-all-nominal').on('change', function() {
                     const currentValue = $(this).val();
-                    $('#form-copy-data-new-student input[name="mdr_nominal[]"]').each(function() {
+                    $('#form-copy-data-new-student input.input_mdr_nominal').each(function() {
                         $(this).val(currentValue);
+                        document.querySelectorAll('.input_mdr_nominal').forEach(elm => {
+                            elm.dispatchEvent(new Event('input', { bubbles: true }));
+                        });
                     });
                 });
+                _numberCurrencyFormat.load('input-all-nominal');
 
                 $('#modal-copy-data-new-student select#select-all-status').on('change', function() {
                     const selectedValue = $(this).val();
@@ -683,22 +642,22 @@
                     url: `${_baseURL}/api/payment/resource/school-year`,
                 });
 
-                let htmlRows = '';
+                $('#modal-copy-data-new-student #table-copied-data-new-student tbody').empty();
 
                 $('#table-discount-receiver-new-student input.check-receiver:checked').each(function() {
                     const rowIdx = $(this).data('dt-row');
                     const row = _discountReceiverNewStudentTable.instance.row(parseInt(rowIdx)).data();
 
-                    htmlRows += `
+                    const inputNominalId = 'input_mdr_nominal_' + Math.floor(Math.random()*500);
+
+                    $('#modal-copy-data-new-student #table-copied-data-new-student tbody').append(`
                         <tr>
                             <td>
                                 <div>
                                     ${_datatableTemplates.titleWithSubtitleCell(row.new_student.participant.par_fullname, row.new_student.reg_number)}
                                     <input type="hidden" name="reg_id[]" value="${row.reg_id}" />
                                 </div>
-                            </td>
-                            <td>
-                                <div>
+                                <div style="margin-top:5px;">
                                     ${_datatableTemplates.titleWithSubtitleCell(
                                         row.new_student.studyprogram.studyprogram_type.toUpperCase()+' '+row.new_student.studyprogram.studyprogram_name,
                                         row.new_student.studyprogram.faculty.faculty_name
@@ -720,7 +679,7 @@
                                 <input type="hidden" name="md_id[]" value="${row.md_id}" />
                             </td>
                             <td>
-                                <select name="mdr_period[]" class="form-select w-200" value="${row.mdr_period}">
+                                <select name="mdr_period[]" class="form-select w-150 form-select-sm" value="${row.mdr_period}">
                                     ${
                                         schoolYear
                                             .filter(item => {
@@ -734,10 +693,10 @@
                                 </select>
                             </td>
                             <td>
-                                <input name="mdr_nominal[]" class="form-control w-200" type="number" value="${row.mdr_nominal}" />
+                                <input class="form-control form-control-sm w-150 input_mdr_nominal ${inputNominalId}" type="text" value="${row.mdr_nominal}" />
                             </td>
                             <td>
-                                <select name="mdr_status[]" class="form-select w-200" value="${row.mdr_status}">
+                                <select name="mdr_status[]" class="form-select form-select-sm w-150" value="${row.mdr_status}">
                                     <option value="1" ${row.mdr_status == 1 ? 'selected' : ''}>Aktif</option>
                                     <option value="0" ${row.mdr_status == 0 ? 'selected' : ''}>Tidak Aktif</option>
                                 </select>
@@ -754,14 +713,9 @@
                                 </a>
                             </td>
                         </tr>
-                    `;
+                    `);
+                    _numberCurrencyFormat.load(inputNominalId, 'mdr_nominal', 1);
                 });
-
-                if (htmlRows == '') {
-                    htmlRows = '<tr><td colspan="6" class="text-center">Tidak ada data yang dipilih</td></tr>';
-                }
-
-                $('#modal-copy-data-new-student #table-copied-data-new-student tbody').html(htmlRows);
 
                 $('#modal-copy-data-new-student').modal('show');
 
@@ -792,7 +746,7 @@
 
                     // console.log(res);
 
-                    $(`#table-copied-data-new-student tbody tr td:nth-child(7)`).html(`
+                    $(`#table-copied-data-new-student tbody tr td:nth-child(6)`).html(`
                         <div class="badge bg-success text-nowrap" style="font-size: inherit">
                             Data Valid
                         </div>
@@ -802,13 +756,13 @@
                     if (Object.keys(res).length > 0) {
                         for (const key in res) {
                             const rowIdx = key.split('_')[1];
-                            $(`#table-copied-data-new-student tbody > tr:nth-child(${rowIdx}) td:nth-child(7)`).html(`
+                            $(`#table-copied-data-new-student tbody > tr:nth-child(${rowIdx}) td:nth-child(6)`).html(`
                                 <div class="badge bg-danger text-nowrap" style="font-size: inherit">
                                     Data Tidak Valid
                                 </div>
                                 <input type="hidden" name="is_data_valid[]" value="0" />
-                                <ul class="list-group mt-1">
-                                    ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;">${msg}</li>`).join('')}
+                                <ul class="list-group" style="margin-top:5px;">
+                                    ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;padding: 0 5px;">${msg}</li>`).join('')}
                                 </ul>
                             `);
                         }

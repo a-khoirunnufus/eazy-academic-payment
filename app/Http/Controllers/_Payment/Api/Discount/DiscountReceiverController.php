@@ -34,8 +34,7 @@ class DiscountReceiverController extends Controller
             $request,
             [
                 // filter attributes
-                'period.msy_code',
-                'period.msy_code',
+                'mdr_period',
                 'md_id',
                 'student.studyProgram.faculty_id',
                 'student.studyprogram_id',
@@ -44,11 +43,6 @@ class DiscountReceiverController extends Controller
                 // search attributes
                 'student.fullname',
                 'student.student_id',
-                'student.studyProgram.studyprogram_name',
-                'student.studyProgram.faculty.faculty_name',
-                'discount.md_name',
-                'period.msy_year',
-                'mdr_nominal',
             ],
         );
 

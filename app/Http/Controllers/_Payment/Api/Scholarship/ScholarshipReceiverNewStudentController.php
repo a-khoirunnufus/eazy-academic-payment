@@ -25,7 +25,7 @@ class ScholarshipReceiverNewStudentController extends Controller
 
     public function index(Request $request)
     {
-        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'newStudent.studyProgram.faculty'])
+        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'newStudent.studyProgram.faculty', 'newStudent.participant'])
             ->where('reg_id', '!=', null);
 
         $datatable = datatables($query);
@@ -42,7 +42,7 @@ class ScholarshipReceiverNewStudentController extends Controller
             ],
             [
                 // search attributes
-                'newStudent.par_fullname',
+                'newStudent.participant.par_fullname',
                 'newStudent.reg_number',
             ],
         );
