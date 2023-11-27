@@ -10,6 +10,8 @@ use App\Models\Payment\Studyprogram;
 use App\Models\Payment\Period;
 use App\Models\Payment\Path;
 use App\Models\Payment\LectureType;
+use App\Models\Payment\Scholarship;
+use App\Models\Payment\Discount;
 
 class FinanceResourceController extends Controller
 {
@@ -101,5 +103,37 @@ class FinanceResourceController extends Controller
     {
         $data = LectureType::all();
         return response()->json($data->toArray());
+    }
+
+    public function scholarshipIndex()
+    {
+        $scholarship = Scholarship::with(['periodStart', 'periodEnd'])->get();
+
+        return response()->json($scholarship->toArray());
+    }
+
+    public function scholarshipShow($ms_id)
+    {
+        $scholarship = Scholarship::with(['periodStart', 'periodEnd'])
+            ->where('ms_id', $ms_id)
+            ->first();
+
+        return response()->json($scholarship->toArray());
+    }
+
+    public function discountIndex()
+    {
+        $discount = Discount::with(['periodStart', 'periodEnd'])->get();
+
+        return response()->json($discount->toArray());
+    }
+
+    public function discountShow($ms_id)
+    {
+        $discount = Discount::with(['periodStart', 'periodEnd'])
+            ->where('ms_id', $ms_id)
+            ->first();
+
+        return response()->json($discount->toArray());
     }
 }

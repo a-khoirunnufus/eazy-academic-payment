@@ -11,6 +11,10 @@
     .form-select.w-200 {
         width: 200px !important;
     }
+    .form-control.w-150,
+    .form-select.w-150 {
+        width: 150px !important;
+    }
 
     table.dtr-details-custom td {
         padding: 10px 0;
@@ -31,51 +35,46 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="datatable-filter multiple-row">
+        <div class="datatable-filter one-row">
+            <x-select-option
+                title="Periode"
+                select-id="period-filter"
+                resource-url="/api/payment/resource/school-year"
+                value="msy_id"
+                label-template=":msy_year :msy_semester"
+                :label-template-items="['msy_year', [
+                    'key' => 'msy_semester',
+                    'mapping' => [
+                        '1' => 'Ganjil',
+                        '2' => 'Genap',
+                        '3' => 'Antara',
+                    ],
+                ]]"
+            />
+            <x-select-option
+                title="Beasiswa"
+                select-id="scholarship-filter"
+                resource-url="/api/payment/resource/scholarship"
+                value="ms_id"
+                label-template=":ms_name"
+                :label-template-items="['ms_name']"
+            />
+            <x-select-option
+                title="Fakultas"
+                select-id="faculty-filter"
+                resource-url="/api/payment/resource/faculty"
+                value="faculty_id"
+                label-template=":faculty_name"
+                :label-template-items="['faculty_name']"
+            />
             <div>
-                <label class="form-label">Periode Awal</label>
-                <select name="md_period_start_filter" class="form-select" eazy-select2-active>
-                    <option value="#ALL" selected>Semua Periode</option>
-                    @foreach ($period as $item)
-                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
-                    @endforeach
+                <label class="form-label">Program Studi</label>
+                <select id="studyprogram-filter" class="form-select">
                 </select>
             </div>
-            <div>
-                <label class="form-label">Periode Akhir</label>
-                <select name="md_period_end_filter" class="form-select" eazy-select2-active>
-                    <option value="#ALL" selected>Semua Periode</option>
-                    @foreach ($period as $item)
-                    <option value="{{$item->msy_id}}">{{$item->msy_year}} {{ ($item->msy_semester == 1)? 'Ganjil' : 'Genap' }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="form-label">Nama Beasiswa</label>
-                <select name="schoolarship_filter" class="form-select" eazy-select2-active>
-                    <option value="#ALL" selected>Semua Beasiswa</option>
-                    @foreach ($schoolarship as $item)
-                    <option value="{{$item->ms_id}}">{{$item->ms_name}}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="form-label">Fakultas</label>
-                <select name="faculty_filter" class="form-select" eazy-select2-active onchange="getStudyProgram(this)">
-                    <option value="#ALL" selected>Semua Fakultas</option>
-                    @foreach ($faculty as $item)
-                    <option value="{{$item->faculty_id}}">{{$item->faculty_name}}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="form-label">Studi Program</label>
-                <select name="program_study_filter" class="form-select" eazy-select2-active>
-                    <option value="#ALL" selected>Semua Program Studi</option>
-                </select>
-            </div>
+
             <div class="d-flex align-items-end">
-                <button onclick="_scholarshipReceiverTable.reload()" class="btn btn-info text-nowrap">
+                <button onclick="filterDatatable()" class="btn btn-info text-nowrap">
                     <i data-feather="filter"></i>&nbsp;&nbsp;Filter
                 </button>
             </div>
@@ -121,11 +120,111 @@
 
 @section('js_section')
 <script>
-    // enabling multiple modal open
-    $(document).on('show.bs.modal', '.modal', function() {
-        const zIndex = 1040 + 10 * $('.modal:visible').length;
-        $(this).css('z-index', zIndex);
-        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    let activeTab = 'student';
+
+    $(function() {
+        // enabling multiple modal open
+        $(document).on('show.bs.modal', '.modal', function() {
+            const zIndex = 1040 + 10 * $('.modal:visible').length;
+            $(this).css('z-index', zIndex);
+            setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+        });
+
+        // track tab switching
+        const tabEl = document.querySelectorAll('button[data-bs-toggle="tab"]')
+        for (i = 0; i < tabEl.length; i++) {
+            tabEl[i].addEventListener('shown.bs.tab', function(event) {
+                const activated_pane = document.querySelector(event.target.getAttribute('data-bs-target'))
+                const deactivated_pane = document.querySelector(event.relatedTarget.getAttribute('data-bs-target'))
+
+                console.log('active tab', activated_pane.id)
+                if(activated_pane.id == 'navs-student') {
+                    activeTab = 'student';
+                }
+                else if (activated_pane.id == 'navs-new-student') {
+                    activeTab = 'new-student';
+                }
+            })
+        }
     });
+
+    function filterDatatable() {
+        if (activeTab == 'student') {
+            _scholarshipReceiverStudentTable.reload();
+        }
+
+        if (activeTab == 'new-student') {
+            _scholarshipReceiverNewStudentTable.reload();
+        }
+    }
+
+    function assignFilter(selector, prefix = null, postfix = null) {
+        let value = $(selector).val();
+
+        if (value === '#ALL')
+            return null;
+
+        if (value)
+            value = `${prefix ?? ''}${value}${postfix ?? ''}`;
+
+        return value;
+    }
+
 </script>
 @endsection
+
+@push('laravel-component-setup')
+    <script>
+        $(function() {
+            setupFilters.studyprogram();
+        });
+
+        const setupFilters = {
+            studyprogram: async function() {
+                const data = await $.get({
+                    async: true,
+                    url: `${_baseURL}/api/payment/resource/studyprogram`,
+                });
+
+                const formatted = data.map(item => {
+                    return {
+                        id: item.studyprogram_id,
+                        text: item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                    };
+                });
+
+                $('#studyprogram-filter').select2({
+                    data: [
+                        {id: '#ALL', text: "Semua Program Studi"},
+                        ...formatted,
+                    ],
+                    minimumResultsForSearch: 6,
+                });
+
+                $('#faculty-filter').change(async function() {
+                    const facultyId = this.value;
+                    const studyprograms = await $.get({
+                        async: true,
+                        url: `${_baseURL}/api/payment/resource/studyprogram`,
+                        data: {
+                            faculty: facultyId != '#ALL' ? facultyId : null,
+                        },
+                        processData: true,
+                    });
+                    const options = [
+                        new Option('Semua Program Studi', '#ALL', false, false),
+                        ...studyprograms.map(item => {
+                            return new Option(
+                                item.studyprogram_type.toUpperCase() + ' ' + item.studyprogram_name,
+                                item.studyprogram_id,
+                                false,
+                                false,
+                            );
+                        })
+                    ];
+                    $('#studyprogram-filter').empty().append(options).trigger('change');
+                });
+            }
+        }
+    </script>
+@endpush

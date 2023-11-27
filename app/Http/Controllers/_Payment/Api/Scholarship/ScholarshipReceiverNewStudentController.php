@@ -17,64 +17,37 @@ use App\Models\Payment\Year;
 use DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Traits\Models\DatatableManualFilter;
 
 class ScholarshipReceiverNewStudentController extends Controller
 {
+    use DatatableManualFilter;
 
     public function index(Request $request)
     {
-        // $filters = $request->input('custom_filters');
-        // $filters = array_filter($filters, function ($item) {
-        //     return !is_null($item) && $item != '#ALL';
-        // });
+        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'newStudent.studyProgram.faculty'])
+            ->where('reg_id', '!=', null);
 
-        $query = ScholarshipReceiver::with(['period', 'scholarship.periodStart', 'scholarship.periodEnd', 'newStudent.studyProgram.faculty']);
-        $query->where('reg_id', '!=', null);
+        $datatable = datatables($query);
 
-        // if (isset($filters['md_period_start_filter'])) {
-        //     $query->whereHas('scholarship', function ($q) use ($filters) {
-        //         $q->where('ms_period_start', '=', $filters['md_period_start_filter']);
-        //     });
-        //     // $query = $query->where('ms_period_start', '=', $filters['md_period_start_filter']);
-        // }
+        $this->applyManualFilter(
+            $datatable,
+            $request,
+            [
+                // filter attributes
+                'msr_period',
+                'ms_id',
+                'newStudent.studyProgram.faculty_id',
+                'newStudent.studyProgram.studyprogram_id',
+            ],
+            [
+                // search attributes
+                'newStudent.par_fullname',
+                'newStudent.reg_number',
+            ],
+        );
 
-        // if (isset($filters['md_period_end_filter'])) {
-        //     // $query = $query->where('ms_period_end', '=', $filters['md_period_end_filter']);
-        //     $query->whereHas('scholarship', function ($q) use ($filters) {
-        //         $q->where('ms_period_end', '=', $filters['md_period_end_filter']);
-        //     });
-        // }
-
-        // if (isset($filters['schoolarship_filter'])) {
-        //     $query->whereHas('scholarship', function ($q) use ($filters) {
-        //         $q->where('ms_id', '=', $filters['schoolarship_filter']);
-        //     });
-        // }
-
-        // if (isset($filters['faculty_filter'])) {
-        //     $query->whereHas('student.studyProgram.faculty', function ($q) use ($filters) {
-        //         $q->where('faculty_id', '=', $filters['faculty_filter']);
-        //     });
-        // }
-
-        // if (isset($filters['program_study_filter'])) {
-        //     $query->whereHas('student.studyProgram', function ($q) use ($filters) {
-        //         $q->where('studyprogram_id', '=', $filters['program_study_filter']);
-        //     });
-        // }
-
-        $query = $query->orderBy('msr_id')->get();
-
-        // if (isset($filters['search_filter'])) {
-        //     $data = [];
-        //     foreach ($query as $item) {
-        //         if (strpos(strtolower(json_encode($item)), strtolower($filters['search_filter']))) {
-        //             array_push($data, $item);
-        //         }
-        //     }
-        //     return datatables($data)->toJson();
-        // }
-        return datatables($query)->toJson();
+        return $datatable->toJson();
     }
 
     public function scholarship()

@@ -11,16 +11,6 @@
             <th>Periode </th>
             <th>Nominal</th>
             <th>Status</th>
-            <th>Nim</th>
-            <th>Nama</th>
-            <th>Fakultas</th>
-            <th>Prodi</th>
-            <th>Beasiswa</th>
-            <th>Perusahaan</th>
-            <th>PIC</th>
-            <th>Nominal</th>
-            <th>Status</th>
-            <th>Generate</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -34,30 +24,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex flex-row justify-content-end mb-1 w-100">
-                    <button class="btn btn-primary" onclick="copyStudentReceiverActions.validateData()">Validasi Data</button>
-                </div>
                 <div class="eazy-table-wrapper">
                     <form id="form-copy-data-student">
-                        <table id="table-copied-data-student" class="table table-striped" style="width: 100%; font-size: .9rem;">
+                        <table id="table-copied-data-student" class="table table-striped table-sm" style="width: 100%; font-size: .9rem;">
                             <thead>
                                 <tr>
                                     <th class="text-nowrap">Mahasiswa</th>
-                                    <th class="text-nowrap">Fakultas - Prodi</th>
                                     <th class="text-nowrap">Beasiswa</th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Periode</span>
-                                        <select id="select-all-period" class="form-select w-200">
+                                        <select id="select-all-period" class="form-select form-select-sm w-150">
                                             <option selected>Pilih Periode Batch</option>
                                         </select>
                                     </th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Nominal</span>
-                                        <input id="input-all-nominal" type="number" class="form-control w-200" placeholder="Masukkan Nominal Batch"/>
+                                        <input type="text" class="form-control form-control-sm input-all-nominal w-150" placeholder="Masukkan Nominal"/>
                                     </th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Status Aktif</span>
-                                        <select id="select-all-status" class="form-select w-200">
+                                        <select id="select-all-status" class="form-select form-select-sm w-150">
                                             <option selected>Pilih Status Batch</option>
                                             <option value="1">Aktif</option>
                                             <option value="0">Tidak Aktif</option>
@@ -75,6 +61,7 @@
             </div>
             <div class="modal-footer d-flex justify-content-end">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary" onclick="copyStudentReceiverActions.validateData()">Validasi Data</button>
                 <button class="btn btn-success" onclick="copyStudentReceiverActions.storeBatch()">Simpan</button>
             </div>
         </div>
@@ -83,14 +70,8 @@
 
 @prepend('scripts')
 <script>
-    var dt = null;
-    var dataDt = [];
-
     $(function() {
         _scholarshipReceiverStudentTable.init();
-        for (var i = 8; i <= 16; i++) {
-            dt.column(i).visible(false)
-        }
 
         $('#table-scholarship-receiver-student #check-all-receiver').on('change', function() {
             if (this.checked) {
@@ -109,25 +90,16 @@
 
     const _scholarshipReceiverStudentTable = {
         ..._datatable,
-        init: function(searchFilter = '#ALL') {
+        init: function() {
             this.instance = $('#table-scholarship-receiver-student').DataTable({
-                serverSide: true,
                 ajax: {
                     url: _baseURL + '/api/payment/scholarship-receiver/index',
-                    data: function(d) {
-                        d.custom_filters = {
-                            'md_period_start_filter': $('select[name="md_period_start_filter"]').val(),
-                            'md_period_end_filter': $('select[name="md_period_end_filter"]').val(),
-                            'schoolarship_filter': $('select[name="schoolarship_filter"]').val(),
-                            'faculty_filter': $('select[name="faculty_filter"]').val(),
-                            'program_study_filter': $('select[name="program_study_filter"]').val(),
-                            'search_filter': searchFilter,
-                        };
+                    data: (d) => {
+                        const filters = this.getFilters();
+                        if (filters.length > 0) {
+                            d.filters = filters;
+                        }
                     },
-                    dataSrc: function(json) {
-                        dataDt = json.data;
-                        return json.data;
-                    }
                 },
                 order: [[2, 'asc']],
                 columns: [
@@ -161,9 +133,8 @@
                         }
                     },
                     {
-                        name: 'student_number',
-                        data: 'student_number',
                         searchable: false,
+                        orderable: false,
                         render: (data, _, row) => {
                             return `
                                 <div>
@@ -177,6 +148,7 @@
                         name: 'ms_id',
                         data: 'ms_id',
                         searchable: false,
+                        orderable: false,
                         render: (data, _, row) => {
                             let company = (row.scholarship.ms_from) ? row.scholarship.ms_from : "";
                             return "<span class='fw-bolder'>" + row.scholarship.ms_name + "</span> <br>" + company;
@@ -186,6 +158,7 @@
                         name: 'msr_period',
                         data: 'msr_period',
                         searchable: false,
+                        orderable: false,
                         render: (data, _, row) => {
                             return row.period.msy_year + _helper.semester(row.period.msy_semester)
                         }
@@ -193,6 +166,7 @@
                     {
                         name: 'msr_nominal',
                         data: 'msr_nominal',
+                        searchable: false,
                         render: (data, _, row) => {
                             return Rupiah.format(data)
                         }
@@ -201,100 +175,12 @@
                         name: 'msr_status',
                         data: 'msr_status',
                         searchable: false,
+                        orderable: false,
                         render: (data, _, row) => {
                             let status = "Tidak Aktif";
                             let bg = "bg-danger";
                             if (row.msr_status === 1) {
                                 status = "Aktif";
-                                bg = "bg-success";
-                            }
-                            return '<div class="badge ' + bg + '">' + status + '</div>'
-                        }
-                    },
-                    {
-                        name: 'student_number',
-                        data: 'student_number',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.student.student_id;
-                        }
-                    },
-                    {
-                        name: 'student_number',
-                        data: 'student_number',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.student.fullname;
-                        }
-                    },
-                    {
-                        name: 'student_number',
-                        data: 'student_number',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.student.study_program.faculty.faculty_name;
-                        }
-                    },
-                    {
-                        name: 'student_number',
-                        data: 'student_number',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return `${row.student.study_program.studyprogram_type} ${row.student.study_program.studyprogram_name}`;
-                        }
-                    },
-                    {
-                        name: 'ms_id',
-                        data: 'ms_id',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.scholarship.ms_name;
-                        }
-                    },
-                    {
-                        name: 'ms_id',
-                        data: 'ms_id',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.scholarship.ms_from;
-                        }
-                    },
-                    {
-                        name: 'ms_id',
-                        data: 'ms_id',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            return row.scholarship.ms_from_name;
-                        }
-                    },
-                    {
-                        name: 'msr_nominal',
-                        data: 'msr_nominal',
-                        render: (data, _, row) => {
-                            return data
-                        }
-                    },
-                    {
-                        name: 'msr_status',
-                        data: 'msr_status',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            let status = "Tidak Aktif";
-                            if (row.msr_status === 1) {
-                                status = "Aktif";
-                            }
-                            return status;
-                        }
-                    },
-                    {
-                        name: 'msr_status_generate',
-                        data: 'msr_status_generate',
-                        searchable: false,
-                        render: (data, _, row) => {
-                            let status = "Belum Digenerate";
-                            let bg = "bg-danger";
-                            if (row.msr_status_generate === 1) {
-                                status = "Sudah Digenerate";
                                 bg = "bg-success";
                             }
                             return '<div class="badge ' + bg + '">' + status + '</div>'
@@ -304,10 +190,23 @@
                 drawCallback: function(settings) {
                     feather.replace();
                 },
+                language: {
+                    search: '_INPUT_',
+                    searchPlaceholder: "Cari Data",
+                    lengthMenu: '_MENU_',
+                    paginate: { 'first': 'First', 'last': 'Last', 'next': 'Next', 'previous': 'Prev' },
+                    processing: "Loading...",
+                    emptyTable: "Tidak ada data",
+                    infoEmpty:  "Menampilkan 0",
+                    lengthMenu: "_MENU_",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                    infoFiltered: "(difilter dari _MAX_ entri)",
+                    zeroRecords: "Tidak ditemukan data yang cocok"
+                },
                 dom: '<"d-flex justify-content-between align-items-end header-actions mx-0 row"' +
                     '<"col-sm-12 col-lg-auto d-flex justify-content-center justify-content-lg-start" <"custom-actions d-flex align-items-end">>' +
-                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end" <"search-filter">lB> >' +
-                    '><"eazy-table-wrapper"t>' +
+                    '<"col-sm-12 col-lg-auto row" <"col-md-auto d-flex justify-content-center justify-content-lg-end"flB> >' +
+                    '><"eazy-table-wrapper"tr>' +
                     '<"d-flex justify-content-between mx-2 row"' +
                     '<"col-sm-12 col-md-6"i>' +
                     '<"col-sm-12 col-md-6"p>' +
@@ -381,17 +280,10 @@
                             </button>
                         </div>
                     `)
-                    $('.search-filter').html(`
-                        <div id="table-scholarship-receiver-student_filter" class="dataTables_filter">
-                            <label>
-                                <input type="search" class="form-control" placeholder="Cari Data" aria-controls="table-scholarship-receiver-student" onkeyup="searchFilter(event, this)">
-                            </label>
-                        </div>
-                    `);
                     feather.replace()
                 }
             });
-            dt = this.instance;
+
             this.implementSearchDelay();
         },
         template: {
@@ -421,7 +313,44 @@
                     </div>
                 `
             }
-        }
+        },
+        getFilters: function() {
+            let filters = [];
+
+            if (assignFilter('#period-filter')) {
+                filters.push({
+                    column: 'msr_period',
+                    operator: '=',
+                    value: assignFilter('#period-filter'),
+                });
+            }
+
+            if (assignFilter('#scholarship-filter')) {
+                filters.push({
+                    column: 'ms_id',
+                    operator: '=',
+                    value: assignFilter('#scholarship-filter'),
+                });
+            }
+
+            if (assignFilter('#faculty-filter')) {
+                filters.push({
+                    column: 'student.studyProgram.faculty_id',
+                    operator: '=',
+                    value: assignFilter('#faculty-filter'),
+                });
+            }
+
+            if (assignFilter('#studyprogram-filter')) {
+                filters.push({
+                    column: 'student.studyprogram_id',
+                    operator: '=',
+                    value: assignFilter('#studyprogram-filter'),
+                });
+            }
+
+            return filters;
+        },
     }
 
     const _componentForm = {
@@ -672,44 +601,6 @@
         },
     }
 
-    function getStudyProgram(elm) {
-        $('select[name="program_study_filter"]').html(`
-        <option value="#ALL" selected>Semua Program Studi</option>
-        `)
-
-        var id = $(elm).val();
-        // console.log(id);
-        if (id != '#ALL') {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                var data = JSON.parse(this.responseText);
-                for (var i = 0; i < data.length; i++) {
-                    $('select[name="program_study_filter"]').append(`
-                    <option value="${data[i].studyprogram_id}" selected>${data[i].studyprogram_type + " " + data[i].studyprogram_name}</option>
-                    `);
-                }
-            }
-            xhr.open('GET', _baseURL + '/api/payment/scholarship-receiver/study-program?id=' + id);
-            xhr.send();
-        }
-    }
-
-    function searchFilter(event, elm) {
-        var key = event.key;
-        var text = elm.value;
-        if (key == 'Enter') {
-            elm.value = "";
-            if (text == '') {
-                dt.clear().destroy();
-                _scholarshipReceiverStudentTable.init();
-            } else {
-                dt.clear().destroy();
-                _scholarshipReceiverStudentTable.init(text);
-            }
-            // console.log(text)
-        }
-    }
-
     const copyStudentReceiverActions = {
         setupElements: () => {
             $.get({url: `${_baseURL}/api/payment/resource/school-year`})
@@ -728,12 +619,16 @@
                 });
             });
 
-            $('#modal-copy-data-student input#input-all-nominal').on('change', function() {
+            $('#modal-copy-data-student input.input-all-nominal').on('change', function() {
                 const currentValue = $(this).val();
-                $('#form-copy-data-student input[name="msr_nominal[]"]').each(function() {
+                $('#form-copy-data-student input.input_msr_nominal').each(function() {
                     $(this).val(currentValue);
+                    document.querySelectorAll('.input_msr_nominal').forEach(elm => {
+                        elm.dispatchEvent(new Event('input', { bubbles: true }));
+                    });
                 });
             });
+            _numberCurrencyFormat.load('input-all-nominal');
 
             $('#modal-copy-data-student select#select-all-status').on('change', function() {
                 const selectedValue = $(this).val();
@@ -748,22 +643,22 @@
                 url: `${_baseURL}/api/payment/resource/school-year`,
             });
 
-            let htmlRows = '';
+            $('#modal-copy-data-student #table-copied-data-student tbody').empty();
 
             $('#table-scholarship-receiver-student input.check-receiver:checked').each(function() {
                 const rowIdx = $(this).data('dt-row');
                 const row = _scholarshipReceiverStudentTable.instance.row(parseInt(rowIdx)).data();
 
-                htmlRows += `
+                const inputNominalId = 'input_msr_nominal_' + Math.floor(Math.random()*500);
+
+                $('#modal-copy-data-student #table-copied-data-student tbody').append(`
                     <tr>
                         <td>
                             <div>
                                 ${_datatableTemplates.titleWithSubtitleCell(row.student.fullname, row.student.student_id)}
                                 <input type="hidden" name="student_number[]" value="${row.student_number}" />
                             </div>
-                        </td>
-                        <td>
-                            <div>
+                            <div style="margin-top: 5px">
                                 ${_datatableTemplates.titleWithSubtitleCell(
                                     row.student.study_program.studyprogram_type.toUpperCase()+' '+row.student.study_program.studyprogram_name,
                                     row.student.study_program.faculty.faculty_name
@@ -785,7 +680,7 @@
                             <input type="hidden" name="ms_id[]" value="${row.ms_id}" />
                         </td>
                         <td>
-                            <select name="msr_period[]" class="form-select w-200" value="${row.msr_period}">
+                            <select name="msr_period[]" class="form-select form-select-sm w-150" value="${row.msr_period}">
                                 ${
                                     schoolYear
                                         .filter(item => {
@@ -799,10 +694,10 @@
                             </select>
                         </td>
                         <td>
-                            <input name="msr_nominal[]" class="form-control w-200" type="number" value="${row.msr_nominal}" />
+                            <input class="form-control form-control-sm w-150 input_msr_nominal ${inputNominalId}" type="text" value="${row.msr_nominal}" />
                         </td>
                         <td>
-                            <select name="msr_status[]" class="form-select w-200" value="${row.msr_status}">
+                            <select name="msr_status[]" class="form-select form-select-sm w-150" value="${row.msr_status}">
                                 <option value="1" ${row.msr_status == 1 ? 'selected' : ''}>Aktif</option>
                                 <option value="0" ${row.msr_status == 0 ? 'selected' : ''}>Tidak Aktif</option>
                             </select>
@@ -819,14 +714,10 @@
                             </a>
                         </td>
                     </tr>
-                `;
+                `);
+
+                _numberCurrencyFormat.load(inputNominalId, 'msr_nominal', 1);
             });
-
-            if (htmlRows == '') {
-                htmlRows = '<tr><td colspan="6" class="text-center">Tidak ada data yang dipilih</td></tr>';
-            }
-
-            $('#modal-copy-data-student #table-copied-data-student tbody').html(htmlRows);
 
             $('#modal-copy-data-student').modal('show');
 
@@ -857,7 +748,7 @@
 
                 // console.log(res);
 
-                $(`#table-copied-data-student tbody tr td:nth-child(7)`).html(`
+                $(`#table-copied-data-student tbody tr td:nth-child(6)`).html(`
                     <div class="badge bg-success text-nowrap" style="font-size: inherit">
                         Data Valid
                     </div>
@@ -867,13 +758,13 @@
                 if (Object.keys(res).length > 0) {
                     for (const key in res) {
                         const rowIdx = key.split('_')[1];
-                        $(`#table-copied-data-student tbody > tr:nth-child(${rowIdx}) td:nth-child(7)`).html(`
+                        $(`#table-copied-data-student tbody > tr:nth-child(${rowIdx}) td:nth-child(6)`).html(`
                             <div class="badge bg-danger text-nowrap" style="font-size: inherit">
                                 Data Tidak Valid
                             </div>
                             <input type="hidden" name="is_data_valid[]" value="0" />
-                            <ul class="list-group mt-1">
-                                ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;">${msg}</li>`).join('')}
+                            <ul class="list-group" style="margin-top: 5px;">
+                                ${res[key].map(msg => `<li class="list-group-item text-nowrap text-danger fw-bold" style="font-size: .85rem;padding: 0 5px;">${msg}</li>`).join('')}
                             </ul>
                         `);
                     }

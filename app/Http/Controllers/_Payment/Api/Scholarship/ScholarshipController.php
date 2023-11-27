@@ -213,13 +213,4 @@ class ScholarshipController extends Controller
         $response->headers->set('Content-Disposition', 'attachment; filename="Laporan Mahasiswa Penerima Beasiswa.xlsx"');
         $response->send();
     }
-
-    public function show($ms_id)
-    {
-        $scholarship = Scholarship::with(['periodStart', 'periodEnd'])
-            ->where('ms_id', $ms_id)
-            ->first();
-
-        return response()->json($scholarship->toArray());
-    }
 }

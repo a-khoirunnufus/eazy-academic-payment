@@ -19,7 +19,7 @@ class DiscountController extends Controller
 
     public function receiver()
     {
-        $period = Year::orderBy('msy_code')->get();
+        $period = Year::orderBy('msy_code', 'asc')->get();
         $discount = Discount::all();
         $faculty = Faculty::all();
         $studyprogram = Studyprogram::all();

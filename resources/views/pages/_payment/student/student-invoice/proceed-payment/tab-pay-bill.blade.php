@@ -872,7 +872,9 @@
             _numberCurrencyFormat.load('input-evidence-transfer-amount', 'amount');
 
             $("#form-upload-evidence input[name=payment_time]").flatpickr({
-                dateFormat: 'd/m/Y H:i',
+                altInput: true,
+                altFormat: "d/m/Y H:i",
+                dateFormat: 'Y-m-d H:i:s',
                 enableTime: true,
                 time_24hr: true,
                 allowInput: true,

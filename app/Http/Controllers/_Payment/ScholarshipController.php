@@ -12,13 +12,13 @@ class ScholarshipController extends Controller
 {
     public function index()
     {
-        $period = Year::all();
+        $period = Year::orderBy('msy_code', 'asc')->get();
         return view('pages._payment.scholarship.index',compact('period'));
     }
 
     public function receiver()
     {
-        $period = Year::all();
+        $period = Year::orderBy('msy_code', 'asc')->get();
         $schoolarship = Scholarship::all();
         $faculty = Faculty::all();
 

@@ -184,13 +184,4 @@ class DiscountController extends Controller
         $response->headers->set('Content-Disposition', 'attachment; filename="Laporan Program Potongan.xlsx"');
         $response->send();
     }
-
-    public function show($md_id)
-    {
-        $discount = Discount::with(['periodStart', 'periodEnd'])
-            ->where('md_id', $md_id)
-            ->first();
-
-        return response()->json($discount->toArray());
-    }
 }

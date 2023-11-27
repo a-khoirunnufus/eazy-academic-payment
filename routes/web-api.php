@@ -383,8 +383,11 @@ Route::group(['prefix' => 'payment'], function(){
 
         Route::get('lecture-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@lectureTypeIndex');
 
-        Route::get('scholarship/{ms_id}', 'App\Http\Controllers\_Payment\Api\Scholarship\ScholarshipController@show');
-        Route::get('discount/{md_id}', 'App\Http\Controllers\_Payment\Api\Discount\DiscountController@show');
+        Route::get('scholarship', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@scholarshipIndex');
+        Route::get('scholarship/{ms_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@scholarshipShow');
+
+        Route::get('discount', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@discountIndex');
+        Route::get('discount/{ms_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@discountShow');
     });
 
     // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
