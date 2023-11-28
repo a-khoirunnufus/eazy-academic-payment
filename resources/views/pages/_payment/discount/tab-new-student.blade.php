@@ -29,7 +29,7 @@
                         <table id="table-copied-data-new-student" class="table table-striped table-sm" style="width: 100%; font-size: .9rem;">
                             <thead>
                                 <tr>
-                                    <th class="text-nowrap">Mahasiswa</th>
+                                    <th class="text-nowrap">Mahasiswa<br>Fakultas<br>Program Studi</th>
                                     <th class="text-nowrap">Potongan</th>
                                     <th class="text-nowrap">
                                         <span class="d-block" style="margin-bottom: 10px">Periode</span>
