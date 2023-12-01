@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Services\PaymentGateway\Finpay;
+namespace App\Services\PaymentGateway\Finpay\Validator;
 
 use Illuminate\Support\Facades\Validator;
 
-class CoreApi
+class ResponseValidator
 {
-    public static function validate($request_body)
+    public static function validate($response)
     {
-        $validator = Validator::make($request_body, [
-            'title' => 'required|unique:posts|max:255',
-            'body' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect('post/create')
-                        ->withErrors($validator)
-                        ->withInput();
+        if (is_null($response)) {
+            return true;
         }
+
+        if ($response['responseCode'] == '2000000') {
+            return true;
+        }
+
+        throw new PaymentServiceClientException('Response Error!', ['raw_response' => $response], 2);
     }
 }

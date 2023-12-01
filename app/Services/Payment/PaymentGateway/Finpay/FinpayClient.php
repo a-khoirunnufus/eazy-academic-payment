@@ -24,47 +24,21 @@ class FinpayClient implements PaymentServiceClient
         ];
     }
 
-    public function charge($request_body)
+    public function charge($request_body, $payment_type)
     {
-        RequestValidator::validate($request_body);
+        (new RequestValidator($payment_type))->validate($request_body);
 
-        $response = Http::withHeaders($this->request_header)
+        $url_subdirectory = $this->getUrlSubdirectoryByPaymentType($payment_type);
+        $response = (array) Http::withHeaders($this->request_header)
             ->post($this->base_url.'/'.$url_subdirectory.'/initiate', $request_body)
             ->object();
 
-        ResponseValidator::validate((array)$response);
+        $is_success = ResponseValidator::validate($response);
+
+        return $is_success;
     }
 
-    public function chargeTransaction(array $config): bool
-    {
-        $this->_validateChargeTransactionConfig($config);
-
-        $url_subdirectory = $this->_getUrlSubdirectoryByPaymentType($config['payment_type']);
-        $order_param = $config['order_data'];
-        $customer_param = $config['customer_data'];
-        $url_param = ['callbackUrl' => $config['callback_url']];
-        $source_of_funds_param = ['type' => $config['payment_type']];
-
-        $response = Http::withHeaders($this->request_header)
-            ->post(
-                $this->base_url.'/'.$url_subdirectory.'/initiate',
-                [
-                    'order' => $order_param,
-                    'customer' => $customer_param,
-                    'url' => $url_param,
-                    'sourceOfFunds' => $source_of_funds_param,
-                ]
-            )
-            ->object();
-
-        if ($this->_validateResponse($response)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private function _getUrlSubdirectoryByPaymentType($payment_type)
+    private function getUrlSubdirectoryByPaymentType($payment_type)
     {
         if (in_array($payment_type, [
             'vamandiri',
@@ -73,26 +47,13 @@ class FinpayClient implements PaymentServiceClient
             'vamega',
             'vabsi',
             'vapermata',
-            // 'vabca',
-            // 'vabri',
-            // 'vabjb',
+            'vabca',
+            'vabri',
+            'vabjb',
         ])) {
             return 'pg/payment/card';
         }
 
         throw new PaymentServiceClientException('Payment type invalid!', null, 1);
-    }
-
-    private function _validateResponse(object|null $response)
-    {
-        if (is_null($response)) {
-            return true;
-        }
-
-        if ($response->responseCode == '2000000') {
-            return true;
-        }
-
-        throw new PaymentServiceClientException('Response Error!', ['raw_response' => (array)$response], 2);
     }
 }
