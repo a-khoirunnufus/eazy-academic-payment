@@ -348,7 +348,7 @@
         },
         managerElm: document.querySelector('#paymentMethodManager'),
         setupManager: function() {
-            this.managerElm.addEventListener('paymentMethodChange', (event) => {
+            this.managerElm.addEventListener('paymentMethodChange', async (event) => {
                 // console.log('event payload', event.detail);
 
                 const paymentMethodKey = event.detail.paymentMethod.mpm_key;
@@ -357,6 +357,27 @@
                 const adminFee = event.detail.paymentMethod.mpm_fee;
                 const studentBalanceSpend = event.detail.studentBalanceSpend;
                 const totalBill = billAmount + adminFee - studentBalanceSpend;
+
+                if (studentBalanceSpend) {
+                    // check is balance sufficient
+                    let studentBalance = 0;
+                    try {
+                        // get student balance
+                        const res = await $.ajax({
+                            url: `${_baseURL}/api/payment/student-balance/transaction`,
+                            data: {student_id: studentMaster.student_id},
+                            processData: true,
+                            type: 'get'
+                        });
+                        studentBalance = res.sbt_closing_balance;
+                    } catch (error) {
+                        studentBalance = 0;
+                    }
+                    if (parseInt(studentBalanceSpend) > parseInt(studentBalance)) {
+                        _toastr.error('Nominal Saldo yang dimasukkan tidak mencukupi!');
+                        return;
+                    }
+                }
 
                 FormDataJson.fromJson('#form-payment-method', {
                     payment_method: paymentMethodKey,
@@ -1016,9 +1037,9 @@
                     processData: true,
                     type: 'get'
                 });
-                studentBalance = res?.sbt_closing_balance ?? 0;
+                studentBalance = res.sbt_closing_balance;
             } catch (error) {
-                console.log(error.responseJSON.message);
+                studentBalance = 0;
             }
 
             // clear selected payment method (ui)
@@ -1072,12 +1093,13 @@
                         <form id="form-use-student-balance" action="javascript:void(0);" onsubmit="payBillModal.useStudentBalance()">
                             <div class="input-group">
                                 <span class="input-group-text bg-light">Rp</span>
-                                <input name="balance_spend" type="number" class="form-control" min="1" max="${max}" placeholder="Masukan nominal">
+                                <input type="text" class="form-control input-balance-spend" placeholder="Masukan nominal">
                                 <button class="btn btn-primary" type="submit">Pakai Saldo</button>
                             </div>
                         </form>
                     </div>
                 `);
+                _numberCurrencyFormat.load('input-balance-spend', 'balance_spend');
             }
         },
         useStudentBalance: function() {
@@ -1121,7 +1143,7 @@
                 }
 
             } catch (error) {
-                console.error(error);
+                // console.error(error);
                 const res = error.responseJSON;
                 _toastr.error(res.message, 'Gagal');
             }

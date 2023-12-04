@@ -45,17 +45,21 @@
         _balanceTransactionTable.init();
     });
 
-    async function renderBalanceInfo() {
-        const res = await $.ajax({
+    function renderBalanceInfo() {
+        $.ajax({
             url: `${_baseURL}/api/payment/student-balance/transaction`,
             data: {student_id: studentMaster.student_id},
             processData: true,
-            type: 'get'
+            type: 'get',
+        }).then(res => {
+            $('#student-balance-amount').text(Rupiah.format(res.sbt_closing_balance));
+        }).catch(error => {
+            if (error.status == 404) {
+                $('#student-balance-amount').text(Rupiah.format(0));
+            } else {
+                $('#student-balance-amount').text('Error');
+            }
         });
-
-        const balance = res?.sbt_closing_balance ?? 0;
-
-        $('#student-balance-amount').text(Rupiah.format(balance));
     }
 
     const _balanceTransactionTable = {

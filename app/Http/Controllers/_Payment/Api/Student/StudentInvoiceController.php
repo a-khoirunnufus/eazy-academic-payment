@@ -255,13 +255,18 @@ class StudentInvoiceController extends Controller
             // save bill
             $bill->save();
 
-            // Use student balance
+            // Use student balance if provided
             if ($validated['use_student_balance'] == '1') {
 
                 $opening_balance = StudentBalanceTrans::where('student_number', $payment->student_number)
                     ->orderBy('sbt_time', 'desc')
                     ->first()
                     ?->sbt_closing_balance?? 0;
+
+                // backend check student balance, is balance insufficient
+                if ($opening_balance < intval($validated['student_balance_spend'])) {
+                    throw new \Exception('Saldo mahasiswa yang dimasukkan lebih besar dari saldo yang dimiliki!');
+                }
 
                 $closing_balance = $opening_balance - intval($validated['student_balance_spend']);
 
