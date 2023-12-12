@@ -38,6 +38,10 @@ class FinpayClient implements PaymentServiceClient
         return $is_success;
     }
 
+    public function status() {}
+
+    public function cancel() {}
+
     private function getUrlSubdirectoryByPaymentType($payment_type)
     {
         if (in_array($payment_type, [
