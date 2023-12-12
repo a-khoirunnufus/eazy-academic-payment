@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Payment\PaymentGateway\Finpay\Exceptions;
+namespace App\Services\Payment\PaymentGateway\Exceptions;
 
 use \Exception;
 
