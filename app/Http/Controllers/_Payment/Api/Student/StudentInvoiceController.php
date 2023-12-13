@@ -218,6 +218,13 @@ class StudentInvoiceController extends Controller
                 $student = Student::find($payment->student_number);
                 $student_type = 'student';
 
+                (new PaymentServiceApi())->charge([
+                    'order_id' => $order_id,
+                    'payment_type' => $payment_type,
+                    'student' => $student,
+                    'items' => $items
+                ]);
+
                 // charge transaction
                 $charge_result = (new PaymentApi())->chargeTransaction([
                     "order_id" => $order_id,
@@ -240,6 +247,7 @@ class StudentInvoiceController extends Controller
 
                 $bill->prrb_admin_cost = $payment_method->mpm_fee;
                 $bill->prrb_order_id = $order_id;
+                // $bill->prrb_payment_gateway = 'midtrans';
                 $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
                 $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
 

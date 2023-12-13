@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\PaymentGateway\Finpay\Validator;
+namespace App\Services\Payment\PaymentGateway\Midtrans\Validator;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -8,11 +8,7 @@ class ResponseValidator
 {
     public static function validate($response)
     {
-        if (is_null($response)) {
-            return true;
-        }
-
-        if ($response['responseCode'] == '2000000') {
+        if ($response['status_code'] == '200') {
             return true;
         }
 

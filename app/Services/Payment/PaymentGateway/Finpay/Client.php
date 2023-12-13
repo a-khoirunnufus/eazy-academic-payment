@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use App\Exceptions\Payment\PaymentServiceClientException;
 use Illuminate\Http\Client\Response;
 
-class FinpayClient implements PaymentServiceClient
+class Client implements PaymentServiceClient
 {
     private $base_url;
     private $request_headers;
