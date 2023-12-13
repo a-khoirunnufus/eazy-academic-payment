@@ -1,3 +1,7 @@
+@prepend('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bs-stepper/dist/css/bs-stepper.min.css"/>
+@endprepend
+
 @push('styles')
     <style>
         #reset-payment-section {
@@ -100,6 +104,44 @@
     </div>
 </div>
 
+<!-- Payment Method Modal V2 -->
+<div class="modal fade" id="paymentMethodModalV2" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Pembayaran</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 pt-0">
+                <div class="bs-stepper">
+                    <div class="bs-stepper-header" role="tablist">
+                        <!-- your steps here -->
+                        <div class="step" data-target="#logins-part">
+                            <button type="button" class="step-trigger" role="tab" aria-controls="logins-part" id="logins-part-trigger">
+                                <span class="bs-stepper-circle">1</span>
+                                <span class="bs-stepper-label">Logins</span>
+                            </button>
+                        </div>
+                        <div class="line"></div>
+                        <div class="step" data-target="#information-part">
+                            <button type="button" class="step-trigger" role="tab" aria-controls="information-part"
+                                id="information-part-trigger">
+                                <span class="bs-stepper-circle">2</span>
+                                <span class="bs-stepper-label">Various information</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bs-stepper-content">
+                        <!-- your steps content here -->
+                        <div id="logins-part" class="content" role="tabpanel" aria-labelledby="logins-part-trigger"></div>
+                        <div id="information-part" class="content" role="tabpanel" aria-labelledby="information-part-trigger"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Payment Instruction Modal -->
 <div class="modal fade" id="paymentInstructionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -154,6 +196,7 @@
 
 
 @prepend('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
 <script>
 
     /**
@@ -173,6 +216,9 @@
         $('#accordionPaymentMethod').change(payBillModal.paymentMethodChangeHandler);
         paymentMethodMaster.setupManager();
         feather.replace();
+
+        // setup stepper
+        const stepper = new Stepper($('.bs-stepper')[0]);
     });
 
     const payBillTab = {
@@ -1212,7 +1258,7 @@
         },
     }
 
-    const paymentMethodModal = new bootstrap.Modal(document.getElementById('paymentMethodModal'));
+    const paymentMethodModal = new bootstrap.Modal(document.getElementById('paymentMethodModalV2'));
     const paymentInstructionModal = new bootstrap.Modal(document.getElementById('paymentInstructionModal'));
 
     function nullSafeView(value) {

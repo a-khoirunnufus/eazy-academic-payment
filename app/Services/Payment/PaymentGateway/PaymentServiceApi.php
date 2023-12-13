@@ -33,6 +33,19 @@ class PaymentServiceApi
         }
     }
 
+    /**
+     * @param array {
+     *      order_id: int,
+     *      payment_type: MasterPaymentTypeMidtrans|MasterPaymentTypeFinpay,
+     *      student: Student,
+     *      items: array[] {
+     *          id: int,
+     *          price: int,
+     *          quantity: int,
+     *          name: string
+     *      }
+     * } $options
+     */
     public function charge($options)
     {
         if ($this->payment_gateway == 'midtrans') {
@@ -45,9 +58,10 @@ class PaymentServiceApi
 
         try {
             $this->client->charge($request_body, $options['payment_type']);
+            return true;
         }
         catch (PaymentServiceClientException $ex) {
-            throw $th;
+            throw $ex;
         }
     }
 

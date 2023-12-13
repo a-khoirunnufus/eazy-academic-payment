@@ -218,6 +218,22 @@ class StudentInvoiceController extends Controller
                 $student = Student::find($payment->student_number);
                 $student_type = 'student';
 
+                $payment_gateway = 'midtrans';
+                if ($payment_gateway == 'midtrans') {
+                    $payment_type = MasterPaymentTypeMidtrans;
+                }
+                if ($payment_gateway == 'finpay') {
+                    $payment_type = MasterPaymentTypeFinpay;
+                }
+
+                $items = [[
+                    'id' => (string) Str::uuid(),
+                    'price' => $price,
+                    'quantity' => $quantity,
+                    'name' => $name,
+                ]];
+
+                // charge transaction
                 (new PaymentServiceApi())->charge([
                     'order_id' => $order_id,
                     'payment_type' => $payment_type,
@@ -226,30 +242,32 @@ class StudentInvoiceController extends Controller
                 ]);
 
                 // charge transaction
-                $charge_result = (new PaymentApi())->chargeTransaction([
-                    "order_id" => $order_id,
-                    "payment_type" => $payment_method->mpm_key,
-                    "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
-                    "name" => $student->fullname,
-                    "email" => $student->email,
-                    "phone" => $student->phone_number,
-                    "item_details" => [
-                        0 => [
-                            "name" => "Cicilan ke-".$bill->prrb_order,
-                            "price" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
-                        ]
-                    ]
-                ]);
+                // $charge_result = (new PaymentApi())->chargeTransaction([
+                //     "order_id" => $order_id,
+                //     "payment_type" => $payment_method->mpm_key,
+                //     "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
+                //     "name" => $student->fullname,
+                //     "email" => $student->email,
+                //     "phone" => $student->phone_number,
+                //     "item_details" => [
+                //         0 => [
+                //             "name" => "Cicilan ke-".$bill->prrb_order,
+                //             "price" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
+                //         ]
+                //     ]
+                // ]);
 
-                if ($charge_result->status == 'error') {
-                    throw new \Exception($charge_result->message);
-                }
+                // if ($charge_result->status == 'error') {
+                //     throw new \Exception($charge_result->message);
+                // }
 
-                $bill->prrb_admin_cost = $payment_method->mpm_fee;
+                // $bill->prrb_admin_cost = $payment_method->mpm_fee;
+                $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
                 $bill->prrb_order_id = $order_id;
-                // $bill->prrb_payment_gateway = 'midtrans';
-                $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
-                $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
+                $bill->prrb_payment_gateway = 'midtrans';
+                // $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
+                // $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
+                // $bill->prrb_pg_
 
                 if ($payment_method->mpm_type == 'bank_transfer_va') {
                     $bill->prrb_va_number = $charge_result->payload->va_number;

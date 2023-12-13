@@ -2,55 +2,79 @@
 
 namespace App\Services\Payment\PaymentGateway\Midtrans\RequestBody;
 
+use Illuminate\Support\Facades\DB;
+
+use Carbon\Carbon;
+
 class ChargeVirtualAccount
 {
     public static $action = 'charge';
     public static $payment_method = 'virtual_account';
 
+    /**
+     * @param array {
+     *      order_id: int,
+     *      payment_type: MasterPaymentTypeMidtrans|MasterPaymentTypeFinpay,
+     *      student: Student,
+     *      items: array[] {
+     *          id: int,
+     *          price: int,
+     *          quantity: int,
+     *          name: string
+     *      }
+     * } $options
+     */
     public static function create($options)
     {
-        $payment_type = MasterPaymentTypeMidtrans::find($options['payment_type']);
+        $payment_type = $options['payment_type'];
+        $midtrans_specific_data = json_decode($payment_type->mptm_midtrans_specific_data, true);
+        $student = $options['student'];
 
         $total_price_amount = array_reduce($options['items'], function($carry, $item) {
             $carry += (int) $item->price;
             return $carry;
         }, 0);
 
+        $item_details = array_map(function($item) {
+            return [
+                'id' => $item['id'],
+                'price' => $item['price'],
+                'quantity' => $item['quantity'],
+                'name' => $item['name'],
+            ];
+        }, $options['items']);
+
+        $va_expiry_duration_minute = DB::table('finance.ms_settings')
+            ->where('name', 'payment_va_expiry_duration_minute')
+            ->first()
+            ->value;
 
         return [
-            'payment_type' => $options['payment_type'],
+            'payment_type' => $midtrans_specific_data['payment_type'],
 
-            // 'transaction_details' => 'required',
-            // 'transaction_details.order_id' => 'required|string',
-            // 'transaction_details.gross_amount' => 'required|string',
             'transaction_details' => [
                 'order_id' => $options['order_id'],
                 'gross_amount' => $total_price_amount,
             ],
 
-
-            // 'bank_transfer' => 'required',
-            // 'bank_transfer.bank' => 'required|in:bca',
             'bank_transfer' => [
-                'bank' => $payment_type->mptm_midtrans_bank_code,
+                'bank' => $midtrans_specific_data['bank'],
             ],
 
-            'item_details' => 'sometimes|array',
-                'item_details.*.id' => 'required_with:item_details|string',
-                'item_details.*.price' => 'required_with:item_details|number',
-                'item_details.*.quantity' => 'required_with:item_details|number',
-                'item_details.*.name' => 'required_with:item_details|string',
+            'item_details' => $item_details,
 
-            'customer_details' => 'sometimes',
-                'customer_details.first_name' => 'required_with:customer_details|string',
-                'customer_details.last_name' => 'required_with:customer_details|string',
-                'customer_details.email' => 'required_with:customer_details|string',
-                'customer_details.phone' => 'required_with:customer_details|string',
+            'customer_details' => [
+                'first_name' => $student->fullname,
+                'last_name' => '',
+                'email' => $student->email,
+                'phone' => $student->phone_number,
+            ],
 
-            'custom_expiry' => 'sometimes',
-                'custom_expiry.order_time' => 'required_with:custom_expiry|string',
-                'custom_expiry.expiry_duration' => 'required_with:custom_expiry|number',
-                'custom_expiry.unit' => 'required_with:custom_expiry|string|in:second,minute,hour,day',
+            'custom_expiry' => [
+                'order_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+                'expiry_duration' => $va_expiry_duration_minute,
+                'unit' => 'minute',
+            ],
         ];
     }
 }

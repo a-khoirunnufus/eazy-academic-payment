@@ -30,7 +30,7 @@
                 </button>
             </div>
             <div class="step" data-target="#masterdata-vertical" role="tab" id="masterdata-vertical-trigger">
-                <button type="button" class="step-trigger" aria-selected="true">
+                <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">2</span>
                     <span class="bs-stepper-label">
                         <span class="bs-stepper-title">Masterdata Finance</span>
@@ -39,10 +39,19 @@
                 </button>
             </div>
             <div class="step" data-target="#report-vertical" role="tab" id="report-vertical-trigger">
-                <button type="button" class="step-trigger" aria-selected="true">
+                <button type="button" class="step-trigger" aria-selected="false">
                     <span class="bs-stepper-box">3</span>
                     <span class="bs-stepper-label">
                         <span class="bs-stepper-title">Laporan Finance</span>
+                        <span class="bs-stepper-subtitle">Options</span>
+                    </span>
+                </button>
+            </div>
+            <div class="step" data-target="#payment-vertical" role="tab" id="payment-vertical-trigger">
+                <button type="button" class="step-trigger" aria-selected="false">
+                    <span class="bs-stepper-box">4</span>
+                    <span class="bs-stepper-label">
+                        <span class="bs-stepper-title">Pembayaran Tagihan</span>
                         <span class="bs-stepper-subtitle">Options</span>
                     </span>
                 </button>
@@ -177,6 +186,25 @@
                             <select class="form-select w-100 select2" name="payment_report_invoice_new_student_source" data-id="payment_report_invoice_new_student_source" value="{{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] }}">
                                 <option value="finance" {{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] == 'finance' ? 'selected' : '' }}>Finance</option>
                                 <option value="admission" {{ $settings->where('name','payment_report_invoice_new_student_source')->pluck('value')[0] == 'admission' ? 'selected' : '' }}>Admission</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="payment-vertical" class="content" role="tabpanel" aria-labelledby="payment-vertical-trigger">
+                <form action="" method="post">
+                    @csrf
+                    <div class="content-header">
+                        <h5 class="mb-0">Pembayaran Tagihan</h5>
+                        <!-- <small class="text-muted">subtitle.</small> -->
+                    </div>
+                    <div class="row mb-1">
+                        <div class="col-12">
+                            <label class="form-label" for="vertical-username">Payment Gateway Service</label>
+                            <select class="form-select w-100 select2" name="payment_payment_gateway_use" data-id="payment_payment_gateway_use" value="{{ $settings->where('name','payment_payment_gateway_use')->pluck('value')[0] }}">
+                                <option value="finpay" {{ $settings->where('name','payment_payment_gateway_use')->pluck('value')[0] == 'finpay' ? 'selected' : '' }}>Finpay</option>
+                                <option value="midtrans" {{ $settings->where('name','payment_payment_gateway_use')->pluck('value')[0] == 'midtrans' ? 'selected' : '' }}>Midtrans</option>
                             </select>
                         </div>
                     </div>
