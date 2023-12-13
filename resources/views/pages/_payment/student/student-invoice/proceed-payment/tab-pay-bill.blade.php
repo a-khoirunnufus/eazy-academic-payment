@@ -112,29 +112,111 @@
                 <h4 class="modal-title">Pembayaran</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3 pt-0">
-                <div class="bs-stepper">
+            <div class="modal-body">
+                <div id="stepper-pay-bill" class="bs-stepper linear">
                     <div class="bs-stepper-header" role="tablist">
-                        <!-- your steps here -->
-                        <div class="step" data-target="#logins-part">
-                            <button type="button" class="step-trigger" role="tab" aria-controls="logins-part" id="logins-part-trigger">
+                        <div class="step active" data-target="#step-1">
+                            <button type="button" class="step-trigger" role="tab" id="stepper1trigger1" aria-controls="step-1"
+                                aria-selected="true">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Logins</span>
+                                <span class="bs-stepper-label">Metode Pembayaran</span>
                             </button>
                         </div>
-                        <div class="line"></div>
-                        <div class="step" data-target="#information-part">
-                            <button type="button" class="step-trigger" role="tab" aria-controls="information-part"
-                                id="information-part-trigger">
+                        <div class="bs-stepper-line"></div>
+                        <div class="step" data-target="#step-2">
+                            <button type="button" class="step-trigger" role="tab" id="stepper1trigger2" aria-controls="step-2"
+                                aria-selected="false" disabled="disabled">
                                 <span class="bs-stepper-circle">2</span>
-                                <span class="bs-stepper-label">Various information</span>
+                                <span class="bs-stepper-label">Lanjutan</span>
+                            </button>
+                        </div>
+                        <div class="bs-stepper-line"></div>
+                        <div class="step" data-target="#step-3">
+                            <button type="button" class="step-trigger" role="tab" id="stepper1trigger3" aria-controls="step-3"
+                                aria-selected="false" disabled="disabled">
+                                <span class="bs-stepper-circle">3</span>
+                                <span class="bs-stepper-label">Ringkasan Pembayaran</span>
                             </button>
                         </div>
                     </div>
                     <div class="bs-stepper-content">
-                        <!-- your steps content here -->
-                        <div id="logins-part" class="content" role="tabpanel" aria-labelledby="logins-part-trigger"></div>
-                        <div id="information-part" class="content" role="tabpanel" aria-labelledby="information-part-trigger"></div>
+                        <form onsubmit="return false">
+
+                            <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
+
+                                <div class="mt-2">
+                                    <h4 class="fw-bold mb-1">Bank Transfer Manual</h4>
+                                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank BCA</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank BNI</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank Mandiri</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <h4 class="fw-bold mb-1">Virtual Account</h4>
+                                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Mandiri</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BNI</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BTN</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Mega</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BSI</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Permata</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary mt-3" onclick="stepper.next()">Next</button>
+                            </div>
+
+                            <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Password</label>
+                                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                                </div>
+                                <button class="btn btn-primary" onclick="stepper.previous()">Previous</button>
+                                <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                            </div>
+
+                            <div id="step-3" role="tabpanel" class="bs-stepper-pane text-center" aria-labelledby="stepper1trigger3">
+                                <button class="btn btn-primary mt-5" onclick="stepper.previous()">Previous</button>
+                                <button type="submit" class="btn btn-primary mt-5">Submit</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -216,10 +298,10 @@
         $('#accordionPaymentMethod').change(payBillModal.paymentMethodChangeHandler);
         paymentMethodMaster.setupManager();
         feather.replace();
-
-        // setup stepper
-        const stepper = new Stepper($('.bs-stepper')[0]);
     });
+
+    // setup stepper
+    const stepper = new Stepper($('.bs-stepper')[0]);
 
     const payBillTab = {
         alwaysAllowReset: true,
