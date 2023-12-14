@@ -161,8 +161,8 @@ class FinanceResourceController extends Controller
                     : MasterPaymentTypeMidtrans::get()->toArray();
             }
             if ($payment_service == 'finpay') {
-                $data = $active_only ? FinpayPaymentTypeMidtrans::active()->get()->toArray()
-                    : FinpayPaymentTypeMidtrans::get()->toArray();
+                $data = $active_only ? MasterPaymentTypeFinpay::active()->get()->toArray()
+                    : MasterPaymentTypeFinpay::get()->toArray();
             }
             if ($payment_service == 'manual') {
                 $data = $active_only ? MasterPaymentTypeManual::active()->get()->toArray()

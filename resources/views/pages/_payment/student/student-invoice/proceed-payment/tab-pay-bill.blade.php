@@ -159,7 +159,7 @@
 
 <!-- Payment Method Modal V2 -->
 <div class="modal fade" id="paymentMethodModalV2" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-fullscreen">
+    <div class="modal-dialog modal-lg" style="max-width: 922px;">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Pembayaran</h4>
@@ -204,93 +204,46 @@
                         <form onsubmit="return false">
 
                             <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
-
-                                <div class="step-content mt-2">
+                                <h3 class="mt-2">Layanan Pembayaran</h3>
+                                <div class="step-content mt-3">
+                                    ...
                                 </div>
-
-                                <button class="btn btn-primary mt-3" onclick="paymentMethodAction.moveStep(1,2)">Lanjut</button>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(1,2)">Lanjut</button>
+                                </div>
                             </div>
 
                             <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
-
-                                <div class="step-content mt-2 d-flex flex-column" style="gap: 3rem">
+                                <h3 class="mt-2">Metode Pembayaran</h3>
+                                <div class="step-content mt-3 d-flex flex-column" style="gap: 3rem">
                                     ...
                                 </div>
-
-                                <!-- <div class="mt-2">
-                                    <h5 class="fw-bold mb-1">Bank Transfer Manual</h5>
-                                    <div class="list-payment-method">
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
-                                            <p class="item__text">Bank BCA</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="item__text">Bank BNI</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="item__text">Bank Mandiri</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    <h5 class="fw-bold mb-1">Virtual Account</h5>
-                                    <div class="list-payment-method">
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="item__text">Virtual Account Mandiri</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="item__text">Virtual Account BNI</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
-                                            <p class="item__text">Virtual Account BTN</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
-                                            <p class="item__text">Virtual Account Mega</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
-                                            <p class="item__text">Virtual Account BSI</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
-                                            <p class="item__text">Virtual Account Permata</p>
-                                        </div>
-
-                                    </div>
-                                </div> -->
-
-                                <div class="mt-3">
-                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,1)">Kembali</button>
+                                <div class="mt-3 d-flex justify-content-between">
+                                    <button class="btn btn-secondary me-1" onclick="paymentMethodAction.moveStep(2,1)">Kembali</button>
                                     <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,3)">Lanjut</button>
                                 </div>
                             </div>
 
                             <div id="step-3" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger3">
-                                <div class="form-group">
-                                    <label for="exampleInputPassword1">Password</label>
-                                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                                <h3 class="mt-2">Lanjutan</h3>
+                                <div class="step-content mt-3">
+                                    ...
                                 </div>
-                                <button class="btn btn-primary" onclick="stepper.previous()">Previous</button>
-                                <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                                <div class="mt-3 d-flex justify-content-between">
+                                    <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(3,2)">Kembali</button>
+                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(3,4)">Lanjut</button>
+                                </div>
                             </div>
 
-                            <div id="step-4" role="tabpanel" class="bs-stepper-pane text-center" aria-labelledby="stepper1trigger4">
-                                <button class="btn btn-primary mt-5" onclick="stepper.previous()">Previous</button>
-                                <button type="submit" class="btn btn-primary mt-5">Submit</button>
+                            <div id="step-4" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger4">
+                                <h3 class="mt-2">Ringkasan Pembayaran</h3>
+                                <div class="step-content mt-3">
+                                    ...
+                                </div>
+                                <div class="mt-3 d-flex justify-content-between">
+                                    <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(4,3)">Kembali</button>
+                                    <button type="submit" class="btn btn-primary">Lanjutkan Pembayaran</button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -429,7 +382,8 @@
                 paymentMethodState = {
                     ...paymentMethodState,
                     stepThreeData: {
-                        // use student balance
+                        studentBalance: event.detail.studentBalance,
+                        studentBalanceAllocation: event.detail.studentBalanceAllocation,
                         // credit card data
                     },
                     stepFourData: null,
@@ -453,10 +407,10 @@
                 // rerender step 1
                 paymentMethodAction.renderStepOne();
 
-                if (paymentMethodState.stepTwoData != null) {
-                    // dispatch stepRender event at step 2
-                    document.querySelector('#stepper-pay-bill #step-2').dispatchEvent(new CustomEvent('stepRender'));
-                }
+                // if (paymentMethodState.stepTwoData != null) {
+                //     // dispatch stepRender event at step 2
+                //     document.querySelector('#stepper-pay-bill #step-2').dispatchEvent(new CustomEvent('stepRender'));
+                // }
             });
 
             document.querySelector('#stepper-pay-bill #step-2').addEventListener('stepRender', () => {
@@ -465,29 +419,29 @@
                 // rerender step 2
                 paymentMethodAction.renderStepTwo();
 
-                if (paymentMethodState.stepThreeData != null) {
-                    // dispatch stepRender event at step 3
-                    document.querySelector('#stepper-pay-bill #step-3').dispatchEvent(new CustomEvent('stepRender'));
-                }
+                // if (paymentMethodState.stepThreeData != null) {
+                //     // dispatch stepRender event at step 3
+                //     document.querySelector('#stepper-pay-bill #step-3').dispatchEvent(new CustomEvent('stepRender'));
+                // }
             });
 
             document.querySelector('#stepper-pay-bill #step-3').addEventListener('stepRender', () => {
                 console.log('stepRender:step-3');
 
                 // rerender step 3
-                // paymentMethodAction.renderStepThree();
+                paymentMethodAction.renderStepThree();
 
-                if (paymentMethodState.stepFourData != null) {
-                    // dispatch stepRender event at step 4
-                    document.querySelector('#stepper-pay-bill #step-4').dispatchEvent(new CustomEvent('stepRender'));
-                }
+                // if (paymentMethodState.stepFourData != null) {
+                //     // dispatch stepRender event at step 4
+                //     document.querySelector('#stepper-pay-bill #step-4').dispatchEvent(new CustomEvent('stepRender'));
+                // }
             });
 
             document.querySelector('#stepper-pay-bill #step-4').addEventListener('stepRender', () => {
                 console.log('stepRender:step-4');
 
                 // rerender step 4
-                // paymentMethodAction.renderStepFour()
+                paymentMethodAction.renderStepFour()
             });
         },
         setupStepShiftEvent: () => {
@@ -520,9 +474,42 @@
                     if (paymentMethodState.stepTwoData == null) {
                         _toastr.warning('Silahkan pilih data terlebih dahulu!');
                     } else {
-                        document.querySelector(`#stepper-pay-bill #step-${to}`).dispatchEvent(new CustomEvent('stepRender'));
+                        document.querySelector(`#stepper-pay-bill #step-3`).dispatchEvent(new CustomEvent('stepRender'));
                         stepper.to(to);
                     }
+                }
+            });
+
+            document.querySelector('#stepper-pay-bill #step-3').addEventListener('stepShift', (event) => {
+                console.log('stepShift:step-3', event.detail);
+
+                const to = event.detail.to;
+
+                if (to == 2) {
+                    stepper.to(to);
+                }
+                else if (to == 4) {
+                    // validation
+                    if (paymentMethodState.stepThreeData == null) {
+                        _toastr.warning('Silahkan isi data terlebih dahulu!');
+                    }
+                    else if (paymentMethodState.stepThreeData.studentBalanceAllocation > paymentMethodState.stepThreeData.studentBalance) {
+                        _toastr.warning('Saldo tidak mencukupi!');
+                    }
+                    else {
+                        document.querySelector(`#stepper-pay-bill #step-4`).dispatchEvent(new CustomEvent('stepRender'));
+                        stepper.to(to);
+                    }
+                }
+            });
+
+            document.querySelector('#stepper-pay-bill #step-4').addEventListener('stepShift', (event) => {
+                console.log('stepShift:step-4', event.detail);
+
+                const to = event.detail.to;
+
+                if (to == 3) {
+                    stepper.to(to);
                 }
             });
         },
@@ -640,6 +627,111 @@
                 const paymentTypeCode = $(this).data('code');
                 document.querySelector('#stepper-pay-bill #step-2').dispatchEvent(new CustomEvent('dataChange', {detail: {paymentTypeCode}}));
             });
+        },
+        renderStepThree: async () => {
+            if (paymentMethodState.stepThreeData != null) {
+                return;
+            }
+
+            let studentBalance = 0;
+            try {
+                // get student balance
+                const res = await $.ajax({
+                    url: `${_baseURL}/api/payment/student-balance/transaction`,
+                    data: {student_id: studentMaster.student_id},
+                    processData: true,
+                    type: 'get'
+                });
+                studentBalance = res.sbt_closing_balance;
+            } catch (error) {
+                studentBalance = 0;
+            }
+
+            $('#stepper-pay-bill #step-3 .step-content').html(`
+                <div>
+                    <div class="text-dark fw-normal" style="font-size: 1.3rem;">
+                        Anda memiliki saldo kelebihan bayar.<br>
+                        Total Saldo : <strong>${Rupiah.format(studentBalance)}</strong>
+                    </div>
+
+                    <div class="mt-2">
+                        <label class="form-label-lg" style="margin-bottom: 10px">Masukkan nominal yang ingin digunakan</label>
+                        <div class="input-group" style="width: 400px">
+                            <span class="input-group-text bg-light">Rp</span>
+                            <input id="input-student-balance-allocation" type="number" class="form-control form-control-lg">
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            $('#step-3 #input-student-balance-allocation').change(function() {
+                const studentBalanceAllocation = parseInt($(this).val());
+                document.querySelector('#stepper-pay-bill #step-3').dispatchEvent(new CustomEvent('dataChange', {detail: {studentBalance, studentBalanceAllocation}}));
+            });
+            $('#step-3 #input-student-balance-allocation').val(0).trigger('change');
+        },
+        renderStepFour: async () => {
+            const paymentType = null;
+            const bill = null;
+            const studentBalanceAllocation = 50000;
+
+            $('#stepper-pay-bill #step-4 .step-content').html(`
+                <div>
+                    <table class="table table-borderless" style="vertical-align: middle;">
+                        <tbody>
+                            <tr>
+                                <th style="width: 70%">Metode Pembayaran</th>
+                                <th>
+                                    <div class="d-flex flex-column align-items-end">
+                                        <img src="{{ url('images/payment-logo/bank-bca.png') }}" style="width: 100px;" class="d-block mb-1" />
+                                        <div>Virtual Account BCA</div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr/>
+                    <table class="table table-borderless" style="vertical-align: top;">
+                        <tbody>
+                            <tr>
+                                <td style="width: 70%">Tagihan Registrasi Semester Baru TA 2023/2024 Ganjil</td>
+                                <td class="text-end">Rp 10.000.000,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr/>
+                    <table class="table table-borderless" style="vertical-align: top;">
+                        <tbody>
+                            <tr>
+                                <td style="width: 70%">Penggunaan Saldo Mahasiswa</td>
+                                <td class="text-end">Rp 1.000.000,00</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 70%">Potongan Semester 2023/2024 Ganjil</td>
+                                <td class="text-end">Rp 2.000.000,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr/>
+                    <table class="table table-borderless" style="vertical-align: top;">
+                        <tbody>
+                            <tr>
+                                <td style="width: 70%">Biaya Admin</td>
+                                <td class="text-end">Rp 4.000,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr/>
+                    <table class="table table-borderless" style="vertical-align: top;">
+                        <tbody>
+                            <tr>
+                                <th style="width: 70%; font-size: 1.3rem;">Total</th>
+                                <th class="text-end" style="font-size: 1.3rem;">Rp 7.000.000,00</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `);
         },
         moveStep: (from, to) => {
             document.querySelector(`#stepper-pay-bill #step-${from}`).dispatchEvent(new CustomEvent('stepShift', {detail: {to}}));
