@@ -12,4 +12,6 @@ class MasterPaymentTypeMidtrans extends Model
     protected $table = "finance.ms_payment_method_new";
 
     protected $primaryKey = 'mpm_code';
+    public $incrementing = false;
+    protected $keyType = 'string';
 }

@@ -12,7 +12,7 @@
             justify-content: end;
         }
 
-        .payment-method-list {
+        /* .payment-method-list {
             display: flex;
             flex-direction: column;
             padding-left: 0;
@@ -30,7 +30,7 @@
         .payment-method-list > .payment-method-list__item.active {
             border: 1px solid #7367f0 !important;
             box-shadow: 0 4px 24px 0 rgb(34 41 47 / 10%) !important;
-        }
+        } */
         .line {
             text-decoration: line-through;
         }
@@ -38,6 +38,54 @@
             border: 1px solid gainsboro;
             border-radius: 6px;
             padding: 1rem;
+        }
+
+        .list-payment-method {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .list-payment-method__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid gainsboro;
+            border-radius: 10px;
+            padding: 1.5rem;
+            width: 200px;
+            cursor: pointer;
+            position: relative;
+        }
+        .list-payment-method__item.active {
+            border: 3px solid rgb(13, 110, 253);
+        }
+        .list-payment-method__item.active:after {
+            content: '';
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            background-color: rgb(13, 110, 253);
+            position: absolute;
+            right: -12.5px;
+            top: -12.5px;
+        }
+        .list-payment-method__item:hover {
+            background-color: rgba(13, 110, 253, .1);
+        }
+        .list-payment-method__item > .item__logo {
+            display: block;
+            flex-grow: 1;
+            width: 100px;
+            height: 33px;
+            object-fit: contain;
+        }
+        .list-payment-method__item > .item__text {
+            margin-bottom: 0;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 500;
         }
     </style>
 @endpush
@@ -119,7 +167,7 @@
                             <button type="button" class="step-trigger" role="tab" id="stepper1trigger1" aria-controls="step-1"
                                 aria-selected="true">
                                 <span class="bs-stepper-circle">1</span>
-                                <span class="bs-stepper-label">Metode Pembayaran</span>
+                                <span class="bs-stepper-label">Layanan Pembayaran</span>
                             </button>
                         </div>
                         <div class="bs-stepper-line"></div>
@@ -127,7 +175,7 @@
                             <button type="button" class="step-trigger" role="tab" id="stepper1trigger2" aria-controls="step-2"
                                 aria-selected="false" disabled="disabled">
                                 <span class="bs-stepper-circle">2</span>
-                                <span class="bs-stepper-label">Lanjutan</span>
+                                <span class="bs-stepper-label">Metode Pembayaran</span>
                             </button>
                         </div>
                         <div class="bs-stepper-line"></div>
@@ -135,6 +183,14 @@
                             <button type="button" class="step-trigger" role="tab" id="stepper1trigger3" aria-controls="step-3"
                                 aria-selected="false" disabled="disabled">
                                 <span class="bs-stepper-circle">3</span>
+                                <span class="bs-stepper-label">Lanjutan</span>
+                            </button>
+                        </div>
+                        <div class="bs-stepper-line"></div>
+                        <div class="step" data-target="#step-4">
+                            <button type="button" class="step-trigger" role="tab" id="stepper1trigger4" aria-controls="step-4"
+                                aria-selected="false" disabled="disabled">
+                                <span class="bs-stepper-circle">4</span>
                                 <span class="bs-stepper-label">Ringkasan Pembayaran</span>
                             </button>
                         </div>
@@ -145,58 +201,21 @@
                             <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
 
                                 <div class="mt-2">
-                                    <h5 class="fw-bold mb-1">Bank Transfer Manual</h5>
-                                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank BCA</p>
+                                    <div class="list-payment-method">
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/service-midtrans.png') }}" alt="Midtrans">
+                                            <p class="item__text">Midtrans</p>
                                         </div>
 
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank BNI</p>
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/service-finpay.png') }}" alt="Finpay">
+                                            <p class="item__text">Finpay</p>
                                         </div>
 
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank Mandiri</p>
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/service-manual.png') }}" alt="Manual">
+                                            <p class="item__text">Manual</p>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    <h5 class="fw-bold mb-1">Virtual Account</h5>
-                                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Mandiri</p>
-                                        </div>
-
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BNI</p>
-                                        </div>
-
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BTN</p>
-                                        </div>
-
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Mega</p>
-                                        </div>
-
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BSI</p>
-                                        </div>
-
-                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Permata</p>
-                                        </div>
-
                                     </div>
                                 </div>
 
@@ -204,6 +223,70 @@
                             </div>
 
                             <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
+
+                                <div class="mt-2">
+                                    <h5 class="fw-bold mb-1">Bank Transfer Manual</h5>
+                                    <div class="list-payment-method">
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
+                                            <p class="item__text">Bank BCA</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="item__text">Bank BNI</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="item__text">Bank Mandiri</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <h5 class="fw-bold mb-1">Virtual Account</h5>
+                                    <div class="list-payment-method">
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="item__text">Virtual Account Mandiri</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="item__text">Virtual Account BNI</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
+                                            <p class="item__text">Virtual Account BTN</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
+                                            <p class="item__text">Virtual Account Mega</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
+                                            <p class="item__text">Virtual Account BSI</p>
+                                        </div>
+
+                                        <div class="list-payment-method__item">
+                                            <img class="item__logo" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
+                                            <p class="item__text">Virtual Account Permata</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button class="btn btn-primary" onclick="stepper.previous()">Previous</button>
+                                    <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                                </div>
+                            </div>
+
+                            <div id="step-3" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger3">
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">Password</label>
                                     <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
@@ -212,7 +295,7 @@
                                 <button class="btn btn-primary" onclick="stepper.next()">Next</button>
                             </div>
 
-                            <div id="step-3" role="tabpanel" class="bs-stepper-pane text-center" aria-labelledby="stepper1trigger3">
+                            <div id="step-4" role="tabpanel" class="bs-stepper-pane text-center" aria-labelledby="stepper1trigger4">
                                 <button class="btn btn-primary mt-5" onclick="stepper.previous()">Previous</button>
                                 <button type="submit" class="btn btn-primary mt-5">Submit</button>
                             </div>
@@ -298,7 +381,23 @@
         $('#accordionPaymentMethod').change(payBillModal.paymentMethodChangeHandler);
         paymentMethodMaster.setupManager();
         feather.replace();
+
+        $('.list-payment-method__item').click(function() {
+            $('.list-payment-method__item').removeClass('active');
+            $(this).addClass('active');
+        })
     });
+
+    function renderPaymentMethodList() {
+        const isMidtransActive = true;
+        const isFinpayActive = true;
+        const isManualActive = true;
+
+
+        $.ajax({
+            url: `${_baseURL}/api/`,
+        })
+    }
 
     // setup stepper
     const stepper = new Stepper($('.bs-stepper')[0]);

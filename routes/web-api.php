@@ -388,6 +388,9 @@ Route::group(['prefix' => 'payment'], function(){
 
         Route::get('discount', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@discountIndex');
         Route::get('discount/{ms_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@discountShow');
+
+        Route::get('payment-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentTypeIndex');
+        Route::get('payment-type/{payment_service}/{id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentTypeShow');
     });
 
     // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
