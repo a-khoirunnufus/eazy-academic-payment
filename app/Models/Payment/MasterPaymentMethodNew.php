@@ -5,7 +5,7 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class MasterPaymentTypeMidtrans extends Model
+class MasterPaymentMethodNew extends Model
 {
     use SoftDeletes;
 

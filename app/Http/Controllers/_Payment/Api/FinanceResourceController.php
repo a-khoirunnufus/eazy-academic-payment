@@ -17,6 +17,7 @@ use App\Models\Payment\Discount;
 use App\Models\Payment\MasterPaymentTypeMidtrans;
 use App\Models\Payment\MasterPaymentTypeFinpay;
 use App\Models\Payment\MasterPaymentTypeManual;
+use App\Models\Payment\MasterPaymentMethodNew;
 
 class FinanceResourceController extends Controller
 {
@@ -144,40 +145,58 @@ class FinanceResourceController extends Controller
 
     public function paymentTypeIndex(Request $request)
     {
+        $payment_service = $request->query('payment_service');
+
         $active_only = $request->query('active_only') ?? false;
         if ($active_only) {
             if ($active_only === 'true') $active_only = true;
             if ($active_only === 'false') $active_only = false;
         }
 
-        $midtrans_active = DB::table('finance.ms_settings')->where('name', 'payment_with_midtrans_active')->first()->value == '1';
-        $finpay_active = DB::table('finance.ms_settings')->where('name', 'payment_with_finpay_active')->first()->value == '1';
-        $manual_active = DB::table('finance.ms_settings')->where('name', 'payment_with_manual_active')->first()->value == '1';
-
         $data = [];
 
-        if ($midtrans_active) {
-            $data[] = [
-                'payment_service' => 'midtrans',
-                'data' => $active_only ? MasterPaymentTypeMidtrans::active()->get()->toArray()
-                    : MasterPaymentTypeMidtrans::get()->toArray(),
-            ];
+        if ($payment_service) {
+            if ($payment_service == 'midtrans') {
+                $data = $active_only ? MasterPaymentTypeMidtrans::active()->get()->toArray()
+                    : MasterPaymentTypeMidtrans::get()->toArray();
+            }
+            if ($payment_service == 'finpay') {
+                $data = $active_only ? FinpayPaymentTypeMidtrans::active()->get()->toArray()
+                    : FinpayPaymentTypeMidtrans::get()->toArray();
+            }
+            if ($payment_service == 'manual') {
+                $data = $active_only ? MasterPaymentTypeManual::active()->get()->toArray()
+                    : MasterPaymentTypeManual::get()->toArray();
+            }
         }
+        else {
+            $midtrans_active = DB::table('finance.ms_settings')->where('name', 'payment_with_midtrans_active')->first()->value == '1';
+            $finpay_active = DB::table('finance.ms_settings')->where('name', 'payment_with_finpay_active')->first()->value == '1';
+            $manual_active = DB::table('finance.ms_settings')->where('name', 'payment_with_manual_active')->first()->value == '1';
 
-        if ($finpay_active) {
-            $data[] = [
-                'payment_service' => 'finpay',
-                'data' => $active_only ? MasterPaymentTypeFinpay::active()->get()->toArray()
-                    : MasterPaymentTypeFinpay::get()->toArray(),
-            ];
-        }
+            if ($midtrans_active) {
+                $data[] = [
+                    'payment_service' => 'midtrans',
+                    'data' => $active_only ? MasterPaymentTypeMidtrans::active()->get()->toArray()
+                        : MasterPaymentTypeMidtrans::get()->toArray(),
+                ];
+            }
 
-        if ($manual_active) {
-            $data[] = [
-                'payment_service' => 'manual',
-                'data' => $active_only ? MasterPaymentTypeManual::active()->get()->toArray()
-                    : MasterPaymentTypeManual::get()->toArray(),
-            ];
+            if ($finpay_active) {
+                $data[] = [
+                    'payment_service' => 'finpay',
+                    'data' => $active_only ? MasterPaymentTypeFinpay::active()->get()->toArray()
+                        : MasterPaymentTypeFinpay::get()->toArray(),
+                ];
+            }
+
+            if ($manual_active) {
+                $data[] = [
+                    'payment_service' => 'manual',
+                    'data' => $active_only ? MasterPaymentTypeManual::active()->get()->toArray()
+                        : MasterPaymentTypeManual::get()->toArray(),
+                ];
+            }
         }
 
         return response()->json($data);
@@ -204,6 +223,20 @@ class FinanceResourceController extends Controller
         }
 
         return response()->json($data->toArray());
+    }
+
+    public function paymentMethodIndex()
+    {
+        $payment_method = MasterPaymentMethodNew::all();
+
+        return response()->json($payment_method->toArray());
+    }
+
+    public function paymentMethodShow($code)
+    {
+        $payment_method = MasterPaymentMethodNew::find($code);
+
+        return response()->json($payment_method->toArray());
     }
 
     public function masterSettingIndex()

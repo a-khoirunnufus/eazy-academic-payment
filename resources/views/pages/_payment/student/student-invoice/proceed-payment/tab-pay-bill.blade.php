@@ -208,12 +208,16 @@
                                 <div class="step-content mt-2">
                                 </div>
 
-                                <button class="btn btn-primary mt-3" onclick="stepper.next()">Next</button>
+                                <button class="btn btn-primary mt-3" onclick="paymentMethodAction.moveStep(1,2)">Lanjut</button>
                             </div>
 
                             <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
 
-                                <div class="mt-2">
+                                <div class="step-content mt-2 d-flex flex-column" style="gap: 3rem">
+                                    ...
+                                </div>
+
+                                <!-- <div class="mt-2">
                                     <h5 class="fw-bold mb-1">Bank Transfer Manual</h5>
                                     <div class="list-payment-method">
                                         <div class="list-payment-method__item">
@@ -267,11 +271,11 @@
                                         </div>
 
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <div class="mt-3">
-                                    <button class="btn btn-primary" onclick="stepper.previous()">Previous</button>
-                                    <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,1)">Kembali</button>
+                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,3)">Lanjut</button>
                                 </div>
                             </div>
 
@@ -368,7 +372,7 @@
 
     $(function(){
         $('#accordionPaymentMethod').change(payBillModal.paymentMethodChangeHandler);
-        paymentMethodMaster.setupManager();
+        // paymentMethodMaster.setupManager();
         feather.replace();
 
     });
@@ -386,7 +390,7 @@
     // setup stepper
     const stepper = new Stepper($('.bs-stepper')[0]);
 
-    const paymentMethodState = {
+    let paymentMethodState = {
         stepOneData: null,
         stepTwoData: null,
         stepThreeData: null,
@@ -396,6 +400,8 @@
     const paymentMethodAction = {
         setupStepDataChangeEvent: () => {
             document.querySelector('#stepper-pay-bill #step-1').addEventListener('dataChange', (event) => {
+                console.log('dataChange:step-1');
+
                 paymentMethodState = {
                     stepOneData: {
                         paymentServiceCode: event.detail.paymentServiceCode,
@@ -406,6 +412,8 @@
                 };
             });
             document.querySelector('#stepper-pay-bill #step-2').addEventListener('dataChange', (event) => {
+                console.log('dataChange:step-2');
+
                 paymentMethodState = {
                     ...paymentMethodState,
                     stepTwoData: {
@@ -416,6 +424,8 @@
                 };
             });
             document.querySelector('#stepper-pay-bill #step-3').addEventListener('dataChange', (event) => {
+                console.log('dataChange:step-3');
+
                 paymentMethodState = {
                     ...paymentMethodState,
                     stepThreeData: {
@@ -426,6 +436,8 @@
                 };
             });
             document.querySelector('#stepper-pay-bill #step-4').addEventListener('dataChange', (event) => {
+                console.log('dataChange:step-4');
+
                 paymentMethodState = {
                     ...paymentMethodState,
                     stepFourData: {
@@ -436,6 +448,8 @@
         },
         setupStepRenderEvent: () => {
             document.querySelector('#stepper-pay-bill #step-1').addEventListener('stepRender', (event) => {
+                console.log('stepRender:step-1');
+
                 // rerender step 1
                 paymentMethodAction.renderStepOne();
 
@@ -446,6 +460,8 @@
             });
 
             document.querySelector('#stepper-pay-bill #step-2').addEventListener('stepRender', () => {
+                console.log('stepRender:step-2');
+
                 // rerender step 2
                 paymentMethodAction.renderStepTwo();
 
@@ -456,6 +472,8 @@
             });
 
             document.querySelector('#stepper-pay-bill #step-3').addEventListener('stepRender', () => {
+                console.log('stepRender:step-3');
+
                 // rerender step 3
                 // paymentMethodAction.renderStepThree();
 
@@ -466,31 +484,45 @@
             });
 
             document.querySelector('#stepper-pay-bill #step-4').addEventListener('stepRender', () => {
+                console.log('stepRender:step-4');
+
                 // rerender step 4
                 // paymentMethodAction.renderStepFour()
             });
         },
         setupStepShiftEvent: () => {
-            document.getElementById('stepper-pay-bill').addEventListener('show.bs-stepper', function (event) {
-                console.log('step show', event.detail);
+            document.querySelector('#stepper-pay-bill #step-1').addEventListener('stepShift', (event) => {
+                console.log('stepShift:step-1', event.detail);
 
                 const to = event.detail.to;
 
                 if (to == 2) {
+                    // validation
                     if (paymentMethodState.stepOneData == null) {
                         _toastr.warning('Silahkan pilih data terlebih dahulu!');
                     } else {
-                        document.querySelector('#stepper-pay-bill #step-2').dispatchEvent(new CustomEvent('stepRender'));
-                        stepper.to(to+1);
+                        document.querySelector(`#stepper-pay-bill #step-2`).dispatchEvent(new CustomEvent('stepRender'));
+                        stepper.to(to);
                     }
                 }
+            });
 
-                if (to == 3) {
-                    // some code
+            document.querySelector('#stepper-pay-bill #step-2').addEventListener('stepShift', (event) => {
+                console.log('stepShift:step-2', event.detail);
+
+                const to = event.detail.to;
+
+                if (to == 1) {
+                    stepper.to(to);
                 }
-
-                if (to == 4) {
-                    // some code
+                else if (to == 3) {
+                    // validation
+                    if (paymentMethodState.stepTwoData == null) {
+                        _toastr.warning('Silahkan pilih data terlebih dahulu!');
+                    } else {
+                        document.querySelector(`#stepper-pay-bill #step-${to}`).dispatchEvent(new CustomEvent('stepRender'));
+                        stepper.to(to);
+                    }
                 }
             });
         },
@@ -529,17 +561,89 @@
             $('#step-1 .list-payment-method__item').click(function() {
                 $('#step-1 .list-payment-method__item').removeClass('active');
                 $(this).addClass('active');
-                const paymentServiceCode = $(this).dataset('code');
+                const paymentServiceCode = $(this).data('code');
                 document.querySelector('#stepper-pay-bill #step-1').dispatchEvent(new CustomEvent('dataChange', {detail: {paymentServiceCode}}));
             });
         },
-        renderStepTwo: () => {
-            console.log('rendering step 2...');
+        renderStepTwo: async () => {
+            if (paymentMethodState.stepTwoData != null) {
+                return;
+            }
 
-            // configure element
+            const paymentService = paymentMethodState.stepOneData.paymentServiceCode;
 
-            // setup event click
+            const paymentMethods = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/resource/payment-method`,
+            });
+
+            const paymentTypes = await $.ajax({
+                async: true,
+                url: `${_baseURL}/api/payment/resource/payment-type`,
+                data: {
+                    payment_service: paymentService,
+                    active_only: 'true',
+                }
+            });
+
+            let typeColumnNamePrefix = '';
+            if (paymentService == 'midtrans') typeColumnNamePrefix = 'mptm_';
+            if (paymentService == 'finpay') typeColumnNamePrefix = 'mptf_';
+            if (paymentService == 'manual') typeColumnNamePrefix = 'mptman_';
+
+            let arrPaymentMethod = [];
+            paymentTypes.forEach(type => {
+                if (!arrPaymentMethod.includes(type[typeColumnNamePrefix+'method'])) {
+                    arrPaymentMethod.push(type[typeColumnNamePrefix+'method'])
+                }
+            })
+
+            const filteredPaymentMethods = paymentMethods.filter(method => {
+                if (arrPaymentMethod.includes(method.mpm_code)) {
+                    return true;
+                }
+                return false;
+            });
+
+            const groupedPaymentTypeByMethod = filteredPaymentMethods.map(method => {
+                return {
+                    method: method,
+                    types: paymentTypes.filter(type => type[typeColumnNamePrefix+'method'] == method.mpm_code),
+                };
+            });
+
+            $('#stepper-pay-bill #step-2 .step-content').html(
+                groupedPaymentTypeByMethod.map(item => {
+                    return `
+                        <div>
+                            <h5 class="fw-bold mb-1">${item.method.mpm_name}</h5>
+                            <div class="list-payment-method">
+                                ${
+                                    item.types.map(type => {
+                                        return `
+                                            <div class="list-payment-method__item" data-code="${type[typeColumnNamePrefix+'code']}">
+                                                <img class="item__logo" src="{{ url('${type[typeColumnNamePrefix+`logo`]}') }}" alt="${type[typeColumnNamePrefix+'name']}">
+                                                <p class="item__text">${type[typeColumnNamePrefix+'name']}</p>
+                                            </div>
+                                        `;
+                                    }).join('')
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join('')
+            );
+
+            $('#step-2 .list-payment-method__item').click(function() {
+                $('#step-2 .list-payment-method__item').removeClass('active');
+                $(this).addClass('active');
+                const paymentTypeCode = $(this).data('code');
+                document.querySelector('#stepper-pay-bill #step-2').dispatchEvent(new CustomEvent('dataChange', {detail: {paymentTypeCode}}));
+            });
         },
+        moveStep: (from, to) => {
+            document.querySelector(`#stepper-pay-bill #step-${from}`).dispatchEvent(new CustomEvent('stepShift', {detail: {to}}));
+        }
     }
 
     const payBillTab = {
