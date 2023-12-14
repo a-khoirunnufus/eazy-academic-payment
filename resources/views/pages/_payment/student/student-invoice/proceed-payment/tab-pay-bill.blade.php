@@ -145,56 +145,56 @@
                             <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
 
                                 <div class="mt-2">
-                                    <h4 class="fw-bold mb-1">Bank Transfer Manual</h4>
+                                    <h5 class="fw-bold mb-1">Bank Transfer Manual</h5>
                                     <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank BCA</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bca.png') }}" alt="Bank BCA">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank BCA</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank BNI</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank BNI</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Bank Mandiri</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Bank Mandiri</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="mt-2">
-                                    <h4 class="fw-bold mb-1">Virtual Account</h4>
+                                <div class="mt-3">
+                                    <h5 class="fw-bold mb-1">Virtual Account</h5>
                                     <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 1rem;">
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Mandiri</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mandiri.png') }}" alt="Bank Mandiri">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Mandiri</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BNI</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bni.png') }}" alt="Bank BNI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BNI</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BTN</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-btn.png') }}" alt="Bank BTN">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BTN</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Mega</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-mega.png') }}" alt="Bank Mega">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Mega</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account BSI</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-bsi.png') }}" alt="Bank BSI">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account BSI</p>
                                         </div>
 
-                                        <div class="d-flex flex-column justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
-                                            <img class="d-block flex-grow-1" style="width: 100%; height: -webkit-fill-available; object-fit: contain;" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
-                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1.5rem">Virtual Account Permata</p>
+                                        <div class="d-flex flex-column align-items-center justify-content-center" style="border: 1px solid gainsboro; border-radius: 10px; padding: 1.5rem; width: 200px;">
+                                            <img class="d-block flex-grow-1" style="width: 100px; height: 33px; object-fit: contain;" src="{{ url('images/payment-logo/bank-permata.png') }}" alt="Bank Permata">
+                                            <p class="mb-0 fw-bold text-center" style="margin-top: 1rem">Virtual Account Permata</p>
                                         </div>
 
                                     </div>
