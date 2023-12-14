@@ -285,8 +285,8 @@
                             return this.template.listCell([
                                 {text: `${row.student.fullname} (${row.student.student_id})`, bold: true, small: false, nowrap: true},
                                 {text: 'Angkatan '+row.student.student_school_year.toString().substring(0, 4), bold: false, small: true, nowrap: true},
-                                {text: row.student.period.period_name, bold: false, small: true, nowrap: true},
-                                {text: row.student.path.path_name, bold: false, small: true, nowrap: true},
+                                // {text: row.student.period.period_name, bold: false, small: true, nowrap: true},
+                                // {text: row.student.path.path_name, bold: false, small: true, nowrap: true},
                             ]);
                         }
                     },
