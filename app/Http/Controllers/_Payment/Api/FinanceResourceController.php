@@ -205,4 +205,24 @@ class FinanceResourceController extends Controller
 
         return response()->json($data->toArray());
     }
+
+    public function masterSettingIndex()
+    {
+        $settings = DB::table('finance.ms_settings')->get();
+
+        return response()->json($setting->toArray());
+    }
+
+    public function masterSettingShow($name)
+    {
+        $setting = DB::table('finance.ms_settings')
+            ->where('name', $name)
+            ->first();
+
+        if (is_null($setting)) {
+            return response()->json(['message' => 'setting not found!'], 404);
+        }
+
+        return response()->json(['value' => $setting->value]);
+    }
 }

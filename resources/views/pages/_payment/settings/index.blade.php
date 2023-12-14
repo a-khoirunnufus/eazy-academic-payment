@@ -203,22 +203,22 @@
                         <div class="col-4">
                             <label class="form-label" for="vertical-username">Aktifkan Pembayaran Via Midtrans</label>
                             <select class="form-select w-100 select2" name="payment_with_midtrans_active" data-id="payment_with_midtrans_active" value="{{ $settings->where('name','payment_with_midtrans_active')->pluck('value')[0] }}">
-                                <option value="1" {{ $settings->where('name','payment_with_midtrans_active')->pluck('value')[0] == '1' ? 'selected' : '' }}>Ya</option>
-                                <option value="0" {{ $settings->where('name','payment_with_midtrans_active')->pluck('value')[0] == '0' ? 'selected' : '' }}>Tidak</option>
+                                <option value="true" {{ $settings->where('name','payment_with_midtrans_active')->pluck('value')[0] == 'true' ? 'selected' : '' }}>Ya</option>
+                                <option value="false" {{ $settings->where('name','payment_with_midtrans_active')->pluck('value')[0] == 'false' ? 'selected' : '' }}>Tidak</option>
                             </select>
                         </div>
                         <div class="col-4">
                             <label class="form-label" for="vertical-username">Aktifkan Pembayaran Via Finpay</label>
                             <select class="form-select w-100 select2" name="payment_with_finpay_active" data-id="payment_with_finpay_active" value="{{ $settings->where('name','payment_with_finpay_active')->pluck('value')[0] }}">
-                                <option value="1" {{ $settings->where('name','payment_with_finpay_active')->pluck('value')[0] == '1' ? 'selected' : '' }}>Ya</option>
-                                <option value="0" {{ $settings->where('name','payment_with_finpay_active')->pluck('value')[0] == '0' ? 'selected' : '' }}>Tidak</option>
+                                <option value="true" {{ $settings->where('name','payment_with_finpay_active')->pluck('value')[0] == 'true' ? 'selected' : '' }}>Ya</option>
+                                <option value="false" {{ $settings->where('name','payment_with_finpay_active')->pluck('value')[0] == 'false' ? 'selected' : '' }}>Tidak</option>
                             </select>
                         </div>
                         <div class="col-4">
                             <label class="form-label" for="vertical-username">Aktifkan Pembayaran Manual</label>
                             <select class="form-select w-100 select2" name="payment_with_manual_active" data-id="payment_with_manual_active" value="{{ $settings->where('name','payment_with_manual_active')->pluck('value')[0] }}">
-                                <option value="1" {{ $settings->where('name','payment_with_manual_active')->pluck('value')[0] == '1' ? 'selected' : '' }}>Ya</option>
-                                <option value="0" {{ $settings->where('name','payment_with_manual_active')->pluck('value')[0] == '0' ? 'selected' : '' }}>Tidak</option>
+                                <option value="true" {{ $settings->where('name','payment_with_manual_active')->pluck('value')[0] == 'true' ? 'selected' : '' }}>Ya</option>
+                                <option value="false" {{ $settings->where('name','payment_with_manual_active')->pluck('value')[0] == 'false' ? 'selected' : '' }}>Tidak</option>
                             </select>
                         </div>
                     </div>

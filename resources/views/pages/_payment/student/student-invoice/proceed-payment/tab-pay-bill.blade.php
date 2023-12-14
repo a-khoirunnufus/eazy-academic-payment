@@ -63,6 +63,11 @@
         }
         .list-payment-method__item.active:after {
             content: '';
+            background-image: url('/images/icons/check-white.png');
+            background-size: 20px 20px;
+            background-repeat: no-repeat;
+            background-position: center;
+            object-fit: contain;
             border-radius: 50%;
             width: 25px;
             height: 25px;
@@ -200,23 +205,7 @@
 
                             <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
 
-                                <div class="mt-2">
-                                    <div class="list-payment-method">
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/service-midtrans.png') }}" alt="Midtrans">
-                                            <p class="item__text">Midtrans</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/service-finpay.png') }}" alt="Finpay">
-                                            <p class="item__text">Finpay</p>
-                                        </div>
-
-                                        <div class="list-payment-method__item">
-                                            <img class="item__logo" src="{{ url('images/payment-logo/service-manual.png') }}" alt="Manual">
-                                            <p class="item__text">Manual</p>
-                                        </div>
-                                    </div>
+                                <div class="step-content mt-2">
                                 </div>
 
                                 <button class="btn btn-primary mt-3" onclick="stepper.next()">Next</button>
@@ -382,25 +371,92 @@
         paymentMethodMaster.setupManager();
         feather.replace();
 
-        $('.list-payment-method__item').click(function() {
-            $('.list-payment-method__item').removeClass('active');
-            $(this).addClass('active');
-        })
     });
 
-    function renderPaymentMethodList() {
-        const isMidtransActive = true;
-        const isFinpayActive = true;
-        const isManualActive = true;
+    $(function(){
+        paymentMethodModal.show();
 
+        $('#step-2 .list-payment-method__item').click(function() {
+            $('#step-2 .list-payment-method__item').removeClass('active');
+            $(this).addClass('active');
+        });
 
-        $.ajax({
-            url: `${_baseURL}/api/`,
-        })
-    }
+        paymentMethodMaster.renderStepOne();
+    })
 
     // setup stepper
     const stepper = new Stepper($('.bs-stepper')[0]);
+
+    document.getElementById('stepper-pay-bill').addEventListener('show.bs-stepper', function (event) {
+        console.log('step show', event.detail);
+
+        const indexStep = event.detail.indexStep;
+
+        if (indexStep == 1) {
+            if (paymentMethodState.paymentType == null) {
+
+            }
+        }
+    });
+
+    const paymentMethodMaster = {
+        state: {
+            paymentService: null,
+            paymentType: null,
+        },
+        renderStepOne: async () => {
+            const isMidtransActive = await $.ajax({async: true, url: `${_baseURL}/api/payment/resource/master-setting/payment_with_midtrans_active`});
+            const isFinpayActive = await $.ajax({async: true, url: `${_baseURL}/api/payment/resource/master-setting/payment_with_finpay_active`});
+            const isManualActive = await $.ajax({async: true, url: `${_baseURL}/api/payment/resource/master-setting/payment_with_manual_active`});
+
+            const html = `
+                <div class="list-payment-method">
+                    ${isMidtransActive.value === 'true' ? `
+                        <div class="list-payment-method__item" data-code="midtrans">
+                            <img class="item__logo" src="{{ url('images/payment-logo/service-midtrans.png') }}" alt="Midtrans">
+                            <p class="item__text">Midtrans</p>
+                        </div>
+                    ` : ''}
+
+                    ${isFinpayActive.value === 'true' ? `
+                        <div class="list-payment-method__item" data-code="finpay">
+                            <img class="item__logo" src="{{ url('images/payment-logo/service-finpay.png') }}" alt="Finpay">
+                            <p class="item__text">Finpay</p>
+                        </div>
+                    ` : ''}
+
+                    ${isManualActive.value === 'true' ? `
+                        <div class="list-payment-method__item" data-code="manual">
+                            <img class="item__logo" src="{{ url('images/payment-logo/service-manual.png') }}" alt="Manual">
+                            <p class="item__text">Manual</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            $('#stepper-pay-bill #step-1 .step-content').html(html);
+
+            $('#step-1 .list-payment-method__item').click(function() {
+                $('#step-1 .list-payment-method__item').removeClass('active');
+                $(this).addClass('active');
+                paymentMethodMaster.state.paymentService = $(this).dataset(code);
+                paymentMethodMaster.
+            });
+        },
+        stepOneChange: () => {
+            console.log('step 1 data change');
+            // reset/render step 2
+        },
+        renderStepTwo: () => {
+
+        },
+        stepTwoChange: () => {
+            console.log('step 2 data change');
+
+            // reset/render step 3
+        }
+
+    }
 
     const payBillTab = {
         alwaysAllowReset: true,
@@ -567,7 +623,7 @@
         },
     };
 
-    const paymentMethodMaster = {
+    const paymentMethodMasterOld = {
         state: {
             bill: null,
             paymentMethod: null,
