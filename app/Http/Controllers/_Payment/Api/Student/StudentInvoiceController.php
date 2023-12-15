@@ -147,6 +147,7 @@ class StudentInvoiceController extends Controller
         $query = PaymentBill::query();
         $query = $this->applyRelation($query, $request, [
             'payment',
+            'payment.year',
             'paymentMethod',
             'paymentManualApproval',
             'paymentTransaction',

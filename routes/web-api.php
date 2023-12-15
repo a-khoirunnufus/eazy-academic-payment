@@ -395,6 +395,11 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('payment-method', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentMethodIndex');
         Route::get('payment-method/{code}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentMethodShow');
 
+        Route::get('master-bill', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@index');
+        Route::get('master-bill/{prr_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@detail');
+        Route::get('master-bill/{prr_id}/bill', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@getBills');
+        Route::get('master-bill/{prr_id}/bill/{prrb_id}', 'App\Http\Controllers\_Payment\Api\Student\StudentInvoiceController@billDetail');
+
         Route::get('master-setting', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@masterSettingIndex');
         Route::get('master-setting/{name}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@masterSettingShow');
     });
