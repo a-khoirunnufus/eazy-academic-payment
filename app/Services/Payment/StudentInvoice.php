@@ -264,11 +264,15 @@ class StudentInvoice {
         if(!$student->payment){
             $text= 'Tagihan Awal Tidak Ditemukan';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }else{
             foreach ($student->payment as $item) {
-                if($item->prr_status == 'belum lunas'){
-                    $text= 'Tagihan Awal Belum Lunas';
-                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                if($item->paymentType->msct_main_payment == 1){
+                    if($item->prr_status == 'belum lunas'){
+                        $text= 'Tagihan Awal Belum Lunas';
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                        return json_encode(array('success' => false, 'message' => $text));
+                    }
                 }
             }
         }
@@ -276,16 +280,20 @@ class StudentInvoice {
         if(!$student->registration){
             $text= 'Data Registrasi Mata Kuliah Tidak Ditemukan';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }else{
             if($student->registration->approval_status != 1){
                 $text= 'Registrasi Mata Kuliah Belum Selesai';
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                return json_encode(array('success' => false, 'message' => $text));
             }
         }
 
-        if(!$student->registration->studentStudyCard){
-            $text= 'Data KRS Kosong';
+
+        if($student->registration->courses->isEmpty()){
+            $text= 'Data Course Registrasi Kosong';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }
 
         $rateSum = 0;
@@ -300,7 +308,7 @@ class StudentInvoice {
                 'prr_school_year' => $this->getActiveSchoolYearCode(),
             ]);
 
-            foreach($student->registration->studentStudyCard as $item) {
+            foreach($student->registration->courses as $item) {
                 if(!$item->course){
                     $text= 'Data Course '.$item->course_id.' Tidak Ditemukan';
                     $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
@@ -346,7 +354,7 @@ class StudentInvoice {
         } catch (\Exception $e) {
             DB::rollback();
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
-            return response()->json($e->getMessage());
+            return json_encode(array('success' => false, 'message' => $e->getMessage()));
         }
 
         $text = "Berhasil generate Tagihan Mata Kuliah mahasiswa " . $student->fullname;
@@ -358,11 +366,15 @@ class StudentInvoice {
         if(!$student->payment){
             $text= 'Tagihan Awal Tidak Ditemukan';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }else{
             foreach ($student->payment as $item) {
-                if($item->prr_status == 'belum lunas'){
-                    $text= 'Tagihan Awal Belum Lunas';
-                    $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                if($item->paymentType->msct_main_payment == 1){
+                    if($item->prr_status == 'belum lunas'){
+                        $text= 'Tagihan Awal Belum Lunas';
+                        $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                        return json_encode(array('success' => false, 'message' => $text));
+                    }
                 }
             }
         }
@@ -370,16 +382,19 @@ class StudentInvoice {
         if(!$student->registration){
             $text= 'Data Registrasi Mata Kuliah Tidak Ditemukan';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }else{
             if($student->registration->approval_status != 1){
                 $text= 'Registrasi Mata Kuliah Belum Selesai';
                 $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+                return json_encode(array('success' => false, 'message' => $text));
             }
         }
 
-        if(!$student->registration->studentStudyCard){
-            $text= 'Data KRS Kosong';
+        if($student->registration->courses->isEmpty()){
+            $text= 'Data Course Registrasi Kosong';
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
+            return json_encode(array('success' => false, 'message' => $text));
         }
 
         $rateSum = 0;
@@ -394,7 +409,7 @@ class StudentInvoice {
                 'prr_school_year' => $this->getActiveSchoolYearCode(),
             ]);
 
-            foreach($student->registration->studentStudyCard as $item) {
+            foreach($student->registration->courses as $item) {
                 if(!$item->course){
                     $text= 'Data Course '.$item->course_id.' Tidak Ditemukan';
                     $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$text),LogStatus::Failed);
@@ -444,7 +459,7 @@ class StudentInvoice {
         } catch (\Exception $e) {
             DB::rollback();
             $this->addToLogDetail($log_id,$this->getLogTitleStudent($student,null,$e->getMessage()),LogStatus::Failed);
-            return response()->json($e->getMessage());
+            return json_encode(array('success' => false, 'message' => $e->getMessage()));
         }
 
         $text = "Berhasil generate Tagihan SKS mahasiswa " . $student->fullname;
