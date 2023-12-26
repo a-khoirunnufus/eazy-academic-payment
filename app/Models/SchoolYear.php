@@ -52,4 +52,9 @@ class SchoolYear extends Model
             'Genap'
         ][intval($this->msy_semester) - 1];
     }
+
+    public function scopeTestOne($query)
+    {
+        dd('test scope');
+    }
 }

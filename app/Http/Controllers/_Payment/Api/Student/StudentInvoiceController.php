@@ -176,10 +176,13 @@ class StudentInvoiceController extends Controller
     public function selectPaymentMethod($prr_id, $prrb_id, Request $request)
     {
         $validated = $request->validate([
-            'payment_method' => 'required',
+            'payment_service' => 'required',
+            'payment_type' => 'required',
             'use_student_balance' => 'nullable',
             'student_balance_spend' => 'required_with:use_student_balance',
         ]);
+
+        dd($request->all());
 
         try {
             DB::beginTransaction();

@@ -201,51 +201,48 @@
                         </div>
                     </div>
                     <div class="bs-stepper-content">
-                        <form onsubmit="return false">
-
-                            <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
-                                <h3 class="mt-2">Layanan Pembayaran</h3>
-                                <div class="step-content mt-3">
-                                    ...
-                                </div>
-                                <div class="d-flex justify-content-end mt-3">
-                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(1,2)">Lanjut</button>
-                                </div>
+                        <div id="step-1" role="tabpanel" class="bs-stepper-pane active dstepper-block" aria-labelledby="stepper1trigger1">
+                            <h3 class="mt-2">Layanan Pembayaran</h3>
+                            <div class="step-content mt-3">
+                                ...
                             </div>
-
-                            <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
-                                <h3 class="mt-2">Metode Pembayaran</h3>
-                                <div class="step-content mt-3 d-flex flex-column" style="gap: 3rem">
-                                    ...
-                                </div>
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <button class="btn btn-secondary me-1" onclick="paymentMethodAction.moveStep(2,1)">Kembali</button>
-                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,3)">Lanjut</button>
-                                </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(1,2)">Lanjut</button>
                             </div>
+                        </div>
 
-                            <div id="step-3" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger3">
-                                <h3 class="mt-2">Lanjutan</h3>
-                                <div class="step-content mt-3">
-                                    ...
-                                </div>
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(3,2)">Kembali</button>
-                                    <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(3,4)">Lanjut</button>
-                                </div>
+                        <div id="step-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger2">
+                            <h3 class="mt-2">Metode Pembayaran</h3>
+                            <div class="step-content mt-3 d-flex flex-column" style="gap: 3rem">
+                                ...
                             </div>
+                            <div class="mt-3 d-flex justify-content-between">
+                                <button class="btn btn-secondary me-1" onclick="paymentMethodAction.moveStep(2,1)">Kembali</button>
+                                <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(2,3)">Lanjut</button>
+                            </div>
+                        </div>
 
-                            <div id="step-4" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger4">
-                                <h3 class="mt-2">Ringkasan Pembayaran</h3>
-                                <div class="step-content mt-3">
-                                    ...
-                                </div>
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(4,3)">Kembali</button>
-                                    <button type="submit" class="btn btn-primary">Lanjutkan Pembayaran</button>
-                                </div>
+                        <div id="step-3" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger3">
+                            <h3 class="mt-2">Lanjutan</h3>
+                            <div class="step-content mt-3">
+                                ...
                             </div>
-                        </form>
+                            <div class="mt-3 d-flex justify-content-between">
+                                <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(3,2)">Kembali</button>
+                                <button class="btn btn-primary" onclick="paymentMethodAction.moveStep(3,4)">Lanjut</button>
+                            </div>
+                        </div>
+
+                        <div id="step-4" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper1trigger4">
+                            <h3 class="mt-2">Ringkasan Pembayaran</h3>
+                            <div class="step-content mt-3">
+                                ...
+                            </div>
+                            <div class="mt-3 d-flex justify-content-between">
+                                <button class="btn btn-secondary" onclick="paymentMethodAction.moveStep(4,3)">Kembali</button>
+                                <button class="btn btn-primary" onclick="paymentMethodAction.submitPaymentMethod()">Lanjutkan Pembayaran</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -750,6 +747,45 @@
         },
         moveStep: (from, to) => {
             document.querySelector(`#stepper-pay-bill #step-${from}`).dispatchEvent(new CustomEvent('stepShift', {detail: {to}}));
+        },
+        submitPaymentMethod: async () => {
+            const confirmed = await _swalConfirmSync({
+                title: 'Konfirmasi',
+                text: 'Apakah anda yakin ingin meanjutkan pembayaran ini?',
+            });
+
+            if(!confirmed) return;
+
+            const masterBillId = paymentMethodState.generalData.masterBillId;
+            const billId = paymentMethodState.generalData.billId;
+            const reqData = {
+                'payment_service': paymentMethodState.stepOneData.paymentServiceCode,
+                'payment_type': paymentMethodState.stepTwoData.paymentTypeCode,
+                'use_student_balance': paymentMethodState.stepThreeData.studentBalanceAllocation > 0 ? '1' : '0',
+                'student_balance_spend': paymentMethodState.stepThreeData.studentBalanceAllocation,
+            };
+
+            try {
+                const res = await $.ajax({
+                    async: true,
+                    url: `${_baseURL}/api/payment/student-invoice/${masterBillId}/bill/${billId}/select-method`,
+                    type: 'post',
+                    data: reqData,
+                });
+
+                if (res.success) {
+                    _toastr.success(res.message, 'Sukses');
+                    // hide payment method modal
+                    paymentMethodModal.hide();
+                    // open payment instruction modal
+                    payBillModal.open(reqData.prrb_id);
+                }
+
+            } catch (error) {
+                // console.error(error);
+                const res = error.responseJSON;
+                _toastr.error(res.message, 'Gagal');
+            }
         }
     }
 
