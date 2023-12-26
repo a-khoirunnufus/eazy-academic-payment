@@ -156,3 +156,5 @@ Route::group(['prefix' => 'payment', 'middleware' => ['auth', 'admin_access']], 
 });
 
 Route::get('/file/{from}/{id}', 'App\Http\Controllers\_Payment\FileController@getFile')->name('file');
+
+Route::get('/send-whatsapp', 'App\Http\Controllers\_Payment\WhatsAppController@NotificationWhatsappPaymentInvoice');
