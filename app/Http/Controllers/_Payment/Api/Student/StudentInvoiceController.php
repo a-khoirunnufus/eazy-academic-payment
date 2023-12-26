@@ -176,7 +176,7 @@ class StudentInvoiceController extends Controller
     public function selectPaymentMethod($prr_id, $prrb_id, Request $request)
     {
         $validated = $request->validate([
-            'payment_service' => 'required',
+            'payment_service' => 'required|in:midtrans,finpay,manual',
             'payment_type' => 'required',
             'use_student_balance' => 'nullable',
             'student_balance_spend' => 'required_with:use_student_balance',
@@ -187,9 +187,20 @@ class StudentInvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
-            $payment_method = PaymentMethod::where('mpm_key', $validated['payment_method'])->first();
+            // $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
+            $master_bill = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
+            // $bill = PaymentBill::find($prrb_id);
             $bill = PaymentBill::find($prrb_id);
+            // $payment_method = PaymentMethod::where('mpm_key', $validated['payment_method'])->first();
+            if ($validated['payment_service'] == 'midtrans') {
+                $payment_type = MasterPaymentTypeMidtrans::find($validted['payment_type']);
+            }
+            elseif ($validated['payment_service'] == 'finpay') {
+                $payment_type = MasterPaymentTypeFinpay::find($validted['payment_type']);
+            }
+            elseif ($validated['payment_service'] == 'manual') {
+                $payment_type = MasterPaymentTypeManual::find($validted['payment_type']);
+            }
 
             // check if previous payment already paid
             if ($bill->prrb_order > 1) {
@@ -206,8 +217,9 @@ class StudentInvoiceController extends Controller
                 }
             }
 
-            // set payment method
-            $bill->prrb_payment_method = $payment_method->mpm_key;
+            // set payment type
+            // $bill->prrb_payment_method = $payment_method->mpm_key;
+            $bill->prrb_payment_type = $payment_type->code;
 
             // bank transfer manual
             if ($payment_method->mpm_type == 'bank_transfer_manual') {
