@@ -11,7 +11,7 @@ class MasterPaymentAdminCostMidtrans extends Model
 
     protected $table = "finance.ms_payment_admin_cost_midtrans";
 
-    protected $primaryKey = 'mpacm_id';
+    protected $primaryKey = 'id';
 
     /**
      * SCOPES
@@ -19,6 +19,6 @@ class MasterPaymentAdminCostMidtrans extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('mpacm_is_active', true);
+        return $query->where('is_active', true);
     }
 }

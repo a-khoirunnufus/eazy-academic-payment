@@ -219,28 +219,88 @@ class StudentInvoiceController extends Controller
 
             // set payment type
             // $bill->prrb_payment_method = $payment_method->mpm_key;
+            $bill->prrb_pg_service = $validated['payment_service'];
             $bill->prrb_payment_type = $payment_type->code;
 
             // bank transfer manual
-            if ($payment_method->mpm_type == 'bank_transfer_manual') {
-                $bill->prrb_account_number = $payment_method->mpm_account_number;
-                $bill->prrb_admin_cost = $payment_method->mpm_fee;
-            }
+            // if ($payment_method->mpm_type == 'bank_transfer_manual') {
+            //     $bill->prrb_account_number = $payment_method->mpm_account_number;
+            //     $bill->prrb_admin_cost = $payment_method->mpm_fee;
+            // }
             // bank transfer virtual account / bill payment
-            elseif (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
+            // elseif (in_array($payment_method->mpm_type, ['bank_transfer_va', 'bank_transfer_bill_payment'])) {
 
+            //     $order_id = (string) Str::uuid();
+
+            //     $student = Student::find($payment->student_number);
+            //     $student_type = 'student';
+
+            //     $payment_gateway = 'midtrans';
+            //     if ($payment_gateway == 'midtrans') {
+            //         $payment_type = MasterPaymentTypeMidtrans;
+            //     }
+            //     if ($payment_gateway == 'finpay') {
+            //         $payment_type = MasterPaymentTypeFinpay;
+            //     }
+
+            //     $items = [[
+            //         'id' => (string) Str::uuid(),
+            //         'price' => $price,
+            //         'quantity' => $quantity,
+            //         'name' => $name,
+            //     ]];
+
+            //     // charge transaction
+            //     (new PaymentServiceApi())->charge([
+            //         'order_id' => $order_id,
+            //         'payment_type' => $payment_type,
+            //         'student' => $student,
+            //         'items' => $items
+            //     ]);
+
+            //     // charge transaction
+            //     // $charge_result = (new PaymentApi())->chargeTransaction([
+            //     //     "order_id" => $order_id,
+            //     //     "payment_type" => $payment_method->mpm_key,
+            //     //     "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
+            //     //     "name" => $student->fullname,
+            //     //     "email" => $student->email,
+            //     //     "phone" => $student->phone_number,
+            //     //     "item_details" => [
+            //     //         0 => [
+            //     //             "name" => "Cicilan ke-".$bill->prrb_order,
+            //     //             "price" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
+            //     //         ]
+            //     //     ]
+            //     // ]);
+
+            //     // if ($charge_result->status == 'error') {
+            //     //     throw new \Exception($charge_result->message);
+            //     // }
+
+            //     // $bill->prrb_admin_cost = $payment_method->mpm_fee;
+            //     $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
+            //     $bill->prrb_order_id = $order_id;
+            //     $bill->prrb_payment_gateway = 'midtrans';
+            //     // $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
+            //     // $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
+            //     // $bill->prrb_pg_
+
+            //     if ($payment_method->mpm_type == 'bank_transfer_va') {
+            //         $bill->prrb_va_number = $charge_result->payload->va_number;
+            //     }
+            //     elseif ($payment_method->mpm_type == 'bank_transfer_bill_payment') {
+            //         $bill->prrb_mandiri_biller_code = $charge_result->payload->biller_code;
+            //         $bill->prrb_mandiri_bill_key = $charge_result->payload->bill_key;
+            //     }
+            // }
+
+            $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
+
+            if ($payment_type->method == 'virtual_account') {
                 $order_id = (string) Str::uuid();
 
                 $student = Student::find($payment->student_number);
-                $student_type = 'student';
-
-                $payment_gateway = 'midtrans';
-                if ($payment_gateway == 'midtrans') {
-                    $payment_type = MasterPaymentTypeMidtrans;
-                }
-                if ($payment_gateway == 'finpay') {
-                    $payment_type = MasterPaymentTypeFinpay;
-                }
 
                 $items = [[
                     'id' => (string) Str::uuid(),
@@ -250,48 +310,25 @@ class StudentInvoiceController extends Controller
                 ]];
 
                 // charge transaction
-                (new PaymentServiceApi())->charge([
+                $charge_result = (new PaymentServiceApi($validated['payment_service']))->charge([
                     'order_id' => $order_id,
                     'payment_type' => $payment_type,
                     'student' => $student,
                     'items' => $items
                 ]);
 
-                // charge transaction
-                // $charge_result = (new PaymentApi())->chargeTransaction([
-                //     "order_id" => $order_id,
-                //     "payment_type" => $payment_method->mpm_key,
-                //     "amount_total" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
-                //     "name" => $student->fullname,
-                //     "email" => $student->email,
-                //     "phone" => $student->phone_number,
-                //     "item_details" => [
-                //         0 => [
-                //             "name" => "Cicilan ke-".$bill->prrb_order,
-                //             "price" => ($bill->prrb_amount + $payment_method->mpm_fee) - intval($validated['student_balance_spend']),
-                //         ]
-                //     ]
-                // ]);
+                $bill->prrb_pg_data = json_encode([
+                    'order_id' => $order_id,
+                    'va_number' => $charge_result->payload->va_number,
+                    'exp_time' => $charge_result->payload->transaction_exp,
+                ]);
+            }
 
-                // if ($charge_result->status == 'error') {
-                //     throw new \Exception($charge_result->message);
-                // }
-
-                // $bill->prrb_admin_cost = $payment_method->mpm_fee;
-                $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
-                $bill->prrb_order_id = $order_id;
-                $bill->prrb_payment_gateway = 'midtrans';
-                // $bill->prrb_midtrans_transaction_exp = $charge_result->payload->transaction_exp;
-                // $bill->prrb_midtrans_transaction_id = $charge_result->payload->transaction_id;
-                // $bill->prrb_pg_
-
-                if ($payment_method->mpm_type == 'bank_transfer_va') {
-                    $bill->prrb_va_number = $charge_result->payload->va_number;
-                }
-                elseif ($payment_method->mpm_type == 'bank_transfer_bill_payment') {
-                    $bill->prrb_mandiri_biller_code = $charge_result->payload->biller_code;
-                    $bill->prrb_mandiri_bill_key = $charge_result->payload->bill_key;
-                }
+            if ($payment_type->method == 'manual_transfer') {
+                $payee_account = MasterPayeeAccount::where('channel', $payment_type->channel)->first();
+                $bill->prrb_pg_data = json_encode([
+                    'account_number' => $payee_account->account_number
+                ]);
             }
 
             // save bill

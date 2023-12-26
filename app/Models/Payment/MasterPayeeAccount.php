@@ -11,5 +11,5 @@ class MasterPayeeAccount extends Model
 
     protected $table = "finance.ms_payee_account";
 
-    protected $primaryKey = 'mpa_id';
+    protected $primaryKey = 'id';
 }

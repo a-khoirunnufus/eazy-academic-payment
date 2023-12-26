@@ -13,7 +13,7 @@ class MasterPaymentTypeManual extends Model
 
     protected $table = "finance.ms_payment_type_manual";
 
-    protected $primaryKey = 'mptman_code';
+    protected $primaryKey = 'code';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -27,19 +27,19 @@ class MasterPaymentTypeManual extends Model
     {
         $admin_cost = 0;
 
-        $record = $this->adminCost->where('mpacman_is_active', true)->first();
+        $record = $this->adminCost->where('is_active', true)->first();
 
         if($record) {
-            if ($record->mpacman_type == 'fixed') {
-                $admin_cost = $record->mpacman_fixed_fee;
+            if ($record->type == 'fixed') {
+                $admin_cost = $record->fixed_fee;
             }
 
-            if ($record->mpacman_type == 'percentage') {
-                $admin_cost = $record->mpacman_percentage_fee;
+            if ($record->type == 'percentage') {
+                $admin_cost = $record->percentage_fee;
             }
 
-            if ($record->mpacman_type == 'combined') {
-                $admin_cost = $record->mpacman_fixed_fee + $record->mpacman_percentage_fee;
+            if ($record->type == 'combined') {
+                $admin_cost = $record->fixed_fee + $record->percentage_fee;
             }
         }
 
@@ -52,7 +52,7 @@ class MasterPaymentTypeManual extends Model
 
     public function adminCost()
     {
-        return $this->hasMany(MasterPaymentAdminCostManual::class, 'mptman_code', 'mptman_code');
+        return $this->hasMany(MasterPaymentAdminCostManual::class, 'payment_type_code', 'code');
     }
 
     /**
@@ -61,6 +61,6 @@ class MasterPaymentTypeManual extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('mptman_is_active', true);
+        return $query->where('is_active', true);
     }
 }

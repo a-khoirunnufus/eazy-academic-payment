@@ -561,44 +561,41 @@
                 }
             });
 
-            let typeColumnNamePrefix = '';
-            if (paymentService == 'midtrans') typeColumnNamePrefix = 'mptm_';
-            if (paymentService == 'finpay') typeColumnNamePrefix = 'mptf_';
-            if (paymentService == 'manual') typeColumnNamePrefix = 'mptman_';
-
             let arrPaymentMethod = [];
-            paymentTypes.forEach(type => {
-                if (!arrPaymentMethod.includes(type[typeColumnNamePrefix+'method'])) {
-                    arrPaymentMethod.push(type[typeColumnNamePrefix+'method'])
+            paymentTypes.forEach(paymentType => {
+                if (!arrPaymentMethod.includes(paymentType.method)) {
+                    arrPaymentMethod.push(paymentType.method)
                 }
             })
 
             const filteredPaymentMethods = paymentMethods.filter(method => {
-                if (arrPaymentMethod.includes(method.mpm_code)) {
+                if (arrPaymentMethod.includes(method.code)) {
                     return true;
                 }
                 return false;
             });
 
-            const groupedPaymentTypeByMethod = filteredPaymentMethods.map(method => {
+            const groupedPaymentTypeByMethod = filteredPaymentMethods.map(paymentMethod => {
                 return {
-                    method: method,
-                    types: paymentTypes.filter(type => type[typeColumnNamePrefix+'method'] == method.mpm_code),
+                    method: paymentMethod,
+                    types: paymentTypes.filter(paymentType => paymentType.method == paymentMethod.code),
                 };
             });
+
+            // console.log(groupedPaymentTypeByMethod);
 
             $('#stepper-pay-bill #step-2 .step-content').html(
                 groupedPaymentTypeByMethod.map(item => {
                     return `
                         <div>
-                            <h5 class="fw-bold mb-1">${item.method.mpm_name}</h5>
+                            <h5 class="fw-bold mb-1">${item.method.name}</h5>
                             <div class="list-payment-method">
                                 ${
-                                    item.types.map(type => {
+                                    item.types.map(paymentType => {
                                         return `
-                                            <div class="list-payment-method__item" data-code="${type[typeColumnNamePrefix+'code']}">
-                                                <img class="item__logo" src="{{ url('${type[typeColumnNamePrefix+`logo`]}') }}" alt="${type[typeColumnNamePrefix+'name']}">
-                                                <p class="item__text">${type[typeColumnNamePrefix+'name']}</p>
+                                            <div class="list-payment-method__item" data-code="${paymentType.code}">
+                                                <img class="item__logo" src="{{ url('${paymentType.logo}') }}" alt="${paymentType.name}">
+                                                <p class="item__text">${paymentType.name}</p>
                                             </div>
                                         `;
                                     }).join('')
@@ -680,11 +677,6 @@
                 }
             });
 
-            let typeColumnNamePrefix = '';
-            if (paymentServiceCode == 'midtrans') typeColumnNamePrefix = 'mptm_';
-            if (paymentServiceCode == 'finpay') typeColumnNamePrefix = 'mptf_';
-            if (paymentServiceCode == 'manual') typeColumnNamePrefix = 'mptman_';
-
             $('#stepper-pay-bill #step-4 .step-content').html(`
                 <div>
                     <table class="table table-borderless" style="vertical-align: middle;">
@@ -693,8 +685,8 @@
                                 <th style="width: 70%">Metode Pembayaran</th>
                                 <th>
                                     <div class="d-flex flex-column align-items-end">
-                                        <img src="{{ url('${paymentType[typeColumnNamePrefix+`logo`]}') }}" style="width: 100px;" class="d-block mb-1" />
-                                        <div>${paymentType[typeColumnNamePrefix+'name']}</div>
+                                        <img src="{{ url('${paymentType.logo}') }}" style="width: 100px;" class="d-block mb-1" />
+                                        <div>${paymentType.name}</div>
                                     </div>
                                 </th>
                             </tr>

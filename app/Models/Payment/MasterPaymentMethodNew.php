@@ -11,7 +11,7 @@ class MasterPaymentMethodNew extends Model
 
     protected $table = "finance.ms_payment_method_new";
 
-    protected $primaryKey = 'mpm_code';
+    protected $primaryKey = 'code';
     public $incrementing = false;
     protected $keyType = 'string';
 }

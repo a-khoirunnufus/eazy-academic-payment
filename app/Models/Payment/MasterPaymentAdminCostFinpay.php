@@ -11,7 +11,7 @@ class MasterPaymentAdminCostFinpay extends Model
 
     protected $table = "finance.ms_payment_admin_cost_finpay";
 
-    protected $primaryKey = 'mpacf_id';
+    protected $primaryKey = 'id';
 
     /**
      * SCOPES
@@ -19,6 +19,6 @@ class MasterPaymentAdminCostFinpay extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('mpacf_is_active', true);
+        return $query->where('is_active', true);
     }
 }
