@@ -15,14 +15,17 @@ class PaymentServiceApi
     private $payment_gateway;
     private $client;
 
-    public function __construct()
+    public function __construct($payment_gateway = null)
     {
-        $payment_gateway = DB::table('finance.ms_settings')
-            ->where('name', 'payment_payment_gateway_use')
-            ->first()
-            ->value;
-
-        $this->payment_gateway = $payment_gateway;
+        if ($payment_gateway == null) {
+            $payment_gateway_default = DB::table('finance.ms_settings')
+                ->where('name', 'payment_payment_gateway_use')
+                ->first()
+                ->value;
+            $this->payment_gateway = $payment_gateway_default;
+        } else {
+            $this->payment_gateway = $payment_gateway;
+        }
 
         if ($payment_gateway == 'midtrans') {
             $this->client = new MidtransClient();
