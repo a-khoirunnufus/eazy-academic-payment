@@ -20,11 +20,15 @@ use App\Models\Payment\PaymentTransaction;
 use App\Models\Payment\Student;
 use App\Models\Payment\StudentBalanceTrans;
 use App\Models\Payment\StudentBalanceSpent;
+use App\Models\Payment\MasterPaymentTypeMidtrans;
+use App\Models\Payment\MasterPaymentTypeFinpay;
+use App\Models\Payment\MasterPaymentTypeManual;
 use App\Models\PMB\Setting;
 use App\Models\PMB\Participant as NewStudent;
 use App\Models\PMB\Participant;
 use App\Models\PMB\Register;
 use App\Services\Payment\PaymentApi;
+use App\Services\Payment\PaymentGateway\PaymentServiceApi;
 use App\Exceptions\MidtransException;
 use Carbon\Carbon;
 
@@ -182,27 +186,26 @@ class StudentInvoiceController extends Controller
             'student_balance_spend' => 'required_with:use_student_balance',
         ]);
 
-        dd($request->all());
-
         try {
             DB::beginTransaction();
 
             // $payment = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
-            $master_bill = Payment::with(['paymentDetail'])->where('prr_id', '=', $prr_id)->first();
+            $master_bill = Payment::with(['paymentDetail', 'year'])->where('prr_id', '=', $prr_id)->first();
+            $bill_year = $master_bill->year;
             // $bill = PaymentBill::find($prrb_id);
             $bill = PaymentBill::find($prrb_id);
             // $payment_method = PaymentMethod::where('mpm_key', $validated['payment_method'])->first();
             if ($validated['payment_service'] == 'midtrans') {
-                $payment_type = MasterPaymentTypeMidtrans::find($validted['payment_type']);
+                $payment_type = MasterPaymentTypeMidtrans::find($validated['payment_type']);
             }
             elseif ($validated['payment_service'] == 'finpay') {
-                $payment_type = MasterPaymentTypeFinpay::find($validted['payment_type']);
+                $payment_type = MasterPaymentTypeFinpay::find($validated['payment_type']);
             }
             elseif ($validated['payment_service'] == 'manual') {
-                $payment_type = MasterPaymentTypeManual::find($validted['payment_type']);
+                $payment_type = MasterPaymentTypeManual::find($validated['payment_type']);
             }
 
-            // check if previous payment already paid
+            // check if previous payment not paid
             if ($bill->prrb_order > 1) {
                 $prev_pay_paid = PaymentBill::where([
                         ['prr_id', '=', $prr_id],
@@ -221,6 +224,8 @@ class StudentInvoiceController extends Controller
             // $bill->prrb_payment_method = $payment_method->mpm_key;
             $bill->prrb_pg_service = $validated['payment_service'];
             $bill->prrb_payment_type = $payment_type->code;
+            $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
+            $bill->prrb_total = $bill->prrb_amount + $payment_type->computed_admin_cost;
 
             // bank transfer manual
             // if ($payment_method->mpm_type == 'bank_transfer_manual') {
@@ -295,32 +300,39 @@ class StudentInvoiceController extends Controller
             //     }
             // }
 
-            $bill->prrb_admin_cost = $payment_type->computed_admin_cost;
-
             if ($payment_type->method == 'virtual_account') {
                 $order_id = (string) Str::uuid();
 
-                $student = Student::find($payment->student_number);
+                $student = Student::find($master_bill->student_number);
 
-                $items = [[
-                    'id' => (string) Str::uuid(),
-                    'price' => $price,
-                    'quantity' => $quantity,
-                    'name' => $name,
-                ]];
+                $items = [
+                    [
+                        'id' => (string) Str::uuid(),
+                        'price' => $bill->prrb_amount,
+                        'quantity' => 1,
+                        'name' => 'Tagihan Registrasi Mahasiswa TA '.$bill_year->msy_year.' Semester '.$bill_year->msy_semester,
+                    ],
+                    [
+                        'id' => (string) Str::uuid(),
+                        'price' => $bill->prrb_admin_cost,
+                        'quantity' => 1,
+                        'name' => 'Biaya Admin',
+                    ],
+                ];
 
                 // charge transaction
                 $charge_result = (new PaymentServiceApi($validated['payment_service']))->charge([
                     'order_id' => $order_id,
                     'payment_type' => $payment_type,
                     'student' => $student,
-                    'items' => $items
+                    'items' => $items,
+                    'total_amount' => $bill->prrb_total,
                 ]);
 
                 $bill->prrb_pg_data = json_encode([
                     'order_id' => $order_id,
-                    'va_number' => $charge_result->payload->va_number,
-                    'exp_time' => $charge_result->payload->transaction_exp,
+                    'va_number' => $charge_result['va_number'],
+                    'exp_time' => $charge_result['expiry_time'],
                 ]);
             }
 

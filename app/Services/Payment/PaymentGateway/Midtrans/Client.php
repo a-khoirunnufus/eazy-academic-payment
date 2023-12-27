@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 
-use App\Service\Payment\PaymentGateway\Contracts\PaymentServiceClient;
-use App\Service\Payment\PaymentGateway\Exceptions\PaymentServiceClientException;
+use App\Services\Payment\PaymentGateway\Contracts\PaymentServiceClient;
+use App\Services\Payment\PaymentGateway\Exceptions\PaymentServiceClientException;
+use App\Services\Payment\PaymentGateway\Midtrans\Validator\RequestValidator;
+use App\Services\Payment\PaymentGateway\Midtrans\Validator\ResponseValidator;
 
 use Carbon\Carbon;
 
@@ -29,9 +31,9 @@ class Client implements PaymentServiceClient
 
     public function charge($request_body, $payment_type)
     {
-        (new RequestValidator('charge', $payment_type))->validate($request_body);
+        (new RequestValidator('charge', $payment_type->code))->validate($request_body);
 
-        $response = (array) Http::withHeaders($this->request_header)
+        $response = (array) Http::withHeaders($this->request_headers)
             ->post($this->base_url.'/charge', $request_body)
             ->object();
 
@@ -44,7 +46,10 @@ class Client implements PaymentServiceClient
 
         ResponseValidator::validate($response);
 
-        return true;
+        return [
+            'va_number' => $response['va_numbers'][0]->va_number,
+            'expiry_time' => $response['expiry_time'],
+        ];
     }
 
     public function status($order_id)
@@ -65,7 +70,7 @@ class Client implements PaymentServiceClient
         return true;
     }
 
-    public function cancel()
+    public function cancel($order_id)
     {
         $response = (array) Http::withHeaders($this->request_header)
             ->post($this->base_url.'/'.$order_id.'/cancel')
@@ -86,11 +91,11 @@ class Client implements PaymentServiceClient
     private function createLog($action, $code, $message, $payload)
     {
         DB::table('finance.log_service_midtrans')->insert([
-            'lsm_timestamp' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
-            'lsm_action' => $action,
-            'lsm_status_code' => $code,
-            'lsm_status_message' => $message,
-            'lsm_payload' => json_encode($payload),
+            'timestamp' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+            'action' => $action,
+            'status_code' => $code,
+            'status_message' => $message,
+            'payload' => json_encode($payload),
         ]);
     }
 }

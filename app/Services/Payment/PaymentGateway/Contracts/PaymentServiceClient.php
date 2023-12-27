@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Payment\Service\PaymentGateway\Contracts;
+namespace App\Services\Payment\PaymentGateway\Contracts;
 
 interface PaymentServiceClient
 {
-    public function chargeTransaction(array $config): bool;
-    public function statusTransaction();
-    public function cancelTransaction();
+    public function charge($request_body, $payment_type);
+    public function status($order_id);
+    public function cancel($order_id);
 }

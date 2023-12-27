@@ -47,21 +47,20 @@ class PaymentServiceApi
      *          quantity: int,
      *          name: string
      *      }
-     * } $options
+     * } $config
      */
-    public function charge($options)
+    public function charge($config)
     {
         if ($this->payment_gateway == 'midtrans') {
-            $request_body = MidtransRequestBody::create($options);
+            $request_body = MidtransRequestBody::create($config);
         }
 
         if ($this->payment_gateway == 'finpay') {
-            $request_body = FinpayRequestBody::create($options);
+            $request_body = FinpayRequestBody::create($config);
         }
 
         try {
-            $this->client->charge($request_body, $options['payment_type']);
-            return true;
+            return $this->client->charge($request_body, $config['payment_type']);
         }
         catch (PaymentServiceClientException $ex) {
             throw $ex;
