@@ -650,7 +650,7 @@
             `);
 
             $('#step-3 #input-student-balance-allocation').change(function() {
-                const studentBalanceAllocation = parseInt($(this).val());
+                const studentBalanceAllocation = parseInt($(this).val() ?? 0);
                 document.querySelector('#stepper-pay-bill #step-3').dispatchEvent(new CustomEvent('dataChange', {detail: {studentBalance, studentBalanceAllocation}}));
             });
             $('#step-3 #input-student-balance-allocation').val(0).trigger('change');
@@ -664,6 +664,7 @@
             const paymentTypeCode = paymentMethodState.stepTwoData.paymentTypeCode;
             const masterBillId = paymentMethodState.generalData.masterBillId;
             const billId = paymentMethodState.generalData.billId;
+            const studentBalanceAllocation = paymentMethodState.stepThreeData.studentBalanceAllocation;
 
             const paymentType = await $.ajax({
                 async: true,
@@ -676,6 +677,8 @@
                     withData: ['payment', 'payment.year']
                 }
             });
+            const year = bill.payment.year;
+            console.log(year);
 
             $('#stepper-pay-bill #step-4 .step-content').html(`
                 <div>
@@ -696,30 +699,30 @@
                     <table class="table table-borderless" style="vertical-align: top;">
                         <tbody>
                             <tr>
-                                <td style="width: 70%">Tagihan Registrasi Semester Baru TA 2023/2024 Ganjil</td>
-                                <td class="text-end">Rp 10.000.000,00</td>
+                                <td style="width: 70%">Tagihan Registrasi Semester Baru TA ${year.msy_year} ${year.msy_semester == '1' ? 'Ganjil' : 'Genap'}</td>
+                                <td class="text-end">${Rupiah.format(bill.prrb_amount)}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <hr/>
-                    <table class="table table-borderless" style="vertical-align: top;">
-                        <tbody>
-                            <tr>
-                                <td style="width: 70%">Penggunaan Saldo Mahasiswa</td>
-                                <td class="text-end">Rp 1.000.000,00</td>
-                            </tr>
-                            <tr>
-                                <td style="width: 70%">Potongan Semester 2023/2024 Ganjil</td>
-                                <td class="text-end">Rp 2.000.000,00</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    ${
+                        studentBalanceAllocation > 0 ? `
+                            <hr/>
+                            <table class="table table-borderless" style="vertical-align: top;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 70%">Penggunaan Saldo Mahasiswa</td>
+                                        <td class="text-end">${Rupiah.format(studentBalanceAllocation)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        ` : ''
+                    }
                     <hr/>
                     <table class="table table-borderless" style="vertical-align: top;">
                         <tbody>
                             <tr>
                                 <td style="width: 70%">Biaya Admin</td>
-                                <td class="text-end">Rp 4.000,00</td>
+                                <td class="text-end">${Rupiah.format(paymentType.computed_admin_cost)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -728,7 +731,9 @@
                         <tbody>
                             <tr>
                                 <th style="width: 70%; font-size: 1.3rem;">Total</th>
-                                <th class="text-end" style="font-size: 1.3rem;">Rp 7.000.000,00</th>
+                                <th class="text-end" style="font-size: 1.3rem;">${
+                                    Rupiah.format(bill.prrb_amount + paymentType.computed_admin_cost)
+                                }</th>
                             </tr>
                         </tbody>
                     </table>
