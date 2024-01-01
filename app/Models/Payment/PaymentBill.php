@@ -143,6 +143,8 @@ class PaymentBill extends Model
     }
 
 
+
+
     /**
      * RELATIONSHIPS
      */
@@ -152,10 +154,10 @@ class PaymentBill extends Model
         return $this->belongsTo(Payment::class, 'prr_id', 'prr_id');
     }
 
-    public function paymentMethod()
-    {
-        return $this->hasOne(PaymentMethod::class, 'mpm_key', 'prrb_payment_method');
-    }
+    // public function paymentMethod()
+    // {
+    //     return $this->hasOne(PaymentMethod::class, 'mpm_key', 'prrb_payment_method');
+    // }
 
     public function paymentManualApproval()
     {

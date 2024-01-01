@@ -1046,7 +1046,7 @@
                 }
             });
 
-            if (bill.prrb_payment_method != null) {
+            if (bill.prrb_payment_type != null) {
                 payBillModal.openPaymentInstructionModal(bill);
             } else {
                 payBillModal.openPaymentMethodModal(prrId, prrbId);
@@ -1116,11 +1116,19 @@
             paymentMethodModal.show();
         },
         openPaymentInstructionModal: async function(bill) {
-            const paymentMethod = await $.ajax({
+            const paymentServiceCode = bill.prrb_pg_service;
+            const paymentTypeCode = bill.prrb_payment_type;
+
+            // const paymentMethod = await $.ajax({
+            //     async: true,
+            //     url: `${_baseURL}/api/payment/payment-method/${bill.prrb_payment_method}`,
+            //     type: 'get',
+            // });
+            const paymentType = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/payment/payment-method/${bill.prrb_payment_method}`,
+                url: `${_baseURL}/api/payment/resource/payment-type/${paymentServiceCode}/${paymentTypeCode}`,
                 type: 'get',
-            });
+            })
 
             const paymentApprovals = await $.ajax({
                 async: true,
@@ -1192,7 +1200,7 @@
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
                     <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
-                    <td>${paymentMethod.mpm_name}</td>
+                    <td>${paymentType.mpm_name}</td>
                 </tr>
 
                 ${paymentMethod.mpm_type == 'bank_transfer_va' ? `
