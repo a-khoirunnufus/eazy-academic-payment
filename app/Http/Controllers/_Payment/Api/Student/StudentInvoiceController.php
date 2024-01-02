@@ -20,9 +20,7 @@ use App\Models\Payment\PaymentTransaction;
 use App\Models\Payment\Student;
 use App\Models\Payment\StudentBalanceTrans;
 use App\Models\Payment\StudentBalanceSpent;
-use App\Models\Payment\MasterPaymentTypeMidtrans;
-use App\Models\Payment\MasterPaymentTypeFinpay;
-use App\Models\Payment\MasterPaymentTypeManual;
+use App\Models\Payment\MasterPaymentType;
 use App\Models\PMB\Setting;
 use App\Models\PMB\Participant as NewStudent;
 use App\Models\PMB\Participant;
@@ -195,15 +193,7 @@ class StudentInvoiceController extends Controller
             // $bill = PaymentBill::find($prrb_id);
             $bill = PaymentBill::find($prrb_id);
             // $payment_method = PaymentMethod::where('mpm_key', $validated['payment_method'])->first();
-            if ($validated['payment_service'] == 'midtrans') {
-                $payment_type = MasterPaymentTypeMidtrans::find($validated['payment_type']);
-            }
-            elseif ($validated['payment_service'] == 'finpay') {
-                $payment_type = MasterPaymentTypeFinpay::find($validated['payment_type']);
-            }
-            elseif ($validated['payment_service'] == 'manual') {
-                $payment_type = MasterPaymentTypeManual::find($validated['payment_type']);
-            }
+            $payment_type = MasterPaymentType::find($validated['payment_type']);
 
             // check if previous payment not paid
             if ($bill->prrb_order > 1) {
@@ -409,6 +399,7 @@ class StudentInvoiceController extends Controller
         }
         catch (\Throwable $th) {
             DB::rollback();
+            throw $th;
 
             return response()->json([
                 'success' => false,
@@ -426,7 +417,8 @@ class StudentInvoiceController extends Controller
 
             $bill_master = Payment::find($prr_id);
             $bill = PaymentBill::find($prrb_id);
-            $payment_method = PaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
+            // $payment_method = PaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
+            $payment_type = MasterPaymentType::find($bill->prrb_payment_type);
 
             if (!$bill) {
                 throw new \Exception('Bill not found!');
@@ -440,23 +432,19 @@ class StudentInvoiceController extends Controller
             }
 
             // Cancel midtrans transaction
-            if ($payment_method->mpm_type == 'bank_transfer_va') {
-                $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
-                if ($cancel_result->status != 'success') {
-                    // try cancel transaction again later by put it into queue
-                }
-            }
+            // if ($payment_method->mpm_type == 'bank_transfer_va') {
+            //     $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
+            //     if ($cancel_result->status != 'success') {
+            //         // try cancel transaction again later by put it into queue
+            //     }
+            // }
 
             // Reset bill columns
             $bill->prrb_admin_cost = null;
-            $bill->prrb_payment_method = null;
-            $bill->prrb_order_id = null;
-            $bill->prrb_va_number = null;
-            $bill->prrb_mandiri_bill_key = null;
-            $bill->prrb_mandiri_biller_code = null;
-            $bill->prrb_account_number = null;
-            $bill->prrb_midtrans_transaction_id = null;
-            $bill->prrb_midtrans_transaction_exp = null;
+            $bill->prrb_total = null;
+            $bill->prrb_pg_service = null;
+            $bill->prrb_payment_type = null;
+            $bill->prrb_pg_data = null;
             $bill->save();
 
             // Restore student_balance_spent if exists

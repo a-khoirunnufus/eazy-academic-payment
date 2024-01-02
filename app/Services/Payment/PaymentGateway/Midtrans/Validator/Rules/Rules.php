@@ -2,7 +2,7 @@
 
 namespace App\Services\Payment\PaymentGateway\Midtrans\Validator\Rules;
 
-use App\Service\Payments\PaymentGateway\Exceptions\PaymentServiceClientException;
+use App\Service\Payment\PaymentGateway\Exceptions\PaymentServiceClientException;
 
 class Rules
 {

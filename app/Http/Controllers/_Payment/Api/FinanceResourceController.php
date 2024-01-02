@@ -14,9 +14,7 @@ use App\Models\Payment\Path;
 use App\Models\Payment\LectureType;
 use App\Models\Payment\Scholarship;
 use App\Models\Payment\Discount;
-use App\Models\Payment\MasterPaymentTypeMidtrans;
-use App\Models\Payment\MasterPaymentTypeFinpay;
-use App\Models\Payment\MasterPaymentTypeManual;
+use App\Models\Payment\MasterPaymentType;
 use App\Models\Payment\MasterPaymentMethodNew;
 
 class FinanceResourceController extends Controller
@@ -153,70 +151,24 @@ class FinanceResourceController extends Controller
             if ($active_only === 'false') $active_only = false;
         }
 
-        $data = [];
+        $query = MasterPaymentType::query();
 
         if ($payment_service) {
-            if ($payment_service == 'midtrans') {
-                $data = $active_only ? MasterPaymentTypeMidtrans::active()->get()->toArray()
-                    : MasterPaymentTypeMidtrans::get()->toArray();
-            }
-            if ($payment_service == 'finpay') {
-                $data = $active_only ? MasterPaymentTypeFinpay::active()->get()->toArray()
-                    : MasterPaymentTypeFinpay::get()->toArray();
-            }
-            if ($payment_service == 'manual') {
-                $data = $active_only ? MasterPaymentTypeManual::active()->get()->toArray()
-                    : MasterPaymentTypeManual::get()->toArray();
-            }
+            $query->where('service', $payment_service);
         }
-        else {
-            $midtrans_active = DB::table('finance.ms_settings')->where('name', 'payment_with_midtrans_active')->first()->value == '1';
-            $finpay_active = DB::table('finance.ms_settings')->where('name', 'payment_with_finpay_active')->first()->value == '1';
-            $manual_active = DB::table('finance.ms_settings')->where('name', 'payment_with_manual_active')->first()->value == '1';
 
-            if ($midtrans_active) {
-                $data[] = [
-                    'payment_service' => 'midtrans',
-                    'data' => $active_only ? MasterPaymentTypeMidtrans::active()->get()->toArray()
-                        : MasterPaymentTypeMidtrans::get()->toArray(),
-                ];
-            }
-
-            if ($finpay_active) {
-                $data[] = [
-                    'payment_service' => 'finpay',
-                    'data' => $active_only ? MasterPaymentTypeFinpay::active()->get()->toArray()
-                        : MasterPaymentTypeFinpay::get()->toArray(),
-                ];
-            }
-
-            if ($manual_active) {
-                $data[] = [
-                    'payment_service' => 'manual',
-                    'data' => $active_only ? MasterPaymentTypeManual::active()->get()->toArray()
-                        : MasterPaymentTypeManual::get()->toArray(),
-                ];
-            }
+        if ($active_only) {
+            $query->active();
         }
+
+        $data = $query->get()->toArray();
 
         return response()->json($data);
     }
 
-    public function paymentTypeShow($payment_service, $code)
+    public function paymentTypeShow($code)
     {
-        $data = null;
-
-        if ($payment_service == 'midtrans') {
-            $data = MasterPaymentTypeMidtrans::find($code);
-        }
-
-        if ($payment_service == 'finpay') {
-            $data = MasterPaymentTypeFinpay::find($code);
-        }
-
-        if ($payment_service == 'manual') {
-            $data = MasterPaymentTypeManual::find($code);
-        }
+        $data = MasterPaymentType::find($code) ?? null;
 
         if (is_null($data)) {
             return response()->json(['message'=> 'payment type not found!'], 404);

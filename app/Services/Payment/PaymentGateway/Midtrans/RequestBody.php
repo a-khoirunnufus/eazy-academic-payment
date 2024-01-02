@@ -9,7 +9,7 @@ class RequestBody
 {
     public static function create($config)
     {
-        $midtrans_data = json_decode($config['payment_type']->specific_datas, true);
+        $midtrans_data = json_decode($config['payment_type']->service_data, true);
         $va_expiry_duration_minute = DB::table('finance.ms_settings')->where('name', 'payment_va_expiry_duration_minute')->first()->value;
 
         return [

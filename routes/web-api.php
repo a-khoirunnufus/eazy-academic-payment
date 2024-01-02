@@ -390,7 +390,7 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('discount/{ms_id}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@discountShow');
 
         Route::get('payment-type', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentTypeIndex');
-        Route::get('payment-type/{payment_service}/{code}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentTypeShow');
+        Route::get('payment-type/{code}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentTypeShow');
 
         Route::get('payment-method', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentMethodIndex');
         Route::get('payment-method/{code}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@paymentMethodShow');

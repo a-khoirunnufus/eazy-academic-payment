@@ -660,7 +660,6 @@
                 return;
             }
 
-            const paymentServiceCode = paymentMethodState.stepOneData.paymentServiceCode;
             const paymentTypeCode = paymentMethodState.stepTwoData.paymentTypeCode;
             const masterBillId = paymentMethodState.generalData.masterBillId;
             const billId = paymentMethodState.generalData.billId;
@@ -668,7 +667,7 @@
 
             const paymentType = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/payment/resource/payment-type/${paymentServiceCode}/${paymentTypeCode}`,
+                url: `${_baseURL}/api/payment/resource/payment-type/${paymentTypeCode}`,
             });
             const bill = await $.ajax({
                 async: true,
@@ -1119,6 +1118,9 @@
             const paymentServiceCode = bill.prrb_pg_service;
             const paymentTypeCode = bill.prrb_payment_type;
 
+            const paymentGatewayData = JSON.parse(bill.prrb_pg_data);
+            // console.log(paymentGatewayData);
+
             // const paymentMethod = await $.ajax({
             //     async: true,
             //     url: `${_baseURL}/api/payment/payment-method/${bill.prrb_payment_method}`,
@@ -1126,7 +1128,7 @@
             // });
             const paymentType = await $.ajax({
                 async: true,
-                url: `${_baseURL}/api/payment/resource/payment-type/${paymentServiceCode}/${paymentTypeCode}`,
+                url: `${_baseURL}/api/payment/resource/payment-type/${paymentTypeCode}`,
                 type: 'get',
             })
 
@@ -1164,10 +1166,10 @@
 
             if (
                 bill.computed_payment_status != 'lunas'
-                && paymentMethod.mpm_type != 'bank_transfer_manual'
+                && paymentType.method != 'manual_transfer'
             ) {
 
-                if (moment().isAfter(moment(bill.prrb_midtrans_transaction_exp))) {
+                if (moment().isAfter(moment(paymentGatewayData.exp_time))) {
                     // expire time exceeded
                     $('#paymentInstructionModal #va-number-exp-warning').html(`
                         <div class="alert p-1 alert-warning d-flex flex-row align-items-start">
@@ -1187,7 +1189,7 @@
                                 <i data-feather="alert-triangle"></i>
                             </div>
                             <div>
-                                ${paymentMethod.mpm_type == 'bank_transfer_va' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(bill.prrb_midtrans_transaction_exp).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
+                                ${paymentType.method == 'virtual_account' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(bill.prrb_midtrans_transaction_exp).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
                             </div>
                         </div>
                     `);
@@ -1203,7 +1205,7 @@
                     <td>${paymentType.mpm_name}</td>
                 </tr>
 
-                ${paymentMethod.mpm_type == 'bank_transfer_va' ? `
+                ${paymentType.method == 'virtual_account' ? `
                     <tr>
                         <td style="width: 300px" class="table-light fw-bolder">Nomor Virtual Account</td>
                         <td>${
@@ -1213,23 +1215,26 @@
                     </tr>
                 ` : ''}
 
-                ${paymentMethod.mpm_type == 'bank_transfer_manual' ? `
+                ${paymentType.method == 'manual_transfer' ? `
                     <tr>
                         <td style="width: 300px" class="table-light fw-bolder">Nomor Rekening</td>
                         <td>${bill.prrb_account_number}</td>
                     </tr>
                 ` : ''}
 
-                ${paymentMethod.mpm_type == 'bank_transfer_bill_payment' ? `
-                    <tr>
-                        <td style="width: 300px" class="table-light fw-bolder">Biller Code</td>
-                        <td>${bill.prrb_mandiri_biller_code}</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 300px" class="table-light fw-bolder">Bill Key</td>
-                        <td>${bill.prrb_mandiri_bill_key}</td>
-                    </tr>
-                ` : ''}
+                ${
+                    // paymentType.method == 'bank_transfer_bill_payment' ? `
+                    //     <tr>
+                    //         <td style="width: 300px" class="table-light fw-bolder">Biller Code</td>
+                    //         <td>${bill.prrb_mandiri_biller_code}</td>
+                    //     </tr>
+                    //     <tr>
+                    //         <td style="width: 300px" class="table-light fw-bolder">Bill Key</td>
+                    //         <td>${bill.prrb_mandiri_bill_key}</td>
+                    //     </tr>
+                    // ` :
+                    ''
+                }
 
                 <tr>
                     <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Awal</td>
@@ -1238,7 +1243,7 @@
 
                 <tr>
                     <td style="width: 300px" class="table-light fw-bolder">Biaya Admin</td>
-                    <td>${Rupiah.format(paymentMethod.mpm_fee)}</td>
+                    <td>${Rupiah.format(bill.prrb_admin_cost)}</td>
                 </tr>
 
                 ${studentBalanceSpent > 0 ? `
@@ -1272,7 +1277,7 @@
 
             // RENDER EVIDENCE PAYMENT HISTORY
             $('#paymentInstructionModal #payment-evidence-section').html('');
-            if (paymentMethod.mpm_type == 'bank_transfer_manual') {
+            if (paymentType.method == 'manual_transfer') {
                 $('#paymentInstructionModal #payment-evidence-section').html(`
                     <div class="section-border mt-3">
                         <h4 class="mb-0">Riwayat Bukti Pembayaran</h4>
@@ -1377,7 +1382,7 @@
 
             // RENDER OVERPAYMENT HISTORY
             $('#paymentInstructionModal #overpayment-history-section').html('');
-            if (paymentMethod.mpm_type == 'bank_transfer_manual') {
+            if (paymentType.method == 'manual_transfer') {
                 $('#paymentInstructionModal #overpayment-history-section').html(`
                     <div class="section-border mt-3">
                         <h4 class="mb-1">Riwayat Kelebihan Bayar</h4>
@@ -1412,14 +1417,14 @@
             }
 
             // RENDER RESET PAYMENT METHOD BUTTON
-            if (paymentMethod.mpm_type == 'bank_transfer_va' && ['belum lunas', 'kredit'].includes(bill.computed_payment_status)) {
+            if (paymentType.method == 'virtual_account' && ['belum lunas', 'kredit'].includes(bill.computed_payment_status)) {
                 $('#paymentInstructionModal .modal-footer').html(`
                     <div class="d-flex justify-content-end">
                         <button onclick="payBillModal.resetPaymentMethod(${bill.prrb_id})" class="btn btn-outline-warning">Ganti Metode Pembayaran</button>
                     </div>
                 `);
             }
-            else if (paymentMethod.mpm_type == 'bank_transfer_manual' && bill.payment_manual_approval.length == 0) {
+            else if (paymentType.method == 'transfer_manual' && bill.payment_manual_approval.length == 0) {
                 $('#paymentInstructionModal .modal-footer').html(`
                     <div class="d-flex justify-content-end">
                         <button onclick="payBillModal.resetPaymentMethod(${bill.prrb_id})" class="btn btn-outline-warning">Ganti Metode Pembayaran</button>
