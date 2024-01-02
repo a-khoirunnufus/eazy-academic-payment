@@ -1156,8 +1156,8 @@
                 type: 'get',
             });
 
-            const nominalInvoice = bill.prrb_amount + bill.prrb_admin_cost;
-            const nominalHasToPaid = bill.prrb_amount + bill.prrb_admin_cost - studentBalanceSpent;
+            const nominalInvoice = bill.prrb_total;
+            const nominalHasToPaid = bill.prrb_total - studentBalanceSpent;
 
             const nominalPaid = bill.computed_nominal_paid_gross;
 
@@ -1202,15 +1202,15 @@
             $('#paymentInstructionModal #table-pay-data tbody').html(`
                 <tr>
                     <td style="width: 300px" class="table-light fw-bolder">Metode Pembayaran</td>
-                    <td>${paymentType.mpm_name}</td>
+                    <td>${paymentType.name}</td>
                 </tr>
 
                 ${paymentType.method == 'virtual_account' ? `
                     <tr>
                         <td style="width: 300px" class="table-light fw-bolder">Nomor Virtual Account</td>
                         <td>${
-                            moment().isAfter(moment(bill.prrb_midtrans_transaction_exp)) ? '-'
-                                : bill.prrb_va_number
+                            moment().isAfter(moment(paymentGatewayData.exp_time)) ? '-'
+                                : paymentGatewayData.va_number
                         }</td>
                     </tr>
                 ` : ''}
@@ -1248,8 +1248,8 @@
 
                 ${studentBalanceSpent > 0 ? `
                     <tr>
-                        <td style="width: 300px" class="table-light fw-bolder">Jumlah Tagihan Awal</td>
-                        <td>${Rupiah.format(nominalInvoice)}</td>
+                        <td style="width: 300px" class="table-light fw-bolder">Subtotal Tagihan</td>
+                        <td>${Rupiah.format(bill.prrb_total)}</td>
                     </tr>
 
                     <tr>
