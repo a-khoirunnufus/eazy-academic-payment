@@ -404,7 +404,10 @@ Route::group(['prefix' => 'payment'], function(){
         Route::get('master-setting/{name}', 'App\Http\Controllers\_Payment\Api\FinanceResourceController@masterSettingShow');
     });
 
-    // Route::get('student/{student_id}', 'App\Http\Controllers\_Student\Api\StudentController@detail');
+    // Payment Service Notification Callback
+    Route::group(['prefix' => 'pg-notification-handler'], function() {
+        Route::get('midtrans', 'App\Http\Controllers\_Payment\Api\MidtransController@notificationHandler');
+    });
 
     // Development Testing Routes
     Route::group(['prefix' => 'dev-test'], function() {

@@ -1189,7 +1189,7 @@
                                 <i data-feather="alert-triangle"></i>
                             </div>
                             <div>
-                                ${paymentType.method == 'virtual_account' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(bill.prrb_midtrans_transaction_exp).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
+                                ${paymentType.method == 'virtual_account' ? 'Nomor Virtual Account' : 'Kode Bill'} akan kadaluwarsa pada ${moment(paymentGatewayData.exp_time).format('DD-MM-YYYY HH:mm')}. Segera selesaikan pembayaran Anda.
                             </div>
                         </div>
                     `);
