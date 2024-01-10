@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Payment\PaymentGateway\Midtrans\RequestBody;
+namespace App\Services\Payment\PaymentGateway\Finpay\RequestBody;
 
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +14,7 @@ class ChargeVirtualAccount
     /**
      * @param array {
      *      order_id: int,
-     *      payment_type: MasterPaymentTypeMidtrans|MasterPaymentTypeFinpay,
+     *      payment_type: MasterPaymentTypeFinpay|MasterPaymentTypeFinpay,
      *      student: Student,
      *      items: array[] {
      *          id: int,
@@ -22,12 +22,12 @@ class ChargeVirtualAccount
      *          quantity: int,
      *          name: string
      *      }
-     * } $config
+     * } $options
      */
     public static function create($config)
     {
         $payment_type = $config['payment_type'];
-        $midtrans_data = json_decode($payment_type->service_data, true);
+        $finpay_specific_data = json_decode($payment_type->service_data, true);
         $student = $config['student'];
 
         $total_price_amount = array_reduce($config['items'], function($carry, $item) {
@@ -50,7 +50,7 @@ class ChargeVirtualAccount
             ->value;
 
         return [
-            'payment_type' => $midtrans_data['payment_type'],
+            'payment_type' => $finpay_specific_data['payment_type'],
 
             'transaction_details' => [
                 'order_id' => $config['order_id'],
@@ -58,7 +58,7 @@ class ChargeVirtualAccount
             ],
 
             'bank_transfer' => [
-                'bank' => $midtrans_data['bank'],
+                'bank' => $finpay_specific_data['bank'],
             ],
 
             'item_details' => $item_details,

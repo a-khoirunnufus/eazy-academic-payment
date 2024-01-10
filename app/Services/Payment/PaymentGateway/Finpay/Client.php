@@ -1,11 +1,17 @@
 <?php
 
-namespace App\Services\Payment\PaymentGateway;
+namespace App\Services\Payment\PaymentGateway\Finpay;
 
-use App\Contracts\Payment\PaymentServiceClient;
 use Illuminate\Support\Facades\Http;
-use App\Exceptions\Payment\PaymentServiceClientException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\DB;
+
+use App\Services\Payment\PaymentGateway\Contracts\PaymentServiceClient;
+use App\Services\Payment\PaymentGateway\Exceptions\PaymentServiceClientException;
+use App\Services\Payment\PaymentGateway\Finpay\Validator\RequestValidator;
+use App\Services\Payment\PaymentGateway\Finpay\Validator\ResponseValidator;
+
+use Carbon\Carbon;
 
 class Client implements PaymentServiceClient
 {
@@ -17,7 +23,7 @@ class Client implements PaymentServiceClient
         $merchant_id = config('finpay.merchant_id');
         $merchant_key = config('finpay.merchant_key');
         $this->base_url = config('finpay.base_url');
-        $this->req_header = [
+        $this->request_headers = [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
             'Authorization' => 'Basic '.base64_encode($merchant_id.':'.$merchant_key),
@@ -26,38 +32,73 @@ class Client implements PaymentServiceClient
 
     public function charge($request_body, $payment_type)
     {
-        (new RequestValidator($payment_type))->validate($request_body);
+        (new RequestValidator('charge', $payment_type->code))->validate($request_body);
 
-        $url_subdirectory = $this->getUrlSubdirectoryByPaymentType($payment_type);
-        $response = (array) Http::withHeaders($this->request_header)
-            ->post($this->base_url.'/'.$url_subdirectory.'/initiate', $request_body)
+        $response = (array) Http::withHeaders($this->request_headers)
+            ->post($this->base_url.'/charge', $request_body)
             ->object();
 
-        $is_success = ResponseValidator::validate($response);
+        $this->createLog(
+            'charge transaction',
+            $response['status_code'] ?? 'n/a',
+            $response['status_code'] ?? 'n/a',
+            ['raw_response' => $response ?? 'n/a']
+        );
 
-        return $is_success;
+        ResponseValidator::validate($response);
+
+        return [
+            'va_number' => $response['va_numbers'][0]->va_number,
+            'expiry_time' => $response['expiry_time'],
+        ];
     }
 
-    public function status() {}
-
-    public function cancel() {}
-
-    private function getUrlSubdirectoryByPaymentType($payment_type)
+    public function status($order_id)
     {
-        if (in_array($payment_type, [
-            'vamandiri',
-            'vabni',
-            'vabtn',
-            'vamega',
-            'vabsi',
-            'vapermata',
-            'vabca',
-            'vabri',
-            'vabjb',
-        ])) {
-            return 'pg/payment/card';
-        }
+        $response = (array) Http::withHeaders($this->request_headers)
+            ->get($this->base_url.'/'.$order_id.'/status')
+            ->object();
 
-        throw new PaymentServiceClientException('Payment type invalid!', null, 1);
+        $this->createLog(
+            'check transaction status',
+            $response['status_code'] ?? 'n/a',
+            $response['status_code'] ?? 'n/a',
+            ['raw_response' => $response ?? 'n/a']
+        );
+
+        // ResponseValidator::validate($response);
+
+        return [
+            'status' => $response['transaction_status'],
+        ];
+    }
+
+    public function cancel($order_id)
+    {
+        $response = (array) Http::withHeaders($this->request_headers)
+            ->post($this->base_url.'/'.$order_id.'/cancel')
+            ->object();
+
+        $this->createLog(
+            'cancel transaction',
+            $response['status_code'] ?? 'n/a',
+            $response['status_code'] ?? 'n/a',
+            ['raw_response' => $response ?? 'n/a']
+        );
+
+        // ResponseValidator::validate($response);
+
+        return true;
+    }
+
+    private function createLog($action, $code, $message, $payload)
+    {
+        DB::table('finance.log_service_finpay')->insert([
+            'timestamp' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s O'),
+            'action' => $action,
+            'status_code' => $code,
+            'status_message' => $message,
+            'payload' => json_encode($payload),
+        ]);
     }
 }

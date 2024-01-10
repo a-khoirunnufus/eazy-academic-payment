@@ -63,6 +63,7 @@ class PaymentServiceApi
             return $this->client->charge($request_body, $config['payment_type']);
         }
         catch (PaymentServiceClientException $ex) {
+            dd($ex->getPayload());
             throw $ex;
         }
     }

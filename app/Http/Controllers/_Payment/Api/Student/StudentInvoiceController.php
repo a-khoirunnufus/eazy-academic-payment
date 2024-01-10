@@ -309,7 +309,7 @@ class StudentInvoiceController extends Controller
                         'name' => 'Biaya Admin',
                     ],
                 ];
-
+                dd($order_id);
                 // charge transaction
                 $charge_result = (new PaymentServiceApi($validated['payment_service']))->charge([
                     'order_id' => $order_id,
@@ -417,6 +417,7 @@ class StudentInvoiceController extends Controller
 
             $bill_master = Payment::find($prr_id);
             $bill = PaymentBill::find($prrb_id);
+            $payment_gateway_data = json_decode($bill->prrb_pg_data, true);
             // $payment_method = PaymentMethod::where('mpm_key', $bill->prrb_payment_method)->first();
             $payment_type = MasterPaymentType::find($bill->prrb_payment_type);
 
@@ -432,12 +433,12 @@ class StudentInvoiceController extends Controller
             }
 
             // Cancel midtrans transaction
-            // if ($payment_method->mpm_type == 'bank_transfer_va') {
-            //     $cancel_result = (new PaymentApi())->cancelTransaction($bill->prrb_order_id);
-            //     if ($cancel_result->status != 'success') {
-            //         // try cancel transaction again later by put it into queue
-            //     }
-            // }
+            if ($payment_type->method == 'virtual_account') {
+                $cancel_result = (new PaymentServiceApi($bill->prrb_pg_service))->cancel($payment_gateway_data['order_id']);
+                // if ($cancel_result->status != 'success') {
+                //     // try cancel transaction again later by put it into queue
+                // }
+            }
 
             // Reset bill columns
             $bill->prrb_admin_cost = null;
@@ -488,7 +489,7 @@ class StudentInvoiceController extends Controller
         }
         catch (\Throwable $th) {
             DB::rollback();
-
+            throw $th;
             return response()->json([
                 'success' => false,
                 'message' => $th->getMessage(),

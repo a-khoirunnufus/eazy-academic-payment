@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Services\Payment\PaymentGateway\Finpay\Validator;
+namespace App\Services\PaymentGateway\Finpay\Validator;
 
 use Illuminate\Support\Facades\Validator;
-use App\Services\Payment\PaymentGateway\Exceptions\PaymentServiceClientException;
 
 class ResponseValidator
 {
     public static function validate($response)
     {
-        if (
-            $response['status_code'] == '200'
-            || $response['status_code'] == '201'
-        ) {
+        if (is_null($response)) {
+            return true;
+        }
+
+        if ($response['responseCode'] == '2000000') {
             return true;
         }
 

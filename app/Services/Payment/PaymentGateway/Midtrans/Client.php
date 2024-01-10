@@ -54,7 +54,7 @@ class Client implements PaymentServiceClient
 
     public function status($order_id)
     {
-        $response = (array) Http::withHeaders($this->request_header)
+        $response = (array) Http::withHeaders($this->request_headers)
             ->get($this->base_url.'/'.$order_id.'/status')
             ->object();
 
@@ -65,14 +65,16 @@ class Client implements PaymentServiceClient
             ['raw_response' => $response ?? 'n/a']
         );
 
-        ResponseValidator::validate($response);
+        // ResponseValidator::validate($response);
 
-        return true;
+        return [
+            'status' => $response['transaction_status'],
+        ];
     }
 
     public function cancel($order_id)
     {
-        $response = (array) Http::withHeaders($this->request_header)
+        $response = (array) Http::withHeaders($this->request_headers)
             ->post($this->base_url.'/'.$order_id.'/cancel')
             ->object();
 
@@ -83,7 +85,7 @@ class Client implements PaymentServiceClient
             ['raw_response' => $response ?? 'n/a']
         );
 
-        ResponseValidator::validate($response);
+        // ResponseValidator::validate($response);
 
         return true;
     }

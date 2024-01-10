@@ -407,6 +407,7 @@ Route::group(['prefix' => 'payment'], function(){
     // Payment Service Notification Callback
     Route::group(['prefix' => 'pg-notification-handler'], function() {
         Route::get('midtrans', 'App\Http\Controllers\_Payment\Api\MidtransController@notificationHandler');
+        Route::get('finpay', 'App\Http\Controllers\_Payment\Api\FinpayController@notificationHandler');
     });
 
     // Development Testing Routes

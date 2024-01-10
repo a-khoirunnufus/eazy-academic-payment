@@ -16,6 +16,6 @@ class PaymentServiceClientException extends Exception
 
     public function getPayload()
     {
-        return $this->paylaod;
+        return $this->payload;
     }
 }
